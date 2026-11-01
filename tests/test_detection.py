@@ -3623,6 +3623,95 @@ def test_an_unplug_right_after_our_own_session_is_an_unplug(exclusive, monkeypat
     assert timers == [1500] and len(started) == 1
 
 
+# --- refreshing the device's files: unmounted and mounted again, no PTP session ------------
+
+
+def test_refresh_unmounts_and_mounts_again_without_a_session(exclusive, monkeypatch, caplog):
+    """gvfs keeps the size a file had when it was first looked at; a new mount gives fresh
+    sizes. Our own unmount and mount are not taken for an unplug, then and a moment after."""
+    st, fake, events = exclusive
+    quiet = []
+    remount = gio_storage._remount
+    monkeypatch.setattr(gio_storage, "_remount", lambda uri, storage: (
+        quiet.append(gio_storage.own_remount(FakeMount(NUMERIC))), remount(uri, storage)))
+    with caplog.at_level(logging.INFO, logger="openexpress"):
+        assert st.refresh() is True
+    assert events == [("unmount", NUMERIC), ("mount", NUMERIC, False)]  # no USB, no session
+    assert not fake.session_open and quiet == [True]
+    assert gio_storage.own_remount(FakeMount(NUMERIC))  # its signals arrive a moment later
+    said = [r.getMessage() for r in caplog.records if r.getMessage().startswith("refresh:")]
+    assert said[0] == "refresh: unmounting the device from gvfs"
+    assert said[1].startswith("refresh: device mounted again after ") and len(said) == 2
+
+
+def test_no_refresh_without_the_place_on_usb(exclusive):
+    """Our own unmount would be taken for an unplug: the device is left as it is."""
+    st, _fake, events = exclusive
+    st.usb = gio_storage.GarminUsb("51b4")
+    assert st.refresh() is False and events == []
+    st.usb, st.device_uri = None, NUMERIC
+    assert st.refresh() is False and events == []
+
+
+def test_a_refused_unmount_leaves_the_device_as_it_was(exclusive, monkeypatch):
+    from openexpress.device.storage import DeviceError
+
+    st, _fake, events = exclusive
+
+    def busy(uri):
+        raise DeviceError("busy")
+
+    monkeypatch.setattr(gio_storage, "_unmount", busy)
+    assert st.refresh() is False and events == []  # still mounted, its sizes as they were
+
+
+def test_an_unmount_out_of_time_is_followed_by_a_mount_and_no_refresh(exclusive, monkeypatch):
+    """As for a PTP session: once the device is seen unmounted it is mounted again. Whether
+    gvfs unmounted it at all is not known, so its sizes are not taken for fresh."""
+    st, _fake, events = exclusive
+    _unmount_without_an_answer(monkeypatch)
+    _seen_mounted_once_mounted_again(monkeypatch, st, events)
+    assert st.refresh() is False
+    assert events == [("mount", NUMERIC, False)]
+
+
+def test_a_refresh_that_cannot_mount_again_says_so(exclusive, monkeypatch):
+    """The device is left without a mount: the callers say to unplug and plug it in again."""
+    from openexpress.device.storage import RemountFailed
+
+    st, _fake, _events = exclusive
+
+    def refused(uri, storage):
+        raise RemountFailed("Cannot mount the device: made-up refusal")
+
+    monkeypatch.setattr(gio_storage, "_remount", refused)
+    with pytest.raises(RemountFailed):
+        st.refresh()
+
+
+def test_ctrl_c_during_a_refresh_stays_ctrl_c(exclusive, monkeypatch):
+    st, _fake, events = exclusive
+
+    def interrupted(uri):
+        raise KeyboardInterrupt
+
+    monkeypatch.setattr(gio_storage, "_unmount", interrupted)
+    _settling_fast(monkeypatch)
+    _seen_mounted_once_mounted_again(monkeypatch, st, events)
+    with pytest.raises(KeyboardInterrupt):
+        st.refresh()
+    assert events == [("mount", NUMERIC, False)]
+
+
+def test_a_folder_and_a_usb_drive_need_no_refresh(tmp_path):
+    """They read the file system, whose sizes are current."""
+    from openexpress.device.storage import LocalStorage, UmsStorage
+
+    (tmp_path / "GARMIN").mkdir()
+    assert LocalStorage(tmp_path).refresh() is False
+    assert UmsStorage(tmp_path, tmp_path.as_uri() + "/").refresh() is False
+
+
 # --- a device that is plugged in but not there yet ----------------------------------------
 
 

@@ -459,6 +459,24 @@ class GioStorage(Storage):
             return None
         return _exclusive(self.device_uri, usb.bus, usb.address, self, node)
 
+    def refresh(self) -> bool:
+        usb = self.usb
+        # Without its place on USB our own unmount would be taken for an unplug.
+        if usb is None or usb.bus is None or usb.address is None or not self.device_uri:
+            return False
+        try:
+            with _unmounted(self.device_uri, usb.bus, usb.address, self, "refresh",
+                            "device mounted again"):
+                pass
+        except RemountFailed:
+            raise  # not mounted again: the callers say to unplug and plug the device in again
+        except DeviceError as e:
+            # Not unmounted (refused, or not in time and seen as it settled): whether gvfs
+            # has fresh sizes is not known.
+            log.info("refresh: not done: %s", e)
+            return False
+        return True
+
 
 @dataclass(frozen=True)
 class GarminUsb:

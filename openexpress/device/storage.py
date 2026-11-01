@@ -86,6 +86,14 @@ class Storage(ABC):
         possible here. The storage itself cannot be used inside the block."""
         return
 
+    def refresh(self) -> bool:
+        """Has the device's files looked at anew where the storage keeps what it once saw of
+        them: over MTP gvfs gives the size a file had when it was first looked at, so a file
+        the device writes while it is connected reads cut short until the device is mounted
+        again. True once that is done; False where there is nothing to refresh (a folder, a
+        USB drive: their sizes are current) or it cannot be done."""
+        return False
+
     def usb_blocked(self) -> bool:
         """Whether a sandbox keeps the program away from the USB device itself (a Flatpak
         without the --device=usb permission), so that a PTP session is out of reach here
