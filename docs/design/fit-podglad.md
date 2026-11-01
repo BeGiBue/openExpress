@@ -129,9 +129,9 @@ for a name the device no longer has; of several backups, the newest that has it.
 
 ## 4. Decisions
 
-### D1: the FIT reader
+### D1: the FIT reader — chosen: 1a
 
-- **1a. Our own, extending `fit.py` (recommended).** Values by base type (signed, the invalid
+- **1a. Our own, extending `fit.py` (recommended; chosen).** Values by base type (signed, the invalid
   value of each type, strings), messages not wanted skipped by their size without being
   decoded, the time of compressed-timestamp headers. About 200 more lines.
   - \+ No new dependency: nothing changes in the Flatpak manifest, `pyproject.toml` or the
@@ -165,7 +165,7 @@ taken from any library, and nothing from Garmin Express: not its program files, 
 installs, not anything learned from them. Each number in the code carries a comment naming its
 profile message and field, as `service.TYPE_NAMES` does.
 
-### D2: how much is read at a time
+### D2: how much is read at a time — chosen: 2b
 
 Reading is what costs: listing 200 activities over MTP took about half a second, while 200
 activities of an Edge 1050 are 33 MB. Only one task runs at a time in the window, so a long
@@ -174,7 +174,7 @@ read would also hold back a sync.
 - **2a. All of them, kept for the session.**
   - \+ The simplest page: one list, whole.
   - − Hundreds of files over MTP before anything shows; the Sync button waits as long.
-- **2b. The newest 30, then "Show 30 More" (recommended).** Newest by the time of change the
+- **2b. The newest 30, then "Show 30 More" (recommended; chosen).** Newest by the time of change the
   device gives, then by name; files only in backups come after those on the device (the
   device deletes its oldest first). The command line the same: `--limit N` (default 30),
   `--all`.
@@ -190,9 +190,9 @@ read would also hold back a sync.
 
 N = 30 is a constant, checked in the live test of step 5 (a number, not scope).
 
-### D3: which backups
+### D3: which backups — chosen: 3a
 
-- **3a. Every backup of this device in the backup folder, one list by file name (recommended).**
+- **3a. Every backup of this device in the backup folder, one list by file name (recommended; chosen).**
   - \+ Activities the device has deleted come back from whichever backup kept them.
   - − Reads one more folder per backup (local, fast).
 - **3b. The newest backup only.**
@@ -206,10 +206,10 @@ N = 30 is a constant, checked in the live test of step 5 (a number, not scope).
 The window uses the default backup folder (as the Backup row); `openexpress activities` the
 same, or `--backups DIR` (as `backup --dest`).
 
-### D4: the place in the window
+### D4: the place in the window — chosen: 4a
 
 - **4a. A section "Activities" last in the sidebar, after Music; no row on the Device page
-  (recommended).**
+  (recommended; chosen).**
   - \+ Like Maps, Apps and Music: one more page of the same list; existing pages keep their
     place; nothing read until it is chosen.
   - − Not visible on the Device page.
@@ -225,9 +225,9 @@ same, or `--backups DIR` (as `backup --dest`).
 Shown for drives too (unlike Maps, Apps and Music); a device that declares no `FIT_TYPE_4`
 (e.g. a Varia) gets the page with "This device keeps no activities".
 
-### D5: what the GPX holds
+### D5: what the GPX holds — chosen: 5a
 
-- **5a. Position, elevation and time of each point (recommended).** GPX 1.1, one track, one
+- **5a. Position, elevation and time of each point (recommended; chosen).** GPX 1.1, one track, one
   segment, points without a position left out.
   - \+ Plain GPX 1.1, read by every program (including those that geotag photos or render a
     route); the least data of the user's body in a file that may be shared.
@@ -236,9 +236,9 @@ Shown for drives too (unlike Maps, Apps and Music); a device that declares no `F
   - \+ Programs that read it show them.
   - − A second schema to write and test; health data in a file the user may share.
 
-### D6: where the queue preview is shown
+### D6: where the queue preview is shown — chosen: 6a
 
-- **6a. In the dry run of `sync`, always (recommended).** Under each queue line, one more line:
+- **6a. In the dry run of `sync`, always (recommended; chosen).** Under each queue line, one more line:
   what the file is, sport, dates, the check.
   - \+ The dry run is the command line's preview of a sync already; nothing new to learn.
   - − Each dry run downloads the queue files (usually a few small files); the real sync
@@ -252,9 +252,9 @@ Shown for drives too (unlike Maps, Apps and Music); a device that declares no `F
   - \+ Users of the window see it too.
   - − A new request from the window, a new row and window, more texts to fit 360 px.
 
-### D7: the sync's own check of queue files
+### D7: the sync's own check of queue files — chosen: 7a
 
-- **7a. The sync stays as it is (recommended).** The preview reports a file that is not whole;
+- **7a. The sync stays as it is (recommended; chosen).** The preview reports a file that is not whole;
   the sync writes what Connect sends, as today.
   - \+ No change to the sync; no case is known of Connect sending a damaged file.
   - − A preview may say "damaged" of a file the sync then writes.
@@ -264,10 +264,10 @@ Shown for drives too (unlike Maps, Apps and Music); a device that declares no `F
   - − A change to the sync and its summary ("Last sync" words, a new pattern in
     `tests/data/last_sync/`); a file Connect keeps sending damaged fails every sync.
 
-### D8: the command line
+### D8: the command line — chosen: 8a
 
 - **8a. `openexpress activities`, `openexpress activities export NAME…`, `openexpress fit
-  inspect FILE` (recommended).** `activities` lists (as `maps` and `music` list with no
+  inspect FILE` (recommended; chosen).** `activities` lists (as `maps` and `music` list with no
   subcommand); `export` takes file names as the list prints them.
   - \+ The noun the window uses; `fit` keeps the commands about a file as a file.
   - − Two new top-level commands.
