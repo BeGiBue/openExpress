@@ -57,6 +57,11 @@ devices that connect over USB (MTP) should work too – reports are welcome.
 - A GTK 4 / libadwaita window, a command-line tool and sync in the background.
 - No telemetry. English and Polish.
 
+<p align="center">
+  <img src="docs/screenshots/activities.png" width="700"
+       alt="The Activities page: activities of a fēnix 8 with their sport, time, distance and ascent">
+</p>
+
 ## Supported devices
 
 | Device | Connection | Checked by |

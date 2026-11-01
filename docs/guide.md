@@ -308,6 +308,10 @@ training) has no GPX.
 manufacturer, product and creation time, its messages and whether it is whole. Tested on a
 fēnix 8 over MTP.
 
+<p align="center">
+  <img src="screenshots/activities.png" width="700" alt="Activities">
+</p>
+
 ## Sync details
 
 - The watch must be registered to the Garmin account you are signed in to. Before every sync
