@@ -1,13 +1,14 @@
 """The activities of a connected device and of its backups (activities.py): one list, the
 device's files first and newest first, then those only in backups; read N at a time with the
 steps of a long task; what each file says kept by its source, path, size and time of change.
-A folder stands for the device; the backups are made-up folders as openExpress names them."""
+A folder stands for the device; the backups are made-up folders as openExpress names them,
+in the folder of backups every test has (conftest.backups)."""
 
 import os
 
 import pytest
 from conftest import DEVICE_XML
-from fakes import FitData, FitDefinition, fit_file
+from fakes import fit_activity
 
 from openexpress.device.storage import LocalStorage
 from openexpress.device.xmldevice import parse
@@ -31,12 +32,7 @@ class CountingStorage(LocalStorage):
 
 def a_run(day: int, records: int = 1) -> bytes:
     """A made-up run of day `day`; more `records`, a bigger file."""
-    return fit_file(
-        FitDefinition(0, 0, ((0, 0x00), (4, 0x86))), FitData(0, (4, CREATED + day * DAY)),
-        FitDefinition(1, 20, ((253, 0x86),)),
-        *(FitData(1, (CREATED + day * DAY + n,)) for n in range(records)),
-        FitDefinition(2, 18, ((2, 0x86), (5, 0x00), (9, 0x86))),
-        FitData(2, (CREATED + day * DAY, 1, 1_000_000)))
+    return fit_activity(CREATED + day * DAY, records=records)
 
 
 @pytest.fixture
@@ -49,11 +45,6 @@ def device(tmp_path):
     xml = parse(storage.read("GARMIN/GarminDevice.xml"))
     storage.reads = 0  # only the activities counted
     return root, storage, xml
-
-
-@pytest.fixture
-def backups(tmp_path):
-    return tmp_path / "Backups"
 
 
 def on_device(root, name: str, data: bytes, changed: int):

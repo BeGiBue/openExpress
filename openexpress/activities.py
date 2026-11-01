@@ -166,8 +166,9 @@ class DeviceActivities:
                     only_in_backups.append(a)
         self.listing = on_device + only_in_backups
         self.read = []
-        log.info("activities: %d on the device, %d only in %d backups (listed in %.2f s)",
-                 len(on_device), len(only_in_backups), len(found), time.monotonic() - started)
+        log.info("activities: %d on the device, %d only in backups, backups read: %d "
+                 "(listed in %.2f s)", len(on_device), len(only_in_backups), len(found),
+                 time.monotonic() - started)
 
     def _on_device(self) -> list[Activity]:
         seen: set[str] = set()

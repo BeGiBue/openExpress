@@ -26,7 +26,7 @@ from openexpress.connect import (
 from openexpress.console import error as _error
 from openexpress.device.storage import DeviceError, LocalStorage, Storage
 from openexpress.device.xmldevice import GarminDevice, parse
-from openexpress.i18n import N_, _, full_time, human_size, ngettext, pgettext
+from openexpress.i18n import N_, _, decimal, full_time, human_size, ngettext, pgettext
 from openexpress.progress import Reporter
 from openexpress.settings import (
     ENVIRONMENTS,
@@ -353,6 +353,100 @@ def cmd_files(args) -> int:
     total = len(seen)
     print(ngettext("Total: {count} file", "Total: {count} files", total).format(count=total))
     return 0
+
+
+def _at_least_one(text: str) -> int:
+    """The value of an option that counts something: a whole number from 1 (else the command
+    line is wrong, exit code 2)."""
+    try:
+        number = int(text)
+    except ValueError:
+        number = 0
+    if number < 1:
+        raise argparse.ArgumentTypeError(
+            _("a whole number from 1, not {value}").format(value=text))
+    return number
+
+
+def cmd_activities(args) -> int:
+    """The activities of the connected device and of its backups, the newest first: one row
+    each, the device's before those only in a backup; nothing is written."""
+    from openexpress import activities
+
+    st, dev = open_device(args)
+    print(_("{device} (software {version})").format(
+        device=dev.description, version=dev.software_version_str))
+    if not activities.keeps_activities(dev):
+        print(_("This device keeps no activities."))
+        return 0
+    found = activities.DeviceActivities(
+        dev, st, Path(args.backups) if args.backups else paths.default_backup_dir())
+    found.list_files()
+    if not found.listing:
+        print(_("No activities on the device or in its backups."))
+        return 0
+    with _progress() as progress:
+        read = found.read_next(len(found.listing) if args.all else args.limit, progress)
+    for line in _activity_table(read):
+        print(line)
+    only_in_backups = sum(1 for a in found.listing if a.source is activities.Source.BACKUP)
+    words = [_("The newest {shown} of {count}; --all shows every one.").format(
+                 shown=len(read), count=len(found.listing)) if found.left
+             else ngettext("{count} activity.", "{count} activities.",
+                           len(found.listing)).format(count=len(found.listing))]
+    if only_in_backups:
+        words.append(_("Only in backups: {count}.").format(count=only_in_backups))
+    print("\n" + " ".join(words))
+    return 0
+
+
+def _activity_row(read) -> tuple[list[str], str | None]:
+    """The columns of one activity in `activities` and the note under it (its state)."""
+    from openexpress import activities, fit
+
+    a, summary = read.activity, read.summary
+    if a.source is activities.Source.DEVICE:
+        # TRANSLATORS: activities: where an activity was read
+        source = pgettext("activity source", "device")
+    else:
+        source = pgettext("activity source", "backup {date}").format(
+            date=a.backup.strftime(_("%Y-%m-%d")))
+    dash = "–"
+    if summary is None:
+        return [dash] * 5 + [source, a.name], _("unreadable file")
+    when = summary.start or summary.created
+    cells = [_seen_at(when) if when else dash,
+             activities.sport_name(summary.sport) if summary.sport is not None else dash]
+    if summary.state is fit.FileState.STILL_BEING_WRITTEN:
+        return cells + [dash] * 3 + [source, a.name], _(
+            "still being written: disconnect and reconnect the device")
+    seconds = None if summary.timer_time is None else round(summary.timer_time)
+    cells += [
+        dash if seconds is None else f"{seconds // 3600}:{seconds // 60 % 60:02}:{seconds % 60:02}",
+        dash if not summary.distance else f"{decimal(f'{summary.distance / 1000:.2f}')} km",
+        dash if summary.ascent is None else f"{summary.ascent} m",
+        source, a.name]
+    return cells, _("damaged file") if summary.state is fit.FileState.DAMAGED else None
+
+
+def _activity_table(read) -> list[str]:
+    """The lines of `activities`: the heading, then a row for each activity, its note (a
+    file still being written, damaged or unreadable) under its sport."""
+    heading = [_("Date"), _("Sport"), _("Time"), _("Distance"), _("Ascent"), _("Source"),
+               _("File")]
+    rows = [_activity_row(r) for r in read]
+    widths = [max(len(cells[n]) for cells in [heading] + [c for c, _note in rows])
+              for n in range(len(heading))]
+
+    def line(cells: list[str]) -> str:
+        return "  ".join(cell.ljust(width) for cell, width in zip(cells, widths, strict=True))
+
+    lines = [line(heading).rstrip()]
+    for cells, note in rows:
+        lines.append(line(cells).rstrip())
+        if note:
+            lines.append(" " * (widths[0] + 2) + note)
+    return lines
 
 
 def cmd_fit(args) -> int:
@@ -2260,6 +2354,17 @@ def build_parser() -> argparse.ArgumentParser:
     s.add_argument("--type", help=_("e.g. {example} (activities)").format(example="FIT_TYPE_4"))
     s.add_argument("--limit", type=int, default=0, help=_("show only the last N files"))
     s.set_defaults(func=cmd_files)
+
+    from openexpress.activities import PAGE
+
+    s = sub.add_parser("activities", help=_("activities on the device and in its backups"))
+    g = s.add_mutually_exclusive_group()
+    g.add_argument("--limit", type=_at_least_one, default=PAGE,
+                   help=_("show the newest N (default: {count})").format(count=PAGE))
+    g.add_argument("--all", action="store_true", help=_("show every activity"))
+    s.add_argument("--backups", help=_("folder of the backups (default: {path})").format(
+        path="~/Documents/Garmin/Backups"))
+    s.set_defaults(func=cmd_activities)
 
     s = sub.add_parser("fit", help=_("FIT files on this computer"))
     fsub = s.add_subparsers(dest="fit_cmd", metavar="inspect", required=True)
