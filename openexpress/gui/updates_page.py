@@ -145,10 +145,13 @@ class UpdatesPage:
                              ready=staged[0] if staged else None,
                              only=new[0] if len(new) == 1 else None)
         rest = [u for u in new if u is not system]
+        # A file holding an update copied already, which the device has not installed yet:
+        # what else goes there would replace it.
+        waiting = {w.device_path.casefold(): w for w in staged}
         if rest:
             g = sec.group(_("Available updates"))
             for u in rest:
-                self._update_row(g, u)
+                self._update_row(g, u, waits_for=waiting.get(u.device_path.casefold()))
         # A file the device already has is a reinstall, whatever the server calls it; but not
         # a system update that is waiting for the device to install it.
         re = [u for u in items if (u.is_reinstall or u.on_device) and not u.is_metadata
@@ -163,7 +166,8 @@ class UpdatesPage:
                                   "troubleshooting", len(re)).format(count=len(re)))
             g.add(exp)
             for u in sorted(re, key=lambda x: x.title):
-                self._update_row(exp, u, reinstall=True)
+                self._update_row(exp, u, reinstall=True,
+                                 waits_for=waiting.get(u.device_path.casefold()))
 
     def _updates_status(self, sec, system, count: int, beta: bool = False, ready=None,
                         only=None) -> None:
@@ -262,19 +266,27 @@ class UpdatesPage:
         box.append(wrapping_row(buttons, 12, margin_top=8))  # one under the other if need be
         sec.group().add(box)
 
-    def _update_row(self, parent, u, reinstall: bool = False) -> None:
+    def _update_row(self, parent, u, reinstall: bool = False, waits_for=None) -> None:
+        """A row of update `u`; `waits_for`: the update copied already to its file, which the
+        device has not installed yet: then no button, as a copy would replace it."""
         details = caption(versions_text(u, self.session.device), human_size(u.size),
                           u.severity_text, u.filename)
         # A system update says so in its title; the name the server gives it goes first.
+        subtitle = caption(u.title, details) if u.is_system else details
+        if waits_for is not None:
+            # TRANSLATORS: below an update whose file on the device holds another update,
+            # copied already and not installed yet by the device
+            subtitle += "\n" + _("Can be installed once the device has installed {name}").format(
+                name=waits_for.title)
         row = Adw.ActionRow(
             title=GLib.markup_escape_text(_("System software") if u.is_system else u.title),
-            subtitle=GLib.markup_escape_text(caption(u.title, details) if u.is_system
-                                             else details),
+            subtitle=GLib.markup_escape_text(subtitle),
         )
-        # TRANSLATORS: button
-        row.add_suffix(self._button(_("Reinstall") if reinstall else _("Install"),
-                                    lambda u=u: self.confirm_update(u),
-                                    None if reinstall else "suggested-action"))
+        if waits_for is None:
+            # TRANSLATORS: button
+            row.add_suffix(self._button(_("Reinstall") if reinstall else _("Install"),
+                                        lambda u=u: self.confirm_update(u),
+                                        None if reinstall else "suggested-action"))
         parent.add_row(row) if isinstance(parent, Adw.ExpanderRow) else parent.add(row)
 
     @staticmethod

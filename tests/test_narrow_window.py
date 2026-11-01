@@ -88,6 +88,10 @@ def _updates(copied: bool):
                        ("Garmin Golf Course Database Information Update",
                         "Garmin/RemoteSW/GolfCourses.img")):
         items.append(_update(name, "41.00", path, 683_000, reinstall=True))
+    if copied:
+        # For the file of the copied one: it waits, with the name of that one.
+        items.append(_update("Instinct 2/2S GPS Software", "6.70", "Garmin/GUPDATE.GSP",
+                             1_200_000))
     return items
 
 

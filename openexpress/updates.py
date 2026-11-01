@@ -418,6 +418,37 @@ def space_margin(storage: Storage) -> int:
 class InstallReport:
     installed: list[str] = field(default_factory=list)
     restart_required: bool = False
+    # Not copied: each with the update copied to its file instead (one_per_file).
+    put_off: list[tuple[SoftwareUpdate, SoftwareUpdate]] = field(default_factory=list)
+
+
+def _copied_first(u: SoftwareUpdate) -> tuple:
+    """Which of the updates for one file is copied, as Garmin Express orders them: the
+    device's software first, then what the device installs once disconnected, then in the
+    server's order."""
+    return (not u.is_primary, not u.is_system, not u.installs_when_disconnected, u.order,
+            u.part_number)
+
+
+def one_per_file(updates: list[SoftwareUpdate]
+                 ) -> tuple[list[SoftwareUpdate], list[tuple[SoftwareUpdate, SoftwareUpdate]]]:
+    """At most one update for each file of the device in one copy: copied together, the next
+    one would replace the first before the device installed it. Returns the updates to copy
+    and the others, each with the one copied to its file instead; an update put off takes its
+    -META entry with it. The file is told by its path in any letter case."""
+    first: dict[str, SoftwareUpdate] = {}
+    put_off = []
+    for u in sorted(updates, key=_copied_first):
+        if u.is_metadata:
+            continue
+        place = u.device_path.casefold()
+        if place in first:
+            put_off.append((u, first[place]))
+        else:
+            first[place] = u
+    off = {u.part_number.upper() for u, _other in put_off}
+    kept = [u for u in updates if u.part_number.upper().removesuffix("-META") not in off]
+    return kept, put_off
 
 
 def _install(
@@ -427,7 +458,13 @@ def _install(
     progress: Callable[[str], None] | None = None,
 ) -> InstallReport:
     """`progress`: each update by its name, in bytes ("Downloading … · 1.2 MB of 3.4 MB",
-    "Copying … to the device · …"); the files are the server's and the device's own."""
+    "Copying … to the device · …"); the files are the server's and the device's own. Two
+    updates for one file: one of them is copied (one_per_file)."""
+    updates, put_off = one_per_file(updates)
+    for u, other in put_off:
+        log.info("software update: %s %s put off, it goes to the file of %s %s (%s): one at a "
+                 "time", u.part_number, u.version, other.part_number, other.version,
+                 u.device_path)
     need, free = check_space(storage, updates)
     margin = space_margin(storage)
     if free is not None and need + margin > free:
@@ -435,7 +472,7 @@ def _install(
                             "free, but only {free} free")
                           .format(need=human_size(need), margin=human_size(margin),
                                   free=human_size(free)))
-    report = InstallReport()
+    report = InstallReport(put_off=put_off)
     # Download everything first so the watch is never left with only some of the files.
     local_files: dict[str, Path] = {}
     say = say_to(progress)

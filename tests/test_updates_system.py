@@ -239,6 +239,97 @@ def test_the_question_names_the_versions_of_a_part(monkeypatch):
     assert warning == (WARNING_EN, ["heading", "warning"])  # copied with the same care
 
 
+# --- two updates for one file of the device ----------------------------------------------------
+
+PART = b"part software"
+# Two updates the server puts at one file of the device: the device's own software, and the
+# software of a part of it.
+SAME_FILE = [
+    {**_entry("006-B0001-00", "Test Part Software", "Firmware", "Garmin", "GUPDATE.GCD", PART,
+              order=0, restart=True), "displayVersion": "6.70"},
+    _entry("006-B0000-00", "Test Software", "Firmware", "GARMIN", "gupdate.gcd", BUNDLE,
+           order=1, primary=True),
+]
+
+
+def _fetch_by_part(monkeypatch, tmp_path):
+    """Downloads that give each update its own bytes (their addresses differ), from nowhere."""
+    by_url = {e["deliverable"]["downloadUrl"]: e for e in SAME_FILE}
+    assert len(by_url) == len(SAME_FILE)
+
+    def fetch(urls, dest, size, md5, session=None, progress=None):
+        dest.parent.mkdir(parents=True, exist_ok=True)
+        entry = by_url[urls[0]]
+        dest.write_bytes(PART if entry["partNumber"] == "006-B0001-00" else BUNDLE)
+        return dest
+
+    monkeypatch.setattr(download, "fetch", fetch)
+    monkeypatch.setattr(updates, "cache_path",
+                        lambda u: tmp_path / "cache" / u.part_number / u.filename)
+
+
+def test_two_updates_for_one_file_are_copied_one_at_a_time(device_root, tmp_path, monkeypatch,
+                                                           caplog):
+    """Copied together, the second would replace the first before the device installed it:
+    only the device's own software is copied, the other waits for the next connection."""
+    _fetch_by_part(monkeypatch, tmp_path)
+    items = updates.parse_updates(lower_keys({"updates": SAME_FILE}))
+    with caplog.at_level(logging.INFO, logger="openexpress.updates"):
+        report = updates.install(items, LocalStorage(device_root))
+    # The name the server gives, in its letter case.
+    assert [Path(r.split(" -> ")[1]).name for r in report.installed] == ["gupdate.gcd"]
+    assert (device_root / "GARMIN/gupdate.gcd").read_bytes() == BUNDLE
+    assert [(u.part_number, other.part_number) for u, other in report.put_off] == [
+        ("006-B0001-00", "006-B0000-00")]
+    assert ("software update: 006-B0001-00 6.70 put off, it goes to the file of 006-B0000-00 "
+            "23.40 (Garmin/GUPDATE.GCD): one at a time") in [r.getMessage() for r in caplog.records]
+
+
+def test_cli_says_which_update_waits_for_the_next_connection(device_root, tmp_path, monkeypatch,
+                                                            capsys):
+    _fetch_by_part(monkeypatch, tmp_path)
+    answer = lower_keys({"updates": SAME_FILE})
+    monkeypatch.setattr(GarminClient, "software_updates",
+                        lambda self, raw, include_reinstalls=False: answer)
+    monkeypatch.setattr(GarminClient, "unit_info", lambda self, unit_id, part_number: {})
+    assert main(["--path", str(device_root), "updates", "--install", "all", "--apply"]) == 0
+    out = capsys.readouterr().out
+    assert ("Not now: Test Part Software 6.70 goes to the same file on the device as Test "
+            "Software 23.40. Install it once the device has installed Test Software: disconnect "
+            "the device, then connect it again.") in out
+    assert "Copied 1 file." in out
+    assert (device_root / "GARMIN/gupdate.gcd").read_bytes() == BUNDLE
+
+
+@pytest.mark.needs_display
+def test_an_update_for_the_file_of_one_copied_already_waits(monkeypatch):
+    """While a copied update waits in a file for the device, another one for that file has
+    no Install: copying it would replace the first."""
+    from gi.repository import Gtk
+
+    sensor = {**_entry("006-B0002-00", "Test Sensor Software", "Firmware", "GARMIN\\REMOTESW",
+                       "gupdate.gcd", b"sensor", restart=True), "displayVersion": "1.20"}
+    gps, other = _items(GPS_ENTRY, sensor)
+    gps.on_device = True  # copied, the device has not installed it yet
+    _win, status, groups, _buttons = _updates_page([gps, other])
+    assert status["texts"][0][0].startswith("Update ready")
+    (available,) = groups
+    (row,) = available.rows
+    assert row.get_title() == "Test Sensor Software"
+    assert row.get_subtitle().splitlines()[1] == (
+        "Can be installed once the device has installed Test GPS Software")
+
+    def buttons(widget):
+        child = widget.get_first_child()
+        while child is not None:
+            if isinstance(child, Gtk.Button):
+                yield child
+            yield from buttons(child)
+            child = child.get_next_sibling()
+
+    assert list(buttons(row)) == []
+
+
 # --- the window asks before it installs ---------------------------------------------------------
 
 WARNING_EN = ("Warning: this is a device system update. Charge the device and do not disconnect "

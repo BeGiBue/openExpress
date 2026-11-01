@@ -1056,11 +1056,17 @@ def cmd_updates(args) -> int:
         print(_("Software is up to date.") if not args.reinstalls
               else _("The server returned no items."))
         return 0
+    chosen, put_off = upd.one_per_file(chosen)
     need, free = upd.check_space(st, chosen)
     print(_("To install:"))
     for u in upd.sort_for_install(chosen):
         print(f"  {u.part_number} {u.version}  {u.title}{_beta_mark(u)}  ({_human(u.size)}) "
               f"-> {u.device_path}")
+    for u, other in put_off:
+        print(_("Not now: {name} {version} goes to the same file on the device as {other} "
+                "{other_version}. Install it once the device has installed {other}: "
+                "disconnect the device, then connect it again.").format(
+            name=u.title, version=u.version, other=other.title, other_version=other.version))
     print(_("Space: {needed} needed, {free} free").format(needed=_human(need), free=_human(free)))
     eulas = sorted({u.eula_url for u in chosen if u.eula_url})
     for e in eulas:
