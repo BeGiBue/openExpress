@@ -194,7 +194,7 @@ class DeviceActivities:
         head = _("Reading activities")
         for n, activity in enumerate(to_read, 1):
             progress(Step(head, n, len(to_read)))
-            data = self._bytes(activity)
+            data = self.read_file(activity)
             size += len(data or b"")
             self._kept[activity.key] = _summary(data)
         found = [Read(a, self._kept[a.key]) for a in batch]
@@ -209,7 +209,9 @@ class DeviceActivities:
                      sum(1 for s in states if s is None))
         return found
 
-    def _bytes(self, activity: Activity) -> bytes | None:
+    def read_file(self, activity: Activity) -> bytes | None:
+        """The bytes of an activity's file; None for a copy in a backup that could not be read
+        (one line of the log). An error of the device: DeviceError."""
         if activity.source is Source.DEVICE:
             return self.storage.read_at(activity.path)
         try:

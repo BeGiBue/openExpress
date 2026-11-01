@@ -118,6 +118,12 @@ def default_backup_dir() -> Path:
     return Path.home() / "Documents" / "Garmin" / "Backups"
 
 
+def default_gpx_dir() -> Path:
+    """Where `activities export` writes GPX files: next to the backups, in Garmin in the
+    Documents folder (which the Flatpak may write)."""
+    return default_backup_dir().parent / "GPX"
+
+
 PRIVATE_DIR = 0o700
 
 

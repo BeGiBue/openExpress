@@ -698,13 +698,18 @@ def fit_file(*messages, header_size: int = 14, cut: int | None = None,
 
 def fit_activity(start: int, *, sport: int = 1, timer_ms: int | None = 3_600_000,
                  distance_cm: int | None = 1_000_000, ascent: int | None = 100,
-                 records: int = 1, **options) -> bytes:
+                 records: int = 1, position: tuple[int, int] | None = None, **options) -> bytes:
     """A made-up activity that starts at `start` (a time of the FIT protocol): its file_id
-    created then, `records` records a second apart, one session of `sport` with these totals
-    (None: the field's invalid value). `options`: as fit_file's (cut, bad_crc)."""
+    created then, `records` records a second apart (at `position`, in semicircles, when given),
+    one session of `sport` with these totals (None: the field's invalid value). `options`: as
+    fit_file's (cut, bad_crc)."""
+    if position is None:
+        record_fields, at = ((253, 0x86),), ()
+    else:
+        record_fields, at = ((253, 0x86), (0, 0x85), (1, 0x85)), position
     return fit_file(
         FitDefinition(0, 0, ((0, 0x00), (4, 0x86))), FitData(0, (4, start)),
-        FitDefinition(1, 20, ((253, 0x86),)),
-        *(FitData(1, (start + n,)) for n in range(records)),
+        FitDefinition(1, 20, record_fields),
+        *(FitData(1, (start + n, *at)) for n in range(records)),
         FitDefinition(2, 18, ((2, 0x86), (5, 0x00), (8, 0x86), (9, 0x86), (22, 0x84))),
         FitData(2, (start, sport, timer_ms, distance_cm, ascent)), **options)

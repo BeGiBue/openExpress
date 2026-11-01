@@ -376,12 +376,16 @@ def cmd_activities(args) -> int:
     st, dev = open_device(args)
     print(_("{device} (software {version})").format(
         device=dev.description, version=dev.software_version_str))
+    exporting = args.activities_cmd == "export"
     if not activities.keeps_activities(dev):
         print(_("This device keeps no activities."))
-        return 0
+        return 1 if exporting else 0
+    backups = getattr(args, "export_backups", None) or args.backups
     found = activities.DeviceActivities(
-        dev, st, Path(args.backups) if args.backups else paths.default_backup_dir())
+        dev, st, Path(backups) if backups else paths.default_backup_dir())
     found.list_files()
+    if exporting:
+        return _export_activities(args, found)
     if not found.listing:
         print(_("No activities on the device or in its backups."))
         return 0
@@ -397,6 +401,90 @@ def cmd_activities(args) -> int:
     if only_in_backups:
         words.append(_("Only in backups: {count}.").format(count=only_in_backups))
     print("\n" + " ".join(words))
+    return 0
+
+
+def _export_activities(args, found) -> int:
+    """`activities export NAME…`: each activity named (as the list names its file) as a GPX
+    file "YYYY-MM-DD HH.MM Sport.gpx" in --dest or the GPX folder. Nothing is written unless
+    every one of them can be, and only with --apply; a file that is there is never
+    overwritten. The log gets counts and sizes, never a name or a path."""
+    from openexpress import activities, fit, gpx
+
+    dest = Path(args.dest) if args.dest else paths.default_gpx_dir()
+    by_name: dict = {}
+    for a in found.listing:
+        by_name.setdefault(a.name.casefold(), a)  # the device's first, then the newest backup
+    planned: list[tuple[Path, bytes, int]] = []
+    refused: list[tuple[str, str]] = []
+    for name in args.names:
+        a = by_name.get(name.casefold())
+        if a is None:
+            refused.append(("not found", _("No activity named {name} is on the device or in "
+                                           "its backups.").format(name=name)))
+            continue
+        data = found.read_file(a)
+        try:
+            summary = None if data is None else fit.summary(data)
+        except fit.FitError:
+            summary = None
+        if summary is None:
+            refused.append(("unreadable", _("{name} cannot be read as a FIT file.").format(
+                name=a.name)))
+            continue
+        if summary.state is fit.FileState.STILL_BEING_WRITTEN:
+            refused.append(("still being written", _(
+                "{name} was still being written by the device when it was read. Disconnect "
+                "and reconnect the device, then export it again.").format(name=a.name)))
+            continue
+        when = summary.start or summary.created
+        day = time.strftime("%Y-%m-%d %H.%M", time.localtime(when)) if when else Path(a.name).stem
+        stem = f"{day} {activities.sport_name(summary.sport)}"
+        try:
+            track = gpx.track(data, name=stem)
+            count = sum(1 for _point in fit.points(data))
+        except (gpx.NoPositions, fit.FitError) as e:
+            kind = "no positions" if isinstance(e, gpx.NoPositions) else "damaged"
+            refused.append((kind, _("{name}: {error}").format(name=a.name, error=e)))
+            continue
+        target = dest / f"{stem}.gpx"
+        if target.exists() or any(target == p for p, _track, _count in planned):
+            refused.append(("there", _("{path} exists already; nothing is overwritten.").format(
+                path=target)))
+            continue
+        planned.append((target, track, count))
+    log.info("activities export: %d to write, %d refused (%s)", len(planned), len(refused),
+             applog.counts(kind for kind, _words in refused))
+    if refused:
+        for _kind, words in refused:
+            _error(_("Error: {error}").format(error=words))
+        _error(_("Nothing was written."))
+        return 1
+    if not args.apply:
+        for target, _track, count in planned:
+            print(ngettext("Would write {path} ({count} point)",
+                           "Would write {path} ({count} points)", count).format(
+                path=target, count=count))
+        print(ngettext("Dry run: nothing was written. Add --apply to write it.",
+                       "Dry run: nothing was written. Add --apply to write them.",
+                       len(planned)))
+        return 0
+    for target, track, count in planned:
+        try:
+            target.parent.mkdir(parents=True, exist_ok=True)
+            with open(target, "xb") as f:  # never over a file that appeared meanwhile
+                f.write(track)
+        except OSError as e:
+            log.info("activities export: a GPX file could not be written (%s)",
+                     type(e).__name__)
+            words = (_("{path} exists already; nothing is overwritten.")
+                     if isinstance(e, FileExistsError) else _("Cannot write {path}"))
+            _error(_("Error: {error}").format(error=words.format(path=target)))
+            return 1
+        print(ngettext("Wrote {path} ({count} point).", "Wrote {path} ({count} points).",
+                       count).format(path=target, count=count))
+    log.info("activities export: %d GPX files written (%s)", len(planned),
+             applog.size(sum(len(track) for _target, track, _count in planned)))
     return 0
 
 
@@ -2362,8 +2450,17 @@ def build_parser() -> argparse.ArgumentParser:
     g.add_argument("--limit", type=_at_least_one, default=PAGE,
                    help=_("show the newest N (default: {count})").format(count=PAGE))
     g.add_argument("--all", action="store_true", help=_("show every activity"))
-    s.add_argument("--backups", help=_("folder of the backups (default: {path})").format(
-        path="~/Documents/Garmin/Backups"))
+    backups_help = _("folder of the backups (default: {path})").format(
+        path="~/Documents/Garmin/Backups")
+    s.add_argument("--backups", help=backups_help)
+    asub = s.add_subparsers(dest="activities_cmd")
+    m = asub.add_parser("export", help=_("write activities as GPX files"))
+    m.add_argument("names", nargs="+", metavar="NAME",
+                   help=_("the file name of an activity, as the list of activities shows it"))
+    m.add_argument("--dest", help=_("folder for the GPX files (default: {path})").format(
+        path="~/Documents/Garmin/GPX"))
+    m.add_argument("--backups", dest="export_backups", help=backups_help)
+    m.add_argument("--apply", action="store_true", help=_("write the GPX files"))
     s.set_defaults(func=cmd_activities)
 
     s = sub.add_parser("fit", help=_("FIT files on this computer"))
