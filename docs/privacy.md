@@ -50,6 +50,14 @@ the application key, its secret and the value that signs download addresses are 
   only by you; at most 30 copies and 50 MB per device, the oldest removed first. Forgetting
   the device removes them. These copies are never sent (`sync --include-diagnostics`
   uploads the device's diagnostic files from the device itself).
+- **Activities are read, not kept.** The Activities page and `openexpress activities` read the
+  activity files of the device and of its backups only when you open the page or run the
+  command; what they say (sport, start, time, distance, ascent) is kept in memory while the
+  device is open, never on disk. A GPX file is written only where you save it: it holds the
+  positions, elevation and time of the activity and nothing of the device. The dry run of
+  `sync` downloads the files waiting in Garmin Connect into memory to describe them and keeps
+  nothing. The log says how many files were read and how large they were, never a file name,
+  a date, a sport or a place.
 - Sync **never deletes files from the watch**. Files are deleted only when you ask for it:
   by `maps install/update/remove` (old map files indicated by the server), `maps remove
   --own`, `music remove` and `apps remove`; on the command line only with `--apply` (without
@@ -131,8 +139,8 @@ the application key, its secret and the value that signs download addresses are 
 Besides network, the usual permissions of a window (Wayland, X11 as a fallback, the GPU),
 access to devices through GNOME's gvfs (`--talk-name=org.gtk.vfs.*`, `xdg-run/gvfsd`), your Downloads
 and Music folders read-only (`xdg-download:ro`, `xdg-music:ro`: the installer and music on the
-command line) and the folder Documents/Garmin for backups (`xdg-documents/Garmin:create`,
-created if missing), the Flatpak has three permissions that weaken the sandbox:
+command line) and the folder Documents/Garmin for backups and the GPX files of `activities export`
+(`xdg-documents/Garmin:create`, created if missing), the Flatpak has three permissions that weaken the sandbox:
 
 - It can run commands on the host (`org.freedesktop.Flatpak`). It uses this to copy files
   to the watch with `gio copy`, because gvfs does not let sandboxed apps write to MTP

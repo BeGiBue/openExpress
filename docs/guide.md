@@ -17,6 +17,8 @@ should work, but are untested – reports are welcome. Developed on Fedora/GNOME
 - Connect IQ apps: install, update, remove, enable/disable built-in activities – also on
   watches that hide their app folder (e.g. the fēnix 8), without reordering your widgets.
 - Music, podcasts and audiobooks with playlists.
+- Activities of the watch and of its backups (sport, start, time, distance, ascent), exported
+  as GPX; what a FIT file holds (`openexpress fit inspect`).
 - Backups; showing and setting the primary training device and the primary wearable;
   copies of the device's diagnostic files, kept on this computer.
 - GTK 4 / libadwaita window, command-line tool and background sync with notifications.
@@ -42,6 +44,8 @@ should work, but are untested – reports are welcome. Developed on Fedora/GNOME
 - Maps on a memory card: maps are installed and updated in the device's internal memory only.
 - Installing software updates as part of a sync: they are installed only when you choose
   to, on the Updates page or with `openexpress updates --install`.
+- Charts and maps of an activity: the Activities page lists the activities and exports them
+  as GPX, which other programs can show.
 - Uploading ECG recordings: they go to Garmin Health, which needs a sign-in of its own that
   openExpress does not have. A sync leaves them on the watch and says how many there are.
 
@@ -282,6 +286,27 @@ fēnix 8.
   <img src="screenshots/music.png" width="700" alt="Music">
 </p>
 
+## Activities
+
+The Activities page and `openexpress activities` list the activities of the connected device,
+over MTP or as a USB drive, and of its backups (`Garmin/Backups` in your Documents folder, or
+`--backups DIR`): the newest 30 first, then 30 more with **Show 30 More** (`--limit N`,
+`--all`). Each has its sport, start, time (pauses left out), distance, ascent and where it was
+read: the device, or the backup of a date for one the device no longer has. The page reads the
+files when you open it, never when a device connects. A file the device was still writing
+when it was connected says so (disconnect and reconnect the device, then open the page again),
+as do a damaged file and a file that is no FIT file.
+
+The export button of an activity, or `openexpress activities export NAME… --apply`, writes it
+as a GPX 1.1 file named `YYYY-MM-DD HH.MM Sport.gpx`: each point with its position, elevation
+and time, nothing else (no heart rate, no device, no serial number). The window asks where to
+save it; the command line writes to `Garmin/GPX` in your Documents folder (or `--dest DIR`)
+and never overwrites a file. An activity without GPS positions (a pool swim, strength
+training) has no GPX.
+
+`openexpress fit inspect FILE` tells what any FIT file on this computer holds: its type,
+manufacturer, product and creation time, its messages and whether it is whole.
+
 ## Sync details
 
 - The watch must be registered to the Garmin account you are signed in to. Before every sync
@@ -301,6 +326,10 @@ fēnix 8.
   queued ([Connect IQ apps](#connect-iq-apps)). New watch faces are installed but not
   activated, like
   in Garmin Express.
+- The dry run (`openexpress sync` without `--apply`) also says what each file waiting in
+  Garmin Connect is before a sync writes it to the watch – a workout's sport, name and steps,
+  a course's sport and name, a schedule's days – and whether it is whole. It downloads them
+  into memory only and acknowledges nothing, so the sync downloads them again.
 - **Last sync** on the Device page, `openexpress sync` and the notification of the
   background sync use the same words for how many new files the device had, how many were
   uploaded and how many came from Garmin Connect; the row on the Device page also says when

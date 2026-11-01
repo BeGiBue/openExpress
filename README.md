@@ -49,6 +49,8 @@ devices that connect over USB (MTP) should work too – reports are welcome.
 - Connect IQ apps: install, update, remove, turn on or off, put back in order – also on
   watches that hide their app folder (e.g. the fēnix 8).
 - Music, podcasts and audiobooks, with playlists.
+- Activities of the watch and of its backups, with their sport, time, distance and ascent,
+  exported as GPX; a look into any FIT file and into what a sync will write to the watch.
 - Backups, copies of the device's diagnostic files on this computer, the primary training
   device and the primary wearable.
 - A GTK 4 / libadwaita window, a command-line tool and sync in the background.
