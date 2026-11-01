@@ -1808,7 +1808,7 @@ def _apps_order(args, dev, st, state) -> int:
             plan = ciq.plan_order(state, c.state)
             print("  " + _("{name}: {entries} entries, {difference}").format(
                 name=c.name, entries=len(c.state.apps), difference=ciq.order_difference(plan)))
-        print(_("Show what a copy would change: openexpress apps order --from NAME"))
+        print(_("Show what a copy would change: openexpress apps order --from COPY"))
         return 0
 
     copy = ciq.load_app_list_copy(dev, backups, args.source)
@@ -2450,10 +2450,10 @@ def build_parser() -> argparse.ArgumentParser:
                    help=_("interface language, e.g. {examples}").format(
                        examples=", ".join(i18n.available_languages())))
     # A device in mass storage mode is found by itself, like an MTP device.
-    p.add_argument("--path",
+    p.add_argument("--path", metavar="DIR",
                    help=_("a folder with a copy of a device's files, instead of a connected "
                           "device"))
-    p.add_argument("--device-uri", help=_("MTP device URI, e.g. {example}").format(
+    p.add_argument("--device-uri", metavar="URI", help=_("MTP device URI, e.g. {example}").format(
         example="mtp://091e_51b4_…/"))
     p.add_argument("--no-wait", action="store_true",
                    help=_("do not wait for a device that was just plugged in and is still "
@@ -2468,8 +2468,9 @@ def build_parser() -> argparse.ArgumentParser:
                    help=_("read the needed data from the Garmin Express installer for Windows "
                           "(GarminExpress.exe from garmin.com); it is only read, nothing is "
                           "installed"))
-    s.add_argument("--from-dll", help=_("path to Networking.dll from Garmin Express"))
-    s.add_argument("--utilities-dll",
+    s.add_argument("--from-dll", metavar="Networking.dll",
+                   help=_("path to Networking.dll from Garmin Express"))
+    s.add_argument("--utilities-dll", metavar="Utilities.dll",
                    help=_("path to Utilities.dll (default: next to Networking.dll)"))
     s.add_argument("--key")
     s.add_argument("--secret")
@@ -2494,28 +2495,30 @@ def build_parser() -> argparse.ArgumentParser:
 
     s = sub.add_parser("files", help=_("files on the device by data type"))
     s.add_argument("--type", help=_("e.g. {example} (activities)").format(example="FIT_TYPE_4"))
-    s.add_argument("--limit", type=int, default=0, help=_("show only the last N files"))
+    s.add_argument("--limit", type=int, default=0, metavar="N",
+                   help=_("show only the last N files"))
     s.set_defaults(func=cmd_files)
 
     from openexpress.activities import PAGE
 
     s = sub.add_parser("activities", help=_("activities on the device and in its backups"))
     g = s.add_mutually_exclusive_group()
-    g.add_argument("--limit", type=_at_least_one, default=PAGE,
+    g.add_argument("--limit", type=_at_least_one, default=PAGE, metavar="N",
                    help=_("show the newest N (default: {count})").format(count=PAGE))
     g.add_argument("--all", action="store_true", help=_("show every activity"))
     # The folders as the program finds them (in the Documents folder of the user's XDG
     # folders), with ~ for the home folder.
     backups_help = _("folder of the backups (default: {path})").format(
         path=paths.shown_path(paths.default_backup_dir()))
-    s.add_argument("--backups", help=backups_help)
+    s.add_argument("--backups", metavar="DIR", help=backups_help)
     asub = s.add_subparsers(dest="activities_cmd")
     m = asub.add_parser("export", help=_("write activities as GPX files"))
     m.add_argument("names", nargs="+", metavar="NAME",
                    help=_("the file name of an activity, as the list of activities shows it"))
-    m.add_argument("--dest", help=_("folder for the GPX files (default: {path})").format(
-        path=paths.shown_path(paths.default_gpx_dir())))
-    m.add_argument("--backups", dest="export_backups", metavar="BACKUPS", help=backups_help)
+    m.add_argument("--dest", metavar="DIR",
+                   help=_("folder for the GPX files (default: {path})").format(
+                       path=paths.shown_path(paths.default_gpx_dir())))
+    m.add_argument("--backups", dest="export_backups", metavar="DIR", help=backups_help)
     m.add_argument("--apply", action="store_true", help=_("write the GPX files"))
     s.set_defaults(func=cmd_activities)
 
@@ -2597,9 +2600,11 @@ def build_parser() -> argparse.ArgumentParser:
     s.set_defaults(func=cmd_baseline)
 
     s = sub.add_parser("backup", help=_("local backup of device data"))
-    s.add_argument("--dest", help=_("destination directory (default: {path})").format(
-        path=paths.shown_path(paths.default_backup_dir())))
-    s.add_argument("--keep", type=int, default=3, help=_("how many most recent backups to keep"))
+    s.add_argument("--dest", metavar="DIR",
+                   help=_("destination directory (default: {path})").format(
+                       path=paths.shown_path(paths.default_backup_dir())))
+    s.add_argument("--keep", type=int, default=3, metavar="N",
+                   help=_("how many most recent backups to keep"))
     s.add_argument("--apply", action="store_true")
     s.set_defaults(func=cmd_backup)
 
@@ -2615,17 +2620,17 @@ def build_parser() -> argparse.ArgumentParser:
     s.add_argument("--all", action="store_true", help=_("also show maps available for download"))
     msub = s.add_subparsers(dest="maps_cmd")
     m = msub.add_parser("install", help=_("install a map"))
-    m.add_argument("name")
+    m.add_argument("name", metavar="NAME")
     m.add_argument("--apply", action="store_true")
     m = msub.add_parser("update", help=_("update installed maps"))
     m.add_argument("--apply", action="store_true")
     m = msub.add_parser("remove", help=_("remove a map from the device"))
-    m.add_argument("name")
+    m.add_argument("name", metavar="NAME")
     m.add_argument("--own", action="store_true",
                    help=_("remove a map of your own that was copied with 'maps add'"))
     m.add_argument("--apply", action="store_true")
     m = msub.add_parser("add", help=_("copy a map of your own (.img) to the device"))
-    m.add_argument("file")
+    m.add_argument("file", metavar="FILE")
     m.add_argument("--name")
     m.add_argument("--apply", action="store_true")
     s.set_defaults(func=cmd_maps)
@@ -2649,7 +2654,7 @@ def build_parser() -> argparse.ArgumentParser:
                            ("enable", _("enable an app or built-in activity")),
                            ("disable", _("disable an app or built-in activity"))):
         a = asub.add_parser(name, help=helptext)
-        a.add_argument("name", help=_("app name (or part of it) or app id"))
+        a.add_argument("name", metavar="NAME", help=_("app name (or part of it) or app id"))
         a.add_argument("--apply", action="store_true")
         if name == "install":
             a.add_argument("--allow-permissions", action="store_true",
@@ -2658,8 +2663,11 @@ def build_parser() -> argparse.ArgumentParser:
             a.add_argument("--forget", action="store_true",
                            help=_("also remove it from the app list in your Garmin account"))
         if name in ("enable", "disable"):
-            a.add_argument("--type", choices=sorted(APP_TYPE_OPTIONS),
-                           help=_("which entry, when an app and a widget share a name"))
+            # TYPE as docs/cli.md names it; its values, which are not translated, after the help.
+            types = sorted(APP_TYPE_OPTIONS)
+            a.add_argument("--type", choices=types, metavar="TYPE",
+                           help=_("which entry, when an app and a widget share a name")
+                           + f" ({', '.join(types)})")
     a = asub.add_parser("update", help=_("update installed apps"))
     a.add_argument("--apply", action="store_true")
     a.add_argument("--allow-permissions", action="store_true",
@@ -2675,13 +2683,13 @@ def build_parser() -> argparse.ArgumentParser:
     s = sub.add_parser("music", help=_("music, podcasts and audiobooks on the device"))
     msub = s.add_subparsers(dest="music_cmd")
     m = msub.add_parser("add", help=_("copy audio files or folders to the device"))
-    m.add_argument("paths", nargs="+")
+    m.add_argument("paths", nargs="+", metavar="PATH")
     m.add_argument("--as", dest="kind", choices=["track", "podcast", "audiobook"],
                    help=_("treat all files as this kind (default: detect from genre tag)"))
-    m.add_argument("--playlist", help=_("also create a playlist with these files"))
+    m.add_argument("--playlist", metavar="NAME", help=_("also create a playlist with these files"))
     m.add_argument("--apply", action="store_true")
     m = msub.add_parser("playlist", help=_("copy a local .m3u/.m3u8 playlist and its tracks"))
-    m.add_argument("m3u")
+    m.add_argument("m3u", metavar="FILE")
     m.add_argument("--name")
     m.add_argument("--apply", action="store_true")
     m = msub.add_parser("remove", help=_("remove files or playlists whose name, artist or "

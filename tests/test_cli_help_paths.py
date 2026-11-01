@@ -1,7 +1,7 @@
 """The help of the commands: the folders they use by default as the program finds them (in the
-Documents folder of the user's XDG folders, with ~ for the home folder), a folder option of
-`activities export` by the name the other commands give it, the file of `fit inspect` in
-capitals as the other commands name what they take."""
+Documents folder of the user's XDG folders, with ~ for the home folder), the folders of
+`activities` and `activities export` as DIR, the file of `fit inspect` in capitals (every name:
+test_cli_argument_names)."""
 
 from pathlib import Path
 
@@ -39,10 +39,10 @@ def test_a_folder_outside_the_home_folder_is_said_whole(capsys, monkeypatch, tmp
     assert "(default: /srv/garmin/Backups)" in help_of(capsys, "backup")
 
 
-def test_the_backups_of_an_export_have_the_name_of_the_backups_of_the_list(capsys):
+def test_the_backups_of_an_export_and_of_the_list_are_a_dir(capsys):
     export = help_of(capsys, "activities", "export")
-    assert "EXPORT_BACKUPS" not in export and "--backups BACKUPS" in export
-    assert "--backups BACKUPS" in help_of(capsys, "activities")
+    assert "EXPORT_BACKUPS" not in export and "--backups DIR" in export
+    assert "--backups DIR" in help_of(capsys, "activities")
 
 
 def test_the_file_of_fit_inspect_in_capitals(capsys):
