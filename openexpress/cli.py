@@ -500,7 +500,8 @@ def _status_updates_online(client, s) -> str:
         if device is None or storage is None:  # a drive: probe keeps nothing of it
             storage = gio_storage.open_ums_storage(s.found)
             device = parse(storage.read("GARMIN/GarminDevice.xml"))
-        items = upd.offered(storage, client.software_updates(device.raw), device)
+        items = upd.offered(storage, client.software_updates(device.raw), device,
+                            forget_installed=False)  # keeps nothing
     except (ApiError, DeviceError) as e:
         return _("could not be checked: {error}").format(error=e)
     new, staged = upd.pending(items), upd.staged(items)
@@ -1069,17 +1070,20 @@ def cmd_updates(args) -> int:
         print(_("Software is up to date.") if not args.reinstalls
               else _("The server returned no items."))
         return 0
-    chosen, put_off = upd.one_per_file(chosen)
-    need, free = upd.check_space(st, chosen)
-    print(_("To install:"))
-    for u in upd.sort_for_install(chosen):
-        print(f"  {u.part_number} {u.version}  {u.title}{_beta_mark(u)}  ({_human(u.size)}) "
-              f"-> {u.device_path}")
+    # One update for each file, and none for the file of one copied already that waits.
+    chosen, put_off = upd.one_per_file(chosen, staged)
     for u, other in put_off:
         print(_("Not now: {name} {version} goes to the same file on the device as {other} "
                 "{other_version}. Install it once the device has installed {other}: "
                 "disconnect the device, then connect it again.").format(
             name=u.title, version=u.version, other=other.title, other_version=other.version))
+    if not chosen:
+        return 0
+    need, free = upd.check_space(st, chosen)
+    print(_("To install:"))
+    for u in upd.sort_for_install(chosen):
+        print(f"  {u.part_number} {u.version}  {u.title}{_beta_mark(u)}  ({_human(u.size)}) "
+              f"-> {u.device_path}")
     print(_("Space: {needed} needed, {free} free").format(needed=_human(need), free=_human(free)))
     eulas = sorted({u.eula_url for u in chosen if u.eula_url})
     for e in eulas:

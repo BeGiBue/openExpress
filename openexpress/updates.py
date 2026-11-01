@@ -291,28 +291,31 @@ def pending(updates: list[SoftwareUpdate]) -> list[SoftwareUpdate]:
     return [u for u in updates if not u.is_reinstall and not u.is_metadata and not u.on_device]
 
 
-def offered(storage: Storage, response: dict, device) -> list[SoftwareUpdate]:
+def offered(storage: Storage, response: dict, device,
+            forget_installed: bool = True) -> list[SoftwareUpdate]:
     """What the update server's `response` offers `device` (its GarminDevice.xml), each
     compared with the device's storage (mark_present) and with what openExpress copied to it
-    before (mark_copied)."""
+    before (mark_copied; `forget_installed`: False for a check that keeps nothing)."""
     return mark_copied(mark_present(storage, parse_updates(response, device),
                                     component_count(device)),
-                       getattr(device, "unit_id", None))
+                       getattr(device, "unit_id", None), forget_installed)
 
 
-def mark_copied(updates: list[SoftwareUpdate], unit_id: int | None) -> list[SoftwareUpdate]:
+def mark_copied(updates: list[SoftwareUpdate], unit_id: int | None,
+                forget_installed: bool = True) -> list[SoftwareUpdate]:
     """The updates openExpress copied to this device before that the server still offers
     (not as reinstalls): when each was copied (known_devices), each said in the log, with
     whether the file at its place changed since (the same size, other bytes: the device
-    changed or refused it). What the server no longer offers is forgotten: the device
-    installed it. Optional: a failure is only written to the log."""
+    changed or refused it). What the server no longer offers is forgotten (the device
+    installed it), unless not `forget_installed`. Optional: a failure is only written to the
+    log."""
     if not unit_id:
         return updates
     offered_now = {u.key for u in updates if not u.is_reinstall and not u.is_metadata}
     try:
         entry = known_devices.load().get(unit_id)
         copied = dict(entry.copied_updates) if entry is not None else {}
-        if set(copied) - offered_now:
+        if forget_installed and set(copied) - offered_now:
             known_devices.keep_copied(unit_id, offered_now)
     except Exception as e:  # noqa: BLE001 - optional; the error may name the folder
         log.warning("updates: what was copied before not read (%s)", type(e).__name__)
@@ -369,11 +372,24 @@ def parse_updates(response: dict, device=None) -> list[SoftwareUpdate]:
             )
         )
         new = out[-1]
-        new.installed_version = listed.get(new.part_number.casefold())
-        software = getattr(device, "software_version_str", None)
-        if new.installed_version is None and new.is_system and isinstance(software, str):
-            new.installed_version = software
+        new.installed_version = (listed.get(new.part_number.casefold())
+                                 or the_device_version(new, device))
     return out
+
+
+def the_device_version(u: SoftwareUpdate, device) -> str | None:
+    """The version of `device`'s software, when it is the version of update `u` too: `u` is
+    the device's software by the server's word, the model's part number (`u`'s, or else the
+    device's), or as the bundle of its software (GUPDATE.GSP). A system file of another part
+    number, even in the top folder, may be a part's, with a version of its own: None."""
+    software = getattr(device, "software_version_str", None)
+    if not isinstance(software, str) or not u.is_system:
+        return None
+    model = u.model_part_number or getattr(device, "part_number", "") or ""
+    if (u.is_primary or u.filename.upper() == "GUPDATE.GSP"
+            or (model and u.part_number.casefold() == model.casefold())):
+        return software
+    return None
 
 
 def loses_data_on_update(info) -> bool:
@@ -461,36 +477,49 @@ class InstallReport:
     restart_required: bool = False
     # Not copied: each with the update copied to its file instead (one_per_file).
     put_off: list[tuple[SoftwareUpdate, SoftwareUpdate]] = field(default_factory=list)
-    # The keys (SoftwareUpdate.key) of the updates copied, without their -META entries.
-    copied: list[str] = field(default_factory=list)
+    # The updates written to the device, their -META entries too.
+    written: list[SoftwareUpdate] = field(default_factory=list)
+
+    @property
+    def copied(self) -> list[str]:
+        """The keys (SoftwareUpdate.key) of the updates written, without -META entries."""
+        return [u.key for u in self.written if not u.is_metadata]
 
 
 def _copied_first(u: SoftwareUpdate) -> tuple:
-    """Which of the updates for one file is copied, as Garmin Express orders them: the
-    device's software first, then what the device installs once disconnected, then in the
-    server's order."""
-    return (not u.is_primary, not u.is_system, not u.installs_when_disconnected, u.order,
-            u.part_number)
+    """Which of the updates for one file is copied, as Garmin Express orders them: a new one
+    before a reinstall, the device's software first, then what the device installs once
+    disconnected, then in the server's order."""
+    return (u.is_reinstall, not u.is_primary, not u.is_system, not u.installs_when_disconnected,
+            u.order, u.part_number)
 
 
-def one_per_file(updates: list[SoftwareUpdate]
+def one_per_file(updates: list[SoftwareUpdate], waiting: list[SoftwareUpdate] = ()
                  ) -> tuple[list[SoftwareUpdate], list[tuple[SoftwareUpdate, SoftwareUpdate]]]:
     """At most one update for each file of the device in one copy: copied together, the next
-    one would replace the first before the device installed it. Returns the updates to copy
-    and the others, each with the one copied to its file instead; an update put off takes its
-    -META entry with it. The file is told by its path in any letter case."""
-    first: dict[str, SoftwareUpdate] = {}
+    one would replace the first before the device installed it. `waiting`: updates copied
+    already that wait in their file for the device (staged): their files are taken. Returns
+    the updates to copy and the others, each with the one at its file instead, each said in
+    the log; the -META entries of a part put off go with it. A file is told by its path in
+    any letter case."""
+    first: dict[str, SoftwareUpdate] = {w.device_path.casefold(): w for w in waiting}
     put_off = []
     for u in sorted(updates, key=_copied_first):
         if u.is_metadata:
             continue
         place = u.device_path.casefold()
-        if place in first:
+        if place in first and first[place] is not u:
             put_off.append((u, first[place]))
         else:
             first[place] = u
-    off = {u.part_number.upper() for u, _other in put_off}
-    kept = [u for u in updates if u.part_number.upper().removesuffix("-META") not in off]
+    copied = {u.part_number.upper() for u in updates
+              if not u.is_metadata and not any(u is p for p, _other in put_off)}
+    kept = [u for u in updates if not any(u is p for p, _other in put_off)
+            and (not u.is_metadata or u.part_number.upper().removesuffix("-META") in copied)]
+    for u, other in put_off:
+        log.info("software update: %s %s put off, it goes to the file of %s %s (%s): one at a "
+                 "time", u.part_number, u.version, other.part_number, other.version,
+                 u.device_path)
     return kept, put_off
 
 
@@ -499,15 +528,12 @@ def _install(
     storage: Storage,
     session=None,
     progress: Callable[[str], None] | None = None,
+    report: InstallReport | None = None,
 ) -> InstallReport:
     """`progress`: each update by its name, in bytes ("Downloading … · 1.2 MB of 3.4 MB",
     "Copying … to the device · …"); the files are the server's and the device's own. Two
     updates for one file: one of them is copied (one_per_file)."""
     updates, put_off = one_per_file(updates)
-    for u, other in put_off:
-        log.info("software update: %s %s put off, it goes to the file of %s %s (%s): one at a "
-                 "time", u.part_number, u.version, other.part_number, other.version,
-                 u.device_path)
     need, free = check_space(storage, updates)
     margin = space_margin(storage)
     if free is not None and need + margin > free:
@@ -515,7 +541,8 @@ def _install(
                             "free, but only {free} free")
                           .format(need=human_size(need), margin=human_size(margin),
                                   free=human_size(free)))
-    report = InstallReport(put_off=put_off)
+    report = InstallReport() if report is None else report  # `report`: filled as it goes
+    report.put_off = put_off
     # Download everything first so the watch is never left with only some of the files.
     local_files: dict[str, Path] = {}
     say = say_to(progress)
@@ -552,8 +579,7 @@ def _install(
         real = storage.write_file_checked(u.device_path, local, byte_steps(progress, copying),
                                           error=UpdateError, md5=download.normalize_md5(u.md5))
         report.installed.append(f"{u.title} {u.version} -> {real}")
-        if not u.is_metadata:
-            report.copied.append(u.key)
+        report.written.append(u)
         report.restart_required |= u.installs_when_disconnected
         # The whole path from the device's folder, as mark_present names it.
         log.info("software update: %s %s (%s) copied to %s", u.part_number, u.version,
@@ -601,16 +627,16 @@ def install(*args, unit_id: int | None = None, **kwargs) -> InstallReport:
     `unit_id` is asked anew next time (answers), also after a copy that failed (a part may
     be there); what was copied is kept with the device (known_devices), until the server
     offers it no more (mark_copied)."""
+    report = InstallReport()
     try:
         with cache.using():
-            report = _install(*args, **kwargs)
+            return _install(*args, report=report, **kwargs)
     finally:
         answers.forget_device(answers.SOFTWARE_UPDATES, unit_id)
-    if unit_id and report.copied:
-        try:
-            known_devices.note_copied(unit_id, report.copied)
-        except Exception as e:  # noqa: BLE001 - optional; the error may name the folder
-            log.warning("updates: what was copied not kept (%s)", type(e).__name__)
-    return report
+        if unit_id and report.copied:  # also what was written before a failure
+            try:
+                known_devices.note_copied(unit_id, report.copied)
+            except Exception as e:  # noqa: BLE001 - optional; the error may name the folder
+                log.warning("updates: what was copied not kept (%s)", type(e).__name__)
 
 

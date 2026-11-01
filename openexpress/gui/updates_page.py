@@ -52,9 +52,9 @@ def versions_text(u, device) -> str:
     the version GarminDevice.xml lists for its part number, or for the device's own software
     the device's ("23.39 → 23.40"). A part of the device with no version listed: only its
     own ("6.70"), never the device's software against it."""
-    old = u.installed_version
-    if old is None and u.is_system:
-        old = getattr(device, "software_version_str", None)
+    from openexpress import updates as upd
+
+    old = u.installed_version or upd.the_device_version(u, device)
     return f"{old}{ARROW}{u.version}" if old and old != u.version else u.version
 
 
@@ -315,7 +315,9 @@ class UpdatesPage:
         # A drive: the copy is on the disk once written (LocalStorage syncs it), but the device
         # may take it only once the drive is ejected, so the cable may go out only then.
         mass_storage = getattr(s, "mass_storage", False)
-        chosen = upd.select(self.updates_cache, [u.part_number])
+        # The update clicked, with its -META entries: not another version of its part.
+        chosen = [x for x in self.updates_cache if x is u or (
+            x.is_metadata and x.part_number.upper().removesuffix("-META") == u.part_number.upper())]
         body = (f"{u.title} {versions_text(u, s.device)}\n"
                 + _("Size: {size}").format(size=human_size(u.size)) + "\n"
                 + _("On the device: {path}").format(path=u.device_path)
@@ -349,7 +351,9 @@ class UpdatesPage:
 
         def installed(result):
             rep, bike_accessory = result
-            self._show_installed(s, chosen)
+            self._show_installed(s, rep.written)  # what was written, nothing else
+            if not rep.written:
+                return
             if not mass_storage:
                 self.error(_("Done"), self._update_done_text(rep))
                 return

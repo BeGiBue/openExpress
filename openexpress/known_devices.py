@@ -642,14 +642,18 @@ def _tile_facts(value: dict) -> dict:
             "sync": value.get("sync_count")}
 
 
+# The latest time a date of the program can show (the end of the year 9999).
+LAST_TIME = 253402300799
+
+
 def _copied(value) -> tuple[tuple[str, float], ...]:
     """The updates copied to a device as written, {key: time}: a key that is no identifier,
-    or a time that is no number, is not kept."""
+    or a time that is no number or no date (not finite, out of range), is not kept."""
     if not isinstance(value, dict):
         return ()
     return tuple(sorted((key, float(at)) for key, at in value.items()
                         if _identifier(key) and isinstance(at, int | float)
-                        and not isinstance(at, bool)))
+                        and not isinstance(at, bool) and 0 <= at <= LAST_TIME))
 
 
 def _product(value) -> str | None:

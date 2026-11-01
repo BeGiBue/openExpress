@@ -305,19 +305,89 @@ def test_two_updates_for_one_file_are_copied_one_at_a_time(device_root, tmp_path
 
 
 def test_cli_says_which_update_waits_for_the_next_connection(device_root, tmp_path, monkeypatch,
-                                                            capsys):
+                                                            capsys, caplog):
     _fetch_by_part(monkeypatch, tmp_path)
     answer = lower_keys({"updates": SAME_FILE})
     monkeypatch.setattr(GarminClient, "software_updates",
                         lambda self, raw, include_reinstalls=False: answer)
     monkeypatch.setattr(GarminClient, "unit_info", lambda self, unit_id, part_number: {})
-    assert main(["--path", str(device_root), "updates", "--install", "all", "--apply"]) == 0
+    with caplog.at_level(logging.INFO, logger="openexpress.updates"):
+        assert main(["--path", str(device_root), "updates", "--install", "all", "--apply"]) == 0
+    assert ("software update: 006-B0001-00 6.70 put off, it goes to the file of 006-B0000-00 "
+            "23.40 (Garmin/GUPDATE.GCD): one at a time") in [r.getMessage() for r in caplog.records]
     out = capsys.readouterr().out
     assert ("Not now: Test Part Software 6.70 goes to the same file on the device as Test "
             "Software 23.40. Install it once the device has installed Test Software: disconnect "
             "the device, then connect it again.") in out
     assert "Copied 1 file." in out
     assert (device_root / "GARMIN/gupdate.gcd").read_bytes() == BUNDLE
+
+
+def test_a_new_version_wins_over_a_reinstall_of_its_part_for_one_file():
+    """The server may offer a part again (a reinstall) beside its new version, at one file:
+    the new version is copied, the reinstall waits, and neither drops the other."""
+    old = {**_entry("006-B0000-00", "Test Software", "Firmware", "Garmin", "GUPDATE.GCD", b"old",
+                    primary=True), "displayVersion": "23.39"}
+    old["installation"]["isReinstall"] = True
+    new = _entry("006-B0000-00", "Test Software", "Firmware", "Garmin", "GUPDATE.GCD", BUNDLE,
+                 primary=True)
+    items = updates.parse_updates(lower_keys({"updates": [old, new]}))
+    kept, put_off = updates.one_per_file(items)
+    assert [u.version for u in kept] == ["23.40"]
+    assert [(u.version, other.version) for u, other in put_off] == [("23.39", "23.40")]
+
+
+def test_cli_does_not_write_over_an_update_that_waits_for_the_device(device_root, monkeypatch,
+                                                                    no_download, capsys):
+    """The GPS update copied already waits in its file for the device: the CLI writes no
+    other update to that file, and says when it can."""
+    sensor = {**_entry("006-B0002-00", "Test Sensor Software", "Firmware", "GARMIN\\REMOTESW",
+                       "gupdate.gcd", b"sensor", restart=True), "displayVersion": "1.20"}
+    (device_root / "GARMIN" / "REMOTESW").mkdir()
+    (device_root / "GARMIN" / "REMOTESW" / "GUPDATE.GCD").write_bytes(GPS)
+    answer = lower_keys({"updates": [GPS_ENTRY, sensor]})
+    monkeypatch.setattr(GarminClient, "software_updates",
+                        lambda self, raw, include_reinstalls=False: answer)
+    monkeypatch.setattr(GarminClient, "unit_info", lambda self, unit_id, part_number: {})
+    assert main(["--path", str(device_root), "updates", "--install", "all", "--apply"]) == 0
+    out = capsys.readouterr().out
+    assert ("Not now: Test Sensor Software 1.20 goes to the same file on the device as Test GPS "
+            "Software 6.70. Install it once the device has installed Test GPS Software: "
+            "disconnect the device, then connect it again.") in out
+    assert (device_root / "GARMIN" / "REMOTESW" / "GUPDATE.GCD").read_bytes() == GPS
+
+
+@pytest.mark.needs_display
+def test_a_copy_that_wrote_nothing_is_not_shown_copied_nor_ejected(monkeypatch, in_the_window):
+    """Only what the install wrote is shown on the device, and a drive is ejected only after
+    something was written to it."""
+    from gi.repository import Adw
+
+    from openexpress.gui.app import MainWindow
+    from openexpress.updates import InstallReport
+
+    items = updates.parse_updates(lower_keys(server_answer()))
+    win, _status, _groups, _buttons = _updates_page(items, drive=True)
+    given = []
+    monkeypatch.setattr(updates, "install",
+                        lambda chosen, storage, **kw: given.append(chosen) or InstallReport())
+    asked = []
+    monkeypatch.setattr(Adw.AlertDialog, "present", lambda self, parent: asked.append(self))
+    win.session.client = types.SimpleNamespace(http=None)
+    win.session.storage = None
+    win.updates_beta, win.shown = False, []
+    win.run_task = RunNow()
+    win.error = lambda title, text: win.shown.append(title)
+    win.progress = win.fraction = None
+    for name in ("show_updates", "_show_installed"):
+        setattr(win, name, types.MethodType(getattr(MainWindow, name), win))
+    in_the_window("is_bike_accessory", lambda client, device, ask: False)
+    MainWindow.confirm_update(win, items[1])
+    asked[0].emit("response", "ok")
+    assert given == [[items[1]]]  # the update clicked, nothing else of its part number
+    assert win.ejected == []
+    assert not any(u.on_device for u in items)
+    assert win.shown == []  # no "Done"
 
 
 @pytest.mark.needs_display
@@ -438,6 +508,64 @@ def test_cli_tells_an_update_copied_before_and_offered_again(device_root, monkey
     assert out[2:4] == [
         "  006-B0001-00          6.70  Recommended       12 B  Test GPS Software",
         f"      Copied {COPIED_WHEN}: check on the device that it is installed."]
+
+
+def test_a_check_that_keeps_nothing_forgets_nothing(device_root):
+    """`openexpress status --online` keeps nothing: what the server no longer offers is not
+    forgotten by its check."""
+    from openexpress import known_devices
+
+    _remember_the_device()
+    known_devices.note_copied(UNIT, ["006-B0001-00.6.70"], now=COPIED_AT)
+    before = known_devices.path().read_bytes()
+    from openexpress.device.xmldevice import parse
+
+    device = parse((device_root / "GARMIN" / "GarminDevice.xml").read_bytes())
+    updates.offered(LocalStorage(device_root), {"updates": []}, device, forget_installed=False)
+    assert known_devices.path().read_bytes() == before
+
+
+def test_what_was_copied_before_a_failure_is_kept(device_root, tmp_path, monkeypatch):
+    """A copy that fails after some updates were written: those are kept as copied."""
+    from openexpress import known_devices
+
+    _remember_the_device()
+    items = updates.parse_updates(lower_keys(server_answer()))  # the font, then the bundle
+
+    def fetch(urls, dest, size, md5, session=None, progress=None):
+        dest.parent.mkdir(parents=True, exist_ok=True)
+        dest.write_bytes(BUNDLE if dest.name == "GUPDATE.GSP" else FONT)
+        return dest
+
+    monkeypatch.setattr(download, "fetch", fetch)
+    monkeypatch.setattr(updates, "cache_path", lambda u: tmp_path / "cache" / u.filename)
+    storage = LocalStorage(device_root)
+    write = storage.write_file_checked
+
+    def bundle_fails(path, local, progress=None, **kw):
+        if path.endswith("GUPDATE.GSP"):
+            raise updates.UpdateError("the cable came out")
+        return write(path, local, progress, **kw)
+
+    monkeypatch.setattr(storage, "write_file_checked", bundle_fails)
+    with pytest.raises(updates.UpdateError):
+        updates.install(items, storage, unit_id=UNIT)
+    assert list(dict(known_devices.load()[UNIT].copied_updates)) == ["006-D0000-00.23.40"]
+
+
+@pytest.mark.needs_display
+def test_a_part_in_the_top_folder_is_never_shown_against_the_device_software():
+    """A part's system file in the device's top folder, whose version GarminDevice.xml does
+    not list: only its own version, as the device's software version is not its."""
+    from openexpress.gui.updates_page import versions_text
+
+    part = {**_entry("006-B0001-00", "Test Part Software", "Firmware", "GARMIN", "GUPDATE.GCD",
+                     PART), "displayVersion": "6.70"}
+    device = types.SimpleNamespace(description="Test watch", part_number="006-B0000-00",
+                                   software_version_str="23.39", unit_id=None, update_files=[])
+    (u,) = updates.parse_updates(lower_keys({"updates": [part]}), device)
+    assert u.installed_version is None
+    assert versions_text(u, device) == "6.70"
 
 
 @pytest.mark.needs_display
@@ -711,7 +839,7 @@ def test_a_second_system_update_is_listed_as_system_software():
     assert status["texts"][2][0] == "Test Bundle\u00a0· Recommended\u00a0· GUPDATE.GSP"  # the first on top
     (available,) = groups
     assert [(r.get_title(), r.get_subtitle()) for r in available.rows] == [
-        ("System software", f"Test Software\u00a0· {VERSIONS}\u00a0· 2\u00a0B\u00a0· Recommended\u00a0· GUPDATE.GCD")]
+        ("System software", "Test Software\u00a0· 23.40\u00a0· 2\u00a0B\u00a0· Recommended\u00a0· GUPDATE.GCD")]
 
 
 @pytest.mark.needs_display
@@ -1339,7 +1467,8 @@ def test_after_copying_the_page_says_ready_without_asking_again(monkeypatch):
     copied = []
     monkeypatch.setattr(updates, "install",
                         lambda chosen, storage, **kw: copied.append(chosen) or InstallReport(
-                            installed=["Test Bundle 23.40 -> Garmin/GUPDATE.GSP"]))
+                            installed=["Test Bundle 23.40 -> Garmin/GUPDATE.GSP"],
+                            written=list(chosen)))
     asked = []
     monkeypatch.setattr(Adw.AlertDialog, "present", lambda self, parent: asked.append(self))
     win.session.client = types.SimpleNamespace(http=None, software_updates=nothing)

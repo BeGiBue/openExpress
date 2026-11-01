@@ -275,6 +275,18 @@ def test_a_check_that_found_nothing_again_is_kept_without_a_word(store, caplog):
     assert _said(caplog) == []
 
 
+def test_copied_updates_keep_only_times_that_are_times(store):
+    """A time of a copied update that is not one (no number, out of the range of dates, not
+    finite) is not kept, nor a key that is no identifier."""
+    from openexpress import known_devices
+
+    data = _pattern()
+    _varia(data)["copied_updates"] = {"a.1": 1e300, "b.2": "x", "c.3": True, "with space": 5.0,
+                                      "e.5": float("inf"), "f.6": -1.0, "d.4": 100.0}
+    store.write_text(json.dumps(data))
+    assert known_devices.load()[VARIA].copied_updates == (("d.4", 100.0),)
+
+
 # --- when nothing is written ------------------------------------------------------------------
 
 
