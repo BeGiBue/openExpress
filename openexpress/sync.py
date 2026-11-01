@@ -31,7 +31,15 @@ from openexpress.connect import (
 )
 from openexpress.device.storage import Storage
 from openexpress.device.xmldevice import DeviceFile, GarminDevice
-from openexpress.fit import incompleteness, parse_file_id
+from openexpress.fit import (
+    Described,
+    FitError,
+    NotWhole,
+    check,
+    describe,
+    incompleteness,
+    parse_file_id,
+)
 from openexpress.i18n import _
 from openexpress.progress import Step, say_to
 
@@ -896,3 +904,46 @@ def _run_downloads(items, storage, client, progress, state) -> DownloadReport:
     for _label, error in report.failed:
         log.warning("download failed: %s", error)
     return report
+
+
+@dataclass(frozen=True)
+class QueueFile:
+    """A file of Garmin Connect's queue as describe_queue found it: its size and check (None:
+    whole) and what it says of itself (None: no FIT file); `empty`: Connect has no file for it;
+    `error`: why it could not be downloaded."""
+
+    item: DownloadItem
+    size: int | None = None
+    check: NotWhole | None = None
+    described: Described | None = None
+    empty: bool = False
+    error: str | None = None
+
+
+def describe_queue(items: list[DownloadItem], client: GarminClient) -> list[QueueFile]:
+    """Each file of Garmin Connect's queue the sync would write to the device (not one it
+    refuses or hands to TrueUp or Connect IQ), downloaded into memory and described: nothing
+    is written and nothing is acknowledged, so the sync downloads it again. A download that
+    fails is said in its own QueueFile. The log gets the types and counts, never a name."""
+    found = []
+    for it in items:
+        if it.unsupported or it.handled_by:
+            continue
+        try:
+            data = client.download_message(it.url, it.absolute)
+        except Exception as e:  # noqa: BLE001 - said in the description of this one file
+            found.append(QueueFile(it, error=str(e) or type(e).__name__))
+            continue
+        if data is None:
+            found.append(QueueFile(it, empty=True))
+            continue
+        try:
+            described = describe(data)
+        except FitError:
+            described = None
+        found.append(QueueFile(it, len(data), check(data), described))
+    log.info("sync preview: %d queue files described (%s), %d not whole, %d not downloaded",
+             len(found), applog.counts(f.item.datatype for f in found),
+             sum(1 for f in found if f.check is not None),
+             sum(1 for f in found if f.error is not None))
+    return found

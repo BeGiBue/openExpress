@@ -12,7 +12,7 @@ import logging
 import sys
 import time
 from collections.abc import Callable
-from datetime import datetime
+from datetime import UTC, datetime
 from pathlib import Path
 
 from openexpress import __version__, applog, i18n, known_devices, paths
@@ -970,7 +970,7 @@ def cmd_sync(args) -> int:
         drive=st.mass_storage)
     if not args.apply:
         _print_sync_plan(service.plan_sync(session, dataclasses.replace(options, preview=True)),
-                         drive=st.mass_storage)
+                         client, drive=st.mass_storage)
         print("\n" + _("Dry run: nothing was uploaded or written to the device. "
                        "Add --apply to run the sync."))
         return 0
@@ -1000,10 +1000,12 @@ def cmd_sync(args) -> int:
     return code
 
 
-def _print_sync_plan(plan, drive: bool = False) -> None:
+def _print_sync_plan(plan, client, drive: bool = False) -> None:
     """What `sync` would do (its dry run), as service.plan_sync worked it out. On a `drive`
-    a Connect IQ app stays in Garmin Connect's queue (service.stays_in_queue)."""
-    from openexpress import service
+    a Connect IQ app stays in Garmin Connect's queue (service.stays_in_queue). Under each file
+    of the queue the sync would write to the device: what it is (sync.describe_queue, which
+    downloads it into memory and acknowledges nothing)."""
+    from openexpress import service, sync
 
     uploads = plan.uploads
     if uploads is not None:
@@ -1029,6 +1031,8 @@ def _print_sync_plan(plan, drive: bool = False) -> None:
 
         n_dl = sum(1 for i in items if not i.unsupported and not left(i))
         print("\n" + _("To download from Connect to the device: {count}").format(count=n_dl))
+        written = [it for it in items if not left(it)]
+        described = {id(f.item): f for f in sync.describe_queue(written, client)}
         for it in items:
             note = ("  [" + _("skipped: {reason}").format(reason=it.unsupported) + "]"
                     if it.unsupported
@@ -1036,6 +1040,56 @@ def _print_sync_plan(plan, drive: bool = False) -> None:
                     else f"  [{it.handled_by}]" if it.handled_by else "")
             target = it.target.path if it.target else "-"
             print(f"  {it.datatype:22} {it.message_name or it.message_id} -> {target}{note}")
+            if id(it) in described:
+                print("      " + _queue_file_words(described[id(it)]))
+
+
+def _queue_file_words(found) -> str:
+    """The line under a file of Garmin Connect's queue in the dry run of `sync`: what it is,
+    its sport and name or days, when it was made, and whether it is whole."""
+    from openexpress import activities, service
+    from openexpress.fit import Problem
+
+    if found.error is not None:
+        return _("could not be downloaded: {error}").format(error=found.error)
+    if found.empty:
+        # TRANSLATORS: dry run of sync: the queue names a file Garmin Connect does not have
+        return _("Garmin Connect has no file for it")
+    if found.described is None:
+        return _("not a FIT file ({read} B read)").format(read=found.size)
+    d = found.described
+    parts = [service.type_name(f"FIT_TYPE_{d.file_type}" if d.file_type is not None
+                               else found.item.datatype)]
+    if d.sport is not None:
+        parts.append(activities.sport_name(d.sport))
+    if d.name:
+        parts.append(d.name)
+    if d.steps is not None:
+        parts.append(ngettext("{count} step", "{count} steps", d.steps).format(count=d.steps))
+    if d.days:
+        def day(moment: int) -> str:
+            return datetime.fromtimestamp(moment, UTC).strftime(_("%Y-%m-%d"))
+
+        # TRANSLATORS: dry run of sync: the days of a schedule from Garmin Connect
+        parts.append(ngettext("{count} day from {first} to {last}",
+                              "{count} days from {first} to {last}", len(d.days)).format(
+            count=len(d.days), first=day(d.days[0]), last=day(d.days[-1])))
+    if d.created is not None:
+        parts.append(_("created {date}").format(
+            date=time.strftime(_("%Y-%m-%d"), time.localtime(d.created))))
+    not_whole = found.check
+    if not_whole is None:
+        # TRANSLATORS: dry run of sync: the check of a file from Garmin Connect
+        parts.append(pgettext("FIT file", "whole"))
+    elif not_whole.problem is Problem.CUT_SHORT:
+        parts.append(_("cut short: {read} B read, {declared} B declared").format(
+            read=not_whole.read, declared=not_whole.declared))
+    elif not_whole.problem is Problem.CRC:
+        parts.append(_("damaged: the CRC does not match"))
+    else:
+        parts.append(_("damaged: {count} B after the end are no FIT file").format(
+            count=not_whole.after))
+    return " · ".join(parts)
 
 
 def _print_sync_steps(summary, unit_id: int):

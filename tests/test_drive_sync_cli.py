@@ -145,12 +145,14 @@ QUEUE_NOTE = "[stays in Garmin Connect's queue]"
 
 def test_the_dry_run_of_a_drive_plans_the_queue_too(device_root, monkeypatch, capsys):
     """As for a device over MTP; a Connect IQ app is told to stay in Garmin Connect's queue
-    and is not counted with what comes to the device."""
+    and is not counted with what comes to the device. The course is downloaded to be
+    described, and nothing is acknowledged."""
     drive_at(device_root, monkeypatch)
     account = account_for(monkeypatch, {"connectsupport": "Required"}, messages=[COURSE, APP])
     assert cli.main(["sync"]) == 0
     out = capsys.readouterr().out
-    assert "queue" in account.asked and "download" not in account.asked
+    assert "queue" in account.asked and account.asked.count("download") == 1
+    assert "acknowledge" not in account.asked
     assert "To upload: 3 files" in out and "To download from Connect to the device: 1" in out
     (app_line,) = [line for line in out.splitlines() if "IQWatchApps" in line]
     assert app_line.endswith(QUEUE_NOTE)

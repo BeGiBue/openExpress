@@ -516,3 +516,54 @@ def points(data: bytes) -> Iterator[Point]:
             altitude = _metres(values.get(_RECORD_ALTITUDE))
         yield Point(_degrees(lat), _degrees(long), altitude,
                     _unix_time(values.get(FIELD_TIMESTAMP)))
+
+
+# FIT profile: workout (sport, num_valid_steps, wkt_name), course (sport, name) and schedule
+# (scheduled_time, a local_date_time), the messages a file of Garmin Connect's queue may hold.
+_MESG_WORKOUT, _WORKOUT_SPORT, _WORKOUT_STEPS, _WORKOUT_NAME = 26, 4, 6, 8
+_MESG_COURSE, _COURSE_SPORT, _COURSE_NAME = 31, 4, 5
+_MESG_SCHEDULE, _SCHEDULE_TIME = 28, 6
+
+
+@dataclass(frozen=True)
+class Described:
+    """What a file says of itself (describe): its type, when it was made (a Unix time), and
+    for a workout or a course its sport and name, a workout's steps, a schedule's days (the
+    local clock, as seconds since 1970)."""
+
+    file_type: int | None = None
+    created: int | None = None
+    sport: int | None = None
+    name: str | None = None
+    steps: int | None = None
+    days: tuple[int, ...] = ()
+
+
+def describe(data: bytes) -> Described:
+    """What the FIT file `data` says of itself, as far as it reads. FitError for what is no
+    FIT file."""
+    _check_header(data)
+    file_id: dict[int, Value] = {}
+    sport = name = steps = None
+    days: list[int] = []
+    try:
+        for num, values in iter_messages(
+                data, wanted=(_MESG_FILE_ID, _MESG_WORKOUT, _MESG_COURSE, _MESG_SCHEDULE)):
+            if num == _MESG_FILE_ID:
+                file_id = file_id or values
+            elif num == _MESG_WORKOUT:
+                sport, steps = values.get(_WORKOUT_SPORT), values.get(_WORKOUT_STEPS)
+                name = values.get(_WORKOUT_NAME)
+            elif num == _MESG_COURSE:
+                sport, name = values.get(_COURSE_SPORT), values.get(_COURSE_NAME)
+            else:
+                day = _whole_number(values.get(_SCHEDULE_TIME))
+                if day is not None:
+                    days.append(day + FIT_EPOCH_OFFSET)
+    except FitError:
+        pass
+    return Described(
+        file_type=_whole_number(file_id.get(_FILE_ID_TYPE)),
+        created=_unix_time(file_id.get(_FIELD_TIME_CREATED)), sport=_whole_number(sport),
+        name=name if isinstance(name, str) else None, steps=_whole_number(steps),
+        days=tuple(sorted(days)))
