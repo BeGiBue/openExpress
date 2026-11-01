@@ -18,6 +18,7 @@
 | inReach Mini 2 (part 006-B3968-00) | USB drive | [#11](https://github.com/TomaszBojanowski/openExpress/issues/11) | connects as a USB drive: software updates work (the device installs one once its drive is ejected properly); not synced: Garmin's update server says that Garmin Connect does not take its data ([#12](https://github.com/TomaszBojanowski/openExpress/issues/12)) | Linux Mint 22.3, Cinnamon on X11, Flatpak 0.6.4 |
 | Forerunner 55 (part 006-B3869-00) | USB drive | [#19](https://github.com/TomaszBojanowski/openExpress/issues/19) | connects as a USB drive: software updates work, sync not confirmed yet | Fedora 44, KDE on Wayland, Flatpak 0.6.20 |
 | Forerunner 920XT (part 006-B1765-00) | USB drive | [#20](https://github.com/TomaszBojanowski/openExpress/issues/20) | connects as a USB drive: software updates work (time-zone map updated), sync not confirmed yet | Fedora 44, KDE on Wayland, Flatpak 0.6.20 |
+| Instinct 2S Solar (part 006-B3889-00) | USB drive | [#24](https://github.com/TomaszBojanowski/openExpress/issues/24) | connects as a USB drive; sync works (new activities uploaded, those already in Garmin Connect recognised, no errors). The software of its GPS chip was shown as "17.22 → 6.70" against the watch's software, and after its copy the watch did not install it; both are fixed after 0.7.13 (the part's own name and version, the copy read back from the drive, the drive ejected at once), confirmation awaited in #24 | Arch Linux, GNOME on X11, Flatpak 0.7.13 |
 | zūmo 595LM | – | [#15](https://github.com/TomaszBojanowski/openExpress/issues/15) | detected; software updates and map updates worked; the device itself has no Garmin Connect sync or Connect IQ apps | the command line only, in a container on a home server, also built for ARM on a Raspberry Pi; a version before 0.6.20 |
 | Other Garmin watches and bike computers connecting over USB (MTP) | MTP | – | expected to work, **untested** | – |
 
@@ -48,11 +49,12 @@ and the command say why. Connect IQ apps queued for a drive
 stay in Garmin Connect's queue. After a sync that wrote files to it the drive is ejected (the
 window asks first), so that the watch takes them. Apps, maps and music are not supported for
 such a device; the window and the commands say so. The sync of a drive is new: it was tried
-only with a pendrive standing in for a watch, and is not confirmed on a watch yet. A car or motorcycle
+with a pendrive standing in for a watch and is confirmed on an Instinct 2S
+([#24](https://github.com/TomaszBojanowski/openExpress/issues/24)). A car or motorcycle
 navigator that connects as a USB drive (such as an older nüvi) should therefore get its
 software updates, but no map updates. Mass storage is tested by the developer on the Varia RTL515 (also
 copying a component update and ejecting the drive in the window), and users
-report software updates working on an inReach Mini 2, a Forerunner 55 and a Forerunner 920XT
-(see the table); reports from other devices in mass storage mode are welcome. If you are not sure which mode your device
+report software updates working on an inReach Mini 2, a Forerunner 55 and a Forerunner 920XT,
+and sync on an Instinct 2S (see the table); reports from other devices in mass storage mode are welcome. If you are not sure which mode your device
 uses, plug it in: if it appears as a USB drive in your file manager rather than through MTP,
 it is in mass storage mode.
