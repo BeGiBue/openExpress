@@ -91,9 +91,11 @@ device**, its **Primary wearable** (only for a device that can be one; **Set as 
 makes it this device, after a question). Its
 **Apps** and **Music** rows lead to their pages, as **Maps** does, and say how many there are
 once those pages have read them; **Backup** says when the last backup was made and how many
-there are (the folder in its tooltip). A backup copies the device's files as they are; only a
-FIT file the device was still writing when it was connected (read cut short) is left out, and
-the backup then says to disconnect and reconnect the device and make it again.
+there are (the folder in its tooltip). A backup copies the device's files as they are. A FIT
+file the device wrote while it was connected over MTP may read cut short at first; the backup
+then mounts the device again for a moment and reads the file once more, as a sync does ([Sync
+details](#sync-details)). Only a file still cut short is left out, and the backup then says to
+disconnect and reconnect the device and make it again.
 
 A device seen before and not connected opens read-only: what was known of it when it was
 last seen, its last sync with its details, what the last check of its updates found and
@@ -336,6 +338,14 @@ fēnix 8 over MTP.
   a course's sport and name, a schedule's days – and whether it is whole. It downloads them
   into memory only and acknowledges nothing, so the sync downloads them again. Tested on a
   fēnix 8 over MTP.
+- A FIT file the device wrote while it was connected over MTP (a Garmin Coach plan, for
+  example) may read cut short: gvfs keeps the size the file had when it was first looked at.
+  At the first such file a sync mounts the device again for a moment, which gives fresh
+  sizes, and reads the file once more; once a sync. The progress says *Refreshing the
+  device's files…*, and the device leaves the file manager for that moment. A file still cut
+  short is not uploaded: the summary says so, and the next sync reads it again. If the device
+  is not mounted again, the sync stops and says to unplug it and plug it in again. A device
+  connected as a USB drive needs none of this.
 - **Last sync** on the Device page, `openexpress sync` and the notification of the
   background sync use the same words for how many new files the device had, how many were
   uploaded and how many came from Garmin Connect; the row on the Device page also says when

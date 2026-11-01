@@ -1,8 +1,10 @@
 # Design: reading a cut-short file again after a fresh mount
 
 Status: the decisions in section 4 are made (D1 1a, D2 2a, D3 3b, D4 4a, marked "chosen");
-nothing is implemented yet. The work goes step by step (section 7), each step after a yes. The
-scope in section 1 is set once: what it does not list is not added while it is implemented.
+the implementation is done (steps 1–5 of section 7), as section 5 describes it. Not seen on a
+device yet: a cut-short file cannot be made on purpose, and the log tells when it has happened
+("upload: a … file read again after the device was mounted again", "backup: …"). The scope in
+section 1 is set once: what it does not list is not added while it is implemented.
 
 ## 1. Scope
 
@@ -163,15 +165,18 @@ have no order to keep.
 
 ## 5. What changes in existing modules
 
+As implemented:
+
 | Module | Change |
 |---|---|
-| `device/storage.py` | `Storage.refresh() -> bool`: by default does nothing and returns False (a folder, a USB drive). |
-| `device/gio_storage.py` | `GioStorage.refresh()`: unmount and mount again as `_exclusive` does, without a PTP session. The shared part (the quiet time for `own_remount`, `_mount_back` after a time limit, the mount) is taken out of `_exclusive` first, with no change of behaviour. Returns True once the device is mounted again. |
-| `sync.py` | `_run_uploads`, both passes: at the first cut-short FIT file `storage.refresh()` once; the candidate's kept data dropped and the file read from the device again; a later cut-short file of the same sync read again without another refresh; still cut short: left out as today. |
+| `device/storage.py` | `Storage.refresh(progress=None) -> bool`: by default does nothing and returns False (a folder, a USB drive). `replug_text`: a device not mounted again, its error and what to do (unplug and plug in), unless the error says that itself. `refresh_to_read_again`: the refresh as the sync and the backup ask it, a device not mounted again raised with that text. |
+| `device/gio_storage.py` | `_unmounted`: the shared part, taken out of `_exclusive` with no change of behaviour (the quiet time for `own_remount`, the unmount with `_mount_back` after a time limit or Ctrl+C, the mount again, also after an error). `GioStorage.refresh(progress)`: says its step, then unmounts and mounts again without a PTP session; True once the device is mounted again. False, the device left as it is, when its place on USB is not known (our own unmount would be taken for an unplug) and when the unmount is refused or does not finish in time (then whether gvfs has fresh sizes is not known). |
+| `sync.py` | `_WholeReads`, in both passes of `_run_uploads`: at the first cut-short FIT file one refresh; the candidate's kept data dropped and the file read from the device again; a later cut-short file of the same sync read again without another refresh; still cut short: left out. A device not mounted again stops the sync. |
 | `backup.py` | `_copy_files`: the same, at most once a backup; the bytes counted from what was read (`len(data)`) rather than from the listed size. |
-| `progress.py` | `refreshing_text()`: the text of the step while the device is mounted again, next to `downloading_text` and `copying_text`, used by the sync and the backup; its Polish. |
-| `service.py`, `sync.py`, `backup.py` | A line of the log at each refresh and at each file read again: the type and the sizes, never the name of the file. |
-| `watch.py`, `gui/` | Nothing: they go through `run_sync` and `run_backup`, and `own_remount` already hides our own mount. |
+| `progress.py` | `refreshing_text()`: the text of the step, next to `downloading_text` and `copying_text`; its Polish. `GioStorage.refresh` says it where a refresh is done, so a folder and a USB drive never show it. |
+| `ciq.py` | Its own text of a device not mounted again replaced by `replug_text`, with the same words. |
+| `sync.py`, `backup.py`, `gio_storage.py` | Lines of the log: the refresh, each file read again, a refresh not done; the type and the sizes, never the name of the file. |
+| `watch.py`, `gui/`, `service.py` | Nothing: they go through `run_sync` and `run_backup`, and `own_remount` already hides our own mount. |
 | `docs/guide.md` | "Sync details", and the backup in "The start page and the device page": a cut-short file is read again after the device is mounted again; only one still cut short is left out, with today's advice to disconnect and reconnect the device. |
 
 The dry run of the command line does not refresh: it only plans. A single-file type is read
@@ -243,3 +248,7 @@ on purpose; the log line of the refresh shows when it has happened.
 About 150–200 lines of code (storage about 10, gio_storage 40–60 with the shared part, sync about
 40, backup about 30, progress and the log lines about 10), 250–300 lines of tests, one small
 fake, one text with its Polish, and 5 commits, one a step of section 7.
+
+As implemented: 150 lines of code added and 34 taken out, 375 lines of tests added and 15
+taken out (one fake, `fakes.stale_sizes`, which also lists a file at its old size), one text
+with its Polish, and 5 commits.
