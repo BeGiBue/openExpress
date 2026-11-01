@@ -116,6 +116,24 @@
   </supports>
   <content_rating type="oars-1.1"/>
   <releases>
+    <release version="0.8.1" date="2026-11-02">
+      <description>
+        <ul>
+          <li>A FIT file the device writes while it is connected over MTP, such as a Garmin Coach
+          plan, could be read cut short (gvfs keeps the size a file had when it was first looked
+          at) and then had to wait until the device was unplugged and plugged in again. Now a sync
+          or a backup that finds such a file mounts the device again for a moment, once, and reads
+          the file whole. Covered by automated tests; such a file cannot be made on purpose, so
+          this is not yet seen on a real device.</li>
+          <li>The help of the command line describes every argument and option, among them what
+          --apply does in each command.</li>
+          <li>The description of the files waiting in Garmin Connect in the dry run of "openexpress
+          sync" is now checked on a fēnix 8 over MTP.</li>
+          <li>The screenshots, a new one of the Activities page among them, have Polish
+          captions.</li>
+        </ul>
+      </description>
+    </release>
     <release version="0.8.0" date="2026-11-01">
       <description>
         <ul>

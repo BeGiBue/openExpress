@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: openexpress 0.1.0\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-11-02 00:02+0100\n"
+"POT-Creation-Date: 2026-11-02 00:22+0100\n"
 "PO-Revision-Date: 2026-10-11 02:36+0200\n"
 "Last-Translator: Automatically generated\n"
 "Language-Team: none\n"
@@ -249,7 +249,7 @@ msgstr[2] ""
 "kopii. Odłącz i podłącz urządzenie, a potem zrób kopię jeszcze raz."
 
 #. TRANSLATORS: a step of a backup ("… · 120 of 1530")
-#: openexpress/backup.py:148
+#: openexpress/backup.py:154
 msgid "Copying to the backup"
 msgstr "Kopiowanie do kopii zapasowej"
 
@@ -668,8 +668,8 @@ msgstr ""
 "przywrócić listy, która czekała: została usunięta, więc zmiany aplikacji "
 "czekające na urządzenie przepadły. Wprowadź je ponownie."
 
-#: openexpress/ciq.py:1403 openexpress/device/storage.py:261
-#: openexpress/device/storage.py:538
+#: openexpress/ciq.py:1403 openexpress/device/storage.py:271
+#: openexpress/device/storage.py:548
 #, python-brace-format
 msgid "Write verification of {path} failed"
 msgstr "Weryfikacja zapisu {path} się nie powiodła"
@@ -1225,8 +1225,8 @@ msgstr[1] "Tryb próbny: nic nie zapisano. Dodaj --apply, aby zapisać."
 msgstr[2] "Tryb próbny: nic nie zapisano. Dodaj --apply, aby zapisać."
 
 #: openexpress/cli.py:479 openexpress/device/gio_storage.py:303
-#: openexpress/device/gio_storage.py:324 openexpress/device/storage.py:446
-#: openexpress/device/storage.py:459
+#: openexpress/device/gio_storage.py:324 openexpress/device/storage.py:456
+#: openexpress/device/storage.py:469
 #, python-brace-format
 msgid "Cannot write {path}"
 msgstr "Nie można zapisać {path}"
@@ -1305,9 +1305,9 @@ msgstr "Nie znaleziono pliku: {path}"
 
 #: openexpress/cli.py:549 openexpress/device/gio_storage.py:266
 #: openexpress/device/gio_storage.py:275 openexpress/device/gio_storage.py:280
-#: openexpress/device/storage.py:420 openexpress/device/storage.py:430
-#: openexpress/device/storage.py:435 openexpress/device/storage.py:512
-#: openexpress/device/storage.py:523
+#: openexpress/device/storage.py:430 openexpress/device/storage.py:440
+#: openexpress/device/storage.py:445 openexpress/device/storage.py:522
+#: openexpress/device/storage.py:533
 #, python-brace-format
 msgid "Cannot read {path}"
 msgstr "Nie można odczytać {path}"
@@ -3617,17 +3617,17 @@ msgid "flatpak-spawn is not available"
 msgstr "flatpak-spawn jest niedostępny"
 
 #: openexpress/device/gio_storage.py:235 openexpress/device/gio_storage.py:252
-#: openexpress/device/storage.py:413
+#: openexpress/device/storage.py:423
 #, python-brace-format
 msgid "Cannot list {path}"
 msgstr "Nie można wyświetlić zawartości {path}"
 
-#: openexpress/device/gio_storage.py:421 openexpress/device/storage.py:485
+#: openexpress/device/gio_storage.py:421 openexpress/device/storage.py:495
 #, python-brace-format
 msgid "Cannot delete {path}"
 msgstr "Nie można usunąć {path}"
 
-#: openexpress/device/gio_storage.py:427 openexpress/device/storage.py:489
+#: openexpress/device/gio_storage.py:427 openexpress/device/storage.py:499
 #, python-brace-format
 msgid "Cannot create directory {path}"
 msgstr "Nie można utworzyć katalogu {path}"
@@ -3915,31 +3915,31 @@ msgstr "Nie udało się poprawnie zapisać „{name}”."
 msgid "{error} Unplug the device and plug it in again."
 msgstr "{error} Odłącz urządzenie i podłącz je ponownie."
 
-#: openexpress/device/storage.py:181 openexpress/device/storage.py:189
+#: openexpress/device/storage.py:191 openexpress/device/storage.py:199
 #, python-brace-format
 msgid "File not found on the device: {path}"
 msgstr "Nie znaleziono pliku na urządzeniu: {path}"
 
-#: openexpress/device/storage.py:202
+#: openexpress/device/storage.py:212
 #, python-brace-format
 msgid "Cannot write {path}: it is a directory"
 msgstr "Nie można zapisać {path}: to katalog"
 
-#: openexpress/device/storage.py:280
+#: openexpress/device/storage.py:290
 #, python-brace-format
 msgid "Not enough space on the device: {need} needed, {free} free"
 msgstr "Za mało miejsca na urządzeniu: potrzeba {need}, wolne {free}"
 
-#: openexpress/device/storage.py:335
+#: openexpress/device/storage.py:345
 msgid "Refusing to delete the root of the device storage"
 msgstr "Odmowa usunięcia głównego katalogu pamięci urządzenia"
 
-#: openexpress/device/storage.py:354
+#: openexpress/device/storage.py:364
 #, python-brace-format
 msgid "Invalid file name: '{path}'"
 msgstr "Nieprawidłowa nazwa pliku: „{path}”"
 
-#: openexpress/device/storage.py:403 openexpress/device/storage.py:411
+#: openexpress/device/storage.py:413 openexpress/device/storage.py:421
 #, python-brace-format
 msgid "Not a directory: {path}"
 msgstr "To nie jest katalog: {path}"
@@ -7598,26 +7598,26 @@ msgstr "brak zgody ({consents})"
 
 #. TRANSLATORS: a step of the progress of a sync; {what}: a kind of data, e.g.
 #. "activities", "monitoring" ("Uploading activities · 3 of 8")
-#: openexpress/sync.py:515
+#: openexpress/sync.py:512
 #, python-brace-format
 msgid "Uploading {what}"
 msgstr "Wysyłanie: {what}"
 
-#: openexpress/sync.py:575
+#: openexpress/sync.py:572
 msgid "Upload consent was revoked in Garmin Connect"
 msgstr "Zgoda na wysyłanie została wycofana w Garmin Connect"
 
-#: openexpress/sync.py:590
+#: openexpress/sync.py:587
 #, python-brace-format
 msgid "server rejected the file (codes {codes})"
 msgstr "serwer odrzucił plik (kody {codes})"
 
-#: openexpress/sync.py:826
+#: openexpress/sync.py:823
 msgid "device does not accept this type"
 msgstr "urządzenie nie obsługuje tego typu"
 
 #. TRANSLATORS: a step of the progress of a sync ("… · 5 of 21")
-#: openexpress/sync.py:905
+#: openexpress/sync.py:902
 msgid "Downloading from Garmin Connect"
 msgstr "Pobieranie z Garmin Connect"
 
