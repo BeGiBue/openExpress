@@ -9,7 +9,7 @@ from __future__ import annotations
 import math
 import struct
 from collections.abc import Collection
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from enum import Enum
 
 from openexpress.i18n import _
@@ -228,31 +228,68 @@ def crc16(data: bytes, crc: int = 0) -> int:
     return crc
 
 
-def not_whole(data: bytes) -> tuple[bool, str] | None:
-    """Why `data` is not a whole FIT file, as (cut short, the words for the log), or None when
-    it is: every part (a file may chain several) has a header of 12 or 14 bytes with ".FIT",
-    the size its header declares (header, data and the CRC of 2 bytes) and that CRC; zeros
-    after the last part are padding. Cut short: a header declares more bytes than were read,
-    as when the device was still writing the file; else no header, data after the end that
-    are no FIT file, or a CRC that does not match. For the log: sizes, never the content."""
+class Problem(Enum):
+    """Why data are not a whole FIT file (check)."""
+    NO_HEADER = "no FIT header"
+    AFTER_THE_END = "data after the end that are no FIT file"
+    CUT_SHORT = "cut short"
+    CRC = "the CRC does not match"
+
+
+@dataclass(frozen=True)
+class NotWhole:
+    """What check found: the problem, the bytes read, and the bytes the header declares (cut
+    short: header, data and CRC) or those after the whole FIT data (after the end)."""
+
+    problem: Problem
+    read: int
+    declared: int = 0
+    after: int = 0
+
+    def words(self) -> str:
+        """For the log: sizes, never the content."""
+        if self.problem is Problem.NO_HEADER:
+            return f"no FIT header ({self.read} B read)"
+        if self.problem is Problem.AFTER_THE_END:
+            return f"{self.after} B after the whole FIT data are no FIT file"
+        if self.problem is Problem.CUT_SHORT:
+            return f"{self.read} B read, {self.declared} B declared"
+        return f"the CRC does not match ({self.read} B read)"
+
+
+def check(data: bytes) -> NotWhole | None:
+    """Why `data` is not a whole FIT file, or None when it is: every part (a file may chain
+    several) has a header of 12 or 14 bytes with ".FIT", the size its header declares (header,
+    data and the CRC of 2 bytes) and that CRC; zeros after the last part are padding. Cut
+    short: a header declares more bytes than were read, as when the device was still writing
+    the file; else no header, data after the end that are no FIT file, or a CRC that does not
+    match."""
     pos = 0
     while True:
         if pos and not any(data[pos:]):
             return None  # zeros after whole FIT data: padding, nothing cut short
         if len(data) - pos < 12 or data[pos] not in (12, 14) or data[pos + 8:pos + 12] != b".FIT":
-            return False, (f"no FIT header ({len(data)} B read)" if pos == 0
-                           else f"{len(data) - pos} B after the whole FIT data are no FIT file")
+            if pos == 0:
+                return NotWhole(Problem.NO_HEADER, len(data))
+            return NotWhole(Problem.AFTER_THE_END, len(data), after=len(data) - pos)
         header = data[pos]
         (size,) = struct.unpack_from("<I", data, pos + 4)
         end = pos + header + size + 2
         if end > len(data):
-            return True, f"{len(data)} B read, {end} B declared"
+            return NotWhole(Problem.CUT_SHORT, len(data), declared=end)
         (crc,) = struct.unpack_from("<H", data, end - 2)
         if crc16(data[pos:end - 2]) != crc:
-            return False, f"the CRC does not match ({len(data)} B read)"
+            return NotWhole(Problem.CRC, len(data))
         if end == len(data):
             return None
         pos = end
+
+
+def not_whole(data: bytes) -> tuple[bool, str] | None:
+    """Why `data` is not a whole FIT file (check), as (cut short, the words for the log), or
+    None when it is."""
+    found = check(data)
+    return None if found is None else (found.problem is Problem.CUT_SHORT, found.words())
 
 
 def incompleteness(data: bytes) -> str | None:
@@ -323,16 +360,16 @@ def _created(data: bytes) -> int | None:
     return None
 
 
-def _total(sessions: list[dict[int, Value]], field: int, scale: int = 1) -> float | int | None:
+def _total(sessions: list[dict[int, Value]], number: int, scale: int = 1) -> float | int | None:
     """The sum of a field over the sessions that give it; None when none does."""
-    known = [n for n in (_whole_number(s.get(field)) for s in sessions) if n is not None]
+    known = [n for n in (_whole_number(s.get(number)) for s in sessions) if n is not None]
     if not known:
         return None
     return sum(known) / scale if scale != 1 else sum(known)
 
 
 def _has_position(values: dict[int, Value], lat: int, long: int) -> bool:
-    return all(_whole_number(values.get(field)) is not None for field in (lat, long))
+    return all(_whole_number(values.get(number)) is not None for number in (lat, long))
 
 
 def _a_record_has_a_position(data: bytes) -> bool:
@@ -381,3 +418,66 @@ def summary(data: bytes) -> ActivitySummary:
         sport=sport, timer_time=_total(sessions, _SESSION_TIMER_TIME, 1000),
         distance=_total(sessions, _SESSION_DISTANCE, 100),
         ascent=_total(sessions, _SESSION_ASCENT), has_positions=has_positions)
+
+
+# FIT profile: the names of the messages `fit inspect` names (others: by number).
+MESSAGE_NAMES = {
+    0: "file_id", 12: "sport", 15: "goal", 18: "session", 19: "lap", 20: "record", 21: "event",
+    23: "device_info", 26: "workout", 27: "workout_step", 28: "schedule", 31: "course",
+    32: "course_point", 34: "activity", 49: "file_creator", 72: "training_file", 78: "hrv",
+    206: "field_description", 207: "developer_data_id",
+}
+# FIT profile: the messages that describe developer data (field_description, developer_data_id)
+DEVELOPER_MESSAGES = (206, 207)
+# FIT profile: file_id's fields type, manufacturer and product, and the names of manufacturers
+_FILE_ID_TYPE, _FILE_ID_MANUFACTURER, _FILE_ID_PRODUCT = 0, 1, 2
+MANUFACTURER_NAMES = {1: "Garmin", 255: "development"}
+
+
+@dataclass(frozen=True)
+class Inspection:
+    """What a FIT file holds (inspect). Its first part: the sizes its header declares, the
+    type, manufacturer, product and creation time of its first file_id (never its serial
+    number), and how many messages of each global number there are, as far as they read."""
+
+    size: int
+    not_whole: NotWhole | None
+    header_size: int | None = None  # None: no FIT file
+    data_size: int | None = None
+    file_type: int | None = None
+    manufacturer: int | None = None
+    product: int | None = None
+    created: int | None = None  # Unix time
+    messages: dict[int, int] = field(default_factory=dict)
+    broke_off: str | None = None  # why the messages could not be read to the end
+
+    @property
+    def whole(self) -> bool:
+        return self.not_whole is None and self.broke_off is None
+
+
+def inspect(data: bytes) -> Inspection:
+    """What the FIT file `data` holds (Inspection); of what is no FIT file only its check."""
+    found = check(data)
+    try:
+        header_size = _check_header(data)
+    except FitError:
+        return Inspection(len(data), found)
+    (data_size,) = struct.unpack_from("<I", data, 4)
+    counts: dict[int, int] = {}
+    file_id: dict[int, Value] = {}
+    broke_off = None
+    try:
+        for num, values in iter_messages(data):
+            counts[num] = counts.get(num, 0) + 1
+            if num == _MESG_FILE_ID and counts[num] == 1:
+                file_id = values
+    except FitError as e:
+        broke_off = str(e)
+    return Inspection(
+        len(data), found, header_size, data_size,
+        file_type=_whole_number(file_id.get(_FILE_ID_TYPE)),
+        manufacturer=_whole_number(file_id.get(_FILE_ID_MANUFACTURER)),
+        product=_whole_number(file_id.get(_FILE_ID_PRODUCT)),
+        created=_unix_time(file_id.get(_FIELD_TIME_CREATED)), messages=counts,
+        broke_off=broke_off)

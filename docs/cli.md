@@ -8,6 +8,7 @@ in the version from source it is `openexpress <command>`.
 |---|---|
 | `openexpress info [--json]` | model, part number, software version, unit ID, storage and free space, data types and components, Connect IQ limits; `--json` as JSON |
 | `openexpress files [--type FIT_TYPE_4] [--limit N]` | files on the watch by data type from `GarminDevice.xml`; with `--type` (or `-v`) each file, `--limit N` only the last N |
+| `openexpress fit inspect FILE` | what a FIT file on this computer holds: its data type, manufacturer, product and creation time, its messages and how many of each, whether it has developer data, and whether it is whole (a file cut short says how many bytes were read and how many its header declares); never the device's serial number; exit code 0 only for a whole FIT file; in the Flatpak it reaches only `Garmin` in your Documents folder and, to read, Downloads and Music |
 | `openexpress report [--log]` | device report for GitHub, without serial numbers, unit IDs or e-mail; `--log` prints the last 200 lines of the [log](troubleshooting.md#log-file) instead, filtered, for the form's “Log” field |
 | `openexpress diagnostics [--crash-logs] [--dumps] [--apply]` | what the device logged as errors, its memory dumps and the copies of its diagnostic files kept on this computer; `--apply` copies the files it shows now; with it, `--crash-logs` also reads its hidden crash logs (the device leaves the file manager for a moment) and `--dumps` also copies its memory dumps; what is read, copied and kept, and that nothing is sent: [Privacy and security](privacy.md#privacy-and-security) |
 | `openexpress status [--online]` | the login, the Garmin devices connected (name, USB mode, whether they are on the account), the last sync of each and what the window's last check of its updates found; `--online` also asks Garmin Connect and Garmin's update server now (nothing of the answers is kept); without it nothing is asked of a server |
@@ -68,7 +69,7 @@ what (an update, a map, an app, a type of data), never a file name or a song, fo
 | Code | Meaning |
 |---|---|
 | 0 | done (also a dry run) |
-| 1 | an error or a refusal: the device, the account, a server or the network, or a value the command checks itself (e.g. an unknown part in `cache --only`); the message says why |
+| 1 | an error or a refusal: the device, the account, a server or the network, or a value the command checks itself (e.g. an unknown part in `cache --only`); the message says why; for `fit inspect`, a file that is not a whole FIT file (cut short, damaged, not FIT) or cannot be read |
 | 2 | a wrong command line: an unknown command or option, a value that is not one of the choices or not a number (e.g. `setup --environment`, `devices --forget`), `--key` without `--secret`, or a missing argument |
 | 3 | the first sync with this program waits for a choice: `openexpress baseline --apply` or `openexpress sync --apply --all` |
 | 130 | interrupted (Ctrl+C); not while `sync` waits for TrueUp, which Ctrl+C only stops (the sync then ends as usual) |

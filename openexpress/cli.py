@@ -355,6 +355,95 @@ def cmd_files(args) -> int:
     return 0
 
 
+def cmd_fit(args) -> int:
+    """`fit inspect FILE`: what a FIT file on this computer holds, and 0 only when it is
+    whole. The log gets its state and size, never its name or what it holds."""
+    from openexpress import fit
+
+    path = Path(args.file)
+    try:
+        data = path.read_bytes()
+    except OSError as e:
+        log.info("fit inspect: the file could not be read (%s)", type(e).__name__)
+        words = (_("File not found: {path}") if isinstance(e, FileNotFoundError)
+                 else _("Cannot read {path}")).format(path=path)
+        _error(_("Error: {error}").format(error=words))
+        return 1
+    found = fit.inspect(data)
+    log.info("fit inspect: %s, %d kinds of messages%s",
+             found.not_whole.words() if found.not_whole else f"whole, {applog.size(len(data))}",
+             len(found.messages), ", reading stopped" if found.broke_off else "")
+    for line in _inspection(path.name, found):
+        print(line)
+    return 0 if found.whole else 1
+
+
+def _fit_check(found) -> str:
+    """The line "Check: …" of `fit inspect`."""
+    from openexpress.fit import Problem
+
+    not_whole = found.not_whole
+    if not_whole is None:
+        # TRANSLATORS: fit inspect: the file is whole (B: bytes)
+        return _("Check: whole (header {header} B, data {data} B, CRC matches)").format(
+            header=found.header_size, data=found.data_size)
+    if not_whole.problem is Problem.CUT_SHORT:
+        # TRANSLATORS: fit inspect: the header of the file declares more bytes than were read
+        return _("Check: cut short: {read} B read, {declared} B declared (still being "
+                 "written when it was read)").format(read=not_whole.read,
+                                                     declared=not_whole.declared)
+    if not_whole.problem is Problem.CRC:
+        return _("Check: damaged: the CRC does not match ({read} B read)").format(
+            read=not_whole.read)
+    if not_whole.problem is Problem.AFTER_THE_END:
+        return _("Check: damaged: {count} B after the whole FIT data are no FIT file").format(
+            count=not_whole.after)
+    return _("Check: not a FIT file ({read} B read)").format(read=not_whole.read)
+
+
+def _inspection(name: str, found) -> list[str]:
+    """The lines of `fit inspect` for the file `name`: the file, its check, then (a FIT file)
+    its type, manufacturer, product, creation time and messages, the most frequent first."""
+    from openexpress import fit, service
+
+    lines = [_("File: {name}, {size}").format(name=name, size=_human(found.size)),
+             _fit_check(found)]
+    if found.header_size is None:
+        return lines
+    file_type = "-" if found.file_type is None else f"FIT_TYPE_{found.file_type}"
+    if file_type in service.TYPE_NAMES:
+        file_type = f"{_(service.TYPE_NAMES[file_type])} ({file_type})"
+    maker = found.manufacturer
+    if maker is None:
+        maker = "-"
+    elif maker in fit.MANUFACTURER_NAMES:
+        maker = f"{fit.MANUFACTURER_NAMES[maker]} ({maker})"
+    lines += [
+        _("Type: {type}").format(type=file_type),
+        _("Manufacturer: {manufacturer}").format(manufacturer=maker),
+        _("Product: {product}").format(product="-" if found.product is None else found.product),
+        _("Created: {when}").format(
+            when="-" if found.created is None else _seen_at(found.created)),
+    ]
+    kinds = len(found.messages)
+    # TRANSLATORS: fit inspect: "Messages: 6 kinds, 1213 in all"
+    lines.append(_("Messages: {kinds}, {count} in all").format(
+        kinds=ngettext("{count} kind", "{count} kinds", kinds).format(count=kinds),
+        count=sum(found.messages.values())))
+    named = [(f"{fit.MESSAGE_NAMES[num]} ({num})" if num in fit.MESSAGE_NAMES
+              # TRANSLATORS: fit inspect: a message the FIT profile does not name here
+              else _("message {number}").format(number=num), count)
+             for num, count in sorted(found.messages.items(), key=lambda t: (-t[1], t[0]))]
+    width = max((len(label) for label, _count in named), default=0)
+    digits = max((len(str(count)) for _label, count in named), default=0)
+    lines += [f"  {label:<{width}}  {count:>{digits}}" for label, count in named]
+    developer = any(num in found.messages for num in fit.DEVELOPER_MESSAGES)
+    lines.append(_("Developer data: present") if developer else _("Developer data: none"))
+    if found.broke_off:
+        lines.append(_("Reading stopped: {error}").format(error=found.broke_off))
+    return lines
+
+
 def cmd_login(args) -> int:
     from openexpress.auth import sso
 
@@ -2171,6 +2260,13 @@ def build_parser() -> argparse.ArgumentParser:
     s.add_argument("--type", help=_("e.g. {example} (activities)").format(example="FIT_TYPE_4"))
     s.add_argument("--limit", type=int, default=0, help=_("show only the last N files"))
     s.set_defaults(func=cmd_files)
+
+    s = sub.add_parser("fit", help=_("FIT files on this computer"))
+    fsub = s.add_subparsers(dest="fit_cmd", metavar="inspect", required=True)
+    m = fsub.add_parser("inspect", help=_("what a FIT file holds: its type, its messages and "
+                                          "whether it is whole"))
+    m.add_argument("file", help=_("a FIT file on this computer"))
+    s.set_defaults(func=cmd_fit)
 
     s = sub.add_parser("diagnostics",
                        help=_("the device's error logs and their copy on this computer"))
