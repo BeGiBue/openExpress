@@ -10,6 +10,7 @@ import math
 import struct
 from collections.abc import Collection
 from dataclasses import dataclass
+from enum import Enum
 
 from openexpress.i18n import _
 
@@ -17,6 +18,19 @@ FIT_EPOCH_OFFSET = 631065600  # 1989-12-31T00:00:00Z as Unix time
 
 _MESG_FILE_ID = 0
 _FIELD_TIME_CREATED = 4
+# FIT profile: session (one part of an activity; a multisport activity has one per sport)
+_MESG_SESSION = 18
+_SESSION_START_TIME = 2
+_SESSION_START_LAT, _SESSION_START_LONG = 3, 4  # semicircles
+_SESSION_SPORT = 5
+_SESSION_TIMER_TIME = 8  # milliseconds, pauses left out
+_SESSION_DISTANCE = 9  # centimetres
+_SESSION_ASCENT = 22  # metres
+# FIT profile: record (one point of an activity)
+_MESG_RECORD = 20
+_RECORD_LAT, _RECORD_LONG = 0, 1  # semicircles
+# FIT profile: the sport "multisport"
+SPORT_MULTISPORT = 18
 # The field number of a message's time (date_time) in every message of the FIT profile.
 FIELD_TIMESTAMP = 253
 
@@ -110,12 +124,18 @@ def iter_messages(data: bytes, wanted: Collection[int] | None = None):
         raise FitError(_("Damaged FIT file ({error})").format(error=e)) from e
 
 
-def _iter_messages(data: bytes, wanted: Collection[int] | None):
+def _check_header(data: bytes) -> int:
+    """The size of the header of a FIT file; FitError when `data` is no FIT file."""
     if len(data) < 12:
         raise FitError(_("File too short"))
     header_size = data[0]
     if header_size not in (12, 14) or data[8:12] != b".FIT":
         raise FitError(_("Not a FIT file"))
+    return header_size
+
+
+def _iter_messages(data: bytes, wanted: Collection[int] | None):
+    header_size = _check_header(data)
     data_size = struct.unpack_from("<I", data, 4)[0]
     end = min(len(data), header_size + data_size)
     pos = header_size
@@ -265,3 +285,99 @@ def true_up_time(data: bytes) -> int | None:
     v = find_message(data, MESG_CALLBACK_DELAY)
     t = _whole_number(v.get(0)) if v else None
     return None if t is None else t + FIT_EPOCH_OFFSET
+
+
+class FileState(Enum):
+    """How a FIT file is, as not_whole finds it (a file that is no FIT file: FitError)."""
+    WHOLE = "whole"
+    STILL_BEING_WRITTEN = "still being written"  # cut short: the device was writing it
+    DAMAGED = "damaged"  # a CRC that does not match, or data that cannot be read
+
+
+@dataclass(frozen=True)
+class ActivitySummary:
+    """What an activity file says of itself (summary). Times are Unix times; None: not said."""
+
+    state: FileState
+    created: int | None = None  # file_id's time_created
+    start: int | None = None  # the start of its first session
+    sport: int | None = None  # the FIT sport of its sessions; several: SPORT_MULTISPORT
+    timer_time: float | None = None  # seconds, pauses left out
+    distance: float | None = None  # metres
+    ascent: int | None = None  # metres
+    has_positions: bool = False  # a GPX of it can be made
+
+
+def _unix_time(value: Value) -> int | None:
+    time = _whole_number(value)
+    return None if time is None else time + FIT_EPOCH_OFFSET
+
+
+def _created(data: bytes) -> int | None:
+    """The creation time in the first file_id, from as much of the file as reads."""
+    try:
+        for _num, values in iter_messages(data, wanted=(_MESG_FILE_ID,)):
+            return _unix_time(values.get(_FIELD_TIME_CREATED))
+    except FitError:
+        pass
+    return None
+
+
+def _total(sessions: list[dict[int, Value]], field: int, scale: int = 1) -> float | int | None:
+    """The sum of a field over the sessions that give it; None when none does."""
+    known = [n for n in (_whole_number(s.get(field)) for s in sessions) if n is not None]
+    if not known:
+        return None
+    return sum(known) / scale if scale != 1 else sum(known)
+
+
+def _has_position(values: dict[int, Value], lat: int, long: int) -> bool:
+    return all(_whole_number(values.get(field)) is not None for field in (lat, long))
+
+
+def _a_record_has_a_position(data: bytes) -> bool:
+    """Whether a record has a position; the search stops at the first that has one."""
+    try:
+        return any(_has_position(values, _RECORD_LAT, _RECORD_LONG)
+                   for _num, values in iter_messages(data, wanted=(_MESG_RECORD,)))
+    except FitError:
+        return False
+
+
+def summary(data: bytes) -> ActivitySummary:
+    """What the activity file `data` says of itself. Of a file the device was still writing
+    (not_whole: cut short) only when it was created; of a damaged one what can be read up to
+    where it breaks off; of a file without a session only when it was created. Positions: a
+    session's start position, else the first record that has one. FitError for what is no FIT
+    file, as parse_file_id."""
+    _check_header(data)
+    found = not_whole(data)
+    if found is not None and found[0]:
+        return ActivitySummary(FileState.STILL_BEING_WRITTEN, created=_created(data))
+    state = FileState.WHOLE if found is None else FileState.DAMAGED
+    created = None
+    sessions: list[dict[int, Value]] = []
+    try:
+        for num, values in iter_messages(data, wanted=(_MESG_FILE_ID, _MESG_SESSION)):
+            if num == _MESG_SESSION:
+                sessions.append(values)
+            elif created is None:
+                created = _unix_time(values.get(_FIELD_TIME_CREATED))
+    except FitError:
+        state = FileState.DAMAGED
+    if not sessions:
+        return ActivitySummary(state, created=created)
+    sports = {_whole_number(s.get(_SESSION_SPORT)) for s in sessions} - {None}
+    sport = None
+    if len(sports) == 1:
+        sport = sports.pop()
+    elif sports:
+        sport = SPORT_MULTISPORT
+    has_positions = (any(_has_position(s, _SESSION_START_LAT, _SESSION_START_LONG)
+                         for s in sessions)
+                     or _a_record_has_a_position(data))
+    return ActivitySummary(
+        state, created=created, start=_unix_time(sessions[0].get(_SESSION_START_TIME)),
+        sport=sport, timer_time=_total(sessions, _SESSION_TIMER_TIME, 1000),
+        distance=_total(sessions, _SESSION_DISTANCE, 100),
+        ascent=_total(sessions, _SESSION_ASCENT), has_positions=has_positions)

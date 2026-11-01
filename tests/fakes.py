@@ -653,15 +653,18 @@ def _fit_value(value, base_type: int, size: int, order: str) -> bytes:
 
 def fit_file(*messages, header_size: int = 14, cut: int | None = None,
              bad_crc: bool = False) -> bytes:
-    """A made-up FIT file of these messages (FitDefinition and FitData, in order), its header
-    of 14 or 12 bytes and its CRC right. `cut`: only its first `cut` bytes, as a file the
-    device was still writing; `bad_crc`: the CRC at its end wrong."""
+    """A made-up FIT file of these messages (FitDefinition and FitData, in order; bytes are
+    written as they are, e.g. a message no definition explains), its header of 14 or 12 bytes
+    and its CRC right. `cut`: only its first `cut` bytes, as a file the device was still
+    writing; `bad_crc`: the CRC at its end wrong."""
     from conftest import fit_crc
 
     defined = {}
     body = b""
     for m in messages:
-        if isinstance(m, FitDefinition):
+        if isinstance(m, bytes):
+            body += m
+        elif isinstance(m, FitDefinition):
             order = ">" if m.big_endian else "<"
             fields = [_fit_size(f) for f in m.fields]
             body += bytes([0x40 | (0x20 if m.developer else 0) | m.local, 0,
