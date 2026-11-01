@@ -1,8 +1,10 @@
 # Design: a look into FIT files (activities, GPX, the sync queue, `fit inspect`)
 
 Status: the decisions in section 4 are made (each took its recommended option, marked
-"chosen"), and the implementation is under way, one step of section 7 at a time. The scope in
-section 1 is set once: what it does not list is not added while it is implemented.
+"chosen"); the implementation is done (steps 1–11 of section 7) and was checked on a device over
+MTP on 2026-11-01; a device connected as a USB drive and the preview of the sync queue wait for
+a test on a device. The scope in section 1 is set once: what it does not list is not added while
+it is implemented.
 
 ## 1. Scope
 
