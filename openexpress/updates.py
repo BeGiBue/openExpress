@@ -505,8 +505,9 @@ def _install(
         # and what _clear_the_place deleted does not come back.
         # A truncated firmware file must not stay where the watch would install it: one of
         # another size is deleted.
+        # On a drive, read back from it and compared with the server's MD5 before it counts.
         real = storage.write_file_checked(u.device_path, local, byte_steps(progress, copying),
-                                          error=UpdateError)
+                                          error=UpdateError, md5=download.normalize_md5(u.md5))
         report.installed.append(f"{u.title} {u.version} -> {real}")
         report.restart_required |= u.installs_when_disconnected
         # The whole path from the device's folder, as mark_present names it.

@@ -3,9 +3,12 @@ what is written is checked by its size on the device, a file
 of another size is deleted (unless it is one other maps use), and the error is the caller's
 own class. All data is made up."""
 
+import hashlib
 import logging
+import os
 
 import pytest
+from fakes import other_bytes_drive
 
 from openexpress.device.storage import DeviceError, LocalStorage
 
@@ -117,3 +120,49 @@ def test_too_little_room_is_said_in_the_callers_error(tmp_path):
     assert Room(folder(tmp_path, "unknown"), None).require_space(10**12, 0) is None
     with pytest.raises(DeviceError):
         st.require_space(5_000_000, 0)
+
+
+# --- a drive: what is written is read back from its medium -------------------------------------
+
+UPDATE = b"update bytes"
+
+
+def test_a_file_the_drive_keeps_with_other_bytes_is_deleted_and_said(tmp_path):
+    """A drive may keep a file at its size with other bytes: read back from its medium, the
+    file is deleted and the caller's error says so before anything is told of it."""
+    src = tmp_path / "update.gcd"
+    src.write_bytes(UPDATE)
+    root = folder(tmp_path)
+    drive = other_bytes_drive()(root)
+    with pytest.raises(MadeUpError, match="Write verification of GARMIN/update.gcd failed"):
+        drive.write_file_checked("GARMIN/update.gcd", src, error=MadeUpError)
+    assert not (root / "GARMIN" / "update.gcd").exists()
+    with pytest.raises(MadeUpError, match="Write verification of GARMIN/queue.fit failed"):
+        drive.write_checked("GARMIN/queue.fit", UPDATE, error=MadeUpError)
+    assert not (root / "GARMIN" / "queue.fit").exists()
+
+
+def test_a_file_read_back_is_compared_with_the_servers_md5(tmp_path):
+    src = tmp_path / "update.gcd"
+    src.write_bytes(UPDATE)
+    drive = LocalStorage(folder(tmp_path))
+    md5 = hashlib.md5(UPDATE).hexdigest().upper()  # as the server writes it
+    assert drive.write_file_checked("GARMIN/update.gcd", src, md5=md5) == "GARMIN/update.gcd"
+    with pytest.raises(MadeUpError, match="Write verification of GARMIN/other.gcd failed"):
+        drive.write_file_checked("GARMIN/other.gcd", src, md5="0" * 32, error=MadeUpError)
+    assert not (drive.root / "GARMIN" / "other.gcd").exists()
+
+
+def test_what_is_read_back_comes_from_the_medium_not_the_cache(tmp_path, monkeypatch):
+    """The system's cache of a file written and synced is dropped before the file is read back,
+    so that its bytes come from the drive."""
+    told = []
+    advise = os.posix_fadvise
+    monkeypatch.setattr(os, "posix_fadvise", lambda fd, offset, length, advice: told.append(
+        (offset, length, advice)) or advise(fd, offset, length, advice))
+    src = tmp_path / "update.gcd"
+    src.write_bytes(UPDATE)
+    drive = LocalStorage(folder(tmp_path))
+    drive.write_file_checked("GARMIN/update.gcd", src)
+    drive.write_checked("GARMIN/queue.fit", UPDATE)
+    assert told == [(0, 0, os.POSIX_FADV_DONTNEED)] * 2  # the whole file, each time

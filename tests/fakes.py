@@ -242,6 +242,21 @@ def drive_session(root, account, storage_class=None):
     device = parse((root / "GARMIN" / "GarminDevice.xml").read_bytes())
     return service.DeviceSession(storage, device, Settings(), account)
 
+
+def other_bytes_drive():
+    """A kind of drive (LocalStorage) that keeps each file written at its size but with other
+    bytes (zeros), as a drive whose medium lost what was written while its folder kept the
+    size: only reading the file back tells."""
+    from openexpress.device.storage import LocalStorage
+
+    class OtherBytes(LocalStorage):
+        def _replace(self, real_path, chunks, progress=None, total=0):
+            super()._replace(real_path, chunks, progress, total)
+            target = self._p(real_path)
+            target.write_bytes(bytes(target.stat().st_size))
+
+    return OtherBytes
+
 # --- what the window writes of the devices before it draws their tiles ------------------
 
 

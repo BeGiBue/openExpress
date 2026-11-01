@@ -9,6 +9,7 @@ case-insensitively.
 from __future__ import annotations
 
 import errno
+import hashlib
 import logging
 import os
 import posixpath
@@ -18,6 +19,7 @@ from contextlib import contextmanager
 from dataclasses import dataclass
 from pathlib import Path
 
+from openexpress import applog
 from openexpress.errors import UserFacingError
 from openexpress.i18n import _, human_size
 
@@ -223,10 +225,11 @@ class Storage(ABC):
 
     def write_file_checked(self, path: str, local: Path, progress=None, *,
                            keep_partial: bool = False,
-                           error: type[Exception] = DeviceError) -> str:
+                           error: type[Exception] = DeviceError, md5: str | None = None) -> str:
         """write_file, then its size on the device checked against the local file's: another
         size (or one not known) deletes what was written, unless `keep_partial` (a file other
-        maps use, never deleted), and raises `error`. Returns the real path."""
+        maps use, never deleted), and raises `error`. Returns the real path. `md5`: what the
+        bytes are to hash to (the server's), for a storage that reads them back (a drive)."""
         real = self.write_file(path, local, progress, keep_partial=keep_partial)
         self._check_written(real, Path(local).stat().st_size, error, keep=keep_partial)
         return real
@@ -347,6 +350,14 @@ COPY_CHUNK = 1 << 20
 PART_SUFFIX = ".openexpress-part"
 
 
+def _md5_of(chunks) -> str:
+    """The MD5 of bytes given in chunks, in lower-case hex."""
+    digest = hashlib.md5()
+    for chunk in chunks:
+        digest.update(chunk)
+    return digest.hexdigest()
+
+
 def _sync_folder(folder: Path) -> None:
     """Put a folder's entries (a new or renamed file) on the disk. A file system that cannot
     sync a folder says so (EINVAL): then there is nothing more to put there."""
@@ -460,16 +471,52 @@ class LocalStorage(Storage):
             self._p(real_path).mkdir()
 
     def write_checked(self, path: str, data: bytes, *, error: type[Exception] = DeviceError) -> str:
-        """As Storage.write_checked, and its bytes read back whole after the write (synced
-        already): what the system holds of the file is compared, not only its size, and
-        other bytes are deleted and raise `error` before anything is told of the file (a file
-        of Garmin Connect's queue is acknowledged only after this). The medium itself is
-        checked only by ejecting the drive."""
+        """As Storage.write_checked, and its bytes read back whole from the drive after the
+        write (_from_the_medium): other bytes are deleted and raise `error` before anything
+        is told of the file (a file of Garmin Connect's queue is acknowledged only after
+        this)."""
         real = super().write_checked(path, data, error=error)
-        if self.read(real) != data:
-            self.delete_quietly(real)
-            raise error(_("Write verification of {path} failed").format(path=real))
+        if b"".join(self._from_the_medium(real)) != data:
+            self._other_bytes(real, len(data), error)
         return real
+
+    def write_file_checked(self, path: str, local: Path, progress=None, *,
+                           keep_partial: bool = False,
+                           error: type[Exception] = DeviceError, md5: str | None = None) -> str:
+        """As Storage.write_file_checked, and the file read back from the drive after the write
+        (_from_the_medium) and its MD5 compared with `md5` (the server's, hex in any letter
+        case) or the local file's: other bytes are deleted, unless `keep_partial`, and raise
+        `error` before anything is told of the file."""
+        real = super().write_file_checked(path, local, progress, keep_partial=keep_partial,
+                                          error=error, md5=md5)
+        if md5 is None:
+            with _os_errors(_("Cannot read {path}").format(path=str(local))), \
+                    open(local, "rb") as f:
+                md5 = _md5_of(iter(lambda: f.read(COPY_CHUNK), b""))
+        if _md5_of(self._from_the_medium(real)) != md5.strip().lower():
+            self._other_bytes(real, Path(local).stat().st_size, error, keep=keep_partial)
+        return real
+
+    def _from_the_medium(self, real_path: str):
+        """The bytes of a file written and synced, in chunks, as the drive holds them: the
+        system's cache of the file is dropped first, else the bytes would come from it, not
+        from the drive. What the drive itself keeps in its own cache only an eject tells."""
+        with _os_errors(_("Cannot read {path}").format(path=real_path)), \
+                open(self._p(real_path), "rb") as f:
+            advise = getattr(os, "posix_fadvise", None)
+            if advise is not None:
+                advise(f.fileno(), 0, 0, os.POSIX_FADV_DONTNEED)
+            yield from iter(lambda: f.read(COPY_CHUNK), b"")
+
+    def _other_bytes(self, real: str, size: int, error: type[Exception],
+                     keep: bool = False) -> None:
+        """A file read back from the drive with other bytes than were written: deleted (unless
+        `keep`), said in the log without its name, and `error` raised."""
+        log.warning("drive: a file of %s read back with other bytes than were written%s",
+                    applog.size(size), "" if keep else "; deleted")
+        if not keep:
+            self.delete_quietly(real)
+        raise error(_("Write verification of {path} failed").format(path=real))
 
     def free_space(self) -> int | None:
         return shutil.disk_usage(self.root).free

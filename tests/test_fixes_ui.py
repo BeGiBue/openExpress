@@ -825,6 +825,11 @@ def _answer(*entries):
     } for part, name, datatype, file, data, severity in entries]}
 
 
+# The bytes of each file the server offers below, by its name.
+OFFERED_BYTES = {"DA00100.sid": b"same file", "DA00200.sid": b"new bytes",
+                 "DA00300.sid": b"missing", "GUPDATE.GCD": b"fw"}
+
+
 @pytest.fixture
 def offered(device_root, monkeypatch):
     """The server offers three map support files and a real update. The device has the first
@@ -835,10 +840,11 @@ def offered(device_root, monkeypatch):
     (device_root / "GARMIN/SID/da00100.sid").write_bytes(b"same file")  # other letter case
     (device_root / "GARMIN/SID/DA00200.sid").write_bytes(b"other txt")
     answer = _answer(
-        ("006-DA001-00", "Etyp", "Etyp", "DA00100.sid", b"same file", "Recommended"),
-        ("006-DA002-00", "Etyp", "Etyp", "DA00200.sid", b"new bytes", "Recommended"),
-        ("006-DA003-00", "Etyp", "Etyp", "DA00300.sid", b"missing", "Recommended"),
-        ("006-B0000-00", "Test watch System Software", "Firmware", "GUPDATE.GCD", b"fw", "Critical"))
+        ("006-DA001-00", "Etyp", "Etyp", "DA00100.sid", OFFERED_BYTES["DA00100.sid"], "Recommended"),
+        ("006-DA002-00", "Etyp", "Etyp", "DA00200.sid", OFFERED_BYTES["DA00200.sid"], "Recommended"),
+        ("006-DA003-00", "Etyp", "Etyp", "DA00300.sid", OFFERED_BYTES["DA00300.sid"], "Recommended"),
+        ("006-B0000-00", "Test watch System Software", "Firmware", "GUPDATE.GCD",
+         OFFERED_BYTES["GUPDATE.GCD"], "Critical"))
     monkeypatch.setattr(GarminClient, "software_updates",
                         lambda self, raw, include_reinstalls=False: answer)
     # An install asks the kind of device (the data-loss warning): an ordinary one.
@@ -1567,12 +1573,13 @@ TURN_ON_STEP = "  2. If the device does not turn on by itself, turn it on.\n"
 
 @pytest.fixture
 def downloads(monkeypatch):
-    """Downloads without the network: a file of the announced size."""
+    """Downloads without the network: the bytes of the update offered at that address (with
+    its size and MD5, as a real download's are)."""
     from openexpress import download
 
     def fetch(urls, dest, size, md5, session=None, progress=None):
         dest.parent.mkdir(parents=True, exist_ok=True)
-        dest.write_bytes(b"x" * size)
+        dest.write_bytes(OFFERED_BYTES[urls[0].rsplit("/", 1)[1]])
         return dest
 
     monkeypatch.setattr(download, "fetch", fetch)
@@ -1589,7 +1596,7 @@ def test_cli_says_what_to_do_after_every_install(offered, downloads, xdg, capsys
 
     assert main(["--path", str(root), "updates", "--install", "006-DA003-00", "--apply"]) == 0
     out = capsys.readouterr().out
-    assert (root / "GARMIN/SID/DA00300.sid").read_bytes() == b"x" * 7
+    assert (root / "GARMIN/SID/DA00300.sid").read_bytes() == b"missing"
     lines = out.rstrip().splitlines()
     assert lines[lines.index("Copied 1 file."):] == [
         "Copied 1 file.",

@@ -10,7 +10,7 @@ import types
 from pathlib import Path
 
 import pytest
-from fakes import RunNow, window_methods
+from fakes import RunNow, other_bytes_drive, window_methods
 from fakes import window as stand_in
 
 from openexpress import download, updates
@@ -146,6 +146,24 @@ def test_plain_files_alone_ask_for_no_restart(device_root, tmp_path, monkeypatch
     monkeypatch.setattr(download, "fetch", fetch)
     monkeypatch.setattr(updates, "cache_path", lambda u: tmp_path / "cache" / u.filename)
     assert not updates.install([font], LocalStorage(device_root)).restart_required
+
+
+def test_an_update_the_drive_keeps_with_other_bytes_is_not_told_copied(device_root, tmp_path,
+                                                                        monkeypatch):
+    """Read back from the drive's medium and compared with the server's MD5: other bytes of
+    the same size fail the install, and the file is not left for the device."""
+    (font,) = [u for u in updates.parse_updates(lower_keys(server_answer())) if not u.is_system]
+
+    def fetch(urls, dest, size, md5, session=None, progress=None):
+        dest.parent.mkdir(parents=True, exist_ok=True)
+        dest.write_bytes(FONT)
+        return dest
+
+    monkeypatch.setattr(download, "fetch", fetch)
+    monkeypatch.setattr(updates, "cache_path", lambda u: tmp_path / "cache" / u.filename)
+    with pytest.raises(updates.UpdateError, match="Write verification"):
+        updates.install([font], other_bytes_drive()(device_root))
+    assert LocalStorage(device_root).resolve(font.device_path) is None
 
 
 def test_cli_lists_the_system_update_first_and_marks_it(offered, no_download, capsys):
@@ -1251,13 +1269,15 @@ def test_ready_in_polish():
 
 def _fetch_in_steps(cached=()):
     """A download without the network, in four steps; a file named in `cached` is in the
-    cache already and reports nothing. Records the `progress` each call was given."""
+    cache already and reports nothing. Records the `progress` each call was given. The bytes
+    match the MD5 asked for, as a real download's do."""
     given = []
+    known = {hashlib.md5(data).hexdigest(): data for data in (FONT, BUNDLE)}
 
     def fetch(urls, dest, size, md5, session=None, progress=None):
         given.append(progress)
         dest.parent.mkdir(parents=True, exist_ok=True)
-        dest.write_bytes(b"x" * size)
+        dest.write_bytes(known.get((md5 or "").lower(), b"x" * size))
         if progress and dest.name not in cached:
             for part in (1, 2, 3, 4):
                 progress(size * part // 4, size)
