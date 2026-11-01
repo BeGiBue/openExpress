@@ -3,10 +3,11 @@
 The device's activity files (the folders its GarminDevice.xml gives the data type FIT_TYPE_4)
 come first, newest first by the time of change the device gives them; then the files that only
 the backups of the same device have (backup.backups_of), the newest backup first. A file on the
-device and one in a backup with the same name and size are one activity, read from the device;
-with the same name but another size they are two. What each file says (fit.summary) is kept by
-its source, path, size and time of change, so a list made again reads only what is new or has
-changed. Nothing is written; the log gets counts, sizes and times, never a name or a date.
+device and one in a backup with the same name (letter case aside) are one activity, read from
+the device, whatever their sizes; of several backups with that name, the newest gives it. What
+each file says (fit.summary) is kept by its source, path, size and time of change, so a list
+made again reads only what is new or has changed. Nothing is written; the log gets counts,
+sizes and times, never a name or a date.
 """
 
 from __future__ import annotations
@@ -154,14 +155,14 @@ class DeviceActivities:
         reading starts again from the newest, with what was kept."""
         started = time.monotonic()
         on_device = self._on_device()
-        known = {(a.name.casefold(), a.size) for a in on_device}
+        known = {a.name.casefold() for a in on_device}
         only_in_backups = []
         found = backups_of(self.backups, self.device.unit_id) if self.backups else []
         for when, folder in found:
             for a in sorted(_in_backup(when, folder), key=lambda a: a.name.casefold(),
                             reverse=True):
-                if (a.name.casefold(), a.size) not in known:
-                    known.add((a.name.casefold(), a.size))
+                if a.name.casefold() not in known:
+                    known.add(a.name.casefold())
                     only_in_backups.append(a)
         self.listing = on_device + only_in_backups
         self.read = []

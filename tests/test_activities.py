@@ -123,13 +123,22 @@ def test_a_symbolic_link_to_a_backup_is_skipped(device, backups, tmp_path):
     assert where(listed(device, backups)) == [("backup", "2026-09-22.fit")]
 
 
-def test_the_same_name_with_another_size_is_two_activities(device, backups):
+def test_the_same_name_with_another_size_is_one_activity_from_the_device(device, backups):
     root = device[0]
     on_device(root, "2026-10-02.fit", a_run(2, records=5), 2_000)
-    in_backup(backups, "2026-10-03 (10.00.00)", "2026-10-02.fit", a_run(2, records=1))
+    in_backup(backups, "2026-10-03 (10.00.00)", "2026-10-02.FIT", a_run(2, records=1))
     found = listed(device, backups)
-    assert where(found) == [("device", "2026-10-02.fit"), ("backup", "2026-10-02.fit")]
-    assert found.listing[0].size != found.listing[1].size
+    assert where(found) == [("device", "2026-10-02.fit")]
+    assert found.listing[0].size == len(a_run(2, records=5))
+
+
+def test_the_same_name_in_two_backups_with_another_size_is_one_activity_from_the_newest(
+        device, backups):
+    in_backup(backups, "2026-09-01 (10.00.00)", "2026-08-01.fit", a_run(-60, records=1))
+    newest = in_backup(backups, "2026-10-01 (10.00.00)", "2026-08-01.fit", a_run(-60, records=5))
+    found = listed(device, backups)
+    assert where(found) == [("backup", "2026-08-01.fit")]
+    assert found.listing[0].path == str(newest / "FIT_TYPE_4" / "2026-08-01.fit")
 
 
 def test_reading_tells_its_steps(device, backups):
