@@ -19,7 +19,8 @@ the application key, its secret and the value that signs download addresses are 
   `~/.local/share/openexpress` (Flatpak:
   `~/.var/app/io.github.tomaszbojanowski.OpenExpress/data/openexpress`), readable only by
   you: the devices it has seen (name, part number, unit ID, software version, what the last
-  update check found), the names of the files already uploaded, the last sync, copies of
+  update check found, the updates copied to it that Garmin's server still offers: part
+  number, version and when), the names of the files already uploaded, the last sync, copies of
   files whose upload failed until they are uploaded, and the list of your own maps.
   **Forget Device…** removes what it keeps of a device.
 - **No telemetry.** Unlike Garmin Express, the program sends nothing to

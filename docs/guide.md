@@ -146,8 +146,12 @@ connected device; no login is needed.
 - **Status:** the top of the page says what is waiting: the new system version (with the
   installed one beside it), the name of the only update, how many updates there are, an update
   copied already that waits for the device, or that the software is up to date.
-- **System updates are recognised by their file** (`GUPDATE.GSP`, `GUPDATE.GCD`) as well as
-  by what the server says: the server does not always mark them.
+- **System updates are recognised by their file** (`GUPDATE.GSP`, `GUPDATE.GCD` in the
+  device's top folder) and by the part number of the device as well as by what the server
+  says: the server does not always mark them. The software of a part of the device (such as
+  its GPS chip, which an Instinct 2S keeps in `GARMIN/REMOTESW/GUPDATE.GCD`) is shown with its
+  own name and version, after the version the device lists for that part ("6.10 → 6.70"),
+  never against the device's software; it is copied with the same care.
 - **Beta versions** that Garmin offers to a device in its beta program are marked *Beta* in
   the window (for a system update at the top of the page and in the question) and `[BETA]`
   on the command line.
@@ -164,6 +168,16 @@ connected device; no login is needed.
   drive), and `openexpress updates` says that the update waits for the device. A copied
   component is listed as already on the device; the device takes it in when it is
   disconnected too.
+- **Two updates for one file of the device** are copied one at a time: the other one waits
+  until the device has installed the first (the window shows when it can be installed, the
+  command line says to disconnect the device and connect it again).
+- **An update copied before that the server offers again** was not installed by the device:
+  the window says when it was copied and offers *Reinstall*, and says when the device changed
+  or refused its file since (the same size, other bytes); `openexpress updates` says the same.
+  openExpress keeps only the part number, the version and the time, until the server offers
+  it no more.
+- **On a USB drive** each file written is read back from the drive, not from the computer's
+  cache, and compared with the server's checksum before the copy counts.
 - **A device that connects as a USB drive** is ejected first: after the copy the window
   ejects it by itself, as `openexpress updates --install` does, and says that the cable can
   be unplugged only once that has worked; when the system refuses (a program still uses the
