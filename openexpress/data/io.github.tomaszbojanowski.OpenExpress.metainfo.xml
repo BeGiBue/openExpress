@@ -105,6 +105,34 @@
   </supports>
   <content_rating type="oars-1.1"/>
   <releases>
+    <release version="0.8.0" date="2026-11-01">
+      <description>
+        <ul>
+          <li>New: an Activities page lists the activities of the connected device and of its
+          backups, with their sport, start, time, distance and ascent, the newest 30 first and
+          more on request. An activity with GPS positions can be exported as a GPX file, with the
+          position, elevation and time of each point and nothing else (no heart rate, no device,
+          no serial number). On the command line: "openexpress activities" and "openexpress
+          activities export". Checked on a fēnix 8 over MTP; a device connected as a USB drive
+          is covered by automated tests but not yet checked on a real one.</li>
+          <li>New: "openexpress fit inspect" tells what a FIT file on this computer holds: its
+          type, maker, product and creation time, its messages, and whether it is whole or was
+          cut short.</li>
+          <li>New: the dry run of "openexpress sync" says what each file waiting in Garmin Connect
+          is before a sync writes it to the device (a workout's sport, name and steps, a course's
+          sport and name, a schedule's days) and whether it is whole. It downloads them into
+          memory only and acknowledges nothing. Covered by automated tests, not yet checked on a
+          real device.</li>
+          <li>When omt.garmin.com, Garmin's server that says what to upload, cannot be reached, a
+          sync no longer stops: it skips the uploads, says so naming that server, and still writes
+          the courses, workouts, Connect IQ apps and TrueUp from Garmin Connect to the device
+          (#26).</li>
+          <li>The help of the command line names what a command takes as the documentation does
+          (NAME, FILE, DIR), and shows the default folders where the program looks for them,
+          such as ~/Dokumenty/Garmin on a Polish desktop.</li>
+        </ul>
+      </description>
+    </release>
     <release version="0.7.14" date="2026-11-01">
       <description>
         <ul>
