@@ -98,6 +98,13 @@ def _text(el: ET.Element | None, tag: str, default: str = "") -> str:
     return child.text.strip() if child is not None and child.text else default
 
 
+def _component_version(major: str, minor: str) -> str:
+    """A component's version as Garmin's update server writes it ("2.04"): some devices write
+    the minor part without its zero ("4"), others with it ("04"). Anything that is no number
+    stays as written."""
+    return f"{major}.{int(minor):02d}" if minor.isdecimal() else f"{major}.{minor}"
+
+
 def parse(data: bytes) -> GarminDevice:
     root = ET.fromstring(data)
     model = root.find(NS + "Model")
@@ -130,7 +137,7 @@ def parse(data: bytes) -> GarminDevice:
             dev.update_files.append(
                 UpdateFile(
                     part_number=_text(uf, "PartNumber"),
-                    version=f"{_text(ver, 'Major')}.{_text(ver, 'Minor')}",
+                    version=_component_version(_text(ver, "Major"), _text(ver, "Minor")),
                     path=_text(uf, "Path"),
                     filename=_text(uf, "FileName"),
                 )

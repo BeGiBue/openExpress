@@ -18,6 +18,21 @@ def test_parse_device_xml():
     assert dev.update_files[0].version == "23.39"
 
 
+@pytest.mark.parametrize(("major", "minor", "version"), [
+    ("2", "4", "2.04"),     # an Edge 1050 writes the minor part without its zero
+    ("1", "04", "1.04"),    # an Instinct 2S with it
+    ("6", "10", "6.10"),
+    ("43", "00", "43.00"),
+    ("2", "", "2."),        # anything else stays as written
+    ("2", "x", "2.x"),
+])
+def test_the_version_of_a_component_reads_as_the_server_writes_it(major, minor, version):
+    xml = DEVICE_XML.replace("<Major>23</Major>", f"<Major>{major}</Major>").replace(
+        "<Minor>39</Minor>", f"<Minor>{minor}</Minor>")
+    assert xml != DEVICE_XML
+    assert parse(xml.encode()).update_files[0].version == version
+
+
 def test_matches_is_case_insensitive_and_checks_extension():
     f = DeviceFile("FIT_TYPE_4", "OutputFromUnit", "Garmin/Activity", extension="FIT")
     assert f.matches("GARMIN/Activity/a.fit")
