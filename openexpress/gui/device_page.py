@@ -1434,7 +1434,7 @@ class DevicePage:
             self._show_last_sync()
             self._count_activities_again()
             if getattr(s, "mass_storage", False) and summary.downloaded:
-                self.ask_to_eject(s, files=True)
+                self.ask_to_eject(s)
 
         def failed(e):
             # What it uploaded before it stopped is done: kept in its record (run_sync).

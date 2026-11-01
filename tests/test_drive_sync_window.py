@@ -22,13 +22,13 @@ def checked(device_root, answer=None, **kw):
 
 def window_for(s, said, ejects=None):
     """A stand-in of the window around the session, its tasks run at once; the question to
-    eject the drive noted in `ejects` (whether it speaks of files)."""
+    eject the drive (after files were written to it) noted in `ejects`."""
     ejects = [] if ejects is None else ejects
     return stand_in(
         session=s, busy=False, run_task=RunNow(error="record"), progress=lambda *a: None,
         toast=said.append, _show_last_sync=lambda: None, _count_activities_again=lambda: None,
         ask_first_sync=lambda: said.append("first sync"), show_device=lambda: None,
-        ask_to_eject=lambda s, bike_accessory=False, files=False: ejects.append((s, files)))
+        ask_to_eject=ejects.append)
 
 
 # --- the Sync button ----------------------------------------------------------------------
@@ -141,7 +141,7 @@ def test_the_window_asks_to_eject_a_drive_a_sync_wrote_to(device_root, queue, as
     sync.SyncState(UNIT).save()
     s, _account = checked(device_root, messages=queue)
     MainWindow.start_sync(window_for(s, [], questions))
-    assert questions == [(s, True)] * asked
+    assert questions == [s] * asked
 
 
 def test_no_question_to_eject_a_device_over_mtp(device_root, monkeypatch):

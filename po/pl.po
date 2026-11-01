@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: openexpress 0.1.0\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-11-01 15:09+0100\n"
+"POT-Creation-Date: 2026-11-01 15:23+0100\n"
 "PO-Revision-Date: 2026-10-11 02:36+0200\n"
 "Last-Translator: Automatically generated\n"
 "Language-Team: none\n"
@@ -36,7 +36,7 @@ msgstr ""
 "w terminalu, zaloguj się w przeglądarce i wklej adres, na którym skończysz."
 
 #: openexpress/auth/sso.py:251 openexpress/gui/device_page.py:788
-#: openexpress/gui/netstatus_view.py:139 openexpress/gui/updates_page.py:394
+#: openexpress/gui/netstatus_view.py:139 openexpress/gui/updates_page.py:389
 msgid "Try Again"
 msgstr "Spróbuj ponownie"
 
@@ -551,8 +551,8 @@ msgstr ""
 "przywrócić listy, która czekała: została usunięta, więc zmiany aplikacji "
 "czekające na urządzenie przepadły. Wprowadź je ponownie."
 
-#: openexpress/ciq.py:1411 openexpress/device/storage.py:239
-#: openexpress/device/storage.py:471
+#: openexpress/ciq.py:1411 openexpress/device/storage.py:242
+#: openexpress/device/storage.py:519
 #, python-brace-format
 msgid "Write verification of {path} failed"
 msgstr "Weryfikacja zapisu {path} się nie powiodła"
@@ -1455,7 +1455,7 @@ msgstr "Odłącz urządzenie, aby ją zainstalować."
 msgid "Update copied, waiting for the device to install it:"
 msgstr "Aktualizacja skopiowana, czeka na instalację przez urządzenie:"
 
-#: openexpress/cli.py:967 openexpress/gui/updates_page.py:400
+#: openexpress/cli.py:967 openexpress/gui/updates_page.py:395
 msgid "Ejecting the device…"
 msgstr "Wysuwanie urządzenia…"
 
@@ -2982,30 +2982,31 @@ msgid "flatpak-spawn is not available"
 msgstr "flatpak-spawn jest niedostępny"
 
 #: openexpress/device/gio_storage.py:234 openexpress/device/gio_storage.py:251
-#: openexpress/device/storage.py:383
+#: openexpress/device/storage.py:394
 #, python-brace-format
 msgid "Cannot list {path}"
 msgstr "Nie można wyświetlić zawartości {path}"
 
 #: openexpress/device/gio_storage.py:265 openexpress/device/gio_storage.py:274
-#: openexpress/device/gio_storage.py:279 openexpress/device/storage.py:390
-#: openexpress/device/storage.py:400 openexpress/device/storage.py:405
+#: openexpress/device/gio_storage.py:279 openexpress/device/storage.py:401
+#: openexpress/device/storage.py:411 openexpress/device/storage.py:416
+#: openexpress/device/storage.py:493 openexpress/device/storage.py:504
 #, python-brace-format
 msgid "Cannot read {path}"
 msgstr "Nie można odczytać {path}"
 
 #: openexpress/device/gio_storage.py:302 openexpress/device/gio_storage.py:323
-#: openexpress/device/storage.py:416 openexpress/device/storage.py:429
+#: openexpress/device/storage.py:427 openexpress/device/storage.py:440
 #, python-brace-format
 msgid "Cannot write {path}"
 msgstr "Nie można zapisać {path}"
 
-#: openexpress/device/gio_storage.py:420 openexpress/device/storage.py:455
+#: openexpress/device/gio_storage.py:420 openexpress/device/storage.py:466
 #, python-brace-format
 msgid "Cannot delete {path}"
 msgstr "Nie można usunąć {path}"
 
-#: openexpress/device/gio_storage.py:426 openexpress/device/storage.py:459
+#: openexpress/device/gio_storage.py:426 openexpress/device/storage.py:470
 #, python-brace-format
 msgid "Cannot create directory {path}"
 msgstr "Nie można utworzyć katalogu {path}"
@@ -3288,31 +3289,31 @@ msgstr "Urządzenie nie podało, gdzie zapisało „{name}”."
 msgid "“{name}” was not written correctly."
 msgstr "Nie udało się poprawnie zapisać „{name}”."
 
-#: openexpress/device/storage.py:160 openexpress/device/storage.py:168
+#: openexpress/device/storage.py:162 openexpress/device/storage.py:170
 #, python-brace-format
 msgid "File not found on the device: {path}"
 msgstr "Nie znaleziono pliku na urządzeniu: {path}"
 
-#: openexpress/device/storage.py:181
+#: openexpress/device/storage.py:183
 #, python-brace-format
 msgid "Cannot write {path}: it is a directory"
 msgstr "Nie można zapisać {path}: to katalog"
 
-#: openexpress/device/storage.py:258
+#: openexpress/device/storage.py:261
 #, python-brace-format
 msgid "Not enough space on the device: {need} needed, {free} free"
 msgstr "Za mało miejsca na urządzeniu: potrzeba {need}, wolne {free}"
 
-#: openexpress/device/storage.py:313
+#: openexpress/device/storage.py:316
 msgid "Refusing to delete the root of the device storage"
 msgstr "Odmowa usunięcia głównego katalogu pamięci urządzenia"
 
-#: openexpress/device/storage.py:332
+#: openexpress/device/storage.py:335
 #, python-brace-format
 msgid "Invalid file name: '{path}'"
 msgstr "Nieprawidłowa nazwa pliku: „{path}”"
 
-#: openexpress/device/storage.py:373 openexpress/device/storage.py:381
+#: openexpress/device/storage.py:384 openexpress/device/storage.py:392
 #, python-brace-format
 msgid "Not a directory: {path}"
 msgstr "To nie jest katalog: {path}"
@@ -3734,7 +3735,7 @@ msgid "No copy differs from the current order"
 msgstr "Żadna kopia nie różni się od obecnej kolejności"
 
 #: openexpress/gui/apps_page.py:353 openexpress/gui/report_dialog.py:109
-#: openexpress/gui/updates_page.py:397
+#: openexpress/gui/updates_page.py:392
 msgid "Close"
 msgstr "Zamknij"
 
@@ -4592,7 +4593,7 @@ msgstr "Instalowanie {name}…"
 msgid "{name} copied; unplug the device to load it"
 msgstr "Skopiowano {name}; odłącz urządzenie, aby ją wczytać"
 
-#: openexpress/gui/maps_page.py:444 openexpress/gui/updates_page.py:351
+#: openexpress/gui/maps_page.py:444 openexpress/gui/updates_page.py:353
 msgid "Accept and install"
 msgstr "Zaakceptuj i zainstaluj"
 
@@ -5357,7 +5358,7 @@ msgid "Beta"
 msgstr "Beta"
 
 #. TRANSLATORS: button that ejects the device (its USB drive)
-#: openexpress/gui/updates_page.py:211 openexpress/gui/updates_page.py:370
+#: openexpress/gui/updates_page.py:211 openexpress/gui/updates_page.py:366
 msgid "Eject"
 msgstr "Wysuń"
 
@@ -5403,27 +5404,27 @@ msgstr "To jest wersja beta."
 msgid "License agreement (EULA)"
 msgstr "Umowa licencyjna (EULA)"
 
-#: openexpress/gui/updates_page.py:341 openexpress/gui/updates_page.py:384
+#: openexpress/gui/updates_page.py:341 openexpress/gui/updates_page.py:379
 msgid "Done"
 msgstr "Gotowe"
 
-#: openexpress/gui/updates_page.py:347
+#: openexpress/gui/updates_page.py:349
 msgid "Update not installed"
 msgstr "Nie zainstalowano aktualizacji"
 
-#: openexpress/gui/updates_page.py:350
+#: openexpress/gui/updates_page.py:352
 msgid "Install update?"
 msgstr "Zainstalować aktualizację?"
 
-#: openexpress/gui/updates_page.py:352
+#: openexpress/gui/updates_page.py:354
 msgid "Installing update…"
 msgstr "Instalowanie aktualizacji…"
 
-#: openexpress/gui/updates_page.py:361
+#: openexpress/gui/updates_page.py:362
 msgid "Files saved on the device"
 msgstr "Pliki zapisane na urządzeniu"
 
-#: openexpress/gui/updates_page.py:362
+#: openexpress/gui/updates_page.py:363
 msgid ""
 "Eject the device before you unplug the cable: until then it may not see the "
 "files from Garmin Connect."
@@ -5431,32 +5432,20 @@ msgstr ""
 "Wysuń urządzenie, zanim odłączysz kabel: do tego czasu może nie zobaczyć "
 "plików z Garmin Connect."
 
-#: openexpress/gui/updates_page.py:365
-msgid "Update saved"
-msgstr "Aktualizacja zapisana"
-
-#: openexpress/gui/updates_page.py:366
-msgid ""
-"Eject the device before you unplug the cable: until then it may not see the "
-"update."
-msgstr ""
-"Wysuń urządzenie, zanim odłączysz kabel: do tego czasu może nie zobaczyć "
-"aktualizacji."
-
 #. TRANSLATORS: button; the device is ejected later
-#: openexpress/gui/updates_page.py:374
+#: openexpress/gui/updates_page.py:369
 msgid "Later"
 msgstr "Później"
 
-#: openexpress/gui/updates_page.py:385
+#: openexpress/gui/updates_page.py:380
 msgid "Finish the update"
 msgstr "Dokończ aktualizację"
 
-#: openexpress/gui/updates_page.py:390
+#: openexpress/gui/updates_page.py:385
 msgid "The device is not mounted"
 msgstr "Urządzenie nie jest zamontowane"
 
-#: openexpress/gui/updates_page.py:392
+#: openexpress/gui/updates_page.py:387
 msgid "The device was not ejected"
 msgstr "Nie wysunięto urządzenia"
 

@@ -2899,10 +2899,8 @@ def test_an_update_written_to_a_drive_is_on_the_disk_before_it_counts(drive_wind
     assert len(steps) == 3 and steps[-1] == (size, size)  # 10 kB in 4 kB steps
 
 
-# After an update was saved on a Garmin drive: the drive is ejected before the cable may
-# go out; only then is that said.
-EJECT_FIRST_TEXT = ("Eject the device before you unplug the cable: until then it may not see "
-                    "the update.")
+# After an update was saved on a Garmin drive: the drive is ejected at once, before the cable
+# may go out; only then is that said.
 EJECTED_TEXT = "The device is ejected. You can unplug the cable."
 NOT_EJECTED_TEXT = ("Do not unplug the cable yet: the device may not see the update. Close any "
                     "program that uses the drive and try again, or eject it in the file manager.")
@@ -2910,10 +2908,11 @@ NOT_EJECTED_CLI_TEXT = ("Do not unplug the cable yet: the device may not see the
                         "any program that uses the drive and eject it in the file manager.")
 
 
-def installed_on_a_drive(drive_window, monkeypatch, segment="fitness"):
+def installed_on_a_drive(drive_window, monkeypatch, segment="fitness", refusal=None):
     """The window asked, and the update was copied to the RTL515's drive: (session, the drive's
     mount, every dialog shown so far, the questions to the update server). A task runs at once;
-    an error goes to its own handler, as in the window."""
+    an error goes to its own handler, as in the window. `refusal`: why the system refuses to
+    eject the drive (a program uses it), if it does."""
     from gi.repository import Adw
 
     from openexpress import updates
@@ -2921,6 +2920,7 @@ def installed_on_a_drive(drive_window, monkeypatch, segment="fitness"):
 
     s = drive_session(drive_window, monkeypatch)
     (mount,) = gio_storage.Gio.VolumeMonitor.get().get_mounts()
+    mount.refusal = refusal
     ejects_at_once(monkeypatch)
     asked = []
     s.client = types.SimpleNamespace(
@@ -2934,7 +2934,7 @@ def installed_on_a_drive(drive_window, monkeypatch, segment="fitness"):
                    toast=toasts.append, progress=lambda text: None, fraction=None,
                    _show_installed=lambda session, chosen: None,
                    run_task=RunNow())
-    for name in ("error", "ask_to_eject", "eject_device"):
+    for name in ("error", "eject_device"):
         setattr(win, name, types.MethodType(getattr(MainWindow, name), win))
     before = drive_tree(s.storage.root)
     MainWindow.confirm_update(win, items[0])
@@ -2954,44 +2954,28 @@ def installed_on_a_drive(drive_window, monkeypatch, segment="fitness"):
     ("fitness", [("Done", EJECTED_TEXT)]),
 ])
 def test_window_installs_an_update_on_a_garmin_drive(drive_window, monkeypatch, segment, notes):
-    """The window asks, then copies exactly one file to the drive; then it asks to eject the
-    drive, never saying the cable can go out (a device in mass storage mode may take the file
-    only once ejected). Once ejected it says so, and for a bike accessory, as Garmin Express
-    does, how the device finishes the update."""
+    """The window asks, then copies exactly one file to the drive and ejects it at once, with
+    no question (a device in mass storage mode may take the file only once ejected, and a
+    cable pulled before may leave it a file it does not install). Once ejected it says so,
+    and for a bike accessory, as Garmin Express does, how the device finishes the update."""
     s, mount, dialogs, asked = installed_on_a_drive(drive_window, monkeypatch, segment)
-    (question,) = dialogs[1:]
-    assert (question.get_heading(), question.get_body()) == ("Update saved", EJECT_FIRST_TEXT)
-    assert [question.get_response_label(r) for r in ("cancel", "eject")] == ["Later", "Eject"]
-    assert mount.ejected == 0  # only when asked to
-    question.emit("response", "eject")
     assert (mount.ejected, mount.unmounted) == (1, 0)
     assert gio_storage.ejected_by_us(s.storage.usb)
     # The second note comes when the first is closed.
-    shown = [(dialogs[2].get_heading(), dialogs[2].get_body())]
-    dialogs[2].emit("response", "ok")
-    shown += [(d.get_heading(), d.get_body()) for d in dialogs[3:]]
-    assert shown == notes
+    shown = [(dialogs[1].get_heading(), dialogs[1].get_body())]
+    dialogs[1].emit("response", "ok")
+    shown += [(d.get_heading(), d.get_body()) for d in dialogs[2:]]
+    assert shown == notes  # nothing asked in between
     assert asked == [(3000000003, "006-B3592-03")]  # one question to the update server
-
-
-@pytest.mark.needs_display
-def test_a_drive_not_ejected_is_never_said_to_be_safe_to_unplug(drive_window, monkeypatch):
-    """"Later": the drive stays mounted, and nothing says that the cable can go out."""
-    s, mount, dialogs, _asked = installed_on_a_drive(drive_window, monkeypatch)
-    dialogs[1].emit("response", "cancel")  # Later
-    assert len(dialogs) == 2 and mount.ejected == 0
-    assert not gio_storage.ejected_by_us(s.storage.usb)
-    assert all("You can unplug" not in d.get_body() for d in dialogs)
 
 
 @pytest.mark.needs_display
 def test_a_failed_eject_says_so_and_offers_to_try_again(drive_window, monkeypatch):
     """The system refuses (a program still uses the drive): the window says why and that the
     cable must stay in, never that it can go out; Try Again ejects it once the drive is free."""
-    s, mount, dialogs, _asked = installed_on_a_drive(drive_window, monkeypatch)
-    mount.refusal = "Target is busy"
-    dialogs[1].emit("response", "eject")
-    (failed,) = dialogs[2:]
+    s, mount, dialogs, _asked = installed_on_a_drive(drive_window, monkeypatch,
+                                                     refusal="Target is busy")
+    (failed,) = dialogs[1:]
     assert failed.get_heading() == "The device was not ejected"
     assert failed.get_body() == "Cannot eject the device: Target is busy\n\n" + NOT_EJECTED_TEXT
     assert [failed.get_response_label(r) for r in ("cancel", "retry")] == ["Close", "Try Again"]
@@ -3000,7 +2984,7 @@ def test_a_failed_eject_says_so_and_offers_to_try_again(drive_window, monkeypatc
     mount.refusal = None  # the program let go of the drive
     failed.emit("response", "retry")
     assert mount.ejected == 2
-    assert [(d.get_heading(), d.get_body()) for d in dialogs[3:]] == [("Done", EJECTED_TEXT)]
+    assert [(d.get_heading(), d.get_body()) for d in dialogs[2:]] == [("Done", EJECTED_TEXT)]
 
 
 @pytest.mark.needs_display

@@ -340,7 +340,9 @@ class UpdatesPage:
             if not mass_storage:
                 self.error(_("Done"), self._update_done_text(rep))
                 return
-            self.ask_to_eject(s, bike_accessory)
+            # Ejected at once, unasked: the device takes the update only once its drive is
+            # ejected, and a cable pulled before may leave it a file it does not install.
+            self.eject_device(s, bike_accessory)
 
         def failed(e) -> bool:
             # Under a heading of its own, not the name of the task ("Installing update…").
@@ -353,22 +355,15 @@ class UpdatesPage:
                                              installed, failed), look="suggested"),
                 extra=below if below.get_first_child() is not None else None)
 
-    def ask_to_eject(self, s, bike_accessory: bool = False, files: bool = False) -> None:
-        """After an update was saved on a Garmin drive, or (`files`) a sync wrote the files of
-        Garmin Connect's queue to it: it is to be ejected first, so that the device takes
-        them; that the cable can go out is said only once it is (eject_device)."""
-        if files:
-            title = _("Files saved on the device")
-            text = _("Eject the device before you unplug the cable: until then it may not see "
-                     "the files from Garmin Connect.")
-        else:
-            title = _("Update saved")
-            text = _("Eject the device before you unplug the cable: until then "
-                     "it may not see the update.")
-        confirm(self, "eject-ask", title, text,
+    def ask_to_eject(self, s) -> None:
+        """After a sync wrote the files of Garmin Connect's queue to a Garmin drive: it is to
+        be ejected first, so that the device takes them; that the cable can go out is said
+        only once it is (eject_device). An update is ejected unasked (confirm_update)."""
+        confirm(self, "eject-ask", _("Files saved on the device"),
+                _("Eject the device before you unplug the cable: until then it may not see "
+                  "the files from Garmin Connect."),
                 # TRANSLATORS: button that ejects the device (its USB drive)
-                Answer("eject", _("Eject"),
-                       lambda: self.eject_device(s, bike_accessory, files=files),
+                Answer("eject", _("Eject"), lambda: self.eject_device(s, files=True),
                        look="suggested"),
                 # TRANSLATORS: button; the device is ejected later
                 cancel=_("Later"), default="eject")

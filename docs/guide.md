@@ -165,10 +165,11 @@ connected device; no login is needed.
   component is listed as already on the device; the device takes it in when it is
   disconnected too.
 - **A device that connects as a USB drive** is ejected first: after the copy the window
-  asks to eject it (`openexpress updates --install` ejects it by itself), and says that the
-  cable can be unplugged only once that has worked. Some of these devices install an update
-  only after a clean eject. Until it is unplugged, the window does not open a drive it
-  ejected again.
+  ejects it by itself, as `openexpress updates --install` does, and says that the cable can
+  be unplugged only once that has worked; when the system refuses (a program still uses the
+  drive), it says why and offers to try again. Some of these devices install an update only
+  after a clean eject. Until it is unplugged, the window does not open a drive it ejected
+  again.
 
 <p align="center">
   <img src="screenshots/updates-beta.png" width="700"

@@ -170,16 +170,6 @@ def test_installing_an_update_of_a_device_that_loses_its_data(click, words, task
           and not click.shown[-1].get_mapped())
 
 
-@pytest.mark.parametrize(("words", "ejected"), [("Eject", 1), ("Later", 0)])
-def test_ejecting_after_an_update_was_saved(click, words, ejected):
-    from openexpress.gui.app import MainWindow
-
-    asked = []
-    win = _window(eject_device=lambda s, bike_accessory=False, files=False: asked.append(s))
-    MainWindow.ask_to_eject(win, win.session)
-    click(words, until=lambda: len(asked) == ejected and not click.shown[-1].get_mapped())
-
-
 @pytest.mark.parametrize(("words", "ejected"), [("Eject", [True]), ("Later", [])])
 def test_ejecting_after_a_sync_wrote_to_the_drive(click, words, ejected):
     from openexpress.gui.app import MainWindow
@@ -187,7 +177,7 @@ def test_ejecting_after_a_sync_wrote_to_the_drive(click, words, ejected):
     asked = []
     win = _window(eject_device=lambda s, bike_accessory=False, button=None, files=False:
                   asked.append(files))
-    MainWindow.ask_to_eject(win, win.session, files=True)
+    MainWindow.ask_to_eject(win, win.session)
     assert click.shown[-1].get_heading() == "Files saved on the device"
     click(words, until=lambda: asked == ejected and not click.shown[-1].get_mapped())
 
