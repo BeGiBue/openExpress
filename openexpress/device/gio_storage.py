@@ -1832,13 +1832,17 @@ def _mount_back(uri: str, storage: Storage, sleep=time.sleep) -> None:
 
 
 @contextmanager
-def _exclusive(uri: str, bus: int, address: int, storage: Storage, node: Path | None = None):
+def _unmounted(uri: str, bus: int, address: int, storage: Storage, what: str, closed: str):
+    """The device unmounted from gvfs for the block and mounted again after it, also after an
+    error; our own unmount and mount are not taken for an unplug (own_remount) meanwhile and
+    for REMOUNT_QUIET_S after. Gives the time it started. `what` begins its lines of the log;
+    `closed` is the last one, said with the time once the device is mounted again."""
     _quiet_until[_key(uri)] = float("inf")
     known = getattr(storage, "usb", None)
     _quiet_usb[_key(uri)] = GarminUsb(known.product if known else None, bus, address)
     started = time.monotonic()
     try:
-        log.info("PTP: unmounting the device from gvfs")
+        log.info("%s: unmounting the device from gvfs", what)
         try:
             _unmount(uri)
         except (GioTimedOut, KeyboardInterrupt) as stopped:
@@ -1850,8 +1854,22 @@ def _exclusive(uri: str, bus: int, address: int, storage: Storage, node: Path | 
             except RemountFailed:
                 if not isinstance(stopped, KeyboardInterrupt):
                     raise  # the callers say it: unplug the device and plug it in again
-                log.warning("PTP: the device was not mounted again after Ctrl+C")
+                log.warning("%s: the device was not mounted again after Ctrl+C", what)
             raise
+        try:
+            yield started
+        finally:
+            _remount(uri, storage)
+            log.info("%s: %s after %.1f s", what, closed, time.monotonic() - started)
+    finally:
+        # The signals of the last mount arrive a moment later.
+        _quiet_until[_key(uri)] = time.monotonic() + REMOUNT_QUIET_S
+
+
+@contextmanager
+def _exclusive(uri: str, bus: int, address: int, storage: Storage, node: Path | None = None):
+    with _unmounted(uri, bus, address, storage, "PTP",
+                    "session closed, device mounted again") as started:
         try:
             transport = (ptp.LibusbTransport.open_node(node) if node is not None
                          else ptp.LibusbTransport.open(bus, address))
@@ -1862,10 +1880,3 @@ def _exclusive(uri: str, bus: int, address: int, storage: Storage, node: Path | 
         except Exception as e:
             log.warning("PTP: session ended with %s: %s", type(e).__name__, e)
             raise
-        finally:
-            _remount(uri, storage)
-            log.info("PTP: session closed, device mounted again after %.1f s",
-                     time.monotonic() - started)
-    finally:
-        # The signals of the last mount arrive a moment later.
-        _quiet_until[_key(uri)] = time.monotonic() + REMOUNT_QUIET_S
