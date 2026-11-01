@@ -2472,9 +2472,12 @@ def build_parser() -> argparse.ArgumentParser:
                    help=_("path to Networking.dll from Garmin Express"))
     s.add_argument("--utilities-dll", metavar="Utilities.dll",
                    help=_("path to Utilities.dll (default: next to Networking.dll)"))
-    s.add_argument("--key")
-    s.add_argument("--secret")
-    s.add_argument("--environment", choices=sorted(ENVIRONMENTS))
+    s.add_argument("--key",
+                   help=_("OAuth1 consumer key of Garmin Express; only together with --secret"))
+    s.add_argument("--secret",
+                   help=_("OAuth1 consumer secret of Garmin Express; only together with --key"))
+    s.add_argument("--environment", choices=sorted(ENVIRONMENTS),
+                   help=_("Garmin servers to use: production (default) or china"))
     s.add_argument("--locale", help=_("e.g. {example}").format(example="pl_PL"))
     s.add_argument("--ui-language", choices=i18n.available_languages() + ["system"],
                    help=_("language of this program (\"system\": follow the system locale)"))
@@ -2490,7 +2493,7 @@ def build_parser() -> argparse.ArgumentParser:
     s.set_defaults(func=cmd_report)
 
     s = sub.add_parser("info", help=_("information about the connected device"))
-    s.add_argument("--json", action="store_true")
+    s.add_argument("--json", action="store_true", help=_("print the device information as JSON"))
     s.set_defaults(func=cmd_info)
 
     s = sub.add_parser("files", help=_("files on the device by data type"))
@@ -2582,21 +2585,24 @@ def build_parser() -> argparse.ArgumentParser:
 
     s = sub.add_parser("upload-config",
                        help=_("upload configuration from the Garmin server (OMT)"))
-    s.add_argument("--json", action="store_true")
+    s.add_argument("--json", action="store_true",
+                   help=_("print the server's whole answer as JSON"))
     s.set_defaults(func=cmd_upload_config)
 
     s = sub.add_parser("sync", help=_("sync with Garmin Connect (dry run by default)"))
     s.add_argument("--apply", action="store_true", help=_("actually upload and write"))
     s.add_argument("--all", action="store_true", help=_("upload everything on the first sync"))
-    s.add_argument("--upload-only", action="store_true")
-    s.add_argument("--download-only", action="store_true")
+    s.add_argument("--upload-only", action="store_true",
+                   help=_("only upload; leave what waits in Garmin Connect for the device"))
+    s.add_argument("--download-only", action="store_true",
+                   help=_("only write what waits in Garmin Connect; upload nothing"))
     s.add_argument("--type", action="append", help=_("only the given data type (repeatable)"))
     s.add_argument("--include-diagnostics", action="store_true",
                    help=_("also upload device diagnostics and telemetry to Garmin"))
     s.set_defaults(func=cmd_sync)
 
     s = sub.add_parser("baseline", help=_("mark current files as already uploaded"))
-    s.add_argument("--apply", action="store_true")
+    s.add_argument("--apply", action="store_true", help=_("mark the files (nothing is uploaded)"))
     s.set_defaults(func=cmd_baseline)
 
     s = sub.add_parser("backup", help=_("local backup of device data"))
@@ -2605,7 +2611,8 @@ def build_parser() -> argparse.ArgumentParser:
                        path=paths.shown_path(paths.default_backup_dir())))
     s.add_argument("--keep", type=int, default=3, metavar="N",
                    help=_("how many most recent backups to keep"))
-    s.add_argument("--apply", action="store_true")
+    s.add_argument("--apply", action="store_true",
+                   help=_("copy the files (and remove backups beyond --keep)"))
     s.set_defaults(func=cmd_backup)
 
     s = sub.add_parser("updates", help=_("device software updates"))
@@ -2613,26 +2620,34 @@ def build_parser() -> argparse.ArgumentParser:
                    help=_("also show items available for reinstall"))
     s.add_argument("--install", nargs="+", metavar="PART",
                    help=_("part numbers to install, or 'all'"))
-    s.add_argument("--apply", action="store_true")
+    s.add_argument("--apply", action="store_true",
+                   help=_("download the updates chosen with --install and copy them to the "
+                          "device, accepting their licenses"))
     s.set_defaults(func=cmd_updates)
 
     s = sub.add_parser("maps", help=_("maps on the device (TopoActive, base maps, CourseView…)"))
     s.add_argument("--all", action="store_true", help=_("also show maps available for download"))
     msub = s.add_subparsers(dest="maps_cmd")
     m = msub.add_parser("install", help=_("install a map"))
-    m.add_argument("name", metavar="NAME")
-    m.add_argument("--apply", action="store_true")
+    m.add_argument("name", metavar="NAME",
+                   help=_("the map's name, or a part of it that only one map has, as maps --all "
+                          "lists it"))
+    m.add_argument("--apply", action="store_true",
+                   help=_("download the map and write it to the device"))
     m = msub.add_parser("update", help=_("update installed maps"))
-    m.add_argument("--apply", action="store_true")
+    m.add_argument("--apply", action="store_true",
+                   help=_("download the updates and write them to the device"))
     m = msub.add_parser("remove", help=_("remove a map from the device"))
-    m.add_argument("name", metavar="NAME")
+    m.add_argument("name", metavar="NAME",
+                   help=_("the map's name, or a part of it that only one map has; with --own the "
+                          "exact file name of your own map"))
     m.add_argument("--own", action="store_true",
                    help=_("remove a map of your own that was copied with 'maps add'"))
-    m.add_argument("--apply", action="store_true")
+    m.add_argument("--apply", action="store_true", help=_("remove the map from the device"))
     m = msub.add_parser("add", help=_("copy a map of your own (.img) to the device"))
-    m.add_argument("file", metavar="FILE")
-    m.add_argument("--name")
-    m.add_argument("--apply", action="store_true")
+    m.add_argument("file", metavar="FILE", help=_("a Garmin map file (.img) on this computer"))
+    m.add_argument("--name", help=_("the file name on the device (default: that of FILE)"))
+    m.add_argument("--apply", action="store_true", help=_("copy the map to the device"))
     s.set_defaults(func=cmd_maps)
 
     s = sub.add_parser("primary",
@@ -2643,19 +2658,26 @@ def build_parser() -> argparse.ArgumentParser:
     psub = s.add_subparsers(dest="primary_cmd")
     m = psub.add_parser("set", help=_("make the connected device the primary training device"))
     m.add_argument("--wearable", dest="set_wearable", action="store_true", help=wearable_help)
-    m.add_argument("--apply", action="store_true")
+    m.add_argument("--apply", action="store_true", help=_("change it in your Garmin account"))
     s.set_defaults(func=cmd_primary)
 
     s = sub.add_parser("apps", help=_("Connect IQ apps, watch faces and data fields"))
     s.add_argument("--builtin", action="store_true", help=_("also list built-in activities"))
     asub = s.add_subparsers(dest="apps_cmd")
+    change_help = _("write the change to the device (it takes effect once unplugged)")
+    apply_help = {
+        "install": _("install the app, or queue it in Garmin Connect where USB cannot"),
+        "remove": _("remove it from the device (with --forget: also from your account list)"),
+        "enable": change_help,
+        "disable": change_help,
+    }
     for name, helptext in (("install", _("install an app from your Garmin account")),
                            ("remove", _("remove an app from the device")),
                            ("enable", _("enable an app or built-in activity")),
                            ("disable", _("disable an app or built-in activity"))):
         a = asub.add_parser(name, help=helptext)
         a.add_argument("name", metavar="NAME", help=_("app name (or part of it) or app id"))
-        a.add_argument("--apply", action="store_true")
+        a.add_argument("--apply", action="store_true", help=apply_help[name])
         if name == "install":
             a.add_argument("--allow-permissions", action="store_true",
                            help=_("also allow the new permissions an app asks for"))
@@ -2669,7 +2691,8 @@ def build_parser() -> argparse.ArgumentParser:
                            help=_("which entry, when an app and a widget share a name")
                            + f" ({', '.join(types)})")
     a = asub.add_parser("update", help=_("update installed apps"))
-    a.add_argument("--apply", action="store_true")
+    a.add_argument("--apply", action="store_true",
+                   help=_("install the updates, or queue them in Garmin Connect where USB cannot"))
     a.add_argument("--allow-permissions", action="store_true",
                    help=_("also allow the new permissions an app asks for"))
     a = asub.add_parser("order", help=_("put the apps back in the order of a saved app list"))
@@ -2677,25 +2700,36 @@ def build_parser() -> argparse.ArgumentParser:
                    help=_("a copy of the app list: part of its folder name, or a path"))
     a.add_argument("--all", action="store_true",
                    help=_("list every position that would change"))
-    a.add_argument("--apply", action="store_true")
+    a.add_argument("--apply", action="store_true",
+                   help=_("write the order of the copy to the device (it takes effect once "
+                          "unplugged)"))
     s.set_defaults(func=cmd_apps)
 
     s = sub.add_parser("music", help=_("music, podcasts and audiobooks on the device"))
     msub = s.add_subparsers(dest="music_cmd")
     m = msub.add_parser("add", help=_("copy audio files or folders to the device"))
-    m.add_argument("paths", nargs="+", metavar="PATH")
+    m.add_argument("paths", nargs="+", metavar="PATH",
+                   help=_("audio files or folders on this computer"))
     m.add_argument("--as", dest="kind", choices=["track", "podcast", "audiobook"],
                    help=_("treat all files as this kind (default: detect from genre tag)"))
     m.add_argument("--playlist", metavar="NAME", help=_("also create a playlist with these files"))
-    m.add_argument("--apply", action="store_true")
+    m.add_argument("--apply", action="store_true",
+                   help=_("copy the files to the device (and write the playlist with --playlist)"))
     m = msub.add_parser("playlist", help=_("copy a local .m3u/.m3u8 playlist and its tracks"))
-    m.add_argument("m3u", metavar="FILE")
-    m.add_argument("--name")
-    m.add_argument("--apply", action="store_true")
+    m.add_argument("m3u", metavar="FILE", help=_("a .m3u or .m3u8 playlist on this computer"))
+    m.add_argument("--name",
+                   help=_("the playlist's name on the device (default: its name without "
+                          "extension)"))
+    m.add_argument("--apply", action="store_true",
+                   help=_("copy the tracks and write the playlist to the device"))
     m = msub.add_parser("remove", help=_("remove files or playlists whose name, artist or "
                                          "album folder contains TEXT"))
-    m.add_argument("paths", nargs="+", metavar="TEXT")
-    m.add_argument("--apply", action="store_true")
+    m.add_argument("paths", nargs="+", metavar="TEXT",
+                   help=_("text in a file name, an artist or album folder, or a whole path on "
+                          "the device (at least {count} characters)").format(
+                       count=MIN_MUSIC_PATTERN))
+    m.add_argument("--apply", action="store_true",
+                   help=_("remove the files and playlists from the device"))
     s.set_defaults(func=cmd_music)
 
     s = sub.add_parser("gui", help=_("application window"))
@@ -2706,7 +2740,8 @@ def build_parser() -> argparse.ArgumentParser:
 
     s = sub.add_parser("install-desktop",
                        help=_("add an application menu entry and a background sync service"))
-    s.add_argument("--apply", action="store_true")
+    s.add_argument("--apply", action="store_true",
+                   help=_("write the files (with --remove: delete them)"))
     s.add_argument("--remove", action="store_true",
                    help=_("remove the menu entry, icon and service instead"))
     s.add_argument("--force", action="store_true",

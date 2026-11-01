@@ -1,7 +1,7 @@
 """The names the help of the command line gives what a command takes, as docs/cli.md writes
 them: an argument in capitals, a folder as DIR, an option's value by the name the table of
-commands gives it. Every parser of the program is looked at, those of commands added later
-too."""
+commands gives it; and a line of help for every command, argument and option. Every parser of
+the program is looked at, those of commands added later too."""
 
 import argparse
 import re
@@ -53,6 +53,26 @@ def test_every_option_that_takes_a_folder_shows_dir():
              if a.option_strings and FOLDER.match((a.help or "").casefold())
              and shown(a) != "DIR"]
     assert wrong == []
+
+
+def described(action) -> bool:
+    return bool((action.help or "").strip())
+
+
+def test_every_command_argument_and_option_has_a_help_text():
+    # argparse gives -h and --version their help itself.
+    missing = []
+    for words, p in parsers(cli.build_parser()):
+        for a in p._actions:
+            if isinstance(a, argparse._HelpAction | argparse._VersionAction):
+                continue
+            if isinstance(a, argparse._SubParsersAction):
+                missing += [f"{' '.join((*words, c.dest))} (command)"
+                            for c in a._choices_actions if not described(c)]
+            elif not described(a):
+                name = a.option_strings[-1] if a.option_strings else shown(a)
+                missing.append(" ".join((*words, name)))
+    assert not missing, f"{len(missing)} without a help text:\n" + "\n".join(missing)
 
 
 def documented():

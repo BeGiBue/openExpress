@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: openexpress 0.8.0\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-11-01 21:56+0100\n"
+"POT-Creation-Date: 2026-11-01 22:03+0100\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -1070,8 +1070,8 @@ msgstr ""
 #: openexpress/cli.py:458 openexpress/cli.py:480 openexpress/cli.py:550
 #: openexpress/cli.py:799 openexpress/cli.py:806 openexpress/cli.py:852
 #: openexpress/cli.py:861 openexpress/cli.py:891 openexpress/cli.py:896
-#: openexpress/cli.py:900 openexpress/cli.py:2836 openexpress/cli.py:2842
-#: openexpress/cli.py:2848 openexpress/cli.py:2861 openexpress/cli.py:2877
+#: openexpress/cli.py:900 openexpress/cli.py:2871 openexpress/cli.py:2877
+#: openexpress/cli.py:2883 openexpress/cli.py:2896 openexpress/cli.py:2912
 #, python-brace-format
 msgid "Error: {error}"
 msgstr ""
@@ -2586,384 +2586,521 @@ msgstr ""
 msgid "path to Utilities.dll (default: next to Networking.dll)"
 msgstr ""
 
+#: openexpress/cli.py:2476
+msgid "OAuth1 consumer key of Garmin Express; only together with --secret"
+msgstr ""
+
 #: openexpress/cli.py:2478
+msgid "OAuth1 consumer secret of Garmin Express; only together with --key"
+msgstr ""
+
+#: openexpress/cli.py:2480
+msgid "Garmin servers to use: production (default) or china"
+msgstr ""
+
+#: openexpress/cli.py:2481
 #, python-brace-format
 msgid "e.g. {example}"
 msgstr ""
 
-#: openexpress/cli.py:2480
+#: openexpress/cli.py:2483
 msgid "language of this program (\"system\": follow the system locale)"
 msgstr ""
 
-#: openexpress/cli.py:2482
+#: openexpress/cli.py:2485
 msgid ""
 "copy the device's diagnostic files to this computer at each connection in "
 "the window (never sent)"
 msgstr ""
 
-#: openexpress/cli.py:2486
+#: openexpress/cli.py:2489
 msgid "device report for GitHub, without serial numbers"
 msgstr ""
 
-#: openexpress/cli.py:2488
+#: openexpress/cli.py:2491
 msgid "print the last lines of the log file instead, for the form (filtered)"
 msgstr ""
 
-#: openexpress/cli.py:2492
+#: openexpress/cli.py:2495
 msgid "information about the connected device"
 msgstr ""
 
 #: openexpress/cli.py:2496
+msgid "print the device information as JSON"
+msgstr ""
+
+#: openexpress/cli.py:2499
 msgid "files on the device by data type"
 msgstr ""
 
-#: openexpress/cli.py:2497
+#: openexpress/cli.py:2500
 #, python-brace-format
 msgid "e.g. {example} (activities)"
 msgstr ""
 
-#: openexpress/cli.py:2499
+#: openexpress/cli.py:2502
 msgid "show only the last N files"
 msgstr ""
 
-#: openexpress/cli.py:2504
+#: openexpress/cli.py:2507
 msgid "activities on the device and in its backups"
 msgstr ""
 
-#: openexpress/cli.py:2507
+#: openexpress/cli.py:2510
 #, python-brace-format
 msgid "show the newest N (default: {count})"
 msgstr ""
 
-#: openexpress/cli.py:2508
+#: openexpress/cli.py:2511
 msgid "show every activity"
 msgstr ""
 
-#: openexpress/cli.py:2511
+#: openexpress/cli.py:2514
 #, python-brace-format
 msgid "folder of the backups (default: {path})"
 msgstr ""
 
-#: openexpress/cli.py:2515
+#: openexpress/cli.py:2518
 msgid "write activities as GPX files"
 msgstr ""
 
-#: openexpress/cli.py:2517
+#: openexpress/cli.py:2520
 msgid "the file name of an activity, as the list of activities shows it"
 msgstr ""
 
-#: openexpress/cli.py:2519
+#: openexpress/cli.py:2522
 #, python-brace-format
 msgid "folder for the GPX files (default: {path})"
 msgstr ""
 
-#: openexpress/cli.py:2522
+#: openexpress/cli.py:2525
 msgid "write the GPX files"
 msgstr ""
 
-#: openexpress/cli.py:2525
+#: openexpress/cli.py:2528
 msgid "FIT files on this computer"
 msgstr ""
 
-#: openexpress/cli.py:2527
+#: openexpress/cli.py:2530
 msgid "what a FIT file holds: its type, its messages and whether it is whole"
 msgstr ""
 
-#: openexpress/cli.py:2529
+#: openexpress/cli.py:2532
 msgid "a FIT file on this computer"
 msgstr ""
 
-#: openexpress/cli.py:2533
+#: openexpress/cli.py:2536
 msgid "the device's error logs and their copy on this computer"
 msgstr ""
 
-#: openexpress/cli.py:2535
+#: openexpress/cli.py:2538
 msgid "copy the diagnostic files the device shows now"
 msgstr ""
 
-#: openexpress/cli.py:2537
+#: openexpress/cli.py:2540
 msgid ""
 "also read the hidden crash logs (the device leaves the file manager for a "
 "moment)"
 msgstr ""
 
-#: openexpress/cli.py:2539
+#: openexpress/cli.py:2542
 msgid "also copy the memory dumps"
 msgstr ""
 
-#: openexpress/cli.py:2542
+#: openexpress/cli.py:2545
 msgid "log in to Garmin Connect"
 msgstr ""
 
-#: openexpress/cli.py:2543
+#: openexpress/cli.py:2546
 msgid "log in using a regular browser"
 msgstr ""
 
-#: openexpress/cli.py:2546
+#: openexpress/cli.py:2549
 msgid "remove the local token"
 msgstr ""
 
-#: openexpress/cli.py:2551
+#: openexpress/cli.py:2554
 #, python-brace-format
 msgid "size of the cache by part ({parts}), and clearing it"
 msgstr ""
 
-#: openexpress/cli.py:2554
+#: openexpress/cli.py:2557
 msgid "delete what is in the cache (downloaded again when needed)"
 msgstr ""
 
-#: openexpress/cli.py:2556
+#: openexpress/cli.py:2559
 #, python-brace-format
 msgid "only these parts of the cache, separated by commas: {parts}"
 msgstr ""
 
-#: openexpress/cli.py:2558
+#: openexpress/cli.py:2561
 msgid "really delete (with --clear)"
 msgstr ""
 
-#: openexpress/cli.py:2561
+#: openexpress/cli.py:2564
 msgid "the devices this installation has seen"
 msgstr ""
 
-#: openexpress/cli.py:2563
+#: openexpress/cli.py:2566
 msgid ""
 "forget device number N of the list and what this installation keeps of it "
 "(its sync state, its last sync)"
 msgstr ""
 
-#: openexpress/cli.py:2566
+#: openexpress/cli.py:2569
 msgid ""
 "with --forget: also when files of it have not been uploaded yet (they are "
 "lost)"
 msgstr ""
 
-#: openexpress/cli.py:2569
+#: openexpress/cli.py:2572
 msgid "with --forget: delete its backups too"
 msgstr ""
 
-#: openexpress/cli.py:2570
+#: openexpress/cli.py:2573
 msgid "really forget (with --forget)"
 msgstr ""
 
-#: openexpress/cli.py:2573
+#: openexpress/cli.py:2576
 msgid ""
 "the login, the devices connected, their last sync and updates, from what "
 "this installation knows"
 msgstr ""
 
-#: openexpress/cli.py:2576
+#: openexpress/cli.py:2579
 msgid "also ask Garmin Connect and Garmin's update server now"
 msgstr ""
 
-#: openexpress/cli.py:2579
+#: openexpress/cli.py:2582
 msgid "logged-in account"
 msgstr ""
 
-#: openexpress/cli.py:2580
+#: openexpress/cli.py:2583
 msgid "verify the token with the server"
 msgstr ""
 
-#: openexpress/cli.py:2584
+#: openexpress/cli.py:2587
 msgid "upload configuration from the Garmin server (OMT)"
 msgstr ""
 
-#: openexpress/cli.py:2588
+#: openexpress/cli.py:2589
+msgid "print the server's whole answer as JSON"
+msgstr ""
+
+#: openexpress/cli.py:2592
 msgid "sync with Garmin Connect (dry run by default)"
 msgstr ""
 
-#: openexpress/cli.py:2589
+#: openexpress/cli.py:2593
 msgid "actually upload and write"
 msgstr ""
 
-#: openexpress/cli.py:2590
+#: openexpress/cli.py:2594
 msgid "upload everything on the first sync"
 msgstr ""
 
-#: openexpress/cli.py:2593
-msgid "only the given data type (repeatable)"
-msgstr ""
-
-#: openexpress/cli.py:2595
-msgid "also upload device diagnostics and telemetry to Garmin"
+#: openexpress/cli.py:2596
+msgid "only upload; leave what waits in Garmin Connect for the device"
 msgstr ""
 
 #: openexpress/cli.py:2598
-msgid "mark current files as already uploaded"
+msgid "only write what waits in Garmin Connect; upload nothing"
 msgstr ""
 
-#: openexpress/cli.py:2602
-msgid "local backup of device data"
+#: openexpress/cli.py:2599
+msgid "only the given data type (repeatable)"
+msgstr ""
+
+#: openexpress/cli.py:2601
+msgid "also upload device diagnostics and telemetry to Garmin"
 msgstr ""
 
 #: openexpress/cli.py:2604
+msgid "mark current files as already uploaded"
+msgstr ""
+
+#: openexpress/cli.py:2605
+msgid "mark the files (nothing is uploaded)"
+msgstr ""
+
+#: openexpress/cli.py:2608
+msgid "local backup of device data"
+msgstr ""
+
+#: openexpress/cli.py:2610
 #, python-brace-format
 msgid "destination directory (default: {path})"
 msgstr ""
 
-#: openexpress/cli.py:2607
+#: openexpress/cli.py:2613
 msgid "how many most recent backups to keep"
 msgstr ""
 
-#: openexpress/cli.py:2611
+#: openexpress/cli.py:2615
+msgid "copy the files (and remove backups beyond --keep)"
+msgstr ""
+
+#: openexpress/cli.py:2618
 msgid "device software updates"
 msgstr ""
 
-#: openexpress/cli.py:2613
+#: openexpress/cli.py:2620
 msgid "also show items available for reinstall"
 msgstr ""
 
-#: openexpress/cli.py:2615
+#: openexpress/cli.py:2622
 msgid "part numbers to install, or 'all'"
 msgstr ""
 
-#: openexpress/cli.py:2619
+#: openexpress/cli.py:2624
+msgid ""
+"download the updates chosen with --install and copy them to the device, "
+"accepting their licenses"
+msgstr ""
+
+#: openexpress/cli.py:2628
 msgid "maps on the device (TopoActive, base maps, CourseView…)"
 msgstr ""
 
-#: openexpress/cli.py:2620
+#: openexpress/cli.py:2629
 msgid "also show maps available for download"
 msgstr ""
 
-#: openexpress/cli.py:2622
+#: openexpress/cli.py:2631
 msgid "install a map"
 msgstr ""
 
-#: openexpress/cli.py:2625
+#: openexpress/cli.py:2633
+msgid ""
+"the map's name, or a part of it that only one map has, as maps --all lists it"
+msgstr ""
+
+#: openexpress/cli.py:2636
+msgid "download the map and write it to the device"
+msgstr ""
+
+#: openexpress/cli.py:2637
 msgid "update installed maps"
 msgstr ""
 
-#: openexpress/cli.py:2627
-msgid "remove a map from the device"
-msgstr ""
-
-#: openexpress/cli.py:2630
-msgid "remove a map of your own that was copied with 'maps add'"
-msgstr ""
-
-#: openexpress/cli.py:2632
-msgid "copy a map of your own (.img) to the device"
-msgstr ""
-
 #: openexpress/cli.py:2639
-msgid "show the primary training device of the Garmin account"
+msgid "download the updates and write them to the device"
 msgstr ""
 
 #: openexpress/cli.py:2640
+msgid "remove a map from the device"
+msgstr ""
+
+#: openexpress/cli.py:2642
+msgid ""
+"the map's name, or a part of it that only one map has; with --own the exact "
+"file name of your own map"
+msgstr ""
+
+#: openexpress/cli.py:2645
+msgid "remove a map of your own that was copied with 'maps add'"
+msgstr ""
+
+#: openexpress/cli.py:2646
+msgid "remove the map from the device"
+msgstr ""
+
+#: openexpress/cli.py:2647
+msgid "copy a map of your own (.img) to the device"
+msgstr ""
+
+#: openexpress/cli.py:2648
+msgid "a Garmin map file (.img) on this computer"
+msgstr ""
+
+#: openexpress/cli.py:2649
+msgid "the file name on the device (default: that of FILE)"
+msgstr ""
+
+#: openexpress/cli.py:2650
+msgid "copy the map to the device"
+msgstr ""
+
+#: openexpress/cli.py:2654
+msgid "show the primary training device of the Garmin account"
+msgstr ""
+
+#: openexpress/cli.py:2655
 msgid ""
 "the primary wearable (steps and sleep in Garmin Connect) instead of the "
 "primary training device"
 msgstr ""
 
-#: openexpress/cli.py:2644
+#: openexpress/cli.py:2659
 msgid "make the connected device the primary training device"
 msgstr ""
 
-#: openexpress/cli.py:2649
-msgid "Connect IQ apps, watch faces and data fields"
-msgstr ""
-
-#: openexpress/cli.py:2650
-msgid "also list built-in activities"
-msgstr ""
-
-#: openexpress/cli.py:2652
-msgid "install an app from your Garmin account"
-msgstr ""
-
-#: openexpress/cli.py:2653
-msgid "remove an app from the device"
-msgstr ""
-
-#: openexpress/cli.py:2654
-msgid "enable an app or built-in activity"
-msgstr ""
-
-#: openexpress/cli.py:2655
-msgid "disable an app or built-in activity"
-msgstr ""
-
-#: openexpress/cli.py:2657
-msgid "app name (or part of it) or app id"
-msgstr ""
-
-#: openexpress/cli.py:2661 openexpress/cli.py:2674
-msgid "also allow the new permissions an app asks for"
+#: openexpress/cli.py:2661
+msgid "change it in your Garmin account"
 msgstr ""
 
 #: openexpress/cli.py:2664
-msgid "also remove it from the app list in your Garmin account"
+msgid "Connect IQ apps, watch faces and data fields"
+msgstr ""
+
+#: openexpress/cli.py:2665
+msgid "also list built-in activities"
+msgstr ""
+
+#: openexpress/cli.py:2667
+msgid "write the change to the device (it takes effect once unplugged)"
 msgstr ""
 
 #: openexpress/cli.py:2669
-msgid "which entry, when an app and a widget share a name"
+msgid "install the app, or queue it in Garmin Connect where USB cannot"
 msgstr ""
 
-#: openexpress/cli.py:2671
-msgid "update installed apps"
+#: openexpress/cli.py:2670
+msgid "remove it from the device (with --forget: also from your account list)"
+msgstr ""
+
+#: openexpress/cli.py:2674
+msgid "install an app from your Garmin account"
 msgstr ""
 
 #: openexpress/cli.py:2675
-msgid "put the apps back in the order of a saved app list"
+msgid "remove an app from the device"
+msgstr ""
+
+#: openexpress/cli.py:2676
+msgid "enable an app or built-in activity"
 msgstr ""
 
 #: openexpress/cli.py:2677
-msgid "a copy of the app list: part of its folder name, or a path"
+msgid "disable an app or built-in activity"
 msgstr ""
 
 #: openexpress/cli.py:2679
-msgid "list every position that would change"
+msgid "app name (or part of it) or app id"
 msgstr ""
 
-#: openexpress/cli.py:2683
-msgid "music, podcasts and audiobooks on the device"
+#: openexpress/cli.py:2683 openexpress/cli.py:2697
+msgid "also allow the new permissions an app asks for"
 msgstr ""
 
-#: openexpress/cli.py:2685
-msgid "copy audio files or folders to the device"
-msgstr ""
-
-#: openexpress/cli.py:2688
-msgid "treat all files as this kind (default: detect from genre tag)"
-msgstr ""
-
-#: openexpress/cli.py:2689
-msgid "also create a playlist with these files"
+#: openexpress/cli.py:2686
+msgid "also remove it from the app list in your Garmin account"
 msgstr ""
 
 #: openexpress/cli.py:2691
-msgid "copy a local .m3u/.m3u8 playlist and its tracks"
+msgid "which entry, when an app and a widget share a name"
+msgstr ""
+
+#: openexpress/cli.py:2693
+msgid "update installed apps"
 msgstr ""
 
 #: openexpress/cli.py:2695
+msgid "install the updates, or queue them in Garmin Connect where USB cannot"
+msgstr ""
+
+#: openexpress/cli.py:2698
+msgid "put the apps back in the order of a saved app list"
+msgstr ""
+
+#: openexpress/cli.py:2700
+msgid "a copy of the app list: part of its folder name, or a path"
+msgstr ""
+
+#: openexpress/cli.py:2702
+msgid "list every position that would change"
+msgstr ""
+
+#: openexpress/cli.py:2704
+msgid ""
+"write the order of the copy to the device (it takes effect once unplugged)"
+msgstr ""
+
+#: openexpress/cli.py:2708
+msgid "music, podcasts and audiobooks on the device"
+msgstr ""
+
+#: openexpress/cli.py:2710
+msgid "copy audio files or folders to the device"
+msgstr ""
+
+#: openexpress/cli.py:2712
+msgid "audio files or folders on this computer"
+msgstr ""
+
+#: openexpress/cli.py:2714
+msgid "treat all files as this kind (default: detect from genre tag)"
+msgstr ""
+
+#: openexpress/cli.py:2715
+msgid "also create a playlist with these files"
+msgstr ""
+
+#: openexpress/cli.py:2717
+msgid "copy the files to the device (and write the playlist with --playlist)"
+msgstr ""
+
+#: openexpress/cli.py:2718
+msgid "copy a local .m3u/.m3u8 playlist and its tracks"
+msgstr ""
+
+#: openexpress/cli.py:2719
+msgid "a .m3u or .m3u8 playlist on this computer"
+msgstr ""
+
+#: openexpress/cli.py:2721
+msgid "the playlist's name on the device (default: its name without extension)"
+msgstr ""
+
+#: openexpress/cli.py:2724
+msgid "copy the tracks and write the playlist to the device"
+msgstr ""
+
+#: openexpress/cli.py:2725
 msgid ""
 "remove files or playlists whose name, artist or album folder contains TEXT"
 msgstr ""
 
-#: openexpress/cli.py:2701
+#: openexpress/cli.py:2728
+#, python-brace-format
+msgid ""
+"text in a file name, an artist or album folder, or a whole path on the "
+"device (at least {count} characters)"
+msgstr ""
+
+#: openexpress/cli.py:2732
+msgid "remove the files and playlists from the device"
+msgstr ""
+
+#: openexpress/cli.py:2735
 msgid "application window"
 msgstr ""
 
-#: openexpress/cli.py:2704
+#: openexpress/cli.py:2738
 msgid "background service: sync when the device is connected"
 msgstr ""
 
-#: openexpress/cli.py:2708
+#: openexpress/cli.py:2742
 msgid "add an application menu entry and a background sync service"
 msgstr ""
 
-#: openexpress/cli.py:2711
+#: openexpress/cli.py:2744
+msgid "write the files (with --remove: delete them)"
+msgstr ""
+
+#: openexpress/cli.py:2746
 msgid "remove the menu entry, icon and service instead"
 msgstr ""
 
-#: openexpress/cli.py:2713
+#: openexpress/cli.py:2748
 msgid "install even if the Flatpak of openExpress is installed"
 msgstr ""
 
-#: openexpress/cli.py:2761
+#: openexpress/cli.py:2796
 msgid "--key and --secret must be given together"
 msgstr ""
 
-#: openexpress/cli.py:2802
+#: openexpress/cli.py:2837
 msgid ""
 "openExpress needs PyGObject with GTK 4 and libadwaita. Install them (Fedora: "
 "sudo dnf install python3-gobject gtk4 libadwaita; Arch: sudo pacman -S "
@@ -2971,17 +3108,17 @@ msgid ""
 "gi gir1.2-gtk-4.0 gir1.2-adw-1), then run the command again."
 msgstr ""
 
-#: openexpress/cli.py:2852
+#: openexpress/cli.py:2887
 #, python-brace-format
 msgid "Server error: {error}"
 msgstr ""
 
-#: openexpress/cli.py:2864
+#: openexpress/cli.py:2899
 #, python-brace-format
 msgid "Network error: could not reach the Garmin server ({error})"
 msgstr ""
 
-#: openexpress/cli.py:2870
+#: openexpress/cli.py:2905
 msgid "Interrupted."
 msgstr ""
 
