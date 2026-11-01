@@ -65,6 +65,9 @@ To finish the installation:
 # on the command line and in the window.
 SYSTEM_UPDATE_WARNING = N_("Warning: this is a device system update. Charge the device and do "
                            "not disconnect it while copying.")
+# The same for the software of a part of the device (its GPS chip), copied with the same care.
+PART_UPDATE_WARNING = N_("Warning: this updates the software of a part of the device. Charge the "
+                         "device and do not disconnect it while copying.")
 # The kinds of device (the "segmenttype" of unit-info) that Garmin marks as losing the data
 # they hold when their software is updated. Garmin Express holds such an update back while a
 # sync of the device runs; openExpress says so before every update and suggests to sync first.
@@ -494,14 +497,26 @@ def _copied_first(u: SoftwareUpdate) -> tuple:
             u.order, u.part_number)
 
 
-def one_per_file(updates: list[SoftwareUpdate], waiting: list[SoftwareUpdate] = ()
+def copy_warnings(updates: list[SoftwareUpdate]) -> list[str]:
+    """The warning before these updates are copied, if any (an untranslated constant: show it
+    with _()): of the device's system when one is its software, else of a part of the device
+    when the device installs one once disconnected."""
+    if any(u.is_system for u in updates):
+        return [SYSTEM_UPDATE_WARNING]
+    if any(u.installs_when_disconnected for u in updates):
+        return [PART_UPDATE_WARNING]
+    return []
+
+
+def one_per_file(updates: list[SoftwareUpdate], waiting: list[SoftwareUpdate] = (),
+                 say: bool = True
                  ) -> tuple[list[SoftwareUpdate], list[tuple[SoftwareUpdate, SoftwareUpdate]]]:
     """At most one update for each file of the device in one copy: copied together, the next
     one would replace the first before the device installed it. `waiting`: updates copied
     already that wait in their file for the device (staged): their files are taken. Returns
     the updates to copy and the others, each with the one at its file instead, each said in
-    the log; the -META entries of a part put off go with it. A file is told by its path in
-    any letter case."""
+    the log (unless not `say`: nothing is copied yet); the -META entries of a part put off
+    go with it. A file is told by its path in any letter case."""
     first: dict[str, SoftwareUpdate] = {w.device_path.casefold(): w for w in waiting}
     put_off = []
     for u in sorted(updates, key=_copied_first):
@@ -516,7 +531,7 @@ def one_per_file(updates: list[SoftwareUpdate], waiting: list[SoftwareUpdate] = 
               if not u.is_metadata and not any(u is p for p, _other in put_off)}
     kept = [u for u in updates if not any(u is p for p, _other in put_off)
             and (not u.is_metadata or u.part_number.upper().removesuffix("-META") in copied)]
-    for u, other in put_off:
+    for u, other in put_off if say else ():
         log.info("software update: %s %s put off, it goes to the file of %s %s (%s): one at a "
                  "time", u.part_number, u.version, other.part_number, other.version,
                  u.device_path)

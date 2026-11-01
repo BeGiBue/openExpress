@@ -255,7 +255,19 @@ def test_the_question_names_the_versions_of_a_part(monkeypatch):
     body, warning = _question(monkeypatch, "006-B0001-00", {"updates": [GPS_ENTRY]},
                               _device_with_parts())
     assert body.splitlines()[0] == "Test GPS Software 6.10\u00a0→\u00a06.70"
-    assert warning == (WARNING_EN, ["heading", "warning"])  # copied with the same care
+    # Copied with the same care, and said as what it is: not the device's system.
+    assert warning == (PART_WARNING_EN, ["heading", "warning"])
+
+
+def test_cli_warns_before_the_software_of_a_part_as_such(device_root, monkeypatch, no_download,
+                                                        capsys):
+    answer = lower_keys({"updates": [GPS_ENTRY]})
+    monkeypatch.setattr(GarminClient, "software_updates",
+                        lambda self, raw, include_reinstalls=False: answer)
+    monkeypatch.setattr(GarminClient, "unit_info", lambda self, unit_id, part_number: {})
+    assert main(["--path", str(device_root), "updates", "--install", "006-B0001-00"]) == 0
+    out = capsys.readouterr().out
+    assert PART_WARNING_EN in out and WARNING_EN not in out
 
 
 # --- two updates for one file of the device ----------------------------------------------------
@@ -599,6 +611,8 @@ def test_the_device_software_copied_before_and_offered_again_is_told_at_the_top(
 
 WARNING_EN = ("Warning: this is a device system update. Charge the device and do not disconnect "
               "it while copying.")
+PART_WARNING_EN = ("Warning: this updates the software of a part of the device. Charge the device "
+                   "and do not disconnect it while copying.")
 WARNING_PL = ("Ostrzeżenie: to aktualizacja systemu urządzenia. Naładuj urządzenie i\u00a0nie odłączaj "
               "go podczas kopiowania.")
 
@@ -1902,3 +1916,60 @@ def test_a_name_from_the_server_that_is_no_path_is_refused(device_root, tmp_path
     assert not any(p.resolve().is_relative_to(cache / "software") for p in new)
     assert updates.cache_path(font).resolve().is_relative_to(
         (paths.cache_dir() / "software").resolve())
+
+
+# --- Install all, on a drive -------------------------------------------------------------------
+
+MAP_DATA = _entry("006-D0002-00", "Test Map Data", "Etyp", "Garmin\\SID", "DA00200.sid", b"sid")
+
+
+@pytest.mark.needs_display
+@pytest.mark.parametrize(("drive", "entries", "offered"), [
+    (True, (FONT_ENTRY, MAP_DATA), True),
+    (True, (FONT_ENTRY,), False),           # one update: its own Install
+    (False, (FONT_ENTRY, MAP_DATA), False),  # over MTP each has its own Install
+], ids=["drive", "one-update", "mtp"])
+def test_install_all_is_offered_for_a_drive_with_more_than_one_update(drive, entries, offered):
+    _win, status, _groups, _buttons = _updates_page(_items(*entries), drive=drive)
+    assert (("Install all", True) in status["buttons"]) is offered
+
+
+@pytest.mark.needs_display
+def test_install_all_copies_every_update_then_ejects_the_drive_once(monkeypatch, in_the_window):
+    """A drive ejected after each update needs a new connection for the next: Install all
+    asks once, copies all of them in one go and ejects the drive once."""
+    from gi.repository import Adw
+
+    from openexpress.gui.app import MainWindow
+    from openexpress.updates import InstallReport
+
+    items = _items(BUNDLE_ENTRY, FONT_ENTRY, MAP_DATA)
+    win, status, _groups, buttons = _updates_page(items, drive=True)
+    assert status["buttons"] == [("Install", True), ("Install all", False),
+                                 ("Check Again", False)]
+    given = []
+    monkeypatch.setattr(updates, "install", lambda chosen, storage, **kw: given.append(
+        list(chosen)) or InstallReport(written=list(chosen)))
+    asked = []
+    monkeypatch.setattr(Adw.AlertDialog, "present", lambda self, parent: asked.append(self))
+    in_the_window("is_bike_accessory", lambda client, device, ask: False)
+    win.session.client = types.SimpleNamespace(http=None)
+    win.session.storage = None
+    win.updates_beta = False
+    win.run_task = RunNow()
+    win.error = lambda title, text: None
+    win.progress = win.fraction = None
+    win.eject_device = lambda *a, **kw: win.ejected.append(a)
+    for name in ("show_updates", "_show_installed"):
+        setattr(win, name, types.MethodType(getattr(MainWindow, name), win))
+    (install_all,) = [b for b in buttons if b.get_label() == "Install all"]
+    install_all.emit("clicked")
+    (question,) = asked
+    assert question.get_heading() == "Install updates?"
+    assert question.get_body().splitlines()[:4] == [
+        f"Test Bundle {VERSIONS}", "Test Font 23.40", "Test Map Data 23.40", ""]
+    question.emit("response", "ok")
+    assert [[u.part_number for u in chosen] for chosen in given] == [
+        ["006-V0000-00", "006-D0000-00", "006-D0002-00"]]
+    assert len(win.ejected) == 1
+    assert all(u.on_device for u in items)

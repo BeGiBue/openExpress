@@ -674,7 +674,8 @@ def test_the_detection_and_the_choice_read_the_space_in_their_thread(iq_device, 
 
 
 # The tasks of the window that write to the device: after each, its free space is read again.
-WRITING = {"Syncing…", "Installing update…", "Copying the map…", "Installing {name}…",
+WRITING = {"Syncing…", "Installing update…", "Installing updates…", "Copying the map…",
+           "Installing {name}…",
            "Removing {name}…", "Restoring the order…", "Installing apps…", "Saving…",
            "Copying music…", "Removing…"}
 

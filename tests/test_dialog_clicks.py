@@ -499,6 +499,16 @@ def _update_install(ctx):
     MainWindow.confirm_update(_escape_window(ctx, updates_cache=[u]), u)
 
 
+def _update_install_all(ctx):
+    import dataclasses
+
+    from openexpress.gui.updates_page import confirm_install_all
+
+    u = _update()
+    v = dataclasses.replace(u, part_number="006-D0001-00", device_path="Garmin/NewFiles/Y.fit")
+    confirm_install_all(_escape_window(ctx, updates_cache=[u, v]), [u, v])
+
+
 def _eject_ask(ctx):
     from openexpress.gui.app import MainWindow
 
@@ -579,7 +589,8 @@ OPENERS = {
     "first-sync": _first_sync, "forget-device": _forget_device, "own-map-add": _own_map_add,
     "own-map-remove": _own_map_remove, "map-install": _map_install, "map-remove": _map_remove,
     "music-copy": _music_copy, "playlist-add": _playlist_add, "cache-clear": _cache_clear,
-    "update-install": _update_install, "eject-ask": _eject_ask, "ejected": _ejected,
+    "update-install": _update_install, "update-install-all": _update_install_all,
+    "eject-ask": _eject_ask, "ejected": _ejected,
     "eject-retry": _eject_retry, "error": _error, "report": _report,
 }
 

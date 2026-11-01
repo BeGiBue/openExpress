@@ -1088,8 +1088,8 @@ def cmd_updates(args) -> int:
     eulas = sorted({u.eula_url for u in chosen if u.eula_url})
     for e in eulas:
         print(_("License (EULA): {url}").format(url=e))
-    if any(u.installs_when_disconnected for u in chosen):
-        print(_(upd.SYSTEM_UPDATE_WARNING))
+    for warning in upd.copy_warnings(chosen):
+        print(_(warning))
     if _loses_data_on_update(client, dev):
         print(_(upd.DATA_LOSS_WARNING_DRIVE if getattr(st, "mass_storage", False)
                 and not _drive_synced(client, dev) else upd.DATA_LOSS_WARNING_CLI))

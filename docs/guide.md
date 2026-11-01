@@ -183,7 +183,8 @@ connected device; no login is needed.
   be unplugged only once that has worked; when the system refuses (a program still uses the
   drive), it says why and offers to try again. Some of these devices install an update only
   after a clean eject. Until it is unplugged, the window does not open a drive it ejected
-  again.
+  again. With more than one update for such a device, **Install all** copies all of them (one
+  file of the device at a time) and ejects the drive once.
 
 <p align="center">
   <img src="screenshots/updates-beta.png" width="700"
