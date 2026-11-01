@@ -1,20 +1,22 @@
 """A backup checks its FIT files as a sync does (fit.not_whole: the header, the size it
-declares, the CRC), and stays faithful: only a file read cut short (its header declares more
-bytes than were read: the device was still writing it when it was connected) is left out, and
-the summary, in the window and on the command line, says to disconnect and reconnect the
-device, then to make the backup again. A file not whole for another reason (no header, data
-after its end, a CRC that does not match) is copied as it is, and only the log says so. All
-devices and files are made up."""
+declares, the CRC), and stays faithful: a file read cut short (its header declares more bytes
+than were read: the device was still writing it when it was connected) is read once more after
+the device is mounted again, at most once a backup (Storage.refresh); still cut short, it is
+left out, and the summary, in the window and on the command line, says to disconnect and
+reconnect the device, then to make the backup again. A file not whole for another reason (no
+header, data after its end, a CRC that does not match) is copied as it is, and only the log says
+so. All devices and files are made up."""
 import logging
 import types
 
 import pytest
 from conftest import make_fit
-from fakes import RunNow
+from fakes import RunNow, stale_sizes
 from fakes import window as stand_in
 
-from openexpress import backup, i18n
-from openexpress.device.storage import LocalStorage
+from openexpress import backup, i18n, progress
+from openexpress.device.gio_storage import DeviceNotBack
+from openexpress.device.storage import LocalStorage, RemountFailed, UmsStorage
 from openexpress.device.xmldevice import parse
 
 CUT = "GARMIN/Activity/2026-10-03-10-00-00.fit"
@@ -134,3 +136,78 @@ def test_the_log_of_a_backup_names_no_file(device_root, tmp_path, caplog):
     assert len(copying) == res.files - 1  # GarminDevice.xml, read already, is not copied so
     assert copying[0].startswith(f"backup: copying file 2 of {res.files} (")
     assert not any("/" in m or ".fit" in m.casefold() for m in copying)
+
+
+# --- read again after the device is mounted again ------------------------------------------
+
+MONITORING = "GARMIN/Monitor/M1.FIT"
+
+
+def _stale(device_root, *paths, **how):
+    """The made-up device over MTP as gvfs shows it: the files of `paths` whole on the device,
+    listed and read 7 bytes short until the device is mounted again (fakes.stale_sizes)."""
+    (device_root / CUT).write_bytes(make_fit(1100172800))
+    st = stale_sizes({p: (device_root / p).stat().st_size - 7 for p in paths}, **how)(device_root)
+    return st, parse(st.read("GARMIN/GarminDevice.xml"))
+
+
+def _kept(res):
+    return {p.name: p.read_bytes() for p in res.path.rglob("*") if p.is_file()}
+
+
+def test_a_file_read_cut_short_is_read_again_after_a_refresh_and_backed_up_whole(
+        device_root, tmp_path, caplog):
+    st, dev = _stale(device_root, CUT)
+    said = []
+    with caplog.at_level(logging.INFO, logger="openexpress"):
+        res = backup.run_backup(dev, st, tmp_path / "bk", keep=1, progress=said.append)
+    assert len(st.refreshes) == 1 and st.refreshes[0] is not None  # its progress
+    assert res.incomplete == 0
+    kept = _kept(res)
+    assert kept["2026-10-03-10-00-00.fit"] == (device_root / CUT).read_bytes()
+    # The bytes of what was copied, not those the listing gave before the refresh.
+    assert res.bytes == sum(len(data) for data in kept.values())
+    again = [m for m in caplog.messages if "read again" in m]
+    assert len(again) == 1 and "FIT_TYPE_4" in again[0] and "2026-10-03" not in caplog.text
+
+
+def test_still_cut_short_after_the_refresh_is_left_out_and_counted(device_root, tmp_path):
+    st, dev = _stale(device_root, CUT, still_written={CUT})
+    res = backup.run_backup(dev, st, tmp_path / "bk", keep=1)
+    assert len(st.refreshes) == 1 and res.incomplete == 1
+    assert "2026-10-03-10-00-00.fit" not in _kept(res)
+
+
+def test_one_refresh_a_backup(device_root, tmp_path):
+    st, dev = _stale(device_root, CUT, MONITORING)
+    res = backup.run_backup(dev, st, tmp_path / "bk", keep=1)
+    assert len(st.refreshes) == 1 and res.incomplete == 0
+    kept = _kept(res)
+    assert kept["M1.FIT"] == (device_root / MONITORING).read_bytes()
+    assert kept["2026-10-03-10-00-00.fit"] == (device_root / CUT).read_bytes()
+
+
+@pytest.mark.parametrize("kind", ["folder", "usb drive"])
+def test_a_folder_and_a_usb_drive_are_not_refreshed(device_root, tmp_path, kind):
+    """Their sizes are current: a file cut short there is cut short and left out, and nothing
+    says a refresh."""
+    _st, dev = _device(device_root)
+    st = (LocalStorage(device_root) if kind == "folder"
+          else UmsStorage(device_root, device_root.as_uri() + "/"))
+    said = []
+    res = backup.run_backup(dev, st, tmp_path / "bk", keep=1, progress=said.append)
+    assert res.incomplete == 1 and progress.refreshing_text() not in said
+
+
+@pytest.mark.parametrize("error, told", [
+    (RemountFailed("Cannot mount the device: made-up refusal"),
+     "Cannot mount the device: made-up refusal. Unplug the device and plug it in again."),
+    (DeviceNotBack("The device did not come back. Unplug it and plug it in again."),
+     "The device did not come back. Unplug it and plug it in again.")])
+def test_a_device_not_mounted_again_stops_the_backup_and_leaves_no_partial_folder(
+        device_root, tmp_path, error, told):
+    st, dev = _stale(device_root, CUT, fails=error)
+    with pytest.raises(RemountFailed) as stopped:
+        backup.run_backup(dev, st, tmp_path / "bk", keep=1)
+    assert str(stopped.value) == told
+    assert list((tmp_path / "bk" / str(dev.unit_id)).iterdir()) == []

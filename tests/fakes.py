@@ -263,12 +263,16 @@ def other_bytes_drive():
 def stale_sizes(cut, *, still_written=(), fails=None):
     """A kind of storage (LocalStorage) of a device over MTP as gvfs shows it, keeping the size
     a file had when it was first looked at: each file of `cut` (its path from the device's
-    root, in any case, and a number of bytes) reads cut to that size until `refresh`, after
-    which it reads whole, unless it is in `still_written` too (the device still writes it).
-    `refreshes` keeps the progress each refresh was given; `fails`: what a refresh raises
-    instead (the device not mounted again)."""
+    root, in any case, and a number of bytes) is listed at that size and reads cut to it until
+    `refresh`, after which it is whole, unless it is in `still_written` too (the device still
+    writes it). `refreshes` keeps the progress each refresh was given; `fails`: what a refresh
+    raises instead (the device not mounted again)."""
+    import dataclasses
+    import posixpath
+
     from openexpress.device.storage import LocalStorage
 
+    sizes = {p.casefold(): size for p, size in cut.items()}
     still = {p.casefold() for p in still_written}
 
     class StaleSizes(LocalStorage):
@@ -276,13 +280,27 @@ def stale_sizes(cut, *, still_written=(), fails=None):
             super().__init__(root)
             self.refreshes = []
 
+        def _stale(self, real_path):
+            """The size gvfs gives the file, when it is not its own."""
+            key = real_path.casefold()
+            return sizes.get(key) if not self.refreshes or key in still else None
+
         def _read(self, real_path):
             data = super()._read(real_path)
-            for path, size in cut.items():
-                key = path.casefold()
-                if key == real_path.casefold() and (not self.refreshes or key in still):
-                    return data[:size]
-            return data
+            size = self._stale(real_path)
+            return data if size is None else data[:size]
+
+        def _list(self, real_path):
+            out = []
+            for e in super()._list(real_path):
+                size = self._stale(posixpath.join(real_path, e.name))
+                out.append(e if size is None else dataclasses.replace(e, size=size))
+            return out
+
+        def info(self, real_path):
+            e = super().info(real_path)
+            size = None if e is None else self._stale(real_path)
+            return e if size is None else dataclasses.replace(e, size=size)
 
         def refresh(self, progress=None):
             self.refreshes.append(progress)

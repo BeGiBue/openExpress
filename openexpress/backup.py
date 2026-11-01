@@ -16,7 +16,7 @@ from datetime import datetime
 from pathlib import Path
 
 from openexpress import applog, paths
-from openexpress.device.storage import DeviceError, Storage
+from openexpress.device.storage import DeviceError, Storage, refresh_to_read_again
 from openexpress.device.xmldevice import OUTPUT, GarminDevice
 from openexpress.fit import not_whole
 from openexpress.i18n import _, ngettext
@@ -123,13 +123,19 @@ def incomplete_text(count: int) -> str:
         count).format(count=count)
 
 
+def _fit_check(path: str, data: bytes) -> tuple[bool, str] | None:
+    """How a FIT file is not whole (fit.not_whole); None for one that is, or another file."""
+    return not_whole(data) if path.casefold().endswith(".fit") else None
+
+
 def _copy_files(device: GarminDevice, storage: Storage, target: Path,
                 progress: Callable[[str], None]) -> tuple[int, int, int]:
     """`progress`: which file of how many ("Copying to the backup · 120 of 1530"), never its
-    name. A FIT file is checked as a sync checks it (fit.not_whole): one the device was still
-    writing when it was connected is read cut short (gvfs keeps the size it had then) and left
-    out; one not whole otherwise is copied as it is, the backup faithful. Returns the files
-    written, their bytes and those left out."""
+    name. A FIT file is checked as a sync checks it (fit.not_whole): one the device wrote while
+    it was connected is read cut short (gvfs keeps the size it had when it was first looked
+    at), so it is read once more after the device is mounted again (at most once a backup);
+    still cut short, it is left out. One not whole otherwise is copied as it is, the backup
+    faithful. Returns the files written, the bytes read of them and those left out."""
     # Every data type checked before anything is written.
     for src in backup_files(device):
         if not paths.is_safe_component(src.datatype):
@@ -152,12 +158,25 @@ def _copy_files(device: GarminDevice, storage: Storage, target: Path,
     (target / "GarminDevice.xml").write_bytes(device.raw)
     total = len(device.raw)
     left_out = 0
-    for n, (path, entry, datatype, out) in enumerate(files, 2):
+    refreshed: bool | None = None  # at most once a backup; None: not asked yet
+    for n, (path, _entry, datatype, out) in enumerate(files, 2):
         progress(Step(head, n, count))
         log.debug("backup: copying file %d of %d (%s)", n, count, datatype)
         data = storage.read(path)
-        found = not_whole(data) if path.casefold().endswith(".fit") else None
+        found = _fit_check(path, data)
         # The type and the sizes: never the name of the file.
+        if found and found[0]:
+            # Read cut short: once the device is mounted again gvfs gives fresh sizes.
+            if refreshed is None:
+                refreshed = refresh_to_read_again(storage, progress)
+                if not refreshed:
+                    log.info("backup: the device was not mounted again; files read cut short "
+                             "are left out")
+            if refreshed:
+                data = storage.read(path)
+                found = _fit_check(path, data)
+                log.info("backup: a %s file read again after the device was mounted again: %s",
+                         datatype, found[1] if found else "whole")
         if found and found[0]:
             log.warning("backup: a %s file still being written by the device (%s); not in "
                         "the backup", datatype, found[1])
@@ -168,7 +187,7 @@ def _copy_files(device: GarminDevice, storage: Storage, target: Path,
                      datatype, found[1])
         out.parent.mkdir(parents=True, exist_ok=True)
         out.write_bytes(data)
-        total += entry.size
+        total += len(data)  # what was read: a listing before a refresh may give less
     return count - left_out, total, left_out
 
 

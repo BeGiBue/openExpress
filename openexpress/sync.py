@@ -29,7 +29,7 @@ from openexpress.connect import (
     GarminClient,
     Unauthorized,
 )
-from openexpress.device.storage import RemountFailed, Storage, replug_text
+from openexpress.device.storage import RemountFailed, Storage, refresh_to_read_again
 from openexpress.device.xmldevice import DeviceFile, GarminDevice
 from openexpress.fit import (
     Described,
@@ -420,10 +420,7 @@ class _WholeReads:
 
     def _refresh(self) -> bool:
         if self.refreshed is None:
-            try:
-                self.refreshed = self.storage.refresh(self.progress)
-            except RemountFailed as e:
-                raise RemountFailed(replug_text(e)) from e
+            self.refreshed = refresh_to_read_again(self.storage, self.progress)
             if not self.refreshed:
                 log.info("upload: the device was not mounted again; files read cut short wait "
                          "for the next sync")

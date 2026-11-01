@@ -52,6 +52,16 @@ def replug_text(error: DeviceError) -> str:
     return _("{error} Unplug the device and plug it in again.").format(error=sentence)
 
 
+def refresh_to_read_again(storage: Storage, progress=None) -> bool:
+    """Storage.refresh before a file read cut short is read again, as a sync and a backup
+    ask it: whether the device was mounted again; a device not mounted again is raised with
+    what to do (replug_text)."""
+    try:
+        return storage.refresh(progress)
+    except RemountFailed as e:
+        raise RemountFailed(replug_text(e)) from e
+
+
 @dataclass(frozen=True)
 class Entry:
     name: str
