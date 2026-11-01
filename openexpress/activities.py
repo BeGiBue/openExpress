@@ -106,6 +106,15 @@ def sport_name(sport: int | None) -> str:
     return names.get(sport) or pgettext("sport", "Sport {number}").format(number=sport)
 
 
+def export_name(summary: fit.ActivitySummary, activity: Activity) -> str:
+    """The name of an activity's GPX file without its extension, "YYYY-MM-DD HH.MM Sport": its
+    start in local time (else when its file was made, else the name of that file)."""
+    when = summary.start or summary.created
+    day = (time.strftime("%Y-%m-%d %H.%M", time.localtime(when)) if when
+           else posixpath.splitext(activity.name)[0])
+    return f"{day} {sport_name(summary.sport)}"
+
+
 def _in_backup(when: datetime, folder: Path) -> list[Activity]:
     """The activity files of one backup: regular files only, never a symbolic link (nor the
     folders one leads to), each inside the backup's folder."""

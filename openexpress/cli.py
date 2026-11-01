@@ -437,9 +437,7 @@ def _export_activities(args, found) -> int:
                 "{name} was still being written by the device when it was read. Disconnect "
                 "and reconnect the device, then export it again.").format(name=a.name)))
             continue
-        when = summary.start or summary.created
-        day = time.strftime("%Y-%m-%d %H.%M", time.localtime(when)) if when else Path(a.name).stem
-        stem = f"{day} {activities.sport_name(summary.sport)}"
+        stem = activities.export_name(summary, a)
         try:
             track = gpx.track(data, name=stem)
             count = sum(1 for _point in fit.points(data))

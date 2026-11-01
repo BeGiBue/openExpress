@@ -217,3 +217,113 @@ def test_the_page_logs_under_its_own_name(caplog):
     assert [r.getMessage() for r in caplog.records
             if r.name == "openexpress.gui.activities_page"] == [
         "activities page: 6 shown, 4 more to read"]
+
+
+# --- exporting from the page ---------------------------------------------------------------
+
+
+def a_dialog_that_saves_into(folder):
+    """A stand-in for Gtk.FileDialog: "saves" at once, the file under the name it suggests in
+    `folder`; what it was asked is kept on the class."""
+    from gi.repository import Gio
+
+    class FileDialog:
+        made = []
+
+        def __init__(self, **properties):
+            self.properties = properties
+            FileDialog.made.append(self)
+
+        def set_initial_folder(self, folder):
+            self.properties["initial_folder"] = folder
+
+        def save(self, parent, cancellable, callback):
+            callback(self, None)
+
+        def save_finish(self, result):
+            return Gio.File.new_for_path(str(folder / self.properties["initial_name"]))
+
+    return FileDialog
+
+
+def gtk_with(dialog):
+    """GTK as the window has it, with `dialog` as its FileDialog."""
+    from gi.repository import Gtk
+
+    class GtkWithDialog:
+        FileDialog = dialog
+
+        def __getattr__(self, name):
+            return getattr(Gtk, name)
+
+    return GtkWithDialog()
+
+
+def test_the_export_button_asks_where_then_a_task_writes_the_gpx(tmp_path, in_the_window):
+    import xml.etree.ElementTree as ET
+
+    dialog = a_dialog_that_saves_into(tmp_path)
+    in_the_window("Gtk", gtk_with(dialog))
+    win, section = the_page()
+    win.session = on_device(tmp_path, 1)
+    win.progress = lambda _step: None
+    said = []
+    win.toast = said.append
+    win.load_activities()
+    button = export_button(rows_of(section)[0])
+    button.emit("clicked")
+    [asked] = dialog.made
+    name = "2026-09-01 00.00 Running.gpx"
+    assert asked.properties["initial_name"] == name
+    assert win.run_task.titles == ["Reading activities…", "Exporting as GPX…"]
+    assert win.run_task.calls[1].button is button
+    root = ET.fromstring((tmp_path / name).read_bytes())
+    assert root.get("creator") == "openExpress"
+    assert said == [f"Saved as {name}"]
+
+
+def test_an_insensitive_export_button_starts_nothing(tmp_path, in_the_window):
+    dialog = a_dialog_that_saves_into(tmp_path)
+    in_the_window("Gtk", gtk_with(dialog))
+    win, section = the_page()
+    win.show_activities(made_up_list(*THE_WEEK))
+    strength = export_button(rows_of(section)[1])
+    assert not strength.get_sensitive()
+    strength.emit("clicked")
+    assert dialog.made == [] and win.run_task.calls == []
+
+
+def test_while_another_task_runs_the_export_asks_nothing(tmp_path, in_the_window):
+    dialog = a_dialog_that_saves_into(tmp_path)
+    in_the_window("Gtk", gtk_with(dialog))
+    win, section = the_page()
+    said = []
+    win.toast = said.append
+    win.show_activities(made_up_list(*THE_WEEK))
+    win.busy = True
+    export_button(rows_of(section)[0]).emit("clicked")
+    assert dialog.made == [] and win.run_task.calls == []
+    assert said == ["Another operation is in progress"]
+
+
+def test_the_window_s_tasks_never_turn_on_an_insensitive_export_button(monkeypatch):
+    """Every other task turns the page's buttons off and on again: an export button follows,
+    one that cannot export stays off."""
+    from openexpress import netstatus
+    from openexpress.gui import app
+
+    monkeypatch.setattr(app.MainWindow, "refresh_device", lambda self, cause=None: None)
+    win = app.MainWindow(None)
+    try:
+        win.session = types.SimpleNamespace()
+        win.show_activities(made_up_list(*THE_WEEK))
+        buttons = [export_button(r) for r in rows_of(win.sections["activities"])]
+        win.session = None  # the page as drawn; the window's actions ask nothing of a device
+        win.set_busy(True)
+        assert not any(b.get_sensitive() for b in buttons if b is not None)
+        win.set_busy(False)
+        assert [None if b is None else b.get_sensitive() for b in buttons] == [
+            True, False, None, True, None, True]
+    finally:
+        netstatus.STATUS.remove_listener(win._net_listener)
+        win.destroy()
