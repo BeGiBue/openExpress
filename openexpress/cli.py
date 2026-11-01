@@ -1007,6 +1007,8 @@ def _print_sync_plan(plan, client, drive: bool = False) -> None:
     downloads it into memory and acknowledges nothing)."""
     from openexpress import service, sync
 
+    if plan.upload_error is not None:
+        print("\n" + plan.upload_error)
     uploads = plan.uploads
     if uploads is not None:
         counts = collections.Counter(c.datatype for c in uploads.candidates)

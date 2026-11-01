@@ -106,14 +106,16 @@ def test_ctrl_c_after_the_uploads_keeps_the_record_too(device_root, folders):
 
 def test_a_sync_stopped_before_its_uploads_keeps_no_record(device_root, folders):
     _synced_before()
+    from openexpress.connect import OwnershipUnknown
+
     account = SyncAccount(verified_unit_id=None)
 
-    def no_answer(unit_id):
-        raise ApiError("Upload settings: HTTP 503", 503)
+    def no_answer(fresh=False):
+        raise ApiError("Devices: HTTP 503", 503)
 
-    account.upload_settings = no_answer
+    account.account_devices = no_answer  # the device cannot be checked against the account
     s = _session(device_root, folders, account)
-    with pytest.raises(ApiError):
+    with pytest.raises(OwnershipUnknown):
         service.run_sync(s)
     assert account.uploads == [] and service.load_last_sync(UNIT) is None
 

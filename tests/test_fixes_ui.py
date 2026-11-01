@@ -260,10 +260,13 @@ def test_sync_upload_errors_give_exit_code_1(device_root, xdg, fake_client, caps
 
 
 def test_network_error_is_a_clean_user_error(device_root, xdg, fake_client, capsys):
+    """The upload settings not fetched: the dry run says why in one line (the uploads
+    skipped, the rest of the plan shown), no traceback."""
     fake_client["client"] = FakeClient(fail_config=requests.ConnectionError("boom"))
-    assert main(["--path", str(device_root), "sync"]) == 1
-    err = capsys.readouterr().err
-    assert "Network error" in err and "Traceback" not in err
+    assert main(["--path", str(device_root), "sync"]) == 0
+    said = capsys.readouterr()
+    assert "could not be reached (boom)." in said.out
+    assert "Traceback" not in said.out + said.err
 
 
 # --- 14: setup --key/--secret ------------------------------------------------------------

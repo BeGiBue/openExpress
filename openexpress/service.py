@@ -13,6 +13,7 @@ from collections.abc import Callable
 from dataclasses import dataclass, field, replace
 from datetime import datetime
 from typing import NoReturn
+from urllib.parse import urlsplit
 
 import requests
 
@@ -1232,6 +1233,23 @@ class SyncPlan:
     gate: UploadGate | None = None  # whether data may be uploaded; None: not asked
     uploads: sync.UploadPlan | None = None  # None: the uploads are not looked at
     queue: QueuePlan | None = None  # read with the plan for a preview only
+    # Why the uploads are skipped: the upload settings could not be fetched (upload_skipped).
+    upload_error: str | None = None
+
+
+def upload_skipped(s: DeviceSession, error: Exception) -> str:
+    """Why a sync uploads nothing: Garmin's server that says what to upload and where (OMT,
+    named by its host) could not be reached or answered with an error. The rest of the sync
+    does not need it: Garmin Connect's queue, Connect IQ and TrueUp go on."""
+    host = urlsplit(s.settings.hosts["omt"]).netloc
+    if isinstance(error, requests.RequestException):
+        # TRANSLATORS: a sync uploaded nothing: Garmin's server that gives the upload settings
+        # (its host, e.g. omt.garmin.com) could not be reached; the error in brackets
+        return _("Uploads skipped: {host}, Garmin's server that says what to upload, could "
+                 "not be reached ({error}).").format(
+            host=host, error=applog.network_error_text(error))
+    return _("Uploads skipped: {host}, Garmin's server that says what to upload, answered "
+             "with an error ({error}).").format(host=host, error=error)
 
 
 def plan_sync(s: DeviceSession, options: SyncOptions | None = None,
@@ -1239,7 +1257,8 @@ def plan_sync(s: DeviceSession, options: SyncOptions | None = None,
     """What a sync of the device will do (a SyncPlan), in the order it does it: the device
     checked against the account, its upload settings, the first sync (its baseline marked in
     memory, or the choice asked for: FirstSyncChoiceNeeded), whether the account lets data be
-    uploaded, and the files to upload. Writes and uploads nothing."""
+    uploaded, and the files to upload. Upload settings that cannot be fetched skip the uploads
+    (upload_error), not the rest. Writes and uploads nothing."""
     progress = say_to(progress)
     options = options or SyncOptions()
     if not s.logged_in and not options.preview:
@@ -1250,7 +1269,14 @@ def plan_sync(s: DeviceSession, options: SyncOptions | None = None,
     plan = SyncPlan(options, s.state)
     if options.uploads:
         progress(Waiting(_("Fetching configuration from the Garmin server…")))
-        plan.config = s.client.upload_settings(s.device.unit_id)
+        try:
+            plan.config = s.client.upload_settings(s.device.unit_id)
+        except (requests.RequestException, ApiError) as e:
+            # Nothing to upload to without it; Garmin Connect's queue needs none of it.
+            plan.upload_error = upload_skipped(s, e)
+            log.warning("sync: the upload settings could not be fetched (%s); uploads "
+                        "skipped", type(e).__name__)
+    if options.uploads and plan.config is not None:
         if not plan.state.file.exists():  # the first sync
             if options.first_run == "baseline":
                 plan.baseline = sync.plan_baseline(s.device, s.storage, plan.config,
@@ -1292,6 +1318,10 @@ def apply_sync(s: DeviceSession, plan: SyncPlan,
         raise ValueError("a preview of a sync is only to be shown")
     out = SyncSummary()
     state = plan.state
+    if plan.upload_error is not None:
+        # An error of this sync, which goes on with Garmin Connect's queue.
+        out.errors.append(plan.upload_error)
+        out.log_errors.append(plan.upload_error)
     if not options.uploads:
         # The uploads were not looked at: the row says so, not "nothing to upload".
         out.lines.append(upload_skipped_step())
