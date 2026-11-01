@@ -115,6 +115,14 @@ def writing_text(name: str) -> str:
     return _("Writing {name} to the device").format(name=name)
 
 
+def refreshing_text() -> str:
+    from openexpress.i18n import _
+
+    # TRANSLATORS: a step of a sync or a backup: the device is unmounted and mounted again, so
+    # that a file it wrote while connected is read whole
+    return _("Refreshing the device's files…")
+
+
 def nothing(_message: str) -> None:
     """Progress nobody listens to."""
 

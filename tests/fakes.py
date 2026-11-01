@@ -259,6 +259,39 @@ def other_bytes_drive():
 
     return OtherBytes
 
+
+def stale_sizes(cut, *, still_written=(), fails=None):
+    """A kind of storage (LocalStorage) of a device over MTP as gvfs shows it, keeping the size
+    a file had when it was first looked at: each file of `cut` (its path from the device's
+    root, in any case, and a number of bytes) reads cut to that size until `refresh`, after
+    which it reads whole, unless it is in `still_written` too (the device still writes it).
+    `refreshes` keeps the progress each refresh was given; `fails`: what a refresh raises
+    instead (the device not mounted again)."""
+    from openexpress.device.storage import LocalStorage
+
+    still = {p.casefold() for p in still_written}
+
+    class StaleSizes(LocalStorage):
+        def __init__(self, root):
+            super().__init__(root)
+            self.refreshes = []
+
+        def _read(self, real_path):
+            data = super()._read(real_path)
+            for path, size in cut.items():
+                key = path.casefold()
+                if key == real_path.casefold() and (not self.refreshes or key in still):
+                    return data[:size]
+            return data
+
+        def refresh(self, progress=None):
+            self.refreshes.append(progress)
+            if fails is not None:
+                raise fails
+            return True
+
+    return StaleSizes
+
 # --- what the window writes of the devices before it draws their tiles ------------------
 
 

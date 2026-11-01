@@ -26,7 +26,7 @@ from openexpress import answers, applog, netstatus, paths, proto
 from openexpress.backup import keep_newest
 from openexpress.connect import ApiError, GarminClient, lower_keys
 from openexpress.device import ptp
-from openexpress.device.storage import DeviceError, RemountFailed, Storage
+from openexpress.device.storage import DeviceError, RemountFailed, Storage, replug_text
 from openexpress.device.xmldevice import GarminDevice
 from openexpress.errors import UserFacingError
 from openexpress.i18n import N_, _, caption, ngettext
@@ -1282,7 +1282,7 @@ def _install_hidden(device, storage, state, hidden: list[_Hidden], new_entries, 
             # The session broke, then the device was not mounted again: what became of each
             # app first, then the USB connection.
             broken_off(broken[0])
-        report.failed.append((_("USB connection"), _replug(e)))
+        report.failed.append((_("USB connection"), replug_text(e)))
         if not opened:
             report.for_phone += [h.name for h in hidden]
         if broken:
@@ -1338,14 +1338,6 @@ def _ptp_delete(session, handle: int | None, path: str) -> list[str]:
         log.warning("Cannot delete the unfinished file %s on the device: %s", path, e)
         return [path]
     return []
-
-
-def _replug(error) -> str:
-    """The device was not mounted again: the error, then what to do, unless it says that
-    itself (DeviceNotBack)."""
-    if error.says_replug:
-        return _sentence(error)
-    return _("{error} Unplug the device and plug it in again.").format(error=_sentence(error))
 
 
 def _sentence(error) -> str:
@@ -1601,7 +1593,7 @@ def _remove_hidden(device, storage, state: InstalledState, app: InstalledApp) ->
         # What became of the app first, then the USB connection to renew.
         said = (what_became(ended[0]) if ended else list_left() if problem is not None
                 else None)
-        usb = _replug(e)
+        usb = replug_text(e)
         raise CiqError(usb if said is None else said + "\n" + usb) from e
     except DeviceError as e:
         # The session broke (or could not start); the device is mounted again.

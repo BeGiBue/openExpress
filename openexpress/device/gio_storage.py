@@ -39,6 +39,7 @@ from openexpress.device.storage import (  # noqa: E402
 from openexpress.errors import OrdinaryStop  # noqa: E402
 from openexpress.i18n import _  # noqa: E402
 from openexpress.paths import in_flatpak  # noqa: E402
+from openexpress.progress import refreshing_text, say_to  # noqa: E402
 
 log = logging.getLogger(__name__)
 
@@ -459,11 +460,12 @@ class GioStorage(Storage):
             return None
         return _exclusive(self.device_uri, usb.bus, usb.address, self, node)
 
-    def refresh(self) -> bool:
+    def refresh(self, progress=None) -> bool:
         usb = self.usb
         # Without its place on USB our own unmount would be taken for an unplug.
         if usb is None or usb.bus is None or usb.address is None or not self.device_uri:
             return False
+        say_to(progress)(refreshing_text())
         try:
             with _unmounted(self.device_uri, usb.bus, usb.address, self, "refresh",
                             "device mounted again"):

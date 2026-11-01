@@ -29,7 +29,7 @@ from openexpress.connect import (
     GarminClient,
     Unauthorized,
 )
-from openexpress.device.storage import Storage
+from openexpress.device.storage import RemountFailed, Storage, replug_text
 from openexpress.device.xmldevice import DeviceFile, GarminDevice
 from openexpress.fit import (
     Described,
@@ -393,6 +393,43 @@ def _read_candidate(c: UploadCandidate, storage: Storage, state: SyncState) -> b
     return storage.read(c.device_path)
 
 
+class _WholeReads:
+    """The files of the uploads read whole where that can be: a FIT file read cut short is read
+    once more after the device is mounted again (Storage.refresh), as gvfs gives the size a
+    file had when it was first looked at. At most one refresh a sync, at its first such file;
+    a later one is read again without another refresh. A device that is not mounted again
+    stops the sync."""
+
+    def __init__(self, storage: Storage, progress: Callable[[str], None]):
+        self.storage, self.progress = storage, progress
+        self.refreshed: bool | None = None  # None: not asked yet
+
+    def read(self, c: UploadCandidate, state: SyncState) -> tuple[bytes, str | None]:
+        """The data of `c`, and why it is still cut short (None: whole)."""
+        data = _read_candidate(c, self.storage, state)
+        why = still_being_written(c, data)
+        if not why or c.device_path is None or not self._refresh():
+            return data, why
+        c.data = None  # the plan may have read it before the refresh
+        data = self.storage.read(c.device_path)
+        again = still_being_written(c, data)
+        # The type and the sizes: never the name of the file.
+        log.info("upload: a %s file read again after the device was mounted again: %s",
+                 c.datatype, again or "whole")
+        return data, again
+
+    def _refresh(self) -> bool:
+        if self.refreshed is None:
+            try:
+                self.refreshed = self.storage.refresh(self.progress)
+            except RemountFailed as e:
+                raise RemountFailed(replug_text(e)) from e
+            if not self.refreshed:
+                log.info("upload: the device was not mounted again; files read cut short wait "
+                         "for the next sync")
+        return self.refreshed
+
+
 def run_uploads(
     plan: UploadPlan,
     device: GarminDevice,
@@ -418,18 +455,20 @@ def _run_uploads(plan, device, storage, client, state, progress,
     report = UploadReport()
     cands = plan.candidates
     unreadable: set[int] = set()
+    reads = _WholeReads(storage, progress)
 
     # Activities that Connect already has (e.g. from the phone) are marked without uploading.
     # Files are read one at a time and not kept in memory.
     acts = [c for c in cands if c.datatype == ACTIVITY_TYPE]
     for c in acts:
         try:
-            data = _read_candidate(c, storage, state)
+            data, why = reads.read(c, state)
+        except RemountFailed:
+            raise  # the device is not there to read: the sync stops
         except Exception as e:  # noqa: BLE001 - one unreadable file must not stop the sync
             report.failed.append((_label(c), str(e)))
             unreadable.add(id(c))
             continue
-        why = still_being_written(c, data)
         if why:
             _skip_incomplete(c, why, report)
             unreadable.add(id(c))
@@ -477,13 +516,14 @@ def _run_uploads(plan, device, storage, client, state, progress,
                       len(remaining)))
         ordered = c.datatype in MONITORING_TYPES or c.datatype in SLEEP_TYPES
         try:
-            data = _read_candidate(c, storage, state)
+            data, why = reads.read(c, state)
+        except RemountFailed:
+            raise  # the device is not there to read: the sync stops
         except Exception as e:  # noqa: BLE001
             report.failed.append((label, str(e)))
             if ordered:
                 stop_types.add(c.datatype)
             continue
-        why = still_being_written(c, data)
         if why:
             _skip_incomplete(c, why, report)
             c.data = None

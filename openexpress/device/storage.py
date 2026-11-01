@@ -42,6 +42,16 @@ class RemountFailed(DeviceError):
     says_replug = False
 
 
+def replug_text(error: DeviceError) -> str:
+    """A device not mounted again (RemountFailed): its error as a sentence, then what to do,
+    unless the error says that itself (`says_replug`)."""
+    text = str(error).rstrip()
+    sentence = text if text.endswith((".", "!", "?", "…")) else text + "."
+    if getattr(error, "says_replug", False):
+        return sentence
+    return _("{error} Unplug the device and plug it in again.").format(error=sentence)
+
+
 @dataclass(frozen=True)
 class Entry:
     name: str
@@ -86,12 +96,13 @@ class Storage(ABC):
         possible here. The storage itself cannot be used inside the block."""
         return
 
-    def refresh(self) -> bool:
+    def refresh(self, progress=None) -> bool:
         """Has the device's files looked at anew where the storage keeps what it once saw of
         them: over MTP gvfs gives the size a file had when it was first looked at, so a file
         the device writes while it is connected reads cut short until the device is mounted
         again. True once that is done; False where there is nothing to refresh (a folder, a
-        USB drive: their sizes are current) or it cannot be done."""
+        USB drive: their sizes are current) or it cannot be done. `progress` hears its step
+        (progress.refreshing_text) when a refresh is tried."""
         return False
 
     def usb_blocked(self) -> bool:

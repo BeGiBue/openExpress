@@ -3648,9 +3648,21 @@ def test_no_refresh_without_the_place_on_usb(exclusive):
     """Our own unmount would be taken for an unplug: the device is left as it is."""
     st, _fake, events = exclusive
     st.usb = gio_storage.GarminUsb("51b4")
-    assert st.refresh() is False and events == []
+    said = []
+    assert st.refresh(said.append) is False and events == [] and said == []
     st.usb, st.device_uri = None, NUMERIC
     assert st.refresh() is False and events == []
+
+
+def test_a_refresh_says_its_step_before_the_unmount(exclusive, monkeypatch):
+    from openexpress import progress
+
+    st, _fake, events = exclusive
+    said = []
+    unmount = gio_storage._unmount
+    monkeypatch.setattr(gio_storage, "_unmount", lambda uri: (said.append("unmount"), unmount(uri)))
+    assert st.refresh(said.append) is True
+    assert said == [progress.refreshing_text(), "unmount"] and events[0][0] == "unmount"
 
 
 def test_a_refused_unmount_leaves_the_device_as_it_was(exclusive, monkeypatch):
