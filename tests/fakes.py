@@ -1,10 +1,12 @@
 """Fakes shared by the tests (imported as `from fakes import …`, like ptp_fake). Only made-up
 data; nothing here reaches a device, the network or the disk of this computer."""
 
+import struct
 import threading
 from collections import namedtuple
+from dataclasses import dataclass
 
-Call = namedtuple("Call", "title fn done failed device in_page button")
+Call =namedtuple("Call", "title fn done failed device in_page button")
 
 
 class RunNow:
@@ -586,3 +588,106 @@ def make_client(devices=None, auth=True, **routes):
     return GarminClient(Settings(), Consumer("ck", "cs"),
                         ConnectAuth("t", "ts") if auth else None,
                         RecordingSession(devices, **routes))
+
+
+# Made-up FIT files. The base types of the FIT protocol, by the byte of a field definition:
+# the struct format of one value and the value that means "invalid" (written here apart from
+# the program's own table, openexpress/fit.py).
+FIT_BASE_TYPES = {
+    0x00: ("B", 0xFF), 0x01: ("b", 0x7F), 0x02: ("B", 0xFF), 0x83: ("h", 0x7FFF),
+    0x84: ("H", 0xFFFF), 0x85: ("i", 0x7FFFFFFF), 0x86: ("I", 0xFFFFFFFF), 0x07: ("s", None),
+    0x88: ("f", float("nan")), 0x89: ("d", float("nan")), 0x0A: ("B", 0), 0x8B: ("H", 0),
+    0x8C: ("I", 0), 0x0D: ("B", 0xFF), 0x8E: ("q", 0x7FFFFFFFFFFFFFFF),
+    0x8F: ("Q", 0xFFFFFFFFFFFFFFFF), 0x90: ("Q", 0),
+}
+
+
+@dataclass(frozen=True)
+class FitDefinition:
+    """A definition message: its local type (0–15), the global message number, the fields as
+    (field number, base type) or (field number, base type, size) – a string or an array needs
+    its size – and developer fields as (field number, size, developer data index)."""
+
+    local: int
+    message: int
+    fields: tuple = ()
+    big_endian: bool = False
+    developer: tuple = ()
+
+
+@dataclass(frozen=True)
+class FitData:
+    """A data message of the definition last given for `local`: one value for each of its
+    fields (None: the invalid value of the field's base type; bytes: written as they are; a
+    tuple: an array). `developer`: the bytes of its developer fields (zeros when None).
+    `time_offset` (0–31): a compressed-timestamp header instead of the normal one (local
+    types 0–3 only)."""
+
+    local: int
+    values: tuple = ()
+    developer: bytes | None = None
+    time_offset: int | None = None
+
+
+def _fit_size(field: tuple) -> tuple[int, int, int]:
+    """(number, base type, size) of a field given as (number, base type[, size])."""
+    if len(field) > 2:
+        return field[0], field[1], field[2]
+    return field[0], field[1], struct.calcsize(FIT_BASE_TYPES[field[1]][0])
+
+
+def _fit_value(value, base_type: int, size: int, order: str) -> bytes:
+    if isinstance(value, bytes):
+        assert len(value) == size, f"{len(value)} bytes for a field of {size}"
+        return value
+    fmt, invalid = FIT_BASE_TYPES[base_type]
+    if fmt == "s":
+        raw = (value or "").encode("utf-8").ljust(size, b"\0")
+    else:
+        count = size // struct.calcsize(fmt)
+        values = value if isinstance(value, tuple) else (value,) * count
+        raw = b"".join(struct.pack(order + fmt, invalid if v is None else v) for v in values)
+    assert len(raw) == size, f"{len(raw)} bytes for a field of {size}"
+    return raw
+
+
+def fit_file(*messages, header_size: int = 14, cut: int | None = None,
+             bad_crc: bool = False) -> bytes:
+    """A made-up FIT file of these messages (FitDefinition and FitData, in order), its header
+    of 14 or 12 bytes and its CRC right. `cut`: only its first `cut` bytes, as a file the
+    device was still writing; `bad_crc`: the CRC at its end wrong."""
+    from conftest import fit_crc
+
+    defined = {}
+    body = b""
+    for m in messages:
+        if isinstance(m, FitDefinition):
+            order = ">" if m.big_endian else "<"
+            fields = [_fit_size(f) for f in m.fields]
+            body += bytes([0x40 | (0x20 if m.developer else 0) | m.local, 0,
+                           1 if m.big_endian else 0])
+            body += struct.pack(order + "HB", m.message, len(fields))
+            body += b"".join(bytes([num, size, base]) for num, base, size in fields)
+            if m.developer:
+                body += bytes([len(m.developer)])
+                body += b"".join(bytes(f) for f in m.developer)
+            defined[m.local] = (m, fields)
+        else:
+            definition, fields = defined[m.local]
+            assert len(m.values) == len(fields), "one value for each field"
+            if m.time_offset is None:
+                body += bytes([m.local])
+            else:
+                body += bytes([0x80 | (m.local << 5) | m.time_offset])
+            order = ">" if definition.big_endian else "<"
+            body += b"".join(_fit_value(v, base, size, order)
+                             for v, (_num, base, size) in zip(m.values, fields, strict=True))
+            dev_size = sum(f[1] for f in definition.developer)
+            body += m.developer if m.developer is not None else bytes(dev_size)
+    if header_size == 14:
+        header = struct.pack("<BBHI4sH", 14, 0x20, 2132, len(body), b".FIT", 0)
+    else:
+        header = struct.pack("<BBHI4s", 12, 0x10, 2100, len(body), b".FIT")
+    crc = fit_crc(header + body) ^ (0xFFFF if bad_crc else 0)
+    data = header + body + struct.pack("<H", crc)
+    return data if cut is None else data[:cut]
