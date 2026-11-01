@@ -236,6 +236,24 @@ def test_a_backup_made_says_so_at_once(backups):
     assert said[-1].endswith(f"{NB}· 1 backup")
 
 
+def test_the_backup_row_counts_only_the_backups_openexpress_made(backups, tmp_path):
+    """Only folders named as a backup is named: not a symbolic link to one, a file with such a
+    name, a copy of the app list or another folder; the newest of them says when."""
+    from openexpress.gui.device_page import backups_text
+
+    _backup(backups, "2026-10-12 (17.37.37)")
+    _backup(backups, "2026-10-13 (09.00.00)")
+    unit = backups / str(UNIT)
+    elsewhere = tmp_path / "elsewhere" / "2026-10-20 (10.00.00)"
+    elsewhere.mkdir(parents=True)
+    (unit / "2026-10-20 (10.00.00)").symlink_to(elsewhere, target_is_directory=True)
+    (unit / "2026-10-21 (10.00.00)").write_text("a file")
+    (unit / "GARMIN-APPS 2026-10-22 (10.00.00)").mkdir()
+    (unit / "2026-10-23").mkdir()
+    assert backups_text(UNIT) == f"Last on 2026-10-13 09:00{NB}· 2 backups"
+    assert backups_text(3000000099) == backups_text(None) == "No backup yet"
+
+
 def test_the_backup_words_in_polish(backups):
     from openexpress.gui.device_page import backups_text
 

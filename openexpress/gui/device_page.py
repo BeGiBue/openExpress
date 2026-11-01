@@ -165,21 +165,14 @@ def backups_text(unit_id) -> str:
     """The subtitle of "Backup": when the last backup of the device was made and how many
     there are in its folder (only the backups openExpress made, not the copies of the app
     list); none: says so."""
-    from openexpress.backup import STAMP, is_backup_dir
+    from openexpress.backup import backups_of
 
-    found = []
-    folder = paths.default_backup_dir() / str(unit_id) if unit_id else None
-    try:
-        if folder is not None and folder.is_dir():
-            found = sorted(datetime.strptime(p.name, STAMP) for p in folder.iterdir()
-                           if not p.is_symlink() and is_backup_dir(p))
-    except OSError as e:
-        log.info("backup: the folder could not be listed (%s)", type(e).__name__)
+    found = backups_of(paths.default_backup_dir(), unit_id)  # the newest first
     if not found:
         # TRANSLATORS: subtitle of the row "Backup" of a device without one
         return _("No backup yet")
     # TRANSLATORS: subtitle of the row "Backup": when the last backup was made
-    return caption(_("Last on {when}").format(when=i18n.full_time(found[-1])),
+    return caption(_("Last on {when}").format(when=i18n.full_time(found[0][0])),
                    ngettext("{count} backup", "{count} backups", len(found)).format(
                        count=len(found)))
 

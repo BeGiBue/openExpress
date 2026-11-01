@@ -293,8 +293,7 @@ def log_path() -> Path:
 
 def shown_path() -> str:
     """The log file as it is shown to the user: with ~ for the home folder."""
-    path, home = str(log_path()), str(Path.home())
-    return "~" + path[len(home):] if len(home) > 1 and path.startswith(home + os.sep) else path
+    return paths.shown_path(log_path())
 
 
 def tail(count: int = 200) -> list[str]:

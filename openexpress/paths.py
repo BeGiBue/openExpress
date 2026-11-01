@@ -118,6 +118,12 @@ def default_backup_dir() -> Path:
     return Path.home() / "Documents" / "Garmin" / "Backups"
 
 
+def shown_path(path: Path) -> str:
+    """A path as it is shown to the user: with ~ for the home folder."""
+    text, home = str(path), str(Path.home())
+    return "~" + text[len(home):] if len(home) > 1 and text.startswith(home + os.sep) else text
+
+
 def default_gpx_dir() -> Path:
     """Where `activities export` writes GPX files: next to the backups, in Garmin in the
     Documents folder (which the Flatpak may write)."""

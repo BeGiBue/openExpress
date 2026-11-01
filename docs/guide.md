@@ -305,7 +305,8 @@ and never overwrites a file. An activity without GPS positions (a pool swim, str
 training) has no GPX.
 
 `openexpress fit inspect FILE` tells what any FIT file on this computer holds: its type,
-manufacturer, product and creation time, its messages and whether it is whole.
+manufacturer, product and creation time, its messages and whether it is whole. Tested on a
+fēnix 8 over MTP.
 
 ## Sync details
 

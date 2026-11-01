@@ -2504,16 +2504,18 @@ def build_parser() -> argparse.ArgumentParser:
     g.add_argument("--limit", type=_at_least_one, default=PAGE,
                    help=_("show the newest N (default: {count})").format(count=PAGE))
     g.add_argument("--all", action="store_true", help=_("show every activity"))
+    # The folders as the program finds them (in the Documents folder of the user's XDG
+    # folders), with ~ for the home folder.
     backups_help = _("folder of the backups (default: {path})").format(
-        path="~/Documents/Garmin/Backups")
+        path=paths.shown_path(paths.default_backup_dir()))
     s.add_argument("--backups", help=backups_help)
     asub = s.add_subparsers(dest="activities_cmd")
     m = asub.add_parser("export", help=_("write activities as GPX files"))
     m.add_argument("names", nargs="+", metavar="NAME",
                    help=_("the file name of an activity, as the list of activities shows it"))
     m.add_argument("--dest", help=_("folder for the GPX files (default: {path})").format(
-        path="~/Documents/Garmin/GPX"))
-    m.add_argument("--backups", dest="export_backups", help=backups_help)
+        path=paths.shown_path(paths.default_gpx_dir())))
+    m.add_argument("--backups", dest="export_backups", metavar="BACKUPS", help=backups_help)
     m.add_argument("--apply", action="store_true", help=_("write the GPX files"))
     s.set_defaults(func=cmd_activities)
 
@@ -2521,7 +2523,7 @@ def build_parser() -> argparse.ArgumentParser:
     fsub = s.add_subparsers(dest="fit_cmd", metavar="inspect", required=True)
     m = fsub.add_parser("inspect", help=_("what a FIT file holds: its type, its messages and "
                                           "whether it is whole"))
-    m.add_argument("file", help=_("a FIT file on this computer"))
+    m.add_argument("file", metavar="FILE", help=_("a FIT file on this computer"))
     s.set_defaults(func=cmd_fit)
 
     s = sub.add_parser("diagnostics",
@@ -2596,7 +2598,7 @@ def build_parser() -> argparse.ArgumentParser:
 
     s = sub.add_parser("backup", help=_("local backup of device data"))
     s.add_argument("--dest", help=_("destination directory (default: {path})").format(
-        path="~/Documents/Garmin/Backups"))
+        path=paths.shown_path(paths.default_backup_dir())))
     s.add_argument("--keep", type=int, default=3, help=_("how many most recent backups to keep"))
     s.add_argument("--apply", action="store_true")
     s.set_defaults(func=cmd_backup)
