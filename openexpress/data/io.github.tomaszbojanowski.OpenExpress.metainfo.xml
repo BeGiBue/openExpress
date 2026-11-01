@@ -61,30 +61,37 @@
   <screenshots>
     <screenshot type="default">
       <caption>The start page: the devices connected and those seen before, with labels such as Update available</caption>
+      <caption xml:lang="pl">Strona startowa: podłączone urządzenia i te widziane wcześniej, z etykietami takimi jak „Aktualizacja dostępna”</caption>
       <image>https://raw.githubusercontent.com/TomaszBojanowski/openExpress/main/docs/screenshots/start.png</image>
     </screenshot>
     <screenshot>
       <caption>Software updates offered for the device</caption>
+      <caption xml:lang="pl">Aktualizacje oprogramowania dostępne dla urządzenia</caption>
       <image>https://raw.githubusercontent.com/TomaszBojanowski/openExpress/main/docs/screenshots/updates.png</image>
     </screenshot>
     <screenshot>
       <caption>Software updates, with a beta system update offered for the device</caption>
+      <caption xml:lang="pl">Aktualizacje oprogramowania, w tym testowa aktualizacja systemu dla urządzenia</caption>
       <image>https://raw.githubusercontent.com/TomaszBojanowski/openExpress/main/docs/screenshots/updates-beta.png</image>
     </screenshot>
     <screenshot>
       <caption>Maps on the device and free maps to install</caption>
+      <caption xml:lang="pl">Mapy na urządzeniu i darmowe mapy do zainstalowania</caption>
       <image>https://raw.githubusercontent.com/TomaszBojanowski/openExpress/main/docs/screenshots/maps.png</image>
     </screenshot>
     <screenshot>
       <caption>Connect IQ apps</caption>
+      <caption xml:lang="pl">Aplikacje Connect IQ</caption>
       <image>https://raw.githubusercontent.com/TomaszBojanowski/openExpress/main/docs/screenshots/apps.png</image>
     </screenshot>
     <screenshot>
       <caption>Music, podcasts and audiobooks</caption>
+      <caption xml:lang="pl">Muzyka, podcasty i audiobooki</caption>
       <image>https://raw.githubusercontent.com/TomaszBojanowski/openExpress/main/docs/screenshots/music.png</image>
     </screenshot>
     <screenshot>
       <caption>Activities of the device and of its backups, with their sport, time, distance and ascent</caption>
+      <caption xml:lang="pl">Aktywności urządzenia i jego kopii zapasowych, z dyscypliną, czasem, dystansem i przewyższeniem</caption>
       <image>https://raw.githubusercontent.com/TomaszBojanowski/openExpress/main/docs/screenshots/activities.png</image>
     </screenshot>
   </screenshots>
