@@ -60,7 +60,8 @@ To finish the installation:
   4. Reconnect it and check for updates again: the installed update
      should no longer be listed.
 """)
-# Said before a system update is installed, on the command line and in the window.
+# Said before an update the device installs once disconnected (installs_when_disconnected),
+# on the command line and in the window.
 SYSTEM_UPDATE_WARNING = N_("Warning: this is a device system update. Charge the device and do "
                            "not disconnect it while copying.")
 # The kinds of device (the "segmenttype" of unit-info) that Garmin marks as losing the data
@@ -109,6 +110,10 @@ class SoftwareUpdate:
     on_device: bool = False
     # "live", "archived", or for a beta version e.g. "public_beta_phased_rollout".
     release_state: str = ""
+    # From the device's GarminDevice.xml (parse_updates with the device): the part number of
+    # its model, and the version of this part number it lists; empty and None: not known.
+    model_part_number: str = ""
+    installed_version: str | None = None
 
     @property
     def key(self) -> str:
@@ -142,9 +147,25 @@ class SoftwareUpdate:
 
     @property
     def is_system(self) -> bool:
-        """An update of the device system: copied last, and the device must stay connected
-        and charged while it is copied."""
-        return (self.is_primary or self.restart_required
+        """An update of the device's own software, the one its "Software" version tells: the
+        server calls it primary, it has the part number of the device's model, or it is a
+        system file in the device's top folder. A part of the device (its GPS chip) may have
+        its software in a system file of another folder (an Instinct 2S: GUPDATE.GCD in
+        GARMIN/REMOTESW), with a version of its own."""
+        if self.is_primary:
+            return True
+        if self.model_part_number and \
+                self.part_number.casefold() == self.model_part_number.casefold():
+            return True
+        folder = posixpath.dirname(self.device_path).casefold()
+        return self.filename.upper() in SYSTEM_FILES and folder in ("", "garmin")
+
+    @property
+    def installs_when_disconnected(self) -> bool:
+        """An update that the device installs itself once it is disconnected, perhaps with a
+        restart: the device's own software or the software of a part of it. Copied last, and
+        the device must stay connected and charged while it is copied."""
+        return (self.is_system or self.restart_required
                 or self.filename.upper() in SYSTEM_FILES)
 
 
@@ -249,12 +270,12 @@ def mark_present(storage: Storage, updates: list[SoftwareUpdate],
 
 
 def staged(updates: list[SoftwareUpdate]) -> list[SoftwareUpdate]:
-    """System updates that are copied already and wait for the device to install them, which
-    it does when it is disconnected. Two facts, no guess: the server still offers the update
+    """Updates the device installs once disconnected (installs_when_disconnected) that are
+    copied already and wait for it. Two facts, no guess: the server still offers the update
     (not as a reinstall), so the device has not installed it, and the very same file (size
     and MD5) is on the device."""
-    return [u for u in updates
-            if u.is_system and u.on_device and not u.is_reinstall and not u.is_metadata]
+    return [u for u in updates if u.installs_when_disconnected and u.on_device
+            and not u.is_reinstall and not u.is_metadata]
 
 
 def pending(updates: list[SoftwareUpdate]) -> list[SoftwareUpdate]:
@@ -262,7 +283,19 @@ def pending(updates: list[SoftwareUpdate]) -> list[SoftwareUpdate]:
     return [u for u in updates if not u.is_reinstall and not u.is_metadata and not u.on_device]
 
 
-def parse_updates(response: dict) -> list[SoftwareUpdate]:
+def offered(storage: Storage, response: dict, device) -> list[SoftwareUpdate]:
+    """What the update server's `response` offers `device` (its GarminDevice.xml), each
+    compared with the device's storage (mark_present)."""
+    return mark_present(storage, parse_updates(response, device), component_count(device))
+
+
+def parse_updates(response: dict, device=None) -> list[SoftwareUpdate]:
+    """The updates of the server's answer. With `device` (its GarminDevice.xml): which of them
+    is its own software (its model's part number) and the version of each part it lists; for
+    its own software without one, the version of the device's software."""
+    model = getattr(device, "part_number", "") or ""
+    listed = {f.part_number.casefold(): f.version
+              for f in getattr(device, "update_files", None) or []}
     out = []
     for u in response.get("updates") or []:
         inst = u.get("installation") or {}
@@ -291,8 +324,14 @@ def parse_updates(response: dict) -> list[SoftwareUpdate]:
                 changes=changes,
                 datatype=u.get("datatype") or "",
                 release_state=str(u.get("releasestate") or ""),
+                model_part_number=model,
             )
         )
+        new = out[-1]
+        new.installed_version = listed.get(new.part_number.casefold())
+        software = getattr(device, "software_version_str", None)
+        if new.installed_version is None and new.is_system and isinstance(software, str):
+            new.installed_version = software
     return out
 
 
@@ -310,8 +349,8 @@ def beta_offered(response: dict) -> bool:
 
 
 def sort_for_install(updates: list[SoftwareUpdate]) -> list[SoftwareUpdate]:
-    """System updates go last; otherwise in server order."""
-    return sorted(updates, key=lambda u: (u.is_system, u.order, u.part_number))
+    """What the device installs once disconnected goes last; otherwise in server order."""
+    return sorted(updates, key=lambda u: (u.installs_when_disconnected, u.order, u.part_number))
 
 
 def present_with_metadata(updates: list[SoftwareUpdate]) -> list[SoftwareUpdate]:
@@ -432,7 +471,7 @@ def _install(
         real = storage.write_file_checked(u.device_path, local, byte_steps(progress, copying),
                                           error=UpdateError)
         report.installed.append(f"{u.title} {u.version} -> {real}")
-        report.restart_required |= u.is_system
+        report.restart_required |= u.installs_when_disconnected
         # The whole path from the device's folder, as mark_present names it.
         log.info("software update: %s %s (%s) copied to %s", u.part_number, u.version,
                  applog.size(size), real)
@@ -440,15 +479,15 @@ def _install(
 
 
 # Left by a device that takes an update in parts. openExpress deletes it from the folder of
-# a system update before writing it, on every device.
+# an update the device installs once disconnected before writing it, on every device.
 LEFTOVER_FILE = "GUPDATE.TMP"
 
 
 def _clear_the_place(storage: Storage, u: SoftwareUpdate) -> None:
     """Before the file of an update is written, deletes a file at its place whose name differs
-    only in letter case, so that the new file has exactly the name the server gives, and for a
-    system update a leftover GUPDATE.TMP in its folder: on every device, over MTP and on a
-    drive."""
+    only in letter case, so that the new file has exactly the name the server gives, and for an
+    update the device installs once disconnected a leftover GUPDATE.TMP in its folder: on
+    every device, over MTP and on a drive."""
     parent, name = posixpath.split(u.device_path)
     real_parent = storage.resolve(parent) if parent else ""
     if real_parent is None:
@@ -460,7 +499,8 @@ def _clear_the_place(storage: Storage, u: SoftwareUpdate) -> None:
         # but later installed that file by itself: the letter case is not known to matter,
         # the exact name is the safer choice.
         other_case = e.name != name and e.name.casefold() == name.casefold()
-        leftover = u.is_system and e.name.casefold() == LEFTOVER_FILE.casefold()
+        leftover = (u.installs_when_disconnected
+                    and e.name.casefold() == LEFTOVER_FILE.casefold())
         # A file of exactly that name is replaced by the copy itself (on a drive only once
         # the new one is whole).
         if not (other_case or leftover):

@@ -501,8 +501,7 @@ def _status_updates_online(client, s) -> str:
         if device is None or storage is None:  # a drive: probe keeps nothing of it
             storage = gio_storage.open_ums_storage(s.found)
             device = parse(storage.read("GARMIN/GarminDevice.xml"))
-        items = upd.mark_present(storage, upd.parse_updates(client.software_updates(device.raw)),
-                                 upd.component_count(device))
+        items = upd.offered(storage, client.software_updates(device.raw), device)
     except (ApiError, DeviceError) as e:
         return _("could not be checked: {error}").format(error=e)
     new, staged = upd.pending(items), upd.staged(items)
@@ -997,7 +996,7 @@ def cmd_updates(args) -> int:
     client = GarminClient(Settings.load())
     resp = client.software_updates(dev.raw, include_reinstalls=args.reinstalls)
     # Only reads the device.
-    items = upd.mark_present(st, upd.parse_updates(resp), upd.component_count(dev))
+    items = upd.offered(st, resp, dev)
     if not args.reinstalls:
         items = [u for u in items if not u.is_reinstall]
     # A system update that is on the device already waits for the device to install it.
@@ -1066,7 +1065,7 @@ def cmd_updates(args) -> int:
     eulas = sorted({u.eula_url for u in chosen if u.eula_url})
     for e in eulas:
         print(_("License (EULA): {url}").format(url=e))
-    if any(u.is_system for u in chosen):
+    if any(u.installs_when_disconnected for u in chosen):
         print(_(upd.SYSTEM_UPDATE_WARNING))
     if _loses_data_on_update(client, dev):
         print(_(upd.DATA_LOSS_WARNING_DRIVE if getattr(st, "mass_storage", False)

@@ -17,6 +17,7 @@ from openexpress import download, updates
 from openexpress.cli import main
 from openexpress.connect import GarminClient, lower_keys
 from openexpress.device.storage import LocalStorage
+from openexpress.device.xmldevice import UpdateFile
 
 BUNDLE = b"bundle bytes"
 # Two versions as the window shows them: on one line (no-break spaces around the arrow).
@@ -75,22 +76,38 @@ def test_a_system_update_is_known_by_its_file():
     assert not font.is_system  # the same data type ("Firmware"), a plain file
 
 
-@pytest.mark.parametrize(("path", "filename", "flags", "system"), [
-    ("Garmin", "GUPDATE.GCD", {}, True),
-    ("GARMIN", "gupdate.gsp", {}, True),        # any letter case
-    ("Garmin\\Other", "GUPDATE.GSP", {}, True),  # the name counts, not the folder
-    ("Garmin", "GUPDATE.GSP.bak", {}, False),
-    ("Garmin", "XGUPDATE.GCD", {}, False),
-    ("Garmin", "GUPDATE.RGN", {}, False),
-    ("Garmin", "settings.fit", {"primary": True}, True),  # the flags of the server still count
-    ("Garmin", "settings.fit", {"restart": True}, True),
-    ("Garmin", "settings.fit", {}, False),
+@pytest.mark.parametrize(("path", "filename", "flags", "system", "installs"), [
+    ("Garmin", "GUPDATE.GCD", {}, True, True),
+    ("GARMIN", "gupdate.gsp", {}, True, True),        # any letter case
+    ("", "GUPDATE.GCD", {}, True, True),              # at the top of the storage
+    # Another folder: copied as the device's software is, but the software of a part of the
+    # device (an Instinct 2S has its GPS chip's in GARMIN/REMOTESW/GUPDATE.GCD).
+    ("Garmin\\Other", "GUPDATE.GSP", {}, False, True),
+    ("GARMIN\\REMOTESW", "GUPDATE.GCD", {"restart": True}, False, True),
+    ("Garmin", "GUPDATE.GSP.bak", {}, False, False),
+    ("Garmin", "XGUPDATE.GCD", {}, False, False),
+    ("Garmin", "GUPDATE.RGN", {}, False, False),
+    ("Garmin", "settings.fit", {"primary": True}, True, True),  # the server's flags count
+    ("Garmin", "settings.fit", {"restart": True}, False, True),
+    ("Garmin", "settings.fit", {}, False, False),
 ])
-def test_which_files_are_system_updates(path, filename, flags, system):
+def test_which_files_are_system_updates(path, filename, flags, system, installs):
+    """`is_system`: the device's own software; `installs_when_disconnected`: what is copied
+    last, with the warning, and installed by the device once it is disconnected."""
     answer = lower_keys({"updates": [_entry("006-X0000-00", "X", "CONFIG", path, filename, b"x",
                                             **flags)]})
     (u,) = updates.parse_updates(answer)
-    assert u.is_system is system
+    assert (u.is_system, u.installs_when_disconnected) == (system, installs)
+
+
+def test_the_device_software_is_known_by_the_device_part_number():
+    """An update of the part number the device itself has (its GarminDevice.xml's model) is
+    its software, wherever the server puts its file."""
+    answer = lower_keys({"updates": [_entry("006-B0000-00", "X", "Firmware", "Garmin\\Other",
+                                            "fw.bin", b"x")]})
+    (alone,) = updates.parse_updates(answer)
+    (with_device,) = updates.parse_updates(answer, _device_with_parts())
+    assert (alone.is_system, with_device.is_system) == (False, True)
 
 
 def test_a_system_update_is_copied_last_and_asks_for_a_restart(device_root, tmp_path,
@@ -157,6 +174,71 @@ def test_cli_does_not_warn_before_a_plain_file(offered, no_download, capsys):
     assert "Dry run: nothing was downloaded or written." in out
 
 
+# --- the software of a part of the device (its GPS chip) ----------------------------------------
+
+GPS = b"gps software"
+# At the same file name as the device's own software, in another folder, and it asks for a
+# restart: still a part with a version of its own, which says nothing of the device's.
+GPS_ENTRY = {**_entry("006-B0001-00", "Test GPS Software", "Firmware", "GARMIN\\REMOTESW",
+                      "GUPDATE.GCD", GPS, restart=True), "displayVersion": "6.70"}
+
+
+def _device_with_parts():
+    """The device of these tests (software 23.39, part number 006-B0000-00) with the versions
+    of its parts as its GarminDevice.xml lists them."""
+    return types.SimpleNamespace(
+        description="Test watch", part_number="006-B0000-00", software_version_str="23.39",
+        unit_id=None, update_files=[
+            UpdateFile("006-B0000-00", "23.39", "GARMIN", "GUPDATE.GCD"),
+            UpdateFile("006-B0001-00", "6.10", "GARMIN/REMOTESW", "GUPDATE.GCD")])
+
+
+def test_the_one_update_of_a_part_is_told_by_its_name():
+    from openexpress.gui import words
+
+    (gps,) = updates.parse_updates(lower_keys({"updates": [GPS_ENTRY]}), _device_with_parts())
+    assert (gps.is_system, gps.installs_when_disconnected) == (False, True)
+    assert gps.installed_version == "6.10"
+    assert words.updates_available(1, gps) == "Update available: Test GPS Software 6.70"
+
+
+def test_cli_lists_the_software_of_a_part_by_its_name(device_root, monkeypatch, no_download,
+                                                       capsys):
+    answer = lower_keys({"updates": [GPS_ENTRY]})
+    monkeypatch.setattr(GarminClient, "software_updates",
+                        lambda self, raw, include_reinstalls=False: answer)
+    assert main(["--path", str(device_root), "updates"]) == 0
+    out = capsys.readouterr().out.splitlines()
+    assert out[:3] == [
+        "Test watch, software 23.39",
+        "Available updates: 1",
+        "  006-B0001-00          6.70  Recommended       12 B  Test GPS Software"]  # no [PRIMARY]
+
+
+@pytest.mark.needs_display
+def test_the_software_of_a_part_is_shown_with_its_own_versions():
+    device = _device_with_parts()
+    items = updates.parse_updates(lower_keys({"updates": [GPS_ENTRY]}), device)
+    _win, status, groups, _buttons = _updates_page(items, device=device)
+    texts = ([text for text, _styles in status["texts"]]
+             + [r.get_subtitle() for g in groups for r in g.rows])
+    assert not any("23.39\u00a0→" in text for text in texts)  # never the device's software
+    assert status["texts"][:2] == [("Update available: Test GPS Software 6.70", ["title-1"]),
+                                   ("Software 23.39", ["dim-label"])]
+    (available,) = groups
+    assert [(r.get_title(), r.get_subtitle()) for r in available.rows] == [
+        ("Test GPS Software",
+         "6.10\u00a0→\u00a06.70\u00a0· 12\u00a0B\u00a0· Recommended\u00a0· GUPDATE.GCD")]
+
+
+@pytest.mark.needs_display
+def test_the_question_names_the_versions_of_a_part(monkeypatch):
+    body, warning = _question(monkeypatch, "006-B0001-00", {"updates": [GPS_ENTRY]},
+                              _device_with_parts())
+    assert body.splitlines()[0] == "Test GPS Software 6.10\u00a0→\u00a06.70"
+    assert warning == (WARNING_EN, ["heading", "warning"])  # copied with the same care
+
+
 # --- the window asks before it installs ---------------------------------------------------------
 
 WARNING_EN = ("Warning: this is a device system update. Charge the device and do not disconnect "
@@ -165,17 +247,19 @@ WARNING_PL = ("Ostrzeżenie: to aktualizacja systemu urządzenia. Naładuj urzą
               "go podczas kopiowania.")
 
 
-def _dialog(monkeypatch, part, answer=None):
-    """The window's question before `part` is installed; nothing is shown."""
+def _dialog(monkeypatch, part, answer=None, device=None):
+    """The window's question before `part` is installed; nothing is shown. `device`: its
+    GarminDevice.xml, if not the plain one of these tests."""
     from gi.repository import Adw
 
     from openexpress.gui.app import MainWindow
 
-    items = updates.parse_updates(lower_keys(answer or server_answer()))
+    items = updates.parse_updates(lower_keys(answer or server_answer()), device)
     asked = []
     monkeypatch.setattr(Adw.AlertDialog, "present", lambda self, parent: asked.append(self))
     win = stand_in(
-        session=types.SimpleNamespace(device=types.SimpleNamespace(software_version_str="23.39")),
+        session=types.SimpleNamespace(
+            device=device or types.SimpleNamespace(software_version_str="23.39")),
         updates_cache=items)
     MainWindow.confirm_update(win, next(u for u in items if u.part_number == part))
     (dialog,) = asked
@@ -188,9 +272,9 @@ def _below(dialog):
     return [] if extra is None else list(_children(extra))
 
 
-def _question(monkeypatch, part, answer=None):
+def _question(monkeypatch, part, answer=None, device=None):
     """The text of the question, and the warning below it (its text and styles) or None."""
-    dialog = _dialog(monkeypatch, part, answer)
+    dialog = _dialog(monkeypatch, part, answer, device)
     warnings = [(w.get_label(), sorted(w.get_css_classes())) for w in _below(dialog)
                 if w.has_css_class("warning")]
     return dialog.get_body(), (warnings[0] if warnings else None)
@@ -295,14 +379,15 @@ def _text(widget):
     return "".join(p.get_label() for p in parts), [sorted(p.get_css_classes()) for p in parts]
 
 
-def _updates_page(items, beta=False, drive=False):
+def _updates_page(items, beta=False, drive=False, device=None):
     """The Updates page of a window that is never shown; returns the window, the status at the
     top (icon, its styles, the texts with their styles, the buttons) and the other groups.
-    `drive`: the device is in mass storage mode."""
+    `drive`: the device is in mass storage mode; `device`: its GarminDevice.xml, if not the
+    plain one of these tests."""
     from openexpress.gui.app import MainWindow
 
     win = stand_in(
-        session=types.SimpleNamespace(device=types.SimpleNamespace(
+        session=types.SimpleNamespace(device=device or types.SimpleNamespace(
             description="Test watch", software_version_str="23.39", unit_id=None),
             mass_storage=drive),
         sections={"updates": _Section()}, busy=False, _action_buttons=[], asked=[], loads=[],
@@ -398,7 +483,7 @@ def test_a_second_system_update_is_listed_as_system_software():
     assert status["texts"][2][0] == "Test Bundle\u00a0· Recommended\u00a0· GUPDATE.GSP"  # the first on top
     (available,) = groups
     assert [(r.get_title(), r.get_subtitle()) for r in available.rows] == [
-        ("System software", "Test Software\u00a0· 23.40\u00a0· 2\u00a0B\u00a0· Recommended\u00a0· GUPDATE.GCD")]
+        ("System software", f"Test Software\u00a0· {VERSIONS}\u00a0· 2\u00a0B\u00a0· Recommended\u00a0· GUPDATE.GCD")]
 
 
 @pytest.mark.needs_display

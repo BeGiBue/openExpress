@@ -103,7 +103,7 @@ def test_status_online_asks_the_account_and_the_update_server(monkeypatch, capsy
         software_updates=lambda raw: asked.append("updates") or "answer")
     monkeypatch.setattr(cli, "make_client", lambda settings, need_auth=False: client)
     monkeypatch.setattr(cli, "GarminClient", lambda settings: client)
-    monkeypatch.setattr(upd, "parse_updates", lambda answer: [MAP_GROUPING_UPDATE])
+    monkeypatch.setattr(upd, "parse_updates", lambda answer, device=None: [MAP_GROUPING_UPDATE])
     monkeypatch.setattr(upd, "mark_present", lambda storage, items, count: items)
     from openexpress import known_devices
 
@@ -120,8 +120,9 @@ def test_status_online_asks_the_account_and_the_update_server(monkeypatch, capsy
 
 OTHER_UNIT = 3000000099
 MAP_GROUPING_UPDATE = types.SimpleNamespace(
-    title="Map Region Grouping file", version="2.31", is_system=False, is_reinstall=False,
-    is_metadata=False, on_device=False, device_path="Garmin/SQL/MapRegionGrouping.db")
+    title="Map Region Grouping file", version="2.31", is_system=False,
+    installs_when_disconnected=False, is_reinstall=False, is_metadata=False, on_device=False,
+    device_path="Garmin/SQL/MapRegionGrouping.db")
 
 
 @pytest.mark.parametrize("argv", [["status", "--help"]])

@@ -43,6 +43,17 @@ log = logging.getLogger(__name__)
 ARROW = "\u00a0→\u00a0"
 
 
+def versions_text(u, device) -> str:
+    """The version of update `u`, after the one the device has when that is known and other:
+    the version GarminDevice.xml lists for its part number, or for the device's own software
+    the device's ("23.39 → 23.40"). A part of the device with no version listed: only its
+    own ("6.70"), never the device's software against it."""
+    old = u.installed_version
+    if old is None and u.is_system:
+        old = getattr(device, "software_version_str", None)
+    return f"{old}{ARROW}{u.version}" if old and old != u.version else u.version
+
+
 def data_loss_text(session) -> str:
     """The warning before an update of a device that loses its data on one: a drive that
     openExpress cannot sync (its drive_refusal) is to be synced in the app; any other device
@@ -98,8 +109,7 @@ class UpdatesPage:
         def work():
             # Asks Garmin's server, then compares the offered files with those on the device.
             answer = s.client.software_updates(s.device.raw, include_reinstalls=True)
-            items = upd.mark_present(s.storage, upd.parse_updates(answer),
-                                     upd.component_count(s.device))
+            items = upd.offered(s.storage, answer, s.device)
             # The kind of device, for the question before an update (it asks no server):
             # usually known already from opening the device.
             try:
@@ -172,7 +182,7 @@ class UpdatesPage:
         if system is not None:
             icon = "software-update-available-symbolic"
             title = update_state_text("available", count, only)
-            versions = f"{d.software_version_str}{ARROW}{system.version}"
+            versions = versions_text(system, d)
             size = human_size(system.size)
             subtitle = caption(versions, size)
             if system.is_beta:
@@ -190,7 +200,7 @@ class UpdatesPage:
             # still to install (listed below); under it the versions.
             icon = "software-update-available-symbolic"
             title = update_state_text("ready", count, mass_storage=mass_storage)
-            versions = f"{d.software_version_str}{ARROW}{ready.version}"
+            versions = versions_text(ready, d)
             if mass_storage:
                 # A drive: the device takes the update once it is ejected.
                 buttons.append(self._button(
@@ -253,7 +263,8 @@ class UpdatesPage:
         sec.group().add(box)
 
     def _update_row(self, parent, u, reinstall: bool = False) -> None:
-        details = caption(u.version, human_size(u.size), u.severity_text, u.filename)
+        details = caption(versions_text(u, self.session.device), human_size(u.size),
+                          u.severity_text, u.filename)
         # A system update says so in its title; the name the server gives it goes first.
         row = Adw.ActionRow(
             title=GLib.markup_escape_text(_("System software") if u.is_system else u.title),
@@ -280,9 +291,7 @@ class UpdatesPage:
         # may take it only once the drive is ejected, so the cable may go out only then.
         mass_storage = getattr(s, "mass_storage", False)
         chosen = upd.select(self.updates_cache, [u.part_number])
-        version = (f"{s.device.software_version_str}{ARROW}{u.version}" if u.is_system
-                   else u.version)
-        body = (f"{u.title} {version}\n"
+        body = (f"{u.title} {versions_text(u, s.device)}\n"
                 + _("Size: {size}").format(size=human_size(u.size)) + "\n"
                 + _("On the device: {path}").format(path=u.device_path)
                 + ("\n\n" + _("Changes:") + "\n" + "\n".join("• " + c for c in u.changes[:10])
@@ -297,7 +306,7 @@ class UpdatesPage:
         elif u.eula_url:
             below.append(Gtk.Label(label=_("License: {url}").format(url=u.eula_url), wrap=True,
                                    justify=Gtk.Justification.CENTER))
-        warnings = [_(upd.SYSTEM_UPDATE_WARNING)] if u.is_system else []
+        warnings = [_(upd.SYSTEM_UPDATE_WARNING)] if u.installs_when_disconnected else []
         # Read from the answer kept with the session: the question asks no server.
         if upd.loses_data_on_update(getattr(s, "unit_info_answer", None)):
             warnings.append(data_loss_text(s))

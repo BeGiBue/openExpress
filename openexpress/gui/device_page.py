@@ -1241,8 +1241,7 @@ class DevicePage:
             # Asked as the page Updates asks (reinstalls too): one answer for both (answers);
             # the row counts only what pending and staged leave.
             answer = s.client.software_updates(s.device.raw, include_reinstalls=True)
-            items = upd.mark_present(s.storage, upd.parse_updates(answer),
-                                     upd.component_count(s.device))
+            items = upd.offered(s.storage, answer, s.device)
             return upd.pending(items), upd.staged(items)
 
         def done(result):
