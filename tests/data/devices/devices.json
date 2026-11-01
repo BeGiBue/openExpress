@@ -58,6 +58,9 @@
    "usb_product": "0f1d",
    "usb_serial": "MADE-UP-SERIAL-1",
    "volume_uuid": "1234-ABCD",
+   "copied_updates": {
+    "006-B3592-03.3.36": 2040.0
+   },
    "tile_facts": {
     "update": {
      "found": 2050.0,

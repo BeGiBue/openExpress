@@ -78,6 +78,8 @@ def _update(name, version, path, size, beta=False, system=False, reinstall=False
 def _updates(copied: bool):
     """A beta of the system software (to install, or copied already) with long names of
     components around it."""
+    from datetime import datetime
+
     items = [
         _update("Edge 1050 Software Bundle", "33.13", "Garmin/GUPDATE.GSP", 97_700_000,
                 beta=True, system=True, on_device=copied),
@@ -92,6 +94,10 @@ def _updates(copied: bool):
         # For the file of the copied one: it waits, with the name of that one.
         items.append(_update("Instinct 2/2S GPS Software", "6.70", "Garmin/GUPDATE.GSP",
                              1_200_000))
+    else:
+        # Copied before and offered again, its file changed since: the longer of its notes.
+        items[2].copied_at = datetime(2026, 10, 30, 22, 5).timestamp()
+        items[2].changed_on_device = True
     return items
 
 

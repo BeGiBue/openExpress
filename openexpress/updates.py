@@ -15,10 +15,11 @@ import logging
 import posixpath
 from collections.abc import Callable
 from dataclasses import dataclass, field
+from datetime import datetime
 from pathlib import Path
 from typing import NamedTuple
 
-from openexpress import answers, applog, cache, download, paths
+from openexpress import answers, applog, cache, download, known_devices, paths
 from openexpress.device.storage import DeviceError, Storage
 from openexpress.errors import UserFacingError
 from openexpress.i18n import N_, _, human_size
@@ -114,6 +115,12 @@ class SoftwareUpdate:
     # its model, and the version of this part number it lists; empty and None: not known.
     model_part_number: str = ""
     installed_version: str | None = None
+    # When openExpress copied this very update to this device before, while the server still
+    # offers it (mark_copied): the device has not installed it. None: not copied, or not known.
+    copied_at: float | None = None
+    # The file at its place has the size offered but other bytes (mark_present): after a copy,
+    # the device changed it, or refused it.
+    changed_on_device: bool = False
 
     @property
     def key(self) -> str:
@@ -257,6 +264,7 @@ def mark_present(storage: Storage, updates: list[SoftwareUpdate],
     for u in offered:
         found.append(presence(storage, u))
         u.on_device = found[-1].why == MATCHES
+        u.changed_on_device = found[-1].why == MD5_DIFFERS
     # For each: where its file goes on the device, from the device's folder, and whether it
     # is there; never an address (a download address carries a token).
     named = ", ".join(f"{u.part_number} {u.version} at {_where(u, p)}: {p.why}"
@@ -285,8 +293,41 @@ def pending(updates: list[SoftwareUpdate]) -> list[SoftwareUpdate]:
 
 def offered(storage: Storage, response: dict, device) -> list[SoftwareUpdate]:
     """What the update server's `response` offers `device` (its GarminDevice.xml), each
-    compared with the device's storage (mark_present)."""
-    return mark_present(storage, parse_updates(response, device), component_count(device))
+    compared with the device's storage (mark_present) and with what openExpress copied to it
+    before (mark_copied)."""
+    return mark_copied(mark_present(storage, parse_updates(response, device),
+                                    component_count(device)),
+                       getattr(device, "unit_id", None))
+
+
+def mark_copied(updates: list[SoftwareUpdate], unit_id: int | None) -> list[SoftwareUpdate]:
+    """The updates openExpress copied to this device before that the server still offers
+    (not as reinstalls): when each was copied (known_devices), each said in the log, with
+    whether the file at its place changed since (the same size, other bytes: the device
+    changed or refused it). What the server no longer offers is forgotten: the device
+    installed it. Optional: a failure is only written to the log."""
+    if not unit_id:
+        return updates
+    offered_now = {u.key for u in updates if not u.is_reinstall and not u.is_metadata}
+    try:
+        entry = known_devices.load().get(unit_id)
+        copied = dict(entry.copied_updates) if entry is not None else {}
+        if set(copied) - offered_now:
+            known_devices.keep_copied(unit_id, offered_now)
+    except Exception as e:  # noqa: BLE001 - optional; the error may name the folder
+        log.warning("updates: what was copied before not read (%s)", type(e).__name__)
+        return updates
+    for u in updates:
+        at = copied.get(u.key)
+        if at is None or u.key not in offered_now:
+            continue
+        u.copied_at = at
+        if not u.on_device:
+            log.info("software update: %s %s copied %s is offered again%s", u.part_number,
+                     u.version, datetime.fromtimestamp(at).isoformat(timespec="minutes"),
+                     "; the file at its place has other bytes of the same size: the device "
+                     "changed or refused it" if u.changed_on_device else "")
+    return updates
 
 
 def parse_updates(response: dict, device=None) -> list[SoftwareUpdate]:
@@ -420,6 +461,8 @@ class InstallReport:
     restart_required: bool = False
     # Not copied: each with the update copied to its file instead (one_per_file).
     put_off: list[tuple[SoftwareUpdate, SoftwareUpdate]] = field(default_factory=list)
+    # The keys (SoftwareUpdate.key) of the updates copied, without their -META entries.
+    copied: list[str] = field(default_factory=list)
 
 
 def _copied_first(u: SoftwareUpdate) -> tuple:
@@ -509,6 +552,8 @@ def _install(
         real = storage.write_file_checked(u.device_path, local, byte_steps(progress, copying),
                                           error=UpdateError, md5=download.normalize_md5(u.md5))
         report.installed.append(f"{u.title} {u.version} -> {real}")
+        if not u.is_metadata:
+            report.copied.append(u.key)
         report.restart_required |= u.installs_when_disconnected
         # The whole path from the device's folder, as mark_present names it.
         log.info("software update: %s %s (%s) copied to %s", u.part_number, u.version,
@@ -554,11 +599,18 @@ def install(*args, unit_id: int | None = None, **kwargs) -> InstallReport:
     """Install software updates (see _install), holding the cache from the download to the
     copy to the device: it is not cleared meanwhile. What Garmin's server offers the device
     `unit_id` is asked anew next time (answers), also after a copy that failed (a part may
-    be there)."""
+    be there); what was copied is kept with the device (known_devices), until the server
+    offers it no more (mark_copied)."""
     try:
         with cache.using():
-            return _install(*args, **kwargs)
+            report = _install(*args, **kwargs)
     finally:
         answers.forget_device(answers.SOFTWARE_UPDATES, unit_id)
+    if unit_id and report.copied:
+        try:
+            known_devices.note_copied(unit_id, report.copied)
+        except Exception as e:  # noqa: BLE001 - optional; the error may name the folder
+            log.warning("updates: what was copied not kept (%s)", type(e).__name__)
+    return report
 
 

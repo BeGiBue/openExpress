@@ -224,7 +224,7 @@ def test_refresh_and_an_install_forget_also_an_xml_written_otherwise(server, mon
     forget_on_refresh(types.SimpleNamespace(device=device))  # Refresh
     client.software_updates(xml, include_reinstalls=True)
     client.universal_maps(xml)
-    monkeypatch.setattr(updates, "_install", lambda *a, **kw: [])
+    monkeypatch.setattr(updates, "_install", lambda *a, **kw: updates.InstallReport())
     install_updates(types.SimpleNamespace(storage=None, client=client, device=device), [],
                     None)  # an install
     client.software_updates(xml, include_reinstalls=True)

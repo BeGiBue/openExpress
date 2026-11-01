@@ -58,7 +58,8 @@ def _entries():
             category="bike-accessory", update_found=2050.0,
             update_summary=UpdateSummary(2, "3.20"),
             update_check=UpdateCheck(2050.0, "3.20", True),
-            usb_product="0f1d", usb_serial="MADE-UP-SERIAL-1", volume_uuid="1234-ABCD"),
+            usb_product="0f1d", usb_serial="MADE-UP-SERIAL-1", volume_uuid="1234-ABCD",
+            copied_updates=(("006-B3592-03.3.36", 2040.0),)),
         EPIX: KnownDevice(
             unit_id=EPIX, description="EPIX", part_number="006-B3943-00",
             software_version="21.19", kind="mtp", first_seen=1200.0, last_seen=1200.0,
@@ -168,6 +169,14 @@ def _account_read(data):
                                              "at": 4200.0, "login": "login-2"}
 
 
+def _copied_to_the_fenix(data):
+    """The fēnix's entry with an update copied to it, where the program writes it: before the
+    facts of its tile."""
+    entry = _fenix(data)
+    facts = entry.pop("tile_facts")
+    entry.update(copied_updates={"006-B4532-00.23.40": 4300.0}, tile_facts=facts)
+
+
 def _changes():
     """(id, the change, what it returns, how the pattern changes, its log lines)."""
     from openexpress import known_devices as kd
@@ -211,13 +220,18 @@ def _changes():
             OTHER: AccountFact(True, False, 4200.0, "login-2")}), 2, _account_read, []),
         ("forget", lambda: kd.forget(EPIX), True,
          lambda d: d["devices"].pop(str(EPIX)), ["devices: forgot 006-B3943-00"]),
+        ("copied", lambda: kd.note_copied(FENIX, ["006-B4532-00.23.40"], now=4300.0), True,
+         _copied_to_the_fenix, ["devices: 1 update copied to 006-B4532-00 kept"]),
+        ("offered-no-more", lambda: kd.keep_copied(VARIA, set()), True,
+         lambda d: _varia(d).pop("copied_updates"),
+         ["devices: an update copied to 006-B3596-00 is offered no more"]),
     ]
 
 
-@pytest.mark.parametrize("index", range(13), ids=[
+@pytest.mark.parametrize("index", range(15), ids=[
     "remember", "remember-a-drive-without-its-keys", "remember-a-drive-with-new-keys",
     "remember-a-drive-with-keys-not-kept", "model-name", "category", "image-url", "no-update",
-    "an-update", "sync-count", "synced", "account", "forget"])
+    "an-update", "sync-count", "synced", "account", "forget", "copied", "offered-no-more"])
 def test_each_change_writes_only_what_it_changes(store, caplog, index):
     """Each change of an entry: what it returns, the file as the pattern with only that
     change, byte for byte, and its line in the log (none for the counts and the facts of the
@@ -280,11 +294,14 @@ def _the_same_again():
         ("sync-count", lambda: kd.set_sync_count(FENIX, fenix.sync_count)),
         ("synced", lambda: kd.set_synced(FENIX, fenix.synced)),
         ("account", lambda: kd.set_account_facts({FENIX: fenix.account})),
+        ("copied", lambda: kd.note_copied(VARIA, ["006-B3592-03.3.36"], now=2040.0)),
+        ("still-offered", lambda: kd.keep_copied(VARIA, {"006-B3592-03.3.36", "x.1"})),
     ]
 
 
-@pytest.mark.parametrize("index", range(7), ids=[
-    "model-name", "category", "image-url", "update", "sync-count", "synced", "account"])
+@pytest.mark.parametrize("index", range(9), ids=[
+    "model-name", "category", "image-url", "update", "sync-count", "synced", "account",
+    "copied", "still-offered"])
 def test_the_same_value_again_writes_nothing(store, caplog, index):
     name, change = _the_same_again()[index]
     before = store.stat().st_mtime_ns
@@ -308,10 +325,12 @@ def _for_a_device_not_remembered():
         lambda: kd.set_synced(OTHER, SyncedFact(True, None, False, 1.0, "s")),
         lambda: kd.set_account_facts({OTHER: AccountFact(True, False, 1.0, "l")}),
         lambda: kd.forget(OTHER),
+        lambda: kd.note_copied(OTHER, ["006-B0000-00.1.00"], now=1.0),
+        lambda: kd.keep_copied(OTHER, set()),
     ]
 
 
-@pytest.mark.parametrize("index", range(8))
+@pytest.mark.parametrize("index", range(10))
 def test_a_device_not_remembered_gets_no_entry(store, index):
     from openexpress import known_devices
 
@@ -339,6 +358,8 @@ def _every_change():
         ("synced", lambda: kd.set_synced(FENIX, SyncedFact(True, None, False, 1.0, "s"))),
         ("account", lambda: kd.set_account_facts({FENIX: AccountFact(True, False, 1.0, "l")})),
         ("forget", lambda: kd.forget(FENIX)),
+        ("copied", lambda: kd.note_copied(FENIX, ["006-B4532-00.23.40"], now=1.0)),
+        ("offered-no-more", lambda: kd.keep_copied(VARIA, set())),
     ]
 
 
@@ -347,10 +368,10 @@ def _every_change():
 _RETURNS = {"remember": True, "seen": True}
 
 _CHANGE_IDS = ["remember", "seen", "model-name", "category", "image-url", "update",
-               "sync-count", "synced", "account", "forget"]
+               "sync-count", "synced", "account", "forget", "copied", "offered-no-more"]
 
 
-@pytest.mark.parametrize("index", range(10), ids=_CHANGE_IDS)
+@pytest.mark.parametrize("index", range(12), ids=_CHANGE_IDS)
 def test_a_damaged_file_is_never_written_over(store, caplog, index):
     """A damaged devices.json: no change writes over it, whatever the change; each is said
     in the log as damaged and returns as if nothing could change."""
@@ -363,7 +384,7 @@ def test_a_damaged_file_is_never_written_over(store, caplog, index):
     assert "devices.json is damaged" in caplog.text
 
 
-@pytest.mark.parametrize("index", range(10), ids=_CHANGE_IDS)
+@pytest.mark.parametrize("index", range(12), ids=_CHANGE_IDS)
 def test_an_unreadable_file_is_never_written_over(store, caplog, index):
     """devices.json that cannot be read (here: a folder in its place): no change writes over
     it or fails; it is said in the log as unreadable."""

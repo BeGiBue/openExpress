@@ -12,6 +12,7 @@ import logging
 import sys
 import time
 from collections.abc import Callable
+from datetime import datetime
 from pathlib import Path
 
 from openexpress import __version__, applog, i18n, known_devices, paths
@@ -25,7 +26,7 @@ from openexpress.connect import (
 from openexpress.console import error as _error
 from openexpress.device.storage import DeviceError, LocalStorage, Storage
 from openexpress.device.xmldevice import GarminDevice, parse
-from openexpress.i18n import N_, _, human_size, ngettext, pgettext
+from openexpress.i18n import N_, _, full_time, human_size, ngettext, pgettext
 from openexpress.progress import Reporter
 from openexpress.settings import (
     ENVIRONMENTS,
@@ -403,8 +404,6 @@ def cmd_status(args) -> int:
     updates found. Reads only the devices' GarminDevice.xml and the files this installation
     keeps; with --online it asks the account's device list and the update server too,
     keeping nothing."""
-    from datetime import datetime
-
     from openexpress.device import gio_storage
 
     try:
@@ -940,6 +939,17 @@ def _flags(u) -> str:
     return (" [" + _("PRIMARY") + "]" if u.is_system else "") + _beta_mark(u)
 
 
+def _copied_note(u) -> str | None:
+    """Of an update openExpress copied to the device before that the server offers again (the
+    device has not installed it): when, and what that means; None for any other."""
+    if u.copied_at is None or u.on_device:
+        return None
+    when = full_time(datetime.fromtimestamp(u.copied_at))
+    if u.changed_on_device:
+        return _("The device changed or refused the file copied {when}.").format(when=when)
+    return _("Copied {when}: check on the device that it is installed.").format(when=when)
+
+
 def _to_install_staged(st) -> str:
     """What makes the device install an update copied already: a device in mass storage
     mode takes it once its drive is ejected."""
@@ -1023,6 +1033,9 @@ def cmd_updates(args) -> int:
         for u in sorted(visible, key=lambda x: (not x.is_system, x.severity.lower() != "critical",
                                                 x.name)):
             print("  " + _update_line(u) + _flags(u))
+            note = _copied_note(u)
+            if note:
+                print("      " + note)
             if args.verbose:
                 print(f"      -> {u.device_path}")
             for c in u.changes[: (20 if args.verbose else 5)]:

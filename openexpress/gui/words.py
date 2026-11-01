@@ -26,6 +26,23 @@ def updates_available(count: int, only=None) -> str:
                     count).format(count=count)
 
 
+def copied_update_text(u) -> str | None:
+    """Of an update openExpress copied to the device before that the server offers again (the
+    device has not installed it): when it was copied, and that its file was changed or
+    refused by the device, or that the device is to be checked. None for any other update."""
+    at = getattr(u, "copied_at", None)
+    if at is None or u.on_device:
+        return None
+    when = full_time(datetime.fromtimestamp(at))
+    if u.changed_on_device:
+        # TRANSLATORS: below an update copied to the device before that Garmin's server offers
+        # again, whose file on the device has other bytes since
+        return _("The device changed or refused the file copied {when}").format(when=when)
+    # TRANSLATORS: below an update copied to the device before that Garmin's server offers
+    # again: the device has not reported it installed
+    return _("Copied {when}, check on the device that it is installed").format(when=when)
+
+
 def update_state_text(state: str | None, count: int = 0, only=None,
                       mass_storage: bool = False) -> str:
     """The state of the device's updates in one text, for the row "Device software" and the

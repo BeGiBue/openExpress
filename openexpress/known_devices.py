@@ -3,7 +3,9 @@ not connected now: devices.json in the data folder (~/.local/share/openexpress; 
 Flatpak below XDG_DATA_HOME, ~/.var/app/<app ID>/data).
 
 One entry per unit ID: what GarminDevice.xml says, when the device was seen, its kind as
-Garmin tells it, and the address of its model's picture as Garmin gives it (the account's
+Garmin tells it, the updates openExpress copied to it that Garmin's update server still offers
+(their part number and version, and when: updates.py), and the address of its model's
+picture as Garmin gives it (the account's
 list, or Garmin's update server for a device off the account), to download the picture again
 once it is out of the cache: only an address picture_urls allows, of a picture of the model,
 with neither the unit ID nor anything of the account in it. No address of the device itself
@@ -257,6 +259,10 @@ class KnownDevice:
     # The name Garmin gives its model (unit-info, garmin_name), kept for a device whose
     # GarminDevice.xml names it in capitals only ("EPIX"); None: not known.
     model_name: str | None = None
+    # The updates openExpress copied to it that Garmin's update server still offered at its
+    # last check, each by its key (part number and version) with when it was copied: one the
+    # server offers again after it was copied was not installed by the device.
+    copied_updates: tuple[tuple[str, float], ...] = ()
 
     @property
     def shown_name(self) -> str:
@@ -422,6 +428,39 @@ def set_update_found(unit_id: int, found: bool, now: float | None = None,
     return True
 
 
+def note_copied(unit_id: int, keys: list[str], now: float | None = None) -> bool:
+    """Keep that the updates of these keys (part number and version) were copied to the
+    device now; whether the entry changed. A device not remembered gets no entry."""
+    at = time.time() if now is None else now
+    kept = [key for key in keys if _identifier(key)]
+
+    def change(entry: KnownDevice) -> KnownDevice:
+        copied = dict(entry.copied_updates)
+        copied.update(dict.fromkeys(kept, at))
+        return replace(entry, copied_updates=tuple(sorted(copied.items())))
+
+    changed = _update(unit_id, change)
+    if changed is None:
+        return False
+    log.info("devices: %d update%s copied to %s kept", len(kept), "" if len(kept) == 1 else "s",
+             changed[1].part_number)
+    return True
+
+
+def keep_copied(unit_id: int, offered: set[str]) -> bool:
+    """Forget the updates copied to the device that the server no longer offers (`offered`:
+    the keys it offers now): the device installed them. Whether the entry changed."""
+    def change(entry: KnownDevice) -> KnownDevice:
+        return replace(entry, copied_updates=tuple(
+            (key, at) for key, at in entry.copied_updates if key in offered))
+
+    changed = _update(unit_id, change)
+    if changed is None:
+        return False
+    log.info("devices: an update copied to %s is offered no more", changed[1].part_number)
+    return True
+
+
 def recorded_updates(entry: KnownDevice | None, software_version: str,
                      now: float | None = None) -> UpdateSummary | None:
     """What the last check found for this device, if it found an update less than
@@ -580,7 +619,8 @@ def _read() -> tuple[dict[int, KnownDevice], bool]:
                 synced=SyncedFact.from_json(facts.get("synced")),
                 usb_serial=_identifier(value.get("usb_serial")),
                 volume_uuid=_identifier(value.get("volume_uuid")),
-                model_name=garmin_name(value.get("model_name")))
+                model_name=garmin_name(value.get("model_name")),
+                copied_updates=_copied(value.get("copied_updates")))
             known[entry.unit_id] = entry
     except (ValueError, KeyError, TypeError, AttributeError):
         log.warning("devices: %s is damaged; it is left as it is and nothing is remembered "
@@ -600,6 +640,16 @@ def _tile_facts(value: dict) -> dict:
                        "summary": value.get("update_summary"),
                        "check": value.get("update_check")},
             "sync": value.get("sync_count")}
+
+
+def _copied(value) -> tuple[tuple[str, float], ...]:
+    """The updates copied to a device as written, {key: time}: a key that is no identifier,
+    or a time that is no number, is not kept."""
+    if not isinstance(value, dict):
+        return ()
+    return tuple(sorted((key, float(at)) for key, at in value.items()
+                        if _identifier(key) and isinstance(at, int | float)
+                        and not isinstance(at, bool)))
 
 
 def _product(value) -> str | None:
@@ -629,6 +679,9 @@ def _write(known: dict[int, KnownDevice]) -> None:
                          "model_name"):
             if fields[optional] is None:
                 del fields[optional]  # written only when known
+        del fields["copied_updates"]
+        if entry.copied_updates:
+            fields["copied_updates"] = dict(entry.copied_updates)
         update = {"found": entry.update_found,
                   "summary": entry.update_summary.to_json() if entry.update_summary else None,
                   "check": entry.update_check.to_json() if entry.update_check else None}

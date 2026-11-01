@@ -34,7 +34,11 @@ from openexpress.gui.window_tasks import (  # noqa: E402
     still_in_window,
     wrapping_row,
 )
-from openexpress.gui.words import software_text, update_state_text  # noqa: E402
+from openexpress.gui.words import (  # noqa: E402
+    copied_update_text,
+    software_text,
+    update_state_text,
+)
 from openexpress.i18n import SEPARATOR, _, caption, human_size, ngettext  # noqa: E402
 from openexpress.updates import FINISH_STEPS_WINDOW  # noqa: E402
 
@@ -181,7 +185,7 @@ class UpdatesPage:
         d = self.session.device
         mass_storage = getattr(self.session, "mass_storage", False)
         installed = software_text(d.software_version_str)
-        detail = None
+        detail = note = None
         buttons = []
         if system is not None:
             icon = "software-update-available-symbolic"
@@ -196,9 +200,12 @@ class UpdatesPage:
                 # TRANSLATORS: marks a beta version of the device software
                 subtitle = (versions, _("Beta"), size)
             detail = caption(system.title, system.severity_text, system.filename)
+            # Copied before and offered again: the device has not installed it.
+            note = copied_update_text(system)
             # TRANSLATORS: button
-            buttons.append(self._button(_("Install"), lambda u=system: self.confirm_update(u),
-                                        "suggested-action"))
+            buttons.append(self._button(_("Install") if note is None else _("Reinstall"),
+                                        lambda u=system: self.confirm_update(u),
+                                        "suggested-action" if note is None else None))
         elif ready is not None:
             # What to do is in the title (as on the row "Device software"), with how many are
             # still to install (listed below); under it the versions.
@@ -234,6 +241,7 @@ class UpdatesPage:
 
         for text, styles in ((title, ["title-1"]), (subtitle, ["dim-label"]),
                              (detail, ["caption", "dim-label"]),
+                             (note, ["caption", "dim-label"]),
                              (_(upd.BETA_OFFERED) if beta else None, ["caption", "dim-label"])):
             if isinstance(text, tuple):  # a beta version: "Beta" stands out
                 versions, word, after = text
@@ -268,7 +276,8 @@ class UpdatesPage:
 
     def _update_row(self, parent, u, reinstall: bool = False, waits_for=None) -> None:
         """A row of update `u`; `waits_for`: the update copied already to its file, which the
-        device has not installed yet: then no button, as a copy would replace it."""
+        device has not installed yet: then no button, as a copy would replace it. One copied
+        before that is offered again says so, with Reinstall."""
         details = caption(versions_text(u, self.session.device), human_size(u.size),
                           u.severity_text, u.filename)
         # A system update says so in its title; the name the server gives it goes first.
@@ -278,6 +287,10 @@ class UpdatesPage:
             # copied already and not installed yet by the device
             subtitle += "\n" + _("Can be installed once the device has installed {name}").format(
                 name=waits_for.title)
+        note = copied_update_text(u)
+        if note is not None:
+            subtitle += "\n" + note
+            reinstall = True
         row = Adw.ActionRow(
             title=GLib.markup_escape_text(_("System software") if u.is_system else u.title),
             subtitle=GLib.markup_escape_text(subtitle),

@@ -7,6 +7,7 @@ data type, "Firmware", is also that of plain files such as fonts. All values are
 import hashlib
 import logging
 import types
+from datetime import datetime
 from pathlib import Path
 
 import pytest
@@ -323,8 +324,6 @@ def test_cli_says_which_update_waits_for_the_next_connection(device_root, tmp_pa
 def test_an_update_for_the_file_of_one_copied_already_waits(monkeypatch):
     """While a copied update waits in a file for the device, another one for that file has
     no Install: copying it would replace the first."""
-    from gi.repository import Gtk
-
     sensor = {**_entry("006-B0002-00", "Test Sensor Software", "Firmware", "GARMIN\\REMOTESW",
                        "gupdate.gcd", b"sensor", restart=True), "displayVersion": "1.20"}
     gps, other = _items(GPS_ENTRY, sensor)
@@ -336,6 +335,12 @@ def test_an_update_for_the_file_of_one_copied_already_waits(monkeypatch):
     assert row.get_title() == "Test Sensor Software"
     assert row.get_subtitle().splitlines()[1] == (
         "Can be installed once the device has installed Test GPS Software")
+    assert _row_buttons(row) == []
+
+
+def _row_buttons(row):
+    """The labels of the buttons of a row."""
+    from gi.repository import Gtk
 
     def buttons(widget):
         child = widget.get_first_child()
@@ -345,7 +350,121 @@ def test_an_update_for_the_file_of_one_copied_already_waits(monkeypatch):
             yield from buttons(child)
             child = child.get_next_sibling()
 
-    assert list(buttons(row)) == []
+    return [b.get_label() for b in buttons(row)]
+
+
+# --- an update copied before that the server offers again ---------------------------------------
+
+UNIT = 1234567890  # of the GarminDevice.xml of these tests (conftest)
+COPIED_AT = datetime(2026, 11, 1, 11, 37).timestamp()
+COPIED_WHEN = "2026-11-01 11:37"
+
+
+def _remember_the_device():
+    from openexpress import known_devices
+
+    known_devices.remember(UNIT, "Test watch", "006-B0000-00", "23.39", "ums")
+
+
+def _offered_now(root, *entries):
+    """What the server offers the device in `root` (its own GarminDevice.xml), compared with
+    it."""
+    from openexpress.device.xmldevice import parse
+
+    device = parse((root / "GARMIN" / "GarminDevice.xml").read_bytes())
+    return updates.offered(LocalStorage(root), lower_keys({"updates": list(entries)}), device)
+
+
+def test_a_copied_update_is_kept_until_the_server_offers_it_no_more(device_root, tmp_path,
+                                                                   monkeypatch):
+    """What openExpress copied is kept with the device (devices.json: only the part number,
+    the version and when), as long as the server offers it: then the device did not install
+    it. Offered no more, it is forgotten."""
+    from openexpress import known_devices
+
+    _remember_the_device()
+    (font,) = [u for u in updates.parse_updates(lower_keys(server_answer())) if not u.is_system]
+
+    def fetch(urls, dest, size, md5, session=None, progress=None):
+        dest.parent.mkdir(parents=True, exist_ok=True)
+        dest.write_bytes(FONT)
+        return dest
+
+    monkeypatch.setattr(download, "fetch", fetch)
+    monkeypatch.setattr(updates, "cache_path", lambda u: tmp_path / "cache" / u.filename)
+    updates.install([font], LocalStorage(device_root), unit_id=UNIT)
+    (key,) = dict(known_devices.load()[UNIT].copied_updates)
+    assert key == "006-D0000-00.23.40"
+    (again,) = _offered_now(device_root, FONT_ENTRY)
+    assert again.copied_at == dict(known_devices.load()[UNIT].copied_updates)[key]
+    assert _offered_now(device_root) == []
+    assert known_devices.load()[UNIT].copied_updates == ()
+
+
+@pytest.mark.parametrize(("on_the_device", "changed", "said"), [
+    (None, False, ""),
+    (bytes(len(GPS)), True, ("; the file at its place has other bytes of the same size: the "
+                             "device changed or refused it")),
+], ids=["not-there", "other-bytes"])
+def test_an_update_copied_before_and_offered_again_is_said(device_root, caplog, on_the_device,
+                                                           changed, said):
+    """Offered again after it was copied: the device did not install it. A file of its size
+    with other bytes at its place: the device changed it, or refused it."""
+    from openexpress import known_devices
+
+    _remember_the_device()
+    known_devices.note_copied(UNIT, ["006-B0001-00.6.70"], now=COPIED_AT)
+    if on_the_device is not None:
+        (device_root / "GARMIN" / "REMOTESW").mkdir()
+        (device_root / "GARMIN" / "REMOTESW" / "GUPDATE.GCD").write_bytes(on_the_device)
+    with caplog.at_level(logging.INFO, logger="openexpress.updates"):
+        (gps,) = _offered_now(device_root, GPS_ENTRY)
+    assert (gps.copied_at, gps.changed_on_device, gps.on_device) == (COPIED_AT, changed, False)
+    assert (f"software update: 006-B0001-00 6.70 copied 2026-11-01T11:37 is offered again{said}"
+            in [r.getMessage() for r in caplog.records])
+
+
+def test_cli_tells_an_update_copied_before_and_offered_again(device_root, monkeypatch,
+                                                            no_download, capsys):
+    from openexpress import known_devices
+
+    _remember_the_device()
+    known_devices.note_copied(UNIT, ["006-B0001-00.6.70"], now=COPIED_AT)
+    answer = lower_keys({"updates": [GPS_ENTRY]})
+    monkeypatch.setattr(GarminClient, "software_updates",
+                        lambda self, raw, include_reinstalls=False: answer)
+    assert main(["--path", str(device_root), "updates"]) == 0
+    out = capsys.readouterr().out.splitlines()
+    assert out[2:4] == [
+        "  006-B0001-00          6.70  Recommended       12 B  Test GPS Software",
+        f"      Copied {COPIED_WHEN}: check on the device that it is installed."]
+
+
+@pytest.mark.needs_display
+@pytest.mark.parametrize(("changed", "note"), [
+    (False, f"Copied {COPIED_WHEN}, check on the device that it is installed"),
+    (True, f"The device changed or refused the file copied {COPIED_WHEN}"),
+])
+def test_the_window_tells_an_update_copied_before_and_offered_again(changed, note):
+    """Its row says when it was copied, and Reinstall instead of Install."""
+    device = _device_with_parts()
+    (gps,) = updates.parse_updates(lower_keys({"updates": [GPS_ENTRY]}), device)
+    gps.copied_at, gps.changed_on_device = COPIED_AT, changed
+    _win, _status, groups, _buttons = _updates_page([gps], device=device)
+    (available,) = groups
+    (row,) = available.rows
+    assert row.get_subtitle().splitlines()[1] == note
+    assert _row_buttons(row) == ["Reinstall"]
+
+
+@pytest.mark.needs_display
+def test_the_device_software_copied_before_and_offered_again_is_told_at_the_top():
+    (bundle,) = _items(BUNDLE_ENTRY)
+    bundle.copied_at = COPIED_AT
+    _win, status, _groups, _buttons = _updates_page([bundle])
+    assert (f"Copied {COPIED_WHEN}, check on the device that it is installed",
+            ["caption", "dim-label"]) in status["texts"]
+    assert status["buttons"] == [("Reinstall", False), ("Check Again", False)]
 
 
 # --- the window asks before it installs ---------------------------------------------------------
