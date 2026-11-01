@@ -1,7 +1,7 @@
 # Design: a look into FIT files (activities, GPX, the sync queue, `fit inspect`)
 
-Status: design only, nothing of it is implemented. The decisions in section 4 wait for the
-maintainer's choice; the recommended option of each is marked. The scope in section 1 is set
+Status: design only, nothing of it is implemented. The decisions in section 4 are made: each
+took its recommended option, marked "chosen". The scope in section 1 is set
 once: what it does not list is not added while it is implemented.
 
 ## 1. Scope
