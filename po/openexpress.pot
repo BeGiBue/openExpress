@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: openexpress 0.7.14\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-11-01 19:39+0100\n"
+"POT-Creation-Date: 2026-11-01 19:49+0100\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -136,7 +136,7 @@ msgid "Sport {number}"
 msgstr ""
 
 #. TRANSLATORS: a step of a long task: the activity files read ("… · 2 of 30")
-#: openexpress/activities.py:193
+#: openexpress/activities.py:194
 msgid "Reading activities"
 msgstr ""
 
@@ -3359,29 +3359,29 @@ msgstr ""
 msgid "Could not download the file:"
 msgstr ""
 
-#: openexpress/fit.py:124
+#: openexpress/fit.py:125
 #, python-brace-format
 msgid "Damaged FIT file ({error})"
 msgstr ""
 
-#: openexpress/fit.py:130
+#: openexpress/fit.py:131
 msgid "File too short"
 msgstr ""
 
-#: openexpress/fit.py:133
+#: openexpress/fit.py:134
 msgid "Not a FIT file"
 msgstr ""
 
-#: openexpress/fit.py:165 openexpress/fit.py:178 openexpress/fit.py:182
+#: openexpress/fit.py:166 openexpress/fit.py:179 openexpress/fit.py:183
 msgid "Truncated FIT definition message"
 msgstr ""
 
-#: openexpress/fit.py:190
+#: openexpress/fit.py:191
 #, python-brace-format
 msgid "Data message without a definition (local type {local})"
 msgstr ""
 
-#: openexpress/fit.py:313
+#: openexpress/fit.py:314
 msgid "No file_id message"
 msgstr ""
 
@@ -3393,6 +3393,10 @@ msgid_plural ""
 "{count} files of this device have not been uploaded yet and would be lost."
 msgstr[0] ""
 msgstr[1] ""
+
+#: openexpress/gpx.py:34
+msgid "This activity has no GPS positions, so it cannot be exported as GPX."
+msgstr ""
 
 #: openexpress/gui/app.py:76
 msgctxt "tab"

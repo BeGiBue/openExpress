@@ -8,7 +8,7 @@ from __future__ import annotations
 
 import math
 import struct
-from collections.abc import Collection
+from collections.abc import Collection, Iterator
 from dataclasses import dataclass, field
 from enum import Enum
 
@@ -29,6 +29,7 @@ _SESSION_ASCENT = 22  # metres
 # FIT profile: record (one point of an activity)
 _MESG_RECORD = 20
 _RECORD_LAT, _RECORD_LONG = 0, 1  # semicircles
+_RECORD_ALTITUDE, _RECORD_ENHANCED_ALTITUDE = 2, 78  # metres: value / 5 - 500
 # FIT profile: the sport "multisport"
 SPORT_MULTISPORT = 18
 # The field number of a message's time (date_time) in every message of the FIT profile.
@@ -481,3 +482,37 @@ def inspect(data: bytes) -> Inspection:
         product=_whole_number(file_id.get(_FILE_ID_PRODUCT)),
         created=_unix_time(file_id.get(_FIELD_TIME_CREATED)), messages=counts,
         broke_off=broke_off)
+
+
+@dataclass(frozen=True)
+class Point:
+    """A record of an activity that has a position: degrees, metres and a Unix time."""
+
+    latitude: float
+    longitude: float
+    altitude: float | None = None
+    time: int | None = None
+
+
+def _degrees(semicircles: int) -> float:
+    return semicircles * 180 / 2**31
+
+
+def _metres(value: Value) -> float | None:
+    raw = _whole_number(value)
+    return None if raw is None else raw / 5 - 500
+
+
+def points(data: bytes) -> Iterator[Point]:
+    """The records of the activity file `data` that have a position, in their order: the
+    enhanced altitude when it is given, else the altitude. FitError where the file breaks
+    off, after the points before it."""
+    for _num, values in iter_messages(data, wanted=(_MESG_RECORD,)):
+        lat, long = (_whole_number(values.get(n)) for n in (_RECORD_LAT, _RECORD_LONG))
+        if lat is None or long is None:
+            continue
+        altitude = _metres(values.get(_RECORD_ENHANCED_ALTITUDE))
+        if altitude is None:
+            altitude = _metres(values.get(_RECORD_ALTITUDE))
+        yield Point(_degrees(lat), _degrees(long), altitude,
+                    _unix_time(values.get(FIELD_TIMESTAMP)))
