@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: openexpress 0.7.14\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-11-01 19:04+0100\n"
+"POT-Creation-Date: 2026-11-01 19:15+0100\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -17,6 +17,128 @@ msgstr ""
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=INTEGER; plural=EXPRESSION;\n"
+
+#: openexpress/activities.py:79
+msgctxt "sport"
+msgid "Activity"
+msgstr ""
+
+#: openexpress/activities.py:80
+msgctxt "sport"
+msgid "Running"
+msgstr ""
+
+#: openexpress/activities.py:81
+msgctxt "sport"
+msgid "Cycling"
+msgstr ""
+
+#: openexpress/activities.py:82
+msgctxt "sport"
+msgid "Fitness equipment"
+msgstr ""
+
+#: openexpress/activities.py:83
+msgctxt "sport"
+msgid "Swimming"
+msgstr ""
+
+#: openexpress/activities.py:84
+msgctxt "sport"
+msgid "Training"
+msgstr ""
+
+#: openexpress/activities.py:85
+msgctxt "sport"
+msgid "Walking"
+msgstr ""
+
+#: openexpress/activities.py:86
+msgctxt "sport"
+msgid "Cross-country skiing"
+msgstr ""
+
+#: openexpress/activities.py:87
+msgctxt "sport"
+msgid "Alpine skiing"
+msgstr ""
+
+#: openexpress/activities.py:88
+msgctxt "sport"
+msgid "Snowboarding"
+msgstr ""
+
+#: openexpress/activities.py:89
+msgctxt "sport"
+msgid "Rowing"
+msgstr ""
+
+#: openexpress/activities.py:90
+msgctxt "sport"
+msgid "Mountaineering"
+msgstr ""
+
+#: openexpress/activities.py:91
+msgctxt "sport"
+msgid "Hiking"
+msgstr ""
+
+#: openexpress/activities.py:92
+msgctxt "sport"
+msgid "Multisport"
+msgstr ""
+
+#: openexpress/activities.py:93
+msgctxt "sport"
+msgid "Paddling"
+msgstr ""
+
+#: openexpress/activities.py:94
+msgctxt "sport"
+msgid "E-biking"
+msgstr ""
+
+#: openexpress/activities.py:95
+msgctxt "sport"
+msgid "Golf"
+msgstr ""
+
+#: openexpress/activities.py:96
+msgctxt "sport"
+msgid "Rock climbing"
+msgstr ""
+
+#: openexpress/activities.py:97
+msgctxt "sport"
+msgid "Snowshoeing"
+msgstr ""
+
+#: openexpress/activities.py:98
+msgctxt "sport"
+msgid "Stand-up paddleboarding"
+msgstr ""
+
+#: openexpress/activities.py:99
+msgctxt "sport"
+msgid "Kayaking"
+msgstr ""
+
+#: openexpress/activities.py:100
+msgctxt "sport"
+msgid "HIIT"
+msgstr ""
+
+#. TRANSLATORS: a sport the program has no name for, by its number in the FIT profile
+#: openexpress/activities.py:105
+#, python-brace-format
+msgctxt "sport"
+msgid "Sport {number}"
+msgstr ""
+
+#. TRANSLATORS: a step of a long task: the activity files read ("… · 2 of 30")
+#: openexpress/activities.py:192
+msgid "Reading activities"
+msgstr ""
 
 #: openexpress/applog.py:422
 #, python-brace-format
@@ -93,14 +215,14 @@ msgstr ""
 msgid "systemctl was not found; background sync needs systemd."
 msgstr ""
 
-#: openexpress/backup.py:78
+#: openexpress/backup.py:94
 #, python-brace-format
 msgid ""
 "Nothing was backed up: the device names a folder or file '{name}' that "
 "cannot be used as a path on this computer."
 msgstr ""
 
-#: openexpress/backup.py:103
+#: openexpress/backup.py:119
 #, python-brace-format
 msgid ""
 "{count} file was still being written by the device and is not in the backup. "
@@ -112,7 +234,7 @@ msgstr[0] ""
 msgstr[1] ""
 
 #. TRANSLATORS: a step of a backup ("… · 120 of 1530")
-#: openexpress/backup.py:132
+#: openexpress/backup.py:148
 msgid "Copying to the backup"
 msgstr ""
 

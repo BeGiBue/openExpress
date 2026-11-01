@@ -59,6 +59,22 @@ def is_backup_dir(p: Path) -> bool:
     return True
 
 
+def backups_of(root: Path, unit_id: int | None) -> list[tuple[datetime, Path]]:
+    """The backups of the device `unit_id` in `root` (the folder of every device's backups),
+    newest first, as (when it was made, its folder): only folders named as a backup is named,
+    never a symbolic link. None when the folder cannot be listed (one line of the log)."""
+    folder = root / str(unit_id) if unit_id else None
+    try:
+        if folder is None or not folder.is_dir():
+            return []
+        found = [(datetime.strptime(p.name, STAMP), p) for p in folder.iterdir()
+                 if not p.is_symlink() and is_backup_dir(p)]
+    except OSError as e:
+        log.info("backups: the folder could not be listed (%s)", type(e).__name__)
+        return []
+    return sorted(found, key=lambda t: t[0], reverse=True)
+
+
 def keep_newest(folders: list[Path], keep: int, new: Path | None = None,
                 remove: Callable[[Path], None] = shutil.rmtree) -> list[Path]:
     """Of `folders` (oldest first) all but the newest `keep` are removed, never `new` (the one
