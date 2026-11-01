@@ -2,8 +2,8 @@
 
 Status: the decisions in section 4 are made (each took its recommended option, marked
 "chosen"); the implementation is done (steps 1–11 of section 7) and was checked on a device over
-MTP on 2026-11-01; a device connected as a USB drive and the preview of the sync queue wait for
-a test on a device. The scope in section 1 is set once: what it does not list is not added while
+MTP on 2026-11-01, the preview of the sync queue included; a device connected as a USB drive waits
+for a test on a device. The scope in section 1 is set once: what it does not list is not added while
 it is implemented.
 
 ## 1. Scope

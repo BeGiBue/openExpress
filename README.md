@@ -50,8 +50,8 @@ devices that connect over USB (MTP) should work too – reports are welcome.
   watches that hide their app folder (e.g. the fēnix 8).
 - Music, podcasts and audiobooks, with playlists.
 - Activities of the watch and of its backups, with their sport, time, distance and ascent,
-  exported as GPX, and a look into any FIT file (new; checked on a fēnix 8 over MTP); a look
-  into what a sync will write to the watch.
+  exported as GPX, a look into any FIT file and a look into what a sync will write to the
+  watch (new; checked on a fēnix 8 over MTP).
 - Backups, copies of the device's diagnostic files on this computer, the primary training
   device and the primary wearable.
 - A GTK 4 / libadwaita window, a command-line tool and sync in the background.

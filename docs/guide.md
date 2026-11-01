@@ -334,7 +334,8 @@ fēnix 8 over MTP.
 - The dry run (`openexpress sync` without `--apply`) also says what each file waiting in
   Garmin Connect is before a sync writes it to the watch – a workout's sport, name and steps,
   a course's sport and name, a schedule's days – and whether it is whole. It downloads them
-  into memory only and acknowledges nothing, so the sync downloads them again.
+  into memory only and acknowledges nothing, so the sync downloads them again. Tested on a
+  fēnix 8 over MTP.
 - **Last sync** on the Device page, `openexpress sync` and the notification of the
   background sync use the same words for how many new files the device had, how many were
   uploaded and how many came from Garmin Connect; the row on the Device page also says when
