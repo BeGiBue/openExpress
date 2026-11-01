@@ -939,7 +939,7 @@ def _refresh_window(page, device_root, maps_answers=(), updates_answers=()):
         device_view="device view",  # a refresh in the device view: it stays in view
         connected=Connected(),  # the devices connected, for the start page
         show_overview=show_overview, show_maps=show_maps, show_updates=show_updates,
-        load_apps=None, load_music=None,  # other pages: not loaded here
+        load_apps=None, load_music=None, load_activities=None,  # other pages: not loaded here
         run_task=RunNow(),
         in_background=lambda work, done, failed=None: run(work, done, failed))
     for name in ("show_device", "show_no_device", "_clear_device_pages", "load_section",
@@ -1107,7 +1107,8 @@ def _real_maps_page(answers, device_root, unit_info=UNIVERSAL):
     win.map_state, win.map_update_count, win._map_check_session = None, 0, None
     win.map_row = Row()
     win.confirm_map = win.confirm_remove = lambda m: None
-    win.load_updates = win.load_apps = win.load_music = None  # other pages: not loaded here
+    # Other pages: not loaded here.
+    win.load_updates = win.load_apps = win.load_music = win.load_activities = None
     for name in ("load_maps", "show_maps", "show_own_maps", "load_section", "_set_map_state",
                  "_render_map_state"):
         setattr(win, name, types.MethodType(getattr(MainWindow, name), win))

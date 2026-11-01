@@ -150,6 +150,11 @@ class DeviceActivities:
         """How many of the list are not read yet."""
         return len(self.listing) - len(self.read)
 
+    @property
+    def only_in_backups(self) -> int:
+        """How many of the list only a backup has."""
+        return sum(1 for a in self.listing if a.source is Source.BACKUP)
+
     def list_files(self) -> None:
         """Lists the activity files of the device and of its backups again, no file read; the
         reading starts again from the newest, with what was kept."""

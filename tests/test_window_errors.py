@@ -69,7 +69,7 @@ def _window(sections):
         sections=sections, session=types.SimpleNamespace(mass_storage=False), busy=False,
         _retry_sources={}, _action_buttons=[],
         run_task=RunNow())
-    for name in ("load_updates", "load_maps", "load_music"):
+    for name in ("load_updates", "load_maps", "load_music", "load_activities"):
         setattr(win, name, lambda: pytest.fail("another page"))
     window_methods(win, ["_load"])
     return win

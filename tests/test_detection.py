@@ -3229,11 +3229,12 @@ def _recording_page(key):
 @pytest.mark.parametrize("force", [False, True])  # True: "Try Again"
 def test_pages_not_available_for_a_garmin_drive(drive_window, monkeypatch, force):
     """Maps, Apps and Music load nothing for a drive (no request, no "Internal
-    error") and say in one sentence why; the Updates page loads as for any device."""
+    error") and say in one sentence why; the Updates and Activities pages load as for any
+    device."""
     from openexpress.gui.app import MainWindow
 
     loaded = []
-    keys = ("updates", "maps", "apps", "music")
+    keys = ("updates", "maps", "apps", "music", "activities")
     win = stand_in(session=drive_session(drive_window, monkeypatch),
                    sections={key: _recording_page(key) for key in keys},
                    refresh_device=lambda: loaded.append("refresh"))
@@ -3241,7 +3242,7 @@ def test_pages_not_available_for_a_garmin_drive(drive_window, monkeypatch, force
         setattr(win, f"load_{key}", lambda key=key: loaded.append(key))
     for key in keys:
         MainWindow.load_section(win, key, force=force)
-    assert loaded == ["updates"]
+    assert loaded == ["updates", "activities"]
     for key in ("maps", "apps", "music"):
         seen = win.sections[key].seen
         assert seen == {"cleared": True, "title": key.title(), "description": MASS_STORAGE_TEXT,

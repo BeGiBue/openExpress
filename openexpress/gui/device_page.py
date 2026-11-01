@@ -720,6 +720,7 @@ class DevicePage:
         self.update_state = None
         self.update_checked_at = self._update_record_at = None
         self.apps_count = self.music_count = None  # read again by their pages
+        self.activities = self.activities_list = self.activities_more = None
         self.map_state = None
         for sec in self.sections.values():
             sec.loaded = False
@@ -814,7 +815,8 @@ class DevicePage:
             show_not_for_mass_storage(sec)  # no request, nothing read
             return
         loader = {"updates": self.load_updates, "maps": self.load_maps,
-                  "apps": self.load_apps, "music": self.load_music}[key]
+                  "apps": self.load_apps, "music": self.load_music,
+                  "activities": self.load_activities}[key]
         loader()
 
     def _load(self, key: str, title: str, work, show, device: bool = True,

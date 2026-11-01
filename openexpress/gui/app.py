@@ -22,6 +22,7 @@ from openexpress.connect import NotAccountDevice  # noqa: E402
 from openexpress.console import error as print_error  # noqa: E402
 from openexpress.device.gio_storage import ABSENT  # noqa: E402
 from openexpress.gui import pictures, start  # noqa: E402
+from openexpress.gui.activities_page import ActivitiesPage  # noqa: E402
 from openexpress.gui.apps_page import AppsPage  # noqa: E402
 from openexpress.gui.connected import Connected  # noqa: E402
 from openexpress.gui.detection import DeviceDetection  # noqa: E402
@@ -60,8 +61,8 @@ log = logging.getLogger(__name__)
 
 
 class MainWindow(TaskRunner, DeviceDetection, StartWindow, DevicePage, MapsPage, MusicPage,
-                 AppsPage, UpdatesPage, Preferences, NetStatusPanel, ForgetDevice, ReportDialog,
-                 Adw.ApplicationWindow):
+                 AppsPage, UpdatesPage, ActivitiesPage, Preferences, NetStatusPanel, ForgetDevice,
+                 ReportDialog, Adw.ApplicationWindow):
     def __init__(self, app: Adw.Application):
         super().__init__(application=app, title="openExpress")
         self._init_state()
@@ -87,6 +88,9 @@ class MainWindow(TaskRunner, DeviceDetection, StartWindow, DevicePage, MapsPage,
             # TRANSLATORS: tab title
             Section("music", pgettext("tab", "Music"), "audio-x-generic-symbolic",
                     _("Reading music on the device…")),
+            # TRANSLATORS: tab title
+            Section("activities", pgettext("tab", "Activities"), "x-office-calendar-symbolic",
+                    _("Reading activities…")),
         )}
         for sec in self.sections.values():
             sec.retry.connect("clicked", lambda _b, k=sec.key: self.load_section(k, force=True))
@@ -229,6 +233,9 @@ class MainWindow(TaskRunner, DeviceDetection, StartWindow, DevicePage, MapsPage,
         self._banner_kind = ""
         self._last_sync_data = None
         self.apps_count = self.music_count = None
+        # The activities of the open device as its page read them, and the groups of that page
+        # that grow as more are read (gui/activities_page.py).
+        self.activities = self.activities_list = self.activities_more = None
         self.account_picture_offer = self.account_picture_row = None
         self.device_error_group = self.device_error_row = None
         # The pictures of devices drawn and asked for (pictures.py).

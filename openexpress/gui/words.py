@@ -192,3 +192,71 @@ def last_seen_text(last_seen: float, now: datetime | None = None) -> str:
 def last_seen_tooltip(last_seen: float) -> str:
     """The tooltip of last_seen_text: when, in full."""
     return _("Last seen {when}").format(when=full_time(datetime.fromtimestamp(last_seen)))
+
+
+# --- the Activities page: what an activity file says ---------------------------------------
+
+
+def activity_time_text(seconds: float) -> str:
+    """The time of an activity: "1 h 02 min", "45 min", "40 s" (whole minutes from a minute)."""
+    total = max(0, round(seconds))
+    hours, minutes = divmod(total // 60, 60)
+    if hours:
+        # TRANSLATORS: the time of an activity in hours and minutes ("1 h 02 min")
+        return _("{hours} h {minutes} min").format(hours=hours,
+                                                            minutes=f"{minutes:02}")
+    if minutes:
+        return _("{minutes} min").format(minutes=minutes)
+    return _("{seconds} s").format(seconds=total)
+
+
+def activity_title(read) -> str:
+    """The title of an activity's row (activities.Read): its sport, "Activity" when the file
+    does not say, "Unreadable file" for one that is no FIT file."""
+    from openexpress.activities import sport_name
+
+    if read.summary is None:
+        return _("Unreadable file")
+    return sport_name(read.summary.sport)
+
+
+def activity_caption(read) -> str:
+    """The details of an activity's row: when it started, its time, distance and ascent,
+    where it was read, and what is wrong with its file; of a file the device was still writing
+    only when it was made and that."""
+    from openexpress import fit
+    from openexpress.activities import Source
+    from openexpress.i18n import decimal
+
+    a, found = read.activity, read.summary
+    if a.source is Source.DEVICE:
+        # TRANSLATORS: in the details of an activity on the Activities page: where it was read
+        source = pgettext("activity source", "Device")
+    else:
+        source = pgettext("activity source", "Backup of {date}").format(
+            date=a.backup.strftime(_("%Y-%m-%d")))
+    if found is None:
+        return source
+    when = found.start or found.created
+    parts = [full_time(datetime.fromtimestamp(when)) if when else ""]
+    if found.state is fit.FileState.STILL_BEING_WRITTEN:
+        return caption(*parts, _("Still being written: disconnect and reconnect the device"))
+    if found.timer_time is not None:
+        parts.append(activity_time_text(found.timer_time))
+    if found.distance:
+        parts.append(f"{decimal(f'{found.distance / 1000:.1f}')} km")
+    if found.ascent is not None:
+        parts.append(f"↑ {found.ascent} m")
+    parts.append(source)
+    if found.state is fit.FileState.DAMAGED:
+        parts.append(_("Damaged file"))
+    return caption(*parts)
+
+
+def activities_count_text(count: int, only_in_backups: int) -> str:
+    """Above the rows of the Activities page: how many activities, and how many of them only
+    a backup has."""
+    return caption(
+        ngettext("{count} activity", "{count} activities", count).format(count=count),
+        # TRANSLATORS: on the Activities page: how many activities only a backup has
+        _("{count} only in backups").format(count=only_in_backups) if only_in_backups else "")

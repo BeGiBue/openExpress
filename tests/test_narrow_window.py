@@ -167,6 +167,30 @@ def _music():
             ["Music/Ulubione na trening biegowy.m3u8"])
 
 
+def _activities():
+    """What the Activities page shows: the longest Polish name of a sport, the longest state, a
+    copy in a backup, and more to read (the button below the rows)."""
+    from datetime import datetime
+
+    from openexpress import activities, fit
+
+    def read(name, found, source=activities.Source.DEVICE, backup=None):
+        return activities.Read(activities.Activity(source, f"GARMIN/Activity/{name}", name, 1,
+                                                   1.0, backup), found)
+
+    start = int(datetime(2026, 12, 31, 23, 59).timestamp())
+    reads = [
+        read("ski.fit", fit.ActivitySummary(fit.FileState.DAMAGED, start=start, sport=13,
+                                            timer_time=35_999.0, distance=123_456.0, ascent=9_999,
+                                            has_positions=True),
+             activities.Source.BACKUP, datetime(2026, 12, 31, 23, 59)),
+        read("writing.fit", fit.ActivitySummary(fit.FileState.STILL_BEING_WRITTEN, created=start)),
+        read("notes.fit", None),
+    ]
+    return types.SimpleNamespace(read=reads, left=30, listing=[r.activity for r in reads] * 11,
+                                 only_in_backups=11)
+
+
 def _tiles():
     """Tiles of devices connected, remembered and only on the account, with the words under
     their names as the window makes them."""
@@ -239,6 +263,8 @@ def _fill(win, page: str) -> str:
         MainWindow.show_apps(win, _apps())
     elif key == "music":
         MainWindow.show_music(win, _music(), free=win.session.storage.free_space())
+    elif key == "activities":
+        MainWindow.show_activities(win, _activities())
     win.sections[key].show("content")
     win._update_actions()
     win._update_banner()
@@ -342,7 +368,7 @@ DEVICE_PAGES = ["device", "device-update-copied", "device-off-account", "device-
                 "device-refused-drive", "updates-beta",
                 "updates-beta-drive",
                 "updates-beta-copied", "updates-beta-copied-drive", "maps", "maps-none", "apps",
-                "music"]
+                "music", "activities"]
 
 
 @pytest.mark.parametrize("language", ["en", "pl"])
