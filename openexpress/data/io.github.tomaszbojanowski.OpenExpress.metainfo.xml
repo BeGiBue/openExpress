@@ -105,6 +105,25 @@
   </supports>
   <content_rating type="oars-1.1"/>
   <releases>
+    <release version="0.7.14" date="2026-11-01">
+      <description>
+        <ul>
+          <li>The sync of a device connected as a USB drive is now confirmed on a real watch, an
+          Instinct 2S.</li>
+          <li>The software of a part of the device, such as its GPS chip, is shown with its own
+          name and version ("6.10 → 6.70") instead of next to the version of the device's
+          software, and is no longer called a system update.</li>
+          <li>On a device connected as a USB drive, every file written is read back from the
+          drive and checked against Garmin's checksum before it counts, and the window ejects
+          the drive by itself right after an update was copied. With more than one update for
+          such a device, "Install all" copies them all and ejects the drive once.</li>
+          <li>Two updates that go to the same file on the device are copied one at a time, so
+          that neither replaces the other before the device has installed it.</li>
+          <li>An update that was copied before and is still offered says when it was copied and
+          offers Reinstall; if the device changed or refused its file, the window says so.</li>
+        </ul>
+      </description>
+    </release>
     <release version="0.7.13" date="2026-10-31">
       <description>
         <ul>
