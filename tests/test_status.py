@@ -63,6 +63,27 @@ def test_status_says_what_is_known_without_asking_a_server(monkeypatch, capsys, 
         "  Device software: Software is up to date · checked just now"]
 
 
+def test_status_says_how_many_activities_there_are_to_upload_now(monkeypatch, capsys, clock,
+                                                                 device_root):
+    """As the device page says it after its last sync, with the same count (its activity
+    folder listed against what this installation uploaded, no file read)."""
+    from openexpress.device.storage import LocalStorage
+    from openexpress.device.xmldevice import parse
+
+    login()
+    device = parse((device_root / "GARMIN" / "GarminDevice.xml").read_bytes())
+    fenix = DeviceSummary(FoundDevice("mtp://made-up/", "fenix", True, kind="mtp"),
+                          "fēnix 8 - 47mm, Solar", "006-B4532-00", "23.39", device.unit_id)
+    fenix.device, fenix.storage = device, LocalStorage(device_root)
+    _connected(monkeypatch, [fenix])
+    noted([fenix], account=[{"unitid": device.unit_id}])
+    sync.SyncState(device.unit_id).save()  # synced here, neither activity uploaded
+    record_sync(device.unit_id, uploaded=0, downloaded=1, skipped_known=0, errors=[], lines=[])
+    assert main(["status"]) == 0
+    assert ("  Last sync: just now · nothing to upload · 1 received · now to upload: 2 "
+            "activities") in capsys.readouterr().out.splitlines()
+
+
 def test_status_without_a_login_or_a_record(monkeypatch, capsys, clock):
     login(saved=False)
     _connected(monkeypatch, [_fenix()])

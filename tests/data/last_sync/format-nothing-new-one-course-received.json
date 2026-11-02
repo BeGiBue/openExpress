@@ -1,0 +1,18 @@
+{
+ "synthetic": "made up: the shape of a sync that found no new file on the device and wrote one course from Garmin Connect, as the row of a device that has new activities by now says it",
+ "time": 1792940000.0,
+ "unit_id": 3000000120,
+ "uploaded": 0,
+ "downloaded": 1,
+ "skipped_known": 0,
+ "rejected": 0,
+ "errors": [],
+ "lines": [
+  {
+   "kind": "received_files",
+   "types": {
+    "FIT_TYPE_6": 1
+   }
+  }
+ ]
+}

@@ -74,8 +74,8 @@ from openexpress.gui.words import (  # noqa: E402
     primary_wearable_text,
     software_text,
     stalled_text,
-    to_upload_text,
     update_state_text,
+    with_activities_to_upload,
 )
 from openexpress.i18n import N_, _, caption, human_size, ngettext, pgettext  # noqa: E402
 from openexpress.paths import APP_ID  # noqa: E402
@@ -98,10 +98,7 @@ def last_sync_subtitle(unit_id, data: dict | None, to_sync=None,
     if not unit_id or not sync.synced_here(unit_id):
         return never_synced()
     text = last_sync_words(data, now) if data else no_sync_record()
-    count = getattr(to_sync, "count", None)
-    if count and (not data or service.not_uploaded(data) is None):
-        text = caption(text, to_upload_text(count))
-    return text
+    return with_activities_to_upload(text, data, to_sync)
 
 
 def open_to_sync(s):

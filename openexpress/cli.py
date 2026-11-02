@@ -725,9 +725,15 @@ def _print_status(s, entry, listed, client, now) -> None:
     print(" · ".join(parts))
     if not drive:
         data = service.load_last_sync(s.unit_id)
-        text = (words.never_synced() if not sync.synced_here(s.unit_id) else
-                last_sync.describe(data).row(now) if data is not None else
-                _("No record of the last sync; the next sync uploads new data only"))
+        if not sync.synced_here(s.unit_id):
+            text = words.never_synced()
+        else:
+            text = (last_sync.describe(data).row(now) if data is not None else
+                    _("No record of the last sync; the next sync uploads new data only"))
+            if on is not False and s.device is not None and s.storage is not None:
+                # As the device page: the activities it has to upload now, listed only.
+                text = words.with_activities_to_upload(
+                    text, data, sync.activities_to_sync(s.device, s.storage))
         print("  " + _("Last sync: {text}").format(text=text))
     text = (_status_updates_online(client, s) if client is not None
             else _status_updates(entry, s.software_version, now))

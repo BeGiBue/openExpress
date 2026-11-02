@@ -23,6 +23,13 @@ NOTHING_NEW = {"No new data to upload", "Brak nowych danych do wysłania"}
 EXPECTED = {
     # A sync of an Edge 1050 (real-flatpak-edge-1050-0.6.13.json): the record has two steps,
     # shown once each, not under "No new data to upload" of the sync before.
+    # No new file on the device, a course from Garmin Connect written: the row of a device that
+    # has new activities by now (test_the_row_says_what_is_to_upload_now).
+    "format-nothing-new-one-course-received.json": {
+        "en": ("nothing to upload · 1 received", [
+            ("1 file from Garmin Connect: courses", False)]),
+        "pl": ("nic do wysłania · 1 odebrany", [
+            (f"1 plik z{NB}Garmin Connect: kursy", False)])},
     "real-flatpak-edge-1050-0.6.13.json": {
         "en": ("16 new files, 12 uploaded", [
             (("Files from the device: monitoring ×2, segment list, Garmin Coach plan ×9, "
@@ -259,6 +266,27 @@ def test_every_record_in_words(name, language):
     assert not {t.rstrip(".") for t in texts} & NOTHING_NEW  # the row says it
     # The command line and the notification: the same numbers and the same lines.
     assert told.text.splitlines() == [counts, *(t for t, warning in told.steps)]
+
+
+NOW_TO_UPLOAD = {
+    "en": f"3 days ago{NB}· nothing to upload{NB}· 1 received{NB}· now to upload: 2 activities",
+    "pl": (f"3 dni temu{NB}· nic do wysłania{NB}· 1 odebrany{NB}· teraz do wysłania: "
+           "2 aktywności"),
+}
+
+
+@pytest.mark.parametrize("language", ["en", "pl"], indirect=True)
+def test_the_row_says_what_is_to_upload_now(language):
+    """What the last sync found, then what the device has to upload now, apart: the row of the
+    device page and the line of `openexpress status` (gui.words.with_activities_to_upload)."""
+    from openexpress import last_sync
+    from openexpress.gui import words
+
+    record = _record("format-nothing-new-one-course-received.json")
+    to_sync = sync.ActivitiesToSync(record["unit_id"], frozenset({"a.fit", "b.fit"}), 2)
+    row = last_sync.describe(record).row(datetime.fromtimestamp(record["time"])
+                                         + timedelta(days=3))
+    assert words.with_activities_to_upload(row, record, to_sync) == NOW_TO_UPLOAD[language]
 
 
 def _window(unit_id):

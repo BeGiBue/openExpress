@@ -169,9 +169,9 @@ def test_the_last_sync_says_how_many_new_activities_there_are_to_upload():
     _state()
     _record()
     said = _last_sync_row(_counted(3)).last_sync_row.get_subtitle()
-    assert said.startswith("just now") and said.endswith(f"{NB}· 3 new activities to upload")
+    assert said.startswith("just now") and said.endswith(f"{NB}· now to upload: 3 activities")
     assert _last_sync_row(_counted(1)).last_sync_row.get_subtitle().endswith(
-        f"{NB}· 1 new activity to upload")
+        f"{NB}· now to upload: 1 activity")
     assert "to upload" not in _last_sync_row(_counted(0)).last_sync_row.get_subtitle()
     assert "to upload" not in _last_sync_row(None).last_sync_row.get_subtitle()
 
@@ -180,7 +180,7 @@ def test_the_last_sync_says_how_many_new_activities_there_are_to_upload():
 def test_after_baseline_alone_the_count_is_said_too():
     _state()
     assert _last_sync_row(_counted(2)).last_sync_row.get_subtitle() == (
-        f"{NO_RECORD}{NB}· 2 new activities to upload")
+        f"{NO_RECORD}{NB}· now to upload: 2 activities")
 
 
 @pytest.mark.needs_display
@@ -192,16 +192,25 @@ def test_no_count_when_the_last_sync_could_not_upload():
     assert "to upload" not in _last_sync_row(_counted(3)).last_sync_row.get_subtitle()
 
 
-def test_the_count_in_polish():
+COUNT_WORDS = {
+    "en": ["now to upload: 1 activity", "now to upload: 2 activities",
+           "now to upload: 5 activities"],
+    "pl": ["teraz do wysłania: 1 aktywność", "teraz do wysłania: 2 aktywności",
+           "teraz do wysłania: 5 aktywności"],
+}
+
+
+@pytest.mark.parametrize("language", COUNT_WORDS)
+def test_the_count_says_what_is_to_upload_now(language):
+    """Apart from the numbers of the last sync before it, which say what that sync found."""
     from openexpress.gui.words import to_upload_text
 
-    i18n.setup("pl")
+    i18n.setup(language)
     try:
         said = [to_upload_text(n) for n in (1, 2, 5)]
     finally:
         i18n.setup("en")
-    assert said == ["1 nowa aktywność do wysłania", "2 nowe aktywności do wysłania",
-                    "5 nowych aktywności do wysłania"]
+    assert said == COUNT_WORDS[language]
 
 
 @pytest.mark.needs_display
@@ -219,7 +228,7 @@ def test_the_count_that_comes_later_is_said_on_the_page():
     win._is_open = lambda summary: False
     win._update_tile_chips = lambda: chips.append(1)
     MainWindow._activities_counted(win, s, _counted(4))
-    assert win.last_sync_row.get_subtitle().endswith(f"{NB}· 4 new activities to upload")
+    assert win.last_sync_row.get_subtitle().endswith(f"{NB}· now to upload: 4 activities")
     assert chips == [1]
 
 

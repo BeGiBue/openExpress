@@ -30,3 +30,7 @@ format-*: the shapes older versions wrote, with made-up numbers; and shapes of t
   not answer): its record kept with the error that stopped it, as one of its errors (kept in
   the words of the moment of the sync, as every error); tests/test_stopped_sync.py checks it
   is what a sync writes. Synthetic: no real sync has made it yet (marked "synthetic" in it).
+  format-nothing-new-one-course-received.json: a sync that found no new file on the device and
+  wrote one course from Garmin Connect ("nothing to upload · 1 received"); with the activities
+  the device has to upload now after it, the row and `openexpress status` say both apart
+  ("· now to upload: 2 activities"). Synthetic (marked "synthetic" in it).

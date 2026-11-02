@@ -132,11 +132,26 @@ def no_sync_record() -> str:
 
 
 def to_upload_text(count: int) -> str:
-    """After the subtitle of "Last sync" of a connected device: how many activities it has
-    that openExpress has not uploaded yet, the number of the chip "To sync"."""
-    # TRANSLATORS: at the end of the subtitle of "Last sync" of a connected device
-    return ngettext("{count} new activity to upload", "{count} new activities to upload",
+    """After the numbers of the last sync of a connected device: how many activities it has
+    now that openExpress has not uploaded yet (the number of the chip "To sync"), said apart
+    from what that sync found."""
+    # TRANSLATORS: at the end of the subtitle of "Last sync" of a connected device (and of
+    # `openexpress status`), after what the last sync found ("nothing to upload")
+    return ngettext("now to upload: {count} activity", "now to upload: {count} activities",
                     count).format(count=count)
+
+
+def with_activities_to_upload(text: str, record: dict | None, to_sync) -> str:
+    """`text` (the last sync, or that none is recorded), then the activities the connected
+    device has to upload now (`to_sync`: sync.ActivitiesToSync, the count of the chip "To
+    sync"), unless that sync could not upload (no chip then): the row "Last sync" of the
+    device page and the line of `openexpress status`."""
+    from openexpress import service
+
+    count = getattr(to_sync, "count", None)
+    if count and (not record or service.not_uploaded(record) is None):
+        return caption(text, to_upload_text(count))
+    return text
 
 
 def primary_wearable_text(wearable) -> str:

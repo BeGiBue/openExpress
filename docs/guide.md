@@ -349,14 +349,18 @@ fēnix 8 over MTP.
 - **Last sync** on the Device page, `openexpress sync` and the notification of the
   background sync use the same words for how many new files the device had, how many were
   uploaded and how many came from Garmin Connect; the row on the Device page also says when
-  it was. On the Device page it ends
-  with how many new activities the connected device has to upload, and says *Never synced*
-  for a device this installation has not synced yet, as its tile does. The details name the new
+  it was. On the Device page and in `openexpress status` it ends, apart from what that sync
+  found, with how many activities the connected device has to upload now (*now to upload: 2
+  activities*), and says *Never synced* for a device this installation has not synced yet,
+  as its tile does. The details name the new
   files by their type (activities, sleep, HRV status, device log…; others as "other data"),
   and the files from Garmin Connect too (TrueUp and Connect IQ apps have lines of their own),
   say how many Garmin Connect already had, and warn when Garmin rejected a file, a file could
   not be uploaded, or another step failed (a file from Garmin Connect, a Connect IQ app,
   TrueUp).
+- The Flatpak and the version from source keep their own records of what they uploaded: a
+  file one of them uploaded is new to the other, and Garmin Connect recognises it as a
+  duplicate.
 
 ## A device that stops responding
 
