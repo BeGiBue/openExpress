@@ -12,7 +12,7 @@ import types
 from contextlib import contextmanager
 
 import pytest
-from gio_fake import GioOp, WindowCallbacks, in_a_worker, settle
+from gio_fake import GioOp, Volume, WindowCallbacks, in_a_worker, settle
 
 gio_storage = pytest.importorskip("openexpress.device.gio_storage")
 GLib = gio_storage.GLib
@@ -30,19 +30,6 @@ def fast(monkeypatch):
     for name in ("MOUNT_TIMEOUT_S", "UNMOUNT_TIMEOUT_S", "EJECT_TIMEOUT_S"):
         monkeypatch.setattr(gio_storage, name, LIMIT, raising=False)
     monkeypatch.setattr(gio_storage, "CANCEL_WAIT_S", GRACE, raising=False)
-
-
-class Volume:
-    """A volume not mounted, whose mount is the made-up operation."""
-
-    def __init__(self, op):
-        self.op = op
-
-    def mount(self, flags, operation, cancellable, callback):
-        self.op.start(lambda finish: callback(self, finish), cancellable)
-
-    def mount_finish(self, finish):
-        return finish()
 
 
 class Mount:

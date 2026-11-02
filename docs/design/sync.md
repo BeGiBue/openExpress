@@ -1,9 +1,10 @@
 # Design: a device that stops answering over MTP
 
 Status: the decisions in section 4 are made (D1 1a, D2 2a, D3 3a, D4 4a, and D5 5a, D6 6a,
-D7 7a, taken when step 1 began, D8 8a when step 3 began; marked "chosen"). Steps 1–3 of
+D7 7a, taken when step 1 began, D8 8a when step 3 began; marked "chosen"). Steps 1–4 of
 section 7 are implemented: listings, queries and reads of files under the limit, the error,
-fast failure, and every handler outside the window letting it through. Steps 4–6 are not.
+fast failure, every handler outside the window letting it through, and the log lines. Steps 5
+and 6 are not.
 Sections 2 and 3 describe the program before this work. The work goes step by step (section 7),
 each step after a yes. The scope in section 1 is set once: what it does not list is not added
 while it is implemented.
@@ -239,7 +240,7 @@ list (`gio_storage._probe`, for `status` and the start page).
 | `device/gio_storage.py` | `open_device_storage` lets it through at once, also while it waits for a device (the command line, unless `--no-wait`): no try after it and no advice about another program. |
 | `sync.py`, `backup.py` | `DeviceNotResponding` stops the sync or the backup: it goes past the handlers that let one unreadable file not stop them, as a device not mounted again does (the files uploaded, the files of the queue written). The backup stopped at any error and leaves no partial folder already. |
 | other modules | D8: every handler of `DeviceError` lets it through, and the broad ones on the way of the device: TrueUp in a sync (`service._trueup`), an app of the queue and the app list (`ciq._install_pass`, `ciq.write_app_list`), a file other maps use (`maps._write_shared`), the count of activities to sync, the look at a device for a list (`gio_storage._probe`: not one more device that cannot be read). |
-| `device/gio_storage.py` | Log lines, never with a path or a file name. A step that reached its limit: what it was (a read, a listing, a query, the free space), how long since the device last answered, how long since this process opened the storage (a mount older than the process is said to be so). A step that took more than 5 s (`SLOW_STEP_S`): what it was and how long. |
+| `device/gio_storage.py` | Log lines, never with a path, a file name or the device's address. A step that reached its limit: what it was (a read, a listing, a query, the free space), how long before the step the device last answered the storage ("none yet"), how long before it this process made the storage, and who mounted the device: this process (`mount`, mounting again after a PTP session or a refresh), or not this process, as far as it knows from when it first found it mounted (such a mount may be older than the process), e.g. `device: no answer to a read in 30 s, the device stopped responding; its last answer: 2.3 s before this step; the storage opened 41.0 s before this step; mounted already when this process found it 41.2 s before`. A step answered after more than 5 s (`SLOW_STEP_S`): `device: a listing took 6.2 s`. Quick steps log nothing, also at DEBUG. |
 | `gui/` | D4: the window keeps the place on USB of a device that stopped responding, shows the banner with its own text (the window's words, not the command line's), and does not start a refresh of that device while it stays at that place. |
 | `docs/guide.md` | What the message means and what to do. |
 
@@ -360,9 +361,13 @@ answer late or never.
    (it stopped at any error already), with the error said once and exit code 1; a new storage
    of the same device reads as usual.
 4. **Log lines.** Failing tests:
-   - a stall logs what it was and the times since the last answer and since opening, without
-     a path or a name;
-   - a step of more than 5 s logs one line; quick steps log nothing new.
+   - a stall logs what it was, the times since the last answer and since opening, and who
+     mounted the device (this process, before this process found it, not known), without a
+     path, a name or the device's address; also when the device had not answered yet;
+   - a step of more than 5 s logs one line.
+
+   A guard that passes before and after: quick steps log nothing, also at DEBUG (quiet since
+   step 1).
 5. **The window (D4).** Failing tests:
    - after a stall in a task the banner says it, and no refresh of that device starts while it
      stays at its place on USB;

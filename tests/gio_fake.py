@@ -108,6 +108,19 @@ class GioOp:
             source.destroy()
 
 
+class Volume:
+    """A volume not mounted, whose mount is the made-up operation."""
+
+    def __init__(self, op):
+        self.op = op
+
+    def mount(self, flags, operation, cancellable, callback):
+        self.op.start(lambda finish: callback(self, finish), cancellable)
+
+    def mount_finish(self, finish):
+        return finish()
+
+
 class WindowCallbacks:
     """Callbacks of the window due on the global default context (`GLib.idle_add`,
     `GLib.timeout_add`): each notes the thread it ran in (`ran`). Those that have not run are

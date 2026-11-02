@@ -206,6 +206,7 @@ _UNKNOWN = object()
 # A step of a read (one answer of gvfs: opening a listing or a file, a portion of the listing,
 # a chunk of the file, a query) with no answer this long: the device stopped responding.
 STALL_S = 30.0
+SLOW_STEP_S = 5.0  # a step answered after this long is noted in the log
 LIST_PORTION = 100  # entries asked for at a time in a listing
 READ_CHUNK = 256 * 1024  # bytes asked for at a time when a file is read: the most gvfs reads
 
@@ -240,8 +241,13 @@ class GioStorage(Storage):
     # at once with it, as gvfs stays blocked on the device until it is unplugged; a device
     # plugged in again is a new storage.
     _stalled: DeviceNotResponding | None = None
+    # For the log of a stall: when this process made the storage, and the last answer of the
+    # device to it (time.monotonic).
+    _opened: float | None = None
+    _answered: float | None = None
 
     def __init__(self, root_uri: str):
+        self._opened = time.monotonic()
         self.root = Gio.File.new_for_uri(root_uri.rstrip("/") + "/")
         self.label = root_uri
         # "vendor:product" of the USB device (never the serial number), when known.
@@ -265,11 +271,33 @@ class GioStorage(Storage):
         answer by then the device stopped responding (DeviceNotResponding, whatever its answer
         to the cancel), which the storage keeps; other failures as _wait says them."""
         self._responding()
+        started = time.monotonic()
         try:
             _wait(start, STALL_S, what, name, context=context, quiet=True)
         except GioTimedOut as e:
             self._stalled = DeviceNotResponding.during(what)
+            self._log_stall(name, started)
             raise self._stalled from e
+        except Exception:
+            self._answered_now(name, started)  # a refusal is an answer too
+            raise
+        self._answered_now(name, started)
+
+    def _answered_now(self, name: str, started: float) -> None:
+        self._answered = now = time.monotonic()
+        if now - started > SLOW_STEP_S:
+            log.info("device: a %s took %.1f s", name, now - started)
+
+    def _log_stall(self, name: str, started: float) -> None:
+        """What the step was, how long the device had not been asked before it, how long the
+        storage had been open and who mounted the device: never a path or an address."""
+        last = (f"{started - self._answered:.1f} s before this step"
+                if self._answered is not None else "none yet")
+        opened = (f"{started - self._opened:.1f} s before this step"
+                  if self._opened is not None else "at a time not known")
+        log.warning("device: no answer to a %s in %g s, the device stopped responding; its last "
+                    "answer: %s; the storage opened %s; %s", name, STALL_S, last, opened,
+                    _mount_words(self.device_uri, started))
 
     def _next_portion(self, enum, what: str, context) -> list:
         """The next entries of a listing; none at its end."""
@@ -1063,9 +1091,37 @@ def open_ums_storage(dev: FoundDevice) -> UmsStorage:
     return st
 
 
+# When this process mounted a device (by its address, _key), or first found it mounted, for the
+# log of a stall: a mount this process did not make may be older than the process, and gvfs-mtp
+# asks a mounted device something only every 900 s.
+_mounted_here: dict[str, float] = {}
+_found_mounted: dict[str, float] = {}
+
+
+def _note_mounted(uri: str, by_us: bool) -> None:
+    key = _key(uri)
+    if by_us:
+        _mounted_here[key] = time.monotonic()
+    elif key not in _mounted_here:
+        _found_mounted.setdefault(key, time.monotonic())
+
+
+def _mount_words(uri: str | None, now: float) -> str:
+    """Who mounted the device at `uri` and how long before `now`, for the log."""
+    key = _key(uri) if uri else None
+    if key in _mounted_here:
+        return f"mounted by this process {now - _mounted_here[key]:.1f} s before"
+    if key in _found_mounted:
+        return (f"mounted already when this process found it "
+                f"{now - _found_mounted[key]:.1f} s before")
+    return "not known when it was mounted"
+
+
 def mount(dev: FoundDevice, timeout_s: float | None = None) -> None:
     """Mount the volume of a device found not mounted (as the file manager does)."""
     if dev.mounted or dev.volume is None:
+        if dev.mounted:
+            _note_mounted(dev.uri, by_us=False)
         return
     volume = dev.volume
     _wait(lambda done, cancellable: volume.mount(
@@ -1074,6 +1130,7 @@ def mount(dev: FoundDevice, timeout_s: float | None = None) -> None:
         MOUNT_TIMEOUT_S if timeout_s is None else timeout_s, _("Cannot mount the device"),
         "mount")
     dev.mounted = True
+    _note_mounted(dev.uri, by_us=True)
 
 
 # --- a Garmin drive ejected by openExpress -------------------------------------------------
@@ -1567,6 +1624,7 @@ def _open_device_storage(uri: str | None) -> GioStorage:
 def _mtp_storage(uri: str, usb: GarminUsb | None) -> GioStorage:
     """The storage of a mounted MTP device that has GARMIN/GarminDevice.xml: the device
     itself or one of its top folders (its internal storage)."""
+    _note_mounted(uri, by_us=False)  # mounted by now; by this process when mount() noted it
     top = GioStorage(uri)
     candidates = [e.name for e in top._list("") if e.is_dir]
     for st in [GioStorage(top._f(name).get_uri()) for name in candidates] + [top]:
@@ -1880,6 +1938,7 @@ def _remount(uri: str, storage: Storage, sleep=time.sleep) -> None:
         raise
     except DeviceError as e:
         raise RemountFailed(str(e)) from e
+    _note_mounted(uri, by_us=True)
     # Right after mounting gvfs may not list the files yet.
     for _attempt in range(REMOUNT_READY_S):
         try:

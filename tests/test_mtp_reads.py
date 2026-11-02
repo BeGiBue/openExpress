@@ -4,10 +4,12 @@ DeviceNotResponding, which says to unplug the device and plug it in again, and w
 device layer never takes for a missing file. The device and gvfs are made up
 (gio_fake.MtpFiles); the last test reads a folder on the disk through the real Gio."""
 
+import logging
+import re
 import time
 
 import pytest
-from gio_fake import MTIME, GioOf, GioOp, GvfsDevice, MtpFiles, in_a_worker, settle
+from gio_fake import MTIME, GioOf, GioOp, GvfsDevice, MtpFiles, Volume, in_a_worker, settle
 
 from openexpress import i18n
 from openexpress.device import storage
@@ -17,6 +19,7 @@ gio_storage = pytest.importorskip("openexpress.device.gio_storage")
 LIMIT = 0.2
 GRACE = 0.2
 STALLED = "the device stopped responding. Unplug it and plug it in again."
+LOGGER = "openexpress.device.gio_storage"
 URI = "mtp://Made_Up_Device/"
 CHUNK = 256 * 1024  # what a file is read in: the most gvfs reads at a time
 
@@ -492,6 +495,68 @@ def test_a_new_storage_of_the_same_device_reads_as_usual(device, fast):
     again = gio_storage.GioStorage(URI + "Internal")
     again.root = files.file()
     assert len(run_in("worker", lambda: again._list("GARMIN/Activity"))) == 3
+
+
+# --- the log ---------------------------------------------------------------------------------
+
+
+def logged(caplog) -> list[str]:
+    return [r.getMessage() for r in caplog.records if r.name == LOGGER]
+
+
+MOUNTED = {
+    "by this process": r"mounted by this process \d+\.\d s before",
+    "before this process": r"mounted already when this process found it \d+\.\d s before",
+    "not known": r"not known when it was mounted",
+}
+
+
+@pytest.mark.parametrize("before", ["a listing", "nothing"])
+@pytest.mark.parametrize("mounted", MOUNTED)
+def test_a_stall_logs_what_it_was_and_how_long_the_device_had_been_quiet(
+        device, fast, monkeypatch, caplog, mounted, before):
+    """What it was, how long the device had not been asked before it, how long the storage had
+    been open and who mounted the device: never a path, a name or the device's address."""
+    monkeypatch.setattr(gio_storage, "_mounted_here", {}, raising=False)
+    monkeypatch.setattr(gio_storage, "_found_mounted", {}, raising=False)
+    if mounted != "not known":
+        gio_storage.mount(gio_storage.FoundDevice(URI, "made-up", mounted == "before this process",
+                                                  Volume(GioOp())))
+    st, _files = device({"GARMIN/Activity/x.fit": a_file(10)},
+                        plan={("open", 1): GioOp("never", strict=True)})
+    st.device_uri = URI
+    if before == "a listing":
+        run_in("worker", lambda: st._list("GARMIN/Activity"))
+    with caplog.at_level(logging.DEBUG, logger=LOGGER), \
+            pytest.raises(storage.DeviceNotResponding):
+        run_in("worker", lambda: st._read("GARMIN/Activity/x.fit"))
+    last = r"\d+\.\d s before this step" if before == "a listing" else "none yet"
+    pattern = (rf"device: no answer to a read in {LIMIT:g} s, the device stopped responding; "
+               rf"its last answer: {last}; the storage opened \d+\.\d s before this step; "
+               + MOUNTED[mounted])
+    said = logged(caplog)
+    assert [line for line in said if re.fullmatch(pattern, line)], said
+    assert not [line for line in said if "GARMIN" in line or "x.fit" in line or "Made_Up" in line]
+
+
+def test_a_slow_step_logs_one_line(device, fast, monkeypatch, caplog):
+    """More than SLOW_STEP_S without an answer, within the limit: what it was and how long."""
+    monkeypatch.setattr(gio_storage, "SLOW_STEP_S", 0.05, raising=False)
+    st, _files = device(activities(3), plan={("portion", 1): GioOp("before", delay_s=0.1)})
+    with caplog.at_level(logging.DEBUG, logger=LOGGER):
+        run_in("worker", lambda: st._list("GARMIN/Activity"))
+    said = logged(caplog)
+    assert len(said) == 1 and re.fullmatch(r"device: a listing took 0\.\d s", said[0]), said
+
+
+def test_quick_steps_log_nothing(device, fast, caplog):
+    """Every step of a listing, a query, a read and the space, answered at once: nothing in the
+    log, also at DEBUG (a sync makes thousands of them)."""
+    st, _files = device({"GARMIN/Activity/x.fit": a_file(10)}, space={"filesystem::free": 5})
+    with caplog.at_level(logging.DEBUG, logger=LOGGER):
+        run_in("worker", lambda: (st.listdir("GARMIN/Activity"), st.info("GARMIN/Activity/x.fit"),
+                                  st.read("GARMIN/Activity/x.fit"), st.free_space()))
+    assert logged(caplog) == []
 
 
 # --- the real Gio ----------------------------------------------------------------------------
