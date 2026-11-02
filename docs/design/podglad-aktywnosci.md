@@ -178,9 +178,11 @@ its height and narrows; the lap rows wrap.
   libshumate's: libshumate places its tiles on whole pixels of the widget's whole scale, so on
   a screen at a fractional scale (125 %) two tiles meet between two pixels and the background
   shows through as a thin line. Each tile is drawn a pixel past its right and bottom edges,
-  under the next one (at 100 % and 200 % nothing changes); while one loads, the tile of a zoom
-  below is shown scaled, if drawn before; those that failed are asked again when the network
-  is back.
+  under the next one (at 100 % and 200 % nothing changes); while one loads, the tiles drawn
+  before in its place, of a zoom below or above, are shown scaled (zoomed in or out with the
+  mouse wheel, every tile of the next zoom is new: without them the map was empty for a few
+  frames, even with the tiles in the cache), and once the view has all its own tiles those of
+  other zooms are let go; those that failed are asked again when the network is back.
 - **2b. The track drawn by openExpress itself** (a `Gtk.DrawingArea`, no tiles).
   - \+ No new library, no network.
   - − A line without streets or terrain; panning and zooming written anew.

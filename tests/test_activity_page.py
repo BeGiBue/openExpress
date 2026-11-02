@@ -934,3 +934,83 @@ def test_while_a_tile_loads_the_one_of_the_zoom_below_is_shown(monkeypatch):
         assert darkest() == 255
     finally:
         toplevel.destroy()
+
+
+def white_tiles(monkeypatch) -> None:
+    from openexpress.gui import activity_map
+
+    png = plain_png()
+    monkeypatch.setattr(activity_map, "_fetch",
+                        lambda url, etag: activity_map.Fetched(200, png, '"t"', 3600))
+
+
+def no_more_tiles(monkeypatch) -> None:
+    """From now on no tile comes, neither from the server nor from the cache."""
+    from openexpress.gui import activity_map
+
+    pending(monkeypatch)
+    monkeypatch.setattr(activity_map.TileSource, "do_start_request", never_answered)
+
+
+def uncovered(widget, share=1.0) -> int:
+    """The darkest red of the middle `share` of the widget drawn on black (255: tiles
+    everywhere there)."""
+    rows = red_of(widget, 1)
+    height, width = len(rows), len(rows[0])
+    top, left = round(height * (1 - share) / 2), round(width * (1 - share) / 2)
+    return min(min(row[left:width - left]) for row in rows[top:height - top])
+
+
+@pytest.mark.parametrize("steps", [
+    (0.2, 0.4, 0.6, 0.8, 1.0, 1.2),  # in, a notch of the mouse wheel at a time
+    (-0.2, -0.4, -0.8, -1.0, -1.2),  # out
+    (1.0,), (-1.0,), (-2.0,)])
+def test_while_the_zoom_changes_the_map_is_never_empty(monkeypatch, steps):
+    """The tiles of one zoom drawn, then no tile comes any more: at each step of the zoom,
+    everywhere the map showed before has a tile (those drawn, scaled: of the zoom below or
+    above), never the background. Zoomed out, the view's new edges are not checked: no tile
+    there was drawn yet."""
+    from openexpress.gui import activity_map
+
+    white_tiles(monkeypatch)
+    activity_map.set_tiles(True)
+    shown, toplevel = a_map()
+    try:
+        only_tiles(shown)
+        viewport = shown.map.get_viewport()
+        start = viewport.get_zoom_level()  # the zoom the page opens with, alone drawn
+        until(lambda: uncovered(shown.map) == 255)
+        assert uncovered(shown.map) == 255  # the first zoom drawn whole
+        no_more_tiles(monkeypatch)
+        for step in steps:
+            viewport.set_zoom_level(start + step)
+            until(lambda: False, 0.05)  # a few frames
+            shown_before = min(1.0, 2 ** step)  # the middle of the view, zoomed out
+            assert uncovered(shown.map, shown_before) == 255, f"empty at {step:+} zoom"
+    finally:
+        toplevel.destroy()
+
+
+def test_the_tiles_of_the_zoom_before_are_let_go_once_the_new_ones_are_drawn(monkeypatch):
+    from openexpress.gui import activity_map
+
+    white_tiles(monkeypatch)
+    activity_map.set_tiles(True)
+    shown, toplevel = a_map()
+    try:
+        viewport = shown.map.get_viewport()
+        zoom = round(viewport.get_zoom_level())
+        until(lambda: uncovered(shown.map) == 255)
+        viewport.set_zoom_level(zoom + 1)
+        until(lambda: uncovered(shown.map) == 255 and not shown.tiles.asked)
+        until(lambda: False, 0.1)
+        assert {key[0] for key in shown.tiles.textures} == {zoom + 1}
+    finally:
+        toplevel.destroy()
+
+
+def never_answered(self, x, y, zoom, cancellable):
+    """A tile source whose tiles never come (not even from its cache)."""
+    from gi.repository import Shumate
+
+    return Shumate.DataSourceRequest.new(x, y, zoom)

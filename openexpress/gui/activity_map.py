@@ -72,7 +72,7 @@ CURSOR_SIZE = 20  # the marker of the chart's cursor, above them
 LOOP_M = 50  # a finish closer to the start: a loop, one marker for both
 BLEED = 1  # pixels each tile is drawn past its right and bottom edge, under the next one
 KEEP_TILES = 64  # tiles kept drawn in memory, the less used let go first
-FALLBACK_ZOOMS = 3  # while a tile loads, one of up to so many zooms below, scaled
+FALLBACK_ZOOMS = 3  # while a tile loads, those of up to so many zooms below or above
 
 
 def available() -> bool:
@@ -440,9 +440,12 @@ if can_ask():
         """The tiles under the track, drawn by openExpress (libshumate's own layer leaves a
         seam of the background where two tiles meet between two pixels of a screen at a
         fractional scale): in rows from the top, each from the left, each one BLEED past its
-        right and bottom edge, under the next one; while a tile loads, the one of a zoom below
-        scaled, if drawn before. Only the tiles in view are asked of the TileSource; those gone
-        from it are let go, those that failed asked again by retry()."""
+        right and bottom edge, under the next one; while a tile loads, those drawn before in
+        its place, of a zoom below or above, scaled, so that the map is never empty where it
+        showed tiles (zoomed in or out with the mouse wheel, every tile of the next zoom is
+        new); once the view has all its own tiles, those of other zooms are let go. Only the
+        tiles in view are asked of the TileSource; those gone from it are let go, those that
+        failed asked again by retry()."""
 
         __gtype_name__ = "OpenExpressTileLayer"
 
@@ -469,6 +472,7 @@ if can_ask():
                 snapshot.translate(middle)
                 snapshot.rotate(math.degrees(rotation))
                 snapshot.translate(Graphene.Point().init(-width / 2, -height / 2))
+            whole = True
             for place in places:
                 texture = self.textures.get(place.key)
                 if texture is not None:
@@ -476,12 +480,18 @@ if can_ask():
                     snapshot.append_texture(texture, Graphene.Rect().init(
                         place.x, place.y, place.width + BLEED, place.height + BLEED))
                 else:
+                    whole = False
                     self._ask(place.key)
                     self._draw_below(snapshot, place)
+                    self._draw_above(snapshot, place)
             snapshot.restore()
             wanted = {place.key for place in places}
             for key in [key for key in self.asked if key not in wanted]:
                 self.asked.pop(key)[1].cancel()
+            if whole and places:  # the tiles of other zooms no longer needed in its place
+                zoom = places[0].key[0]
+                for key in [key for key in self.textures if key[0] != zoom]:
+                    del self.textures[key]
 
         def _draw_below(self, snapshot, place: Place) -> None:
             """The part of a tile of a zoom below where the tile `place` will be."""
@@ -497,6 +507,26 @@ if can_ask():
                     place.x - (x % n) * place.width, place.y - (y % n) * place.height,
                     n * place.width + BLEED, n * place.height + BLEED))
                 snapshot.pop()
+                return
+
+        def _draw_above(self, snapshot, place: Place) -> None:
+            """The tiles of a zoom above drawn smaller where the tile `place` will be: the
+            first zoom above with any of them, those it has (over the zoom below's, if
+            drawn)."""
+            zoom, x, y = place.key
+            for k in range(1, FALLBACK_ZOOMS + 1):
+                n = 2 ** k
+                found = [(column, row, self.textures.get((zoom + k, x * n + column, y * n + row)))
+                         for row in range(n) for column in range(n)]
+                found = [(column, row, texture) for column, row, texture in found
+                         if texture is not None]
+                if not found:
+                    continue
+                width, height = place.width / n, place.height / n
+                for column, row, texture in found:  # in rows, each from the left: as the tiles
+                    snapshot.append_texture(texture, Graphene.Rect().init(
+                        place.x + column * width, place.y + row * height, width + BLEED,
+                        height + BLEED))
                 return
 
         def _ask(self, key) -> None:
