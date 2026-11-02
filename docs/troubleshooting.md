@@ -1,5 +1,10 @@
 # Troubleshooting
 
+- **The device stopped responding.** Over MTP a device's session can hang in the middle of a
+  read, with the cable and USB fine. openExpress gives up after 30 s without an answer and says
+  *The device stopped responding. Unplug it and plug it in again.* Do that: only unplugging the
+  device has ended such a hang, and openExpress tries nothing more on the device until then
+  ([more](guide.md#a-device-that-stops-responding)).
 - **The watch restarts by itself after it is unplugged.** A fēnix 8 (software 23.39) has done
   this a few times while taking in a change, for example a new map or a removed Connect IQ
   app; the same change went through without a restart right after the watch had been turned

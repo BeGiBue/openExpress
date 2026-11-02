@@ -1,13 +1,23 @@
 # Design: a device that stops answering over MTP
 
-Status: the decisions in section 4 are made (D1 1a, D2 2a, D3 3a, D4 4a, and D5 5a, D6 6a,
-D7 7a, taken when step 1 began, D8 8a when step 3 began, D9 9a, D10 10a, D11 11a, D12 12a when
-step 5 began; marked "chosen"). Steps 1–5 of section 7 are implemented: listings, queries and
-reads of files under the limit, the error, fast failure, every handler outside the window
-letting it through, the log lines, and the window after a stall. Step 6 is not.
-Sections 2 and 3 describe the program before this work. The work goes step by step (section 7),
-each step after a yes. The scope in section 1 is set once: what it does not list is not added
-while it is implemented.
+Status: implemented. The decisions of section 4 are made (D1 1a, D2 2a, D3 3a, D4 4a; D5 5a,
+D6 6a, D7 7a when step 1 began; D8 8a when step 3 began; D9 9a, D10 10a, D11 11a, D12 12a when
+step 5 began; marked "chosen"). Sections 2 and 3 describe the program before this work. The
+steps of section 7, one commit each, and how they went on a fēnix 8 over MTP (2 November 2026,
+the code from source; a stall cannot be made on purpose, so the device showed the usual work
+going on as before):
+
+| Step | Commit | On the device |
+|---|---|---|
+| 1. Listings and queries under the limit, the error | `a9ce7b1` | 30 activities read in 7.9 s (7.6–8.0 s before); the window as usual |
+| 2. Reads in chunks | `c7c6d71` | all 147 activities in 31.4 s (32.6 s before); a dry sync of 9 files in 1.8 s |
+| 3. Fast failure, the sync and the backup, the handlers (D8) | `cd580ce` | a dry sync in 1.7 s; `status`, `backup`, `maps`, `apps`, `updates` as before |
+| 4. Log lines | `1341421` | 30 activities in 7.4 s, all 147 in 31.5 s; no step over 5 s logged |
+| 5. The window (D4, D9–D12) | `d096814` | the banner seen in pictures of the tests' hidden display; unplugged and plugged in again, the device detected as before |
+| 6. Documentation | the commit that sets this status | – |
+
+In none of them did the log show a step that reached the limit. D3 waits for the log lines of
+step 4 to show a stall after a long time without a request.
 
 ## 1. Scope
 
@@ -448,7 +458,8 @@ answer late or never.
    no stall before it, keep their error dialog and no banner. The window opens a device through
    `open_device_storage` without waiting (one try each time, no advice about another program);
    with the place left out (D11), no detection tries the stalled device again.
-6. **Documentation**: `docs/guide.md`, the status of this design.
+6. **Documentation**: `docs/guide.md` (a section of its own: what the message means and what to
+   do), a known problem in `docs/troubleshooting.md` pointing to it, the status of this design.
 
 On a device: the speed of reads in chunks against today's, and a listing of a large folder. A
 stall cannot be made on purpose; the log lines of step 4 show when it has happened.

@@ -358,6 +358,30 @@ fēnix 8 over MTP.
   not be uploaded, or another step failed (a file from Garmin Connect, a Connect IQ app,
   TrueUp).
 
+## A device that stops responding
+
+Over MTP a device can stop answering in the middle of a read: its MTP session hangs while the
+cable and USB are fine, and a program waiting for it would wait for ever. openExpress waits at
+most 30 s for each answer of the device (a part of a folder's listing, a part of a file, a
+file's size and time, the free space). The time counts from the last answer, so a large file that comes
+steadily is read whole, however long it takes. With no answer by then the operation ends with
+*The device stopped responding. Unplug it and plug it in again.*, and nothing more is asked of
+that device until it is unplugged, as its connection (gvfs) stays blocked:
+
+- A sync stops. The files it uploaded before stay uploaded; a file from Garmin Connect that was
+  not written to the device is not acknowledged, so it comes again with the next sync. A backup
+  leaves no partial folder. The command line says it once and ends with exit code 1.
+- The window shows a banner with the device's name on the start page and on the device page,
+  closes the device, and does not open it again while it stays plugged in; other devices
+  connected work as usual. The banner goes once the device is unplugged, or restarts.
+
+Unplug the cable and plug it in again: that ends the hung session in the device. A window
+started again before that finds out at its first read of the device, after about 35 s. Writing
+to the device has no such limit; after a stall a write fails at once. The
+[log](troubleshooting.md#log-file) says how long the device had been idle before it stopped, how
+long its connection had been open and whether openExpress had mounted the device, never a file
+name; an answer that took more than 5 s is noted too.
+
 ## Configuration
 
 ### Languages
