@@ -95,12 +95,14 @@ welcome). Apps, maps and music are for MTP devices only.
 
 ```bash
 flatpak remote-add --user --if-not-exists flathub https://dl.flathub.org/repo/flathub.flatpakrepo
-flatpak remote-add --user --if-not-exists openexpress https://flatpak.bojanowski.me/openexpress.flatpakrepo
-flatpak install --user openexpress io.github.tomaszbojanowski.OpenExpress
+flatpak remote-add --user --if-not-exists bojanowski https://flatpak.bojanowski.me/bojanowski.flatpakrepo
+flatpak install --user bojanowski io.github.tomaszbojanowski.OpenExpress
 ```
 
 Updates then come with `flatpak update`. The GNOME runtime comes from Flathub, hence the
-first line. Not using Flatpak, or installing offline: [Other ways to install](docs/install.md).
+first line. If you added this repository earlier under the name `openexpress`, keep it: it is
+the same repository and keeps updating. Not using Flatpak, or installing offline:
+[Other ways to install](docs/install.md).
 
 ### System requirements
 
