@@ -12,7 +12,7 @@ import types
 from contextlib import contextmanager
 
 import pytest
-from gio_fake import GioOp, WindowCallbacks
+from gio_fake import GioOp, WindowCallbacks, in_a_worker, settle
 
 gio_storage = pytest.importorskip("openexpress.device.gio_storage")
 GLib = gio_storage.GLib
@@ -137,32 +137,6 @@ def window_thread_busy():
         yield
     finally:
         context.release()
-
-
-def in_a_worker(fn, name="worker"):
-    said = {}
-
-    def run():
-        try:
-            said["value"] = fn()
-        except BaseException as e:  # noqa: BLE001 - told to the test
-            said["error"] = e
-        said["thread default"] = GLib.MainContext.get_thread_default()
-
-    worker = threading.Thread(target=run, name=name, daemon=True)
-    worker.start()
-    return worker, said
-
-
-def settle(*threads, limit_s=10.0):
-    """The main thread turns the global default context until the threads have ended, so that
-    a worker that wrongly waits on that context, for an answer only this thread can give it,
-    still ends: the test then fails on what it checks instead of hanging."""
-    context = GLib.MainContext.default()
-    deadline = time.monotonic() + limit_s
-    while any(t.is_alive() for t in threads) and time.monotonic() < deadline:
-        context.iteration(False)
-        time.sleep(0.01)
 
 
 # --- the context ----------------------------------------------------------------------------

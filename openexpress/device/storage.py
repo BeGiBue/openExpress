@@ -42,9 +42,24 @@ class RemountFailed(DeviceError):
     says_replug = False
 
 
+class DeviceNotResponding(DeviceError):
+    """A device that stopped answering in the middle of an operation: over MTP, a step of a
+    read with no answer within its time limit. gvfs stays blocked on such a device until it is
+    unplugged, so this error is never taken for a missing file and nothing more is read; its
+    text says what to do (`says_replug`)."""
+
+    says_replug = True
+
+    @classmethod
+    def during(cls, action: str) -> DeviceNotResponding:
+        """The error of `action` (e.g. "Cannot list GARMIN"), with what to do."""
+        return cls(_("{action}: the device stopped responding. Unplug it and plug it in "
+                     "again.").format(action=action))
+
+
 def replug_text(error: DeviceError) -> str:
-    """A device not mounted again (RemountFailed): its error as a sentence, then what to do,
-    unless the error says that itself (`says_replug`)."""
+    """A device not mounted again (RemountFailed) or one that stopped responding: its error as
+    a sentence, then what to do, unless the error says that itself (`says_replug`)."""
     text = str(error).rstrip()
     sentence = text if text.endswith((".", "!", "?", "…")) else text + "."
     if getattr(error, "says_replug", False):
@@ -131,6 +146,8 @@ class Storage(ABC):
         for part in [p for p in path.split("/") if p]:
             try:
                 entries = self._list(real)
+            except DeviceNotResponding:
+                raise  # not a missing folder
             except DeviceError:
                 return None
             match = next((e.name for e in entries if e.name == part), None)
@@ -217,11 +234,11 @@ class Storage(ABC):
         """Write a file, creating missing directories. Returns the real path. After a failure
         the storage cleans up what the write left under the name, as write_file does
         (_discard_partial): never half a file; the old file stays when the write never
-        started (CopyNotStarted)."""
+        started (CopyNotStarted, DeviceNotResponding)."""
         real = self._target(path)
         try:
             self._write(real, data)
-        except CopyNotStarted:
+        except (CopyNotStarted, DeviceNotResponding):
             raise
         except BaseException:
             self._discard_partial(real)
@@ -231,12 +248,13 @@ class Storage(ABC):
     def write_file(self, path: str, local: Path, progress=None, keep_partial: bool = False) -> str:
         """Stream a local file to the device (large map/firmware files). After a failure the
         storage itself cleans up what the copy left under the name (_discard_partial), unless
-        the copy never started (CopyNotStarted: the old file is untouched) or `keep_partial`
-        (a file other maps use, never deleted)."""
+        the copy never started (CopyNotStarted: the old file is untouched; DeviceNotResponding:
+        a copy has no time limit, so the device stopped responding before it, and a clean-up
+        would wait on it) or `keep_partial` (a file other maps use, never deleted)."""
         real = self._target(path)
         try:
             self._write_file(real, Path(local), progress)
-        except CopyNotStarted:
+        except (CopyNotStarted, DeviceNotResponding):
             raise
         except BaseException:
             if not keep_partial:
@@ -319,6 +337,8 @@ class Storage(ABC):
             if real not in listed:
                 try:
                     listed[real] = self._list(real)
+                except DeviceNotResponding:
+                    raise  # not a missing folder
                 except DeviceError:
                     listed[real] = None
             return listed[real]

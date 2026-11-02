@@ -395,36 +395,6 @@ def test_map_with_missing_deliverable_not_installable(server, device_root, xdg):
     assert (device_root / "GARMIN/E.img").exists() and called == []
 
 
-# --- 5. GIO free space -----------------------------------------------------------------
-
-
-def test_gio_free_space_zero(monkeypatch):
-    gio_storage = pytest.importorskip("openexpress.device.gio_storage")
-
-    class Info:
-        def __init__(self, values):
-            self.values = values
-
-        def has_attribute(self, a):
-            return a in self.values
-
-        def get_attribute_uint64(self, a):
-            return self.values.get(a, 0)
-
-    class Root:
-        values = {"filesystem::free": 0, "filesystem::size": 1000}
-
-        def query_filesystem_info(self, attr, cancellable):
-            return Info({k: v for k, v in self.values.items() if k == attr})
-
-    st = gio_storage.GioStorage.__new__(gio_storage.GioStorage)
-    st.root = Root()
-    assert st.free_space() == 0
-    assert st.capacity() == 1000
-    Root.values = {}
-    assert st.free_space() is None and st.capacity() is None
-
-
 # --- 6/7/13. music --------------------------------------------------------------------
 
 

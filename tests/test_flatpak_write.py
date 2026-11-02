@@ -4,6 +4,7 @@ import types
 from pathlib import Path
 
 import pytest
+from gio_fake import GioOp
 
 from openexpress.device import gio_storage
 from openexpress.device.storage import DeviceError
@@ -16,12 +17,12 @@ class FakeTarget:
     def get_uri(self):
         return self.uri
 
-    def query_info(self, *a):
+    def query_info_async(self, attributes, flags, priority, cancellable, callback):
         """No file there before the copy (what Gio says of a target that does not exist)."""
-        from gi.repository import Gio, GLib
+        GioOp(says="not found").start(lambda finish: callback(self, finish), cancellable)
 
-        raise GLib.Error.new_literal(Gio.io_error_quark(), "not there",
-                                     int(Gio.IOErrorEnum.NOT_FOUND))
+    def query_info_finish(self, finish):
+        return finish()
 
 
 @pytest.fixture

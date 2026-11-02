@@ -30,6 +30,7 @@ from openexpress.device import ptp  # noqa: E402
 from openexpress.device.storage import (  # noqa: E402
     CopyNotStarted,
     DeviceError,
+    DeviceNotResponding,
     Entry,
     LocalStorage,
     RemountFailed,
@@ -202,6 +203,60 @@ def host_copy(local: Path, target_uri: str, what: str, progress=None, started=No
 # The size of a file that could not be told.
 _UNKNOWN = object()
 
+# A step of a read (one answer of gvfs: opening a listing, a portion of it, a query) with no
+# answer this long: the device stopped responding.
+STALL_S = 30.0
+LIST_PORTION = 100  # entries asked for at a time in a listing
+
+
+def _entry(info) -> Entry:
+    mtime = info.get_modification_date_time()
+    return Entry(info.get_name(), info.get_file_type() == Gio.FileType.DIRECTORY,
+                 info.get_size(), mtime.to_unix() if mtime else 0.0)
+
+
+def _steps_context():
+    """The main context all the steps of one listing are waited on in a worker thread: gvfs
+    gives the entries of a listing in the context where it began (its enumerator takes them
+    there), so a portion waited for on another context would never come. None in the main
+    thread, which waits on the global default context."""
+    if threading.current_thread() is threading.main_thread():
+        return None
+    return GLib.MainContext.new()
+
+
+def _read_step(start, what: str, name: str, context=None) -> None:
+    """One step of a read from the device, waited for (_wait) at most STALL_S: with no answer
+    by then the device stopped responding (DeviceNotResponding, whatever its answer to the
+    cancel); other failures as _wait says them."""
+    try:
+        _wait(start, STALL_S, what, name, context=context, quiet=True)
+    except GioTimedOut as e:
+        raise DeviceNotResponding.during(what) from e
+
+
+def _next_portion(enum, what: str, context) -> list:
+    """The next entries of a listing; none at its end."""
+    portion: list = []
+    _read_step(lambda done, cancellable: enum.next_files_async(
+        LIST_PORTION, GLib.PRIORITY_DEFAULT, cancellable,
+        lambda e, res: done(lambda: portion.extend(e.next_files_finish(res)))),
+        what, "listing", context)
+    return portion
+
+
+def _close_listing(enum, what: str, context) -> None:
+    """A refusal to close does not matter: the listing is read, or its error is said."""
+    try:
+        _read_step(lambda done, cancellable: enum.close_async(
+            GLib.PRIORITY_DEFAULT, cancellable,
+            lambda e, res: done(lambda: e.close_finish(res))),
+            what, "listing", context)
+    except DeviceNotResponding:
+        raise
+    except DeviceError:
+        pass
+
 
 @dataclass
 class _Attempt:
@@ -227,46 +282,49 @@ class GioStorage(Storage):
         return self.root.resolve_relative_path(real) if real else self.root
 
     def _list(self, real_path: str) -> list[Entry]:
+        what = _("Cannot list {path}").format(path=real_path or "/")
+        context = _steps_context()  # one for all the steps of the listing
+        folder = self._f(real_path)
+        opened: list = []
+        _read_step(lambda done, cancellable: folder.enumerate_children_async(
+            _ATTRS, Gio.FileQueryInfoFlags.NONE, GLib.PRIORITY_DEFAULT, cancellable,
+            lambda f, res: done(lambda: opened.append(f.enumerate_children_finish(res)))),
+            what, "listing", context)
+        enum = opened[0]
+        out: list[Entry] = []
         try:
-            enum = self._f(real_path).enumerate_children(
-                _ATTRS, Gio.FileQueryInfoFlags.NONE, None
-            )
-        except GLib.Error as e:
-            raise _err(e, _("Cannot list {path}").format(path=real_path or "/")) from e
-        out = []
-        try:
-            while True:
-                info = enum.next_file(None)
-                if info is None:
-                    break
-                mtime = info.get_modification_date_time()
-                out.append(
-                    Entry(
-                        info.get_name(),
-                        info.get_file_type() == Gio.FileType.DIRECTORY,
-                        info.get_size(),
-                        mtime.to_unix() if mtime else 0.0,
-                    )
-                )
-        except GLib.Error as e:
-            raise _err(e, _("Cannot list {path}").format(path=real_path or "/")) from e
-        finally:
-            try:
-                enum.close(None)
-            except GLib.Error:
-                pass
+            while portion := _next_portion(enum, what, context):
+                out.extend(_entry(info) for info in portion)
+        except DeviceNotResponding:
+            raise  # not closed: that would wait on the same device
+        except DeviceError:
+            _close_listing(enum, what, context)
+            raise
+        _close_listing(enum, what, context)
         return out
 
+    def _query(self, real_path: str, attributes: str, flags):
+        """The information of a file, None when it is not there."""
+        target = self._f(real_path)
+        found: list = []
+
+        def finish(f, res):
+            try:
+                found.append(f.query_info_finish(res))
+            except GLib.Error as e:
+                if not e.matches(Gio.io_error_quark(), Gio.IOErrorEnum.NOT_FOUND):
+                    raise
+                found.append(None)
+
+        _read_step(lambda done, cancellable: target.query_info_async(
+            attributes, flags, GLib.PRIORITY_DEFAULT, cancellable,
+            lambda f, res: done(lambda: finish(f, res))),
+            _("Cannot read {path}").format(path=real_path), "query")
+        return found[0]
+
     def info(self, real_path: str) -> Entry | None:
-        try:
-            info = self._f(real_path).query_info(_ATTRS, Gio.FileQueryInfoFlags.NONE, None)
-        except GLib.Error as e:
-            if e.matches(Gio.io_error_quark(), Gio.IOErrorEnum.NOT_FOUND):
-                return None
-            raise _err(e, _("Cannot read {path}").format(path=real_path)) from e
-        mtime = info.get_modification_date_time()
-        return Entry(info.get_name(), info.get_file_type() == Gio.FileType.DIRECTORY,
-                     info.get_size(), mtime.to_unix() if mtime else 0.0)
+        found = self._query(real_path, _ATTRS, Gio.FileQueryInfoFlags.NONE)
+        return None if found is None else _entry(found)
 
     def _read(self, real_path: str) -> bytes:
         try:
@@ -359,15 +417,15 @@ class GioStorage(Storage):
 
     def _size_now(self, real_path: str):
         """The size of the file under the name: None when there is none, _UNKNOWN when it
-        cannot be told."""
+        cannot be told; DeviceNotResponding when the device gives no answer."""
         try:
-            info = self._f(real_path).query_info(
-                "standard::size", Gio.FileQueryInfoFlags.NOFOLLOW_SYMLINKS, None)
-        except GLib.Error as e:
-            if e.matches(Gio.io_error_quark(), Gio.IOErrorEnum.NOT_FOUND):
-                return None
+            info = self._query(real_path, "standard::size",
+                               Gio.FileQueryInfoFlags.NOFOLLOW_SYMLINKS)
+        except DeviceNotResponding:
+            raise
+        except DeviceError:
             return _UNKNOWN
-        return info.get_size()
+        return None if info is None else info.get_size()
 
     def _discard_partial(self, real_path: str) -> None:
         """After a copy that failed once it ran, deletes the file under the name only on
@@ -427,10 +485,17 @@ class GioStorage(Storage):
             raise _err(e, _("Cannot create directory {path}").format(path=real_path)) from e
 
     def _fs_attr(self, attr: str) -> int | None:
+        found: list = []
         try:
-            info = self.root.query_filesystem_info(attr, None)
-        except GLib.Error:
+            _read_step(lambda done, cancellable: self.root.query_filesystem_info_async(
+                attr, GLib.PRIORITY_DEFAULT, cancellable,
+                lambda f, res: done(lambda: found.append(f.query_filesystem_info_finish(res)))),
+                _("Cannot read the space on the device"), "free space")
+        except DeviceNotResponding:
+            raise
+        except DeviceError:
             return None
+        info = found[0]
         if not info.has_attribute(attr):
             return None
         return info.get_attribute_uint64(attr)
@@ -470,8 +535,8 @@ class GioStorage(Storage):
             with _unmounted(self.device_uri, usb.bus, usb.address, self, "refresh",
                             "device mounted again"):
                 pass
-        except RemountFailed:
-            raise  # not mounted again: the callers say to unplug and plug the device in again
+        except (RemountFailed, DeviceNotResponding):
+            raise  # the callers say to unplug the device and plug it in again
         except DeviceError as e:
             # Not unmounted (refused, or not in time and seen as it settled): whether gvfs
             # has fresh sizes is not known.
@@ -1652,12 +1717,14 @@ def _ms(seconds: float) -> int:
     return max(1, round(seconds * 1000))
 
 
-def _wait(start, timeout_s: float, what: str, name: str = "operation") -> None:
+def _wait(start, timeout_s: float, what: str, name: str = "operation", context=None,
+          quiet: bool = False) -> None:
     """Run one asynchronous Gio operation to its end: in a worker thread on a main context of
-    its own, in the main thread on the global default one. `start(done, cancellable)` begins
-    it; `done(finish)` gets a function that raises GLib.Error on failure. Raises DeviceError
-    when it fails, GioTimedOut when cancelled at `timeout_s` and not done within
-    CANCEL_WAIT_S."""
+    its own (or `context`, shared by the steps of one listing: _steps_context), in the main
+    thread on the global default one. `start(done, cancellable)` begins it; `done(finish)`
+    gets a function that raises GLib.Error on failure. Raises DeviceError when it fails,
+    GioTimedOut when cancelled at `timeout_s` and not done within CANCEL_WAIT_S. `quiet`: no
+    DEBUG line for an answer in time (the many steps of reads)."""
     # Gio gives the answer in the main context that was the default of the thread when the
     # operation began. A worker thread's own context, pushed for the wait, needs nothing of
     # the main thread for the answer and the time limit (the window holds the global default
@@ -1665,7 +1732,10 @@ def _wait(start, timeout_s: float, what: str, name: str = "operation") -> None:
     # (the command line) waits on the global default context, where PyGObject wakes it on
     # Ctrl+C.
     own = threading.current_thread() is not threading.main_thread()
-    context = GLib.MainContext.new() if own else GLib.MainContext.default()
+    if not own:
+        context = GLib.MainContext.default()
+    elif context is None:
+        context = GLib.MainContext.new()
     loop = GLib.MainLoop(context)
     cancellable = Gio.Cancellable()
     answers: list = []  # None: done; or the GLib.Error
@@ -1711,8 +1781,9 @@ def _wait(start, timeout_s: float, what: str, name: str = "operation") -> None:
             context.pop_thread_default()
     took = time.monotonic() - started
     if not cancelled:
-        log.debug("gio: %s answered in %.1f s (%s)", name, took,
-                  "own context" if own else "main loop of this thread")
+        if not quiet:
+            log.debug("gio: %s answered in %.1f s (%s)", name, took,
+                      "own context" if own else "main loop of this thread")
         if answers[0] is not None:
             raise _err(answers[0], what)
         return
@@ -1773,6 +1844,8 @@ def _remount(uri: str, storage: Storage, sleep=time.sleep) -> None:
         try:
             if storage.exists("GARMIN/GarminDevice.xml"):
                 return
+        except DeviceNotResponding:
+            raise  # nothing to wait for: gvfs stays blocked on it
         except DeviceError:
             pass
         sleep(1)
@@ -1802,6 +1875,8 @@ def _device_state(uri: str, storage: Storage) -> str:
         return UNMOUNTED
     try:
         seen = storage.exists("GARMIN/GarminDevice.xml")
+    except DeviceNotResponding:
+        raise
     except (DeviceError, GLib.Error):
         seen = False
     return MOUNTED if seen else BETWEEN

@@ -1,8 +1,11 @@
 # Design: a device that stops answering over MTP
 
-Status: the decisions in section 4 are made (D1 1a, D2 2a, D3 3a, D4 4a, marked "chosen");
-nothing is implemented yet. The work goes step by step (section 7), each step after a yes. The
-scope in section 1 is set once: what it does not list is not added while it is implemented.
+Status: the decisions in section 4 are made (D1 1a, D2 2a, D3 3a, D4 4a, and D5 5a, D6 6a,
+D7 7a, taken when step 1 began; marked "chosen"). Step 1 of section 7 is implemented: listings
+and queries under the limit, the error, the device layer letting it through. Steps 2–6 are not.
+Sections 2 and 3 describe the program before this work. The work goes step by step (section 7),
+each step after a yes. The scope in section 1 is set once: what it does not list is not added
+while it is implemented.
 
 ## 1. Scope
 
@@ -160,17 +163,68 @@ From the program's log, 13 October to 2 November 2026:
 - **4b. As today.** A try to mount every 32 s or so, each giving up after 30 s, without saying
   why.
 
+### D5: when the error comes in — chosen: 5a
+
+- **5a. In step 1, with its words (recommended; chosen):** `DeviceNotResponding` with its
+  English and Polish text and `says_replug`, and the tests of its words, come with the first
+  step that raises it.
+  - \+ A step raises the error it is tested with; no text in between to change later.
+  - − Step 3 no longer brings the error, only what follows it.
+- **5b. In step 1 with the words of today's time limits** ("…: the device did not answer in
+  time"), its own words in step 3.
+  - − A text shown for two steps, then changed.
+
+### D6: the handlers of the device layer — chosen: 6a
+
+- **6a. `DeviceNotResponding` goes past the handlers of the device layer (recommended;
+  chosen).** `Storage.resolve` and `Storage.sizes` take a listing that failed for a missing
+  folder; `_remount` looks for `GarminDevice.xml` up to 20 times, a second apart, whatever
+  fails; `_device_state` takes a failure for "between"; `refresh` takes one for "not
+  refreshed". Each lets the error through and keeps its answer for any other failure.
+  - \+ Without it a stall while a path is looked for reads as a missing file after 35 s ("File
+    not found on the device", an empty listing), and a sync goes on, waiting 35 s at every next
+    path; `_remount` waits up to 20 times 35 s.
+  - − Five handlers more than section 5 had.
+- **6b. Leave them to step 3.**
+  - − Step 1 alone would turn a stall into missing files.
+
+### D7: a write that meets a stall — chosen: 7a
+
+- **7a. No clean-up after it (recommended; chosen):** `write` and `write_file` let
+  `DeviceNotResponding` through as they let `CopyNotStarted`, without `_discard_partial`. A copy
+  has no time limit (D1), so the error comes only before it: from the size of the file there
+  (`_size_now`) or from finding its folder.
+  - \+ Nothing was touched, and a clean-up would ask the same blocked device again.
+- **7b. Clean up as after any failure.**
+  - − Waits another 35 s for the same device, then fails the same way.
+
 ## 5. What changes
 
 | Module | Change |
 |---|---|
-| `device/gio_storage.py` | The six reading operations asynchronous, each step under `_wait` with `STALL_S = 30`: `_list` with `enumerate_children_async` and `next_files_async` (portions of 100), `info` and `_size_now` with `query_info_async`, `_read` reading a stream in chunks of 256 KiB (`read_async`, `read_bytes_async`, `close_async`), `_read_start` the same up to its count, `_fs_attr` with `query_filesystem_info_async`. A step that reaches its limit raises `DeviceNotResponding`. |
-| `device/storage.py` | `DeviceNotResponding(DeviceError)`, with `says_replug = True` as `replug_text` reads it: "{action}: the device stopped responding. Unplug it and plug it in again." (Polish: "{co}: urządzenie przestało odpowiadać. Odłącz je i podłącz ponownie."). |
+| `device/gio_storage.py` | The six reading operations asynchronous, each step under `_wait` with `STALL_S = 30`: `_list` with `enumerate_children_async` and `next_files_async` (portions of 100), all its steps on one main context (`_wait(context=…)`, section 6), `info` and `_size_now` with `query_info_async`, `_read` reading a stream in chunks of 256 KiB (`read_async`, `read_bytes_async`, `close_async`), `_read_start` the same up to its count, `_fs_attr` with `query_filesystem_info_async` (its action: "Cannot read the space on the device"). A step that reaches its limit raises `DeviceNotResponding`. |
+| `device/storage.py` | `DeviceNotResponding(DeviceError)`, made by `DeviceNotResponding.during(action)`, with `says_replug = True` as `replug_text` reads it: "{action}: the device stopped responding. Unplug it and plug it in again." (Polish: "{action}: urządzenie przestało odpowiadać. Odłącz je i podłącz ponownie."). In step 1 (D5). |
+| `device/storage.py` | `Storage.resolve` and `Storage.sizes` let it through (D6); `write` and `write_file` let it through without a clean-up (D7). |
+| `device/gio_storage.py` | `_remount`, `_device_state` and `refresh` let it through (D6). |
 | `device/gio_storage.py` | Fast failure: after a `DeviceNotResponding` the storage keeps it, and every later operation of it, writes too, raises it again at once instead of waiting 30 s each. A device plugged in again is a new mount and a new storage. |
 | `sync.py`, `backup.py` | `DeviceNotResponding` stops the sync or the backup: it goes past the handlers that let one unreadable file not stop them, as a device not mounted again does. The backup leaves no partial folder. |
 | `device/gio_storage.py` | Log lines, never with a path or a file name. A step that reached its limit: what it was (a read, a listing, a query, the free space), how long since the device last answered, how long since this process opened the storage (a mount older than the process is said to be so). A step that took more than 5 s (`SLOW_STEP_S`): what it was and how long. |
 | `gui/` | D4: the window keeps the place on USB of a device that stopped responding, shows the banner with its own text (the window's words, not the command line's), and does not start a refresh of that device while it stays at that place. |
 | `docs/guide.md` | What the message means and what to do. |
+
+Left on purpose as they are in step 1, and looked at again in step 3: the 25 handlers of
+`DeviceError` in other modules. Each turns the error into a line of a report, an answer of "not
+known" or an item skipped; with fast failure (step 3) the later operations of the same device
+fail at once, but what each then says is to be settled there:
+
+- `ciq.py` (10): `_hides_app_files`, `prepare_app_dir`, `_install_hidden` (3), `_ptp_delete`,
+  `_remove_hidden` (3), `save_app_list_copy`;
+- `ownmaps.py` (4): `list_own`, `overview`, `add`, `_failed_text`;
+- `diagnostics.py` (4): `read_errors` (2), `at_open` (2);
+- `maps.py` (2): `cleanup_plan`, `_write_unlock`;
+- `cli.py` (2): `_status_updates_online`, `_eject_drive`;
+- `watch.py` (1): `_open_session`; `updates.py` (1): `presence`; `service.py` (1):
+  `open_device_or_drive`.
 
 The command line says the error once and ends with exit code 1, as for other errors of the
 device. The background service logs it and tells it in its notification of a sync that failed;
@@ -197,6 +251,14 @@ its next sync comes with the next mount of the device.
 6. **The fake and the real gvfs.** Portions of a listing and chunks of a stream come from a fake
    of Gio in the tests; a listing of a large folder and a read of a large file are to be
    checked on a device.
+7. **One main context for a listing.** gvfs gives the entries of a listing to its enumerator in
+   the main context where the listing began (`client/gdaemonfileenumerator.c`: its D-Bus object
+   is exported there, and `next_files_async` gets the entries through it). In a worker thread
+   `_wait` makes a context of its own for each wait, so a portion waited for on a new context
+   would never come and every listing would reach the limit. The steps of one listing therefore
+   wait on one context (`_steps_context`); the fake gives portions only in that context, so a
+   test fails if they do not. A listing that stalled is not closed: closing it would wait on the
+   same blocked device; the enumerator is dropped.
 
 ## 7. Order of work
 
@@ -207,24 +269,41 @@ a yes. The fake of Gio (`tests/gio_fake.py`: `GioOp`, `answer_as_gio`) gets asyn
 listings in portions, streams read in chunks, queries and filesystem queries, each able to
 answer late or never.
 
-1. **Listings and queries under `_wait`.** Failing tests:
-   - a listing in several portions gives every entry, as today;
-   - a portion with no answer: `DeviceNotResponding` at the limit (a short limit in the test);
+1. **Listings and queries under `_wait`, and the error.** Failing tests:
+   - a listing in several portions gives every entry, as today, in the main thread and in a
+     worker (every portion waited for on the context the listing began in);
+   - a listing slower in all than the limit, each portion in time, ends well;
+   - a step of a listing (opening it, a portion, closing it) with no answer:
+     `DeviceNotResponding` at the limit (a short limit in the test), whatever the answer to the
+     cancel; a listing that stalled is not closed;
    - `query_info` with no answer: the same; a file that is not there still gives None;
    - the free space with no answer: the same;
-   - another error keeps today's words ("Cannot list …", "Cannot read …").
+   - another error keeps today's words ("Cannot list …", "Cannot read …");
+   - its words in English and Polish (`replug_text` does not add the advice twice) (D5);
+   - it goes past `resolve`, `sizes`, `_remount`, `_device_state` and `refresh` (D6), and a
+     write cleans nothing up after it (D7).
+
+   A guard that passes before and after: a folder on the disk read through the real Gio (the
+   calls as Gio takes them).
 2. **Reads in chunks under `_wait`.** Failing tests:
    - a file of 0 B, of less than a chunk, of exactly two chunks and of several reads whole;
    - a read slow but steady, longer in all than the limit, ends well;
    - a chunk with no answer: `DeviceNotResponding`;
    - `read_start` reads its count only, and stops at a stall.
-3. **The error, fast failure, the sync and the backup.** Failing tests:
-   - its words in English and Polish (`replug_text` does not add the advice twice);
+3. **Fast failure, the sync and the backup.** Failing tests:
    - after a stall the next operation of the same storage fails at once, a write too; a new
      storage works;
    - a sync stops with the message, what it uploaded before stays done;
    - a backup stops and leaves no partial folder;
    - the command line says it once and ends with exit code 1.
+
+   To solve here: the 25 handlers left from step 1 (section 5); and `open_device_storage` with
+   waiting, as the command line opens a device (unless `--no-wait`). A device that stalls while
+   it is opened (its first listing, the look for `GarminDevice.xml`) is a `DeviceError` to its
+   waiting loop, which opens it again, each try waiting 35 s for the same blocked device, until
+   its time for waiting is over; then, the device being on USB, it adds the advice that another
+   program may hold the device. The command line must stop at the first stall and say only
+   that the device stopped responding.
 4. **Log lines.** Failing tests:
    - a stall logs what it was and the times since the last answer and since opening, without
      a path or a name;
@@ -235,6 +314,12 @@ answer late or never.
    - once the place is gone the banner goes and the device is detected as usual;
    - a mount that reaches its limit with no stall before it keeps today's behaviour;
    - the banner's text wraps in the narrowest window.
+
+   To solve here: the window opens a device through `open_device_storage` too, without
+   waiting: one try each time, with no advice about another program, but each detection of
+   the window opens the device again, and each such try waits 35 s on its first listing. After
+   a stall no detection may open that device at its place on USB (D4), and nothing the window
+   says may add the advice about another program.
 6. **Documentation**: `docs/guide.md`, the status of this design.
 
 On a device: the speed of reads in chunks against today's, and a listing of a large folder. A
@@ -244,5 +329,5 @@ stall cannot be made on purpose; the log lines of step 4 show when it has happen
 
 About 250–350 lines of code (gio_storage about 180 for the six operations, fast failure and the
 log lines; storage about 15; sync and backup about 10; the window about 60), about 450–550 lines
-of tests with the fake of Gio, two texts with their Polish (the error and the banner), and 6
-commits, one a step of section 7.
+of tests with the fake of Gio, three texts with their Polish (the error, the action of the free
+space, the banner), and 6 commits, one a step of section 7.
