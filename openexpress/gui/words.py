@@ -260,3 +260,20 @@ def activities_count_text(count: int, only_in_backups: int) -> str:
         ngettext("{count} activity", "{count} activities", count).format(count=count),
         # TRANSLATORS: on the Activities page: how many activities only a backup has
         _("{count} only in backups").format(count=only_in_backups) if only_in_backups else "")
+
+
+def stalled_text(names: list[str | None]) -> str:
+    """The banner while devices that stopped responding are still plugged in: each of them
+    (in the order they stopped), named when every name is known."""
+    count = len(names)
+    if names and all(names):
+        # TRANSLATORS: a banner of the window; {names}: the names of the devices, e.g.
+        # "fēnix 8" or "fēnix 8, Edge 1050"
+        return ngettext(
+            "The device {names} stopped responding. Unplug it and plug it in again.",
+            "The devices {names} stopped responding. Unplug them and plug them in again.",
+            count).format(names=", ".join(names))
+    # TRANSLATORS: the same banner, when the name of a device is not known
+    return ngettext("The device stopped responding. Unplug it and plug it in again.",
+                    "The devices stopped responding. Unplug them and plug them in again.",
+                    count)

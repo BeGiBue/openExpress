@@ -49,6 +49,7 @@ class DeviceNotResponding(DeviceError):
     text says what to do (`says_replug`)."""
 
     says_replug = True
+    usb = None  # where the device is on USB, when known (gio_storage.GarminUsb)
 
     @classmethod
     def during(cls, action: str) -> DeviceNotResponding:
@@ -114,6 +115,12 @@ class Storage(ABC):
 
     def free_space(self) -> int | None:
         return None
+
+    @property
+    def stalled(self) -> bool:
+        """Whether the device stopped responding to this storage (over MTP: a step with no
+        answer within its time limit); then every operation of it fails at once."""
+        return False
 
     def exclusive_ptp(self):
         """A context manager that gives a PTP session (`openexpress.device.ptp.Session`)

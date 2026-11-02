@@ -52,6 +52,7 @@ from openexpress.device.gio_storage import (
     usb_state,
     usb_still_there,
 )
+from openexpress.gui import stalled
 from openexpress.gui.connected import open_address, open_unit, session_summary, unit_ids, uris
 from openexpress.gui.navigation import (
     READ_THE_LIST,
@@ -571,6 +572,7 @@ class DeviceDetection:
         does not offer yet? While one is open, only the Garmin drives that come or go
         (watch_drives_while_open, look_again_for_drives). Only /sys is read; nothing is sent
         to the device."""
+        stalled.look(self)  # devices that stopped responding: their banner, until they are gone
         if self.session is not None or self.busy:
             self._usb_state = ABSENT
             if self.session is not None:

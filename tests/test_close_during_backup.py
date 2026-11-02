@@ -6,7 +6,7 @@ reading the device unseen. Every device is made up."""
 import types
 
 import pytest
-from fakes import RunNow, replace_in_window
+from fakes import RunNow, tasks_at_once
 from fakes import window as stand_in
 
 from openexpress.device.storage import LocalStorage
@@ -29,21 +29,12 @@ def test_the_window_closes_during_a_task_that_lets_it():
     assert win._closed and win._close_dialog is None
 
 
-def _at_once(monkeypatch):
-    """The window's thread and main loop, run at once."""
-    from gi.repository import GLib
-
-    replace_in_window(monkeypatch, "threading", types.SimpleNamespace(
-        Thread=lambda target, daemon: types.SimpleNamespace(start=target)))
-    monkeypatch.setattr(GLib, "idle_add", lambda fn, *args: fn(*args))
-
-
 @pytest.mark.parametrize("lets", [True, False])
 def test_run_task_tells_whether_its_task_lets_the_window_close(monkeypatch, lets):
     from openexpress.gui.app import MainWindow
     from openexpress.gui.tasks import lets_the_window_close
 
-    _at_once(monkeypatch)
+    tasks_at_once(monkeypatch)
     seen = []
     win = stand_in(busy=False, session=None, _task_lets_close=False,
                    set_busy=lambda busy, *a, **kw: setattr(win, "busy", busy),
@@ -62,7 +53,7 @@ def test_a_window_closed_during_a_task_ends_it_without_a_word(monkeypatch):
     from openexpress.gui.app import MainWindow
     from openexpress.gui.tasks import WindowClosed
 
-    _at_once(monkeypatch)
+    tasks_at_once(monkeypatch)
     told = []
     win = stand_in(busy=False, session=None, _task_lets_close=False,
                    set_busy=lambda busy, *a, **kw: setattr(win, "busy", busy),

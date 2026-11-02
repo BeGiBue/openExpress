@@ -29,6 +29,7 @@ gi.require_version("Adw", "1")
 from gi.repository import Adw, GLib, Gtk  # noqa: E402 - imports must follow gi.require_version
 
 from openexpress.errors import OrdinaryStop, UserFacingError  # noqa: E402
+from openexpress.gui import stalled  # noqa: E402
 from openexpress.gui.tasks import WindowClosed  # noqa: E402
 from openexpress.gui.words import space_text  # noqa: E402
 from openexpress.i18n import _, ngettext  # noqa: E402
@@ -405,6 +406,9 @@ class TaskRunner:
         shown.add_toast(Adw.Toast(title=GLib.markup_escape_text(text), timeout=5))
 
     def error(self, title: str, text: str) -> None:
+        if self._telling_stall:
+            log.info("window: no error dialog: the banner says the device stopped responding")
+            return
         inform(self, "error", title, text)
 
     def set_busy(self, busy: bool, text: str = "", device: bool = False,
@@ -566,8 +570,9 @@ class TaskRunner:
                 log.warning("task failed: %s: %s", type(e).__name__, e, exc_info=e)
             ended()
             try:
-                if not (on_error and on_error(e)):
-                    self.error(title, str(e) or e.__class__.__name__)
+                with stalled.telling(self, e):  # a stall: the banner, no error dialog
+                    if not (on_error and on_error(e)):
+                        self.error(title, str(e) or e.__class__.__name__)
             finally:
                 written()
                 self._run_pending_refresh()

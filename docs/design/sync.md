@@ -1,10 +1,10 @@
 # Design: a device that stops answering over MTP
 
 Status: the decisions in section 4 are made (D1 1a, D2 2a, D3 3a, D4 4a, and D5 5a, D6 6a,
-D7 7a, taken when step 1 began, D8 8a when step 3 began; marked "chosen"). Steps 1–4 of
-section 7 are implemented: listings, queries and reads of files under the limit, the error,
-fast failure, every handler outside the window letting it through, and the log lines. Steps 5
-and 6 are not.
+D7 7a, taken when step 1 began, D8 8a when step 3 began, D9 9a, D10 10a, D11 11a, D12 12a when
+step 5 began; marked "chosen"). Steps 1–5 of section 7 are implemented: listings, queries and
+reads of files under the limit, the error, fast failure, every handler outside the window
+letting it through, the log lines, and the window after a stall. Step 6 is not.
 Sections 2 and 3 describe the program before this work. The work goes step by step (section 7),
 each step after a yes. The scope in section 1 is set once: what it does not list is not added
 while it is implemented.
@@ -228,6 +228,60 @@ list (`gio_storage._probe`, for `status` and the start page).
   - − Both losses of 8a stay; the apps, maps and diagnostics go through all their items, each
     failing with the same words.
 
+### D9: the banner — chosen: 9a
+
+- **9a. An `Adw.Banner` as for the setup and the sign-in, with the device's name, no button
+  (recommended; chosen).** "The device fēnix 8 stopped responding. Unplug it and plug it in
+  again." ("Urządzenie fēnix 8 przestało odpowiadać. Odłącz je i podłącz ponownie."); without
+  the name when it is not known, and for several devices all of them ("The devices fēnix 8,
+  Edge 1050 stopped responding…"). The window's own words, not the command line's. It comes
+  before the banners of the setup, the sign-in and the account. No error dialog besides: while
+  the failure of a task that met a stall is told, `error()` shows none. The device view has the
+  banner on top already; the start page, where the window goes once the device is closed
+  (D10), gets one too, with the same words.
+  - \+ One message that stays while the device is to be unplugged; with several devices it says
+    which one.
+  - \+ No button: every try would wait for the same blocked device.
+- **9b. Always without the name, as D4 had it.**
+  - − With several devices it is not known which one.
+- **9c. An error dialog instead of the banner, or both.**
+  - − It goes once clicked away, while the device stays blocked.
+
+### D10: the device open after a stall — chosen: 10a
+
+- **10a. Closed as if it were unplugged (recommended; chosen):** the session goes, the pages are
+  empty, the start page shows what is left; the banner says why.
+  - \+ Nothing can be done with the device (fast failure): its pages from before the stall
+    would only look usable.
+- **10b. Kept, its pages read only, the buttons off until it is unplugged.**
+  - − Changes in every page, and the window looks as if the device worked.
+
+### D11: several devices — chosen: 11a
+
+- **11a. Only the place of the stalled device is left out (recommended; chosen):** of the
+  detection, the list of the devices connected and the mount. The other devices work as they
+  do; the banner, with the name, stays while the stalled device is at its place, also with
+  another device open.
+- **11b. Nothing detected while the stalled device is plugged in.**
+  - − Devices that work are kept out too.
+
+### D12: the place of the device and its unplugging — chosen: 12a
+
+- **12a. The place on USB, looked at every 2 s (recommended; chosen).** The error carries the
+  place on USB of its device (`GioStorage.usb`; `_mtp_storage` gives its storages the place from
+  the start, so that a stall while a device is opened has it too), and gio_storage keeps it
+  (`stalled_places`). The USB poll of the window (every 2 s, `/sys` only) looks whether the
+  device is still there (`usb_still_there`); a new device number (unplugged and plugged in
+  again, or restarted) means it is gone: the banner goes and the detection is as usual, the
+  device coming back as any device plugged in. A stall whose place is not known (an address of
+  gvfs without a place on USB) gets the banner but keeps nothing out; its banner goes when the
+  Garmin devices on USB change.
+  - \+ `/sys` tells it whatever gvfs does.
+- **12b. The signal of gvfs that the mount is gone.**
+  - − A blocked gvfs may never send it, and a killed `gvfsd-mtp` sends it without the device
+    being unplugged (the incident of section 2: the mount went when `gvfsd-mtp` was killed,
+    and the device still had to be unplugged).
+
 ## 5. What changes
 
 | Module | Change |
@@ -241,7 +295,8 @@ list (`gio_storage._probe`, for `status` and the start page).
 | `sync.py`, `backup.py` | `DeviceNotResponding` stops the sync or the backup: it goes past the handlers that let one unreadable file not stop them, as a device not mounted again does (the files uploaded, the files of the queue written). The backup stopped at any error and leaves no partial folder already. |
 | other modules | D8: every handler of `DeviceError` lets it through, and the broad ones on the way of the device: TrueUp in a sync (`service._trueup`), an app of the queue and the app list (`ciq._install_pass`, `ciq.write_app_list`), a file other maps use (`maps._write_shared`), the count of activities to sync, the look at a device for a list (`gio_storage._probe`: not one more device that cannot be read). |
 | `device/gio_storage.py` | Log lines, never with a path, a file name or the device's address. A step that reached its limit: what it was (a read, a listing, a query, the free space), how long before the step the device last answered the storage ("none yet"), how long before it this process made the storage, and who mounted the device: this process (`mount`, mounting again after a PTP session or a refresh), or not this process, as far as it knows from when it first found it mounted (such a mount may be older than the process), e.g. `device: no answer to a read in 30 s, the device stopped responding; its last answer: 2.3 s before this step; the storage opened 41.0 s before this step; mounted already when this process found it 41.2 s before`. A step answered after more than 5 s (`SLOW_STEP_S`): `device: a listing took 6.2 s`. Quick steps log nothing, also at DEBUG. |
-| `gui/` | D4: the window keeps the place on USB of a device that stopped responding, shows the banner with its own text (the window's words, not the command line's), and does not start a refresh of that device while it stays at that place. |
+| `device/gio_storage.py` | D11, D12: the places on USB of the devices that stopped responding (`note_stalled`, `stalled_places`), left out of `find_devices` and of the devices counted on USB (`usb_state`, `garmin_products_on_usb`) until they are gone from there. |
+| `gui/` | D4, D9–D12 (`gui/stalled.py`): after a task met a stall (`run_task`), or the USB poll found one that a work in the background met, the window keeps the device (its place and name), shows the banner on the start page and on the device view (`words.stalled_text`), closes that device if it is the one open, and shows no error dialog for it; the USB poll drops it once it is gone from its place. |
 | `docs/guide.md` | What the message means and what to do. |
 
 The 25 handlers of `DeviceError` in other modules, left as they were in step 1, let it through
@@ -300,6 +355,11 @@ its next sync comes with the next mount of the device.
    same blocked device; the enumerator is dropped. A file read does the same (one context, not
    closed after a stall); whether gvfs needs one context for a stream was not looked into, and
    it costs nothing.
+8. **The window started again while the device is still stalled.** It knows nothing of the
+   stall (the places are kept in memory only): its first read of the device waits 35 s (the
+   limit and the wait for the answer to the cancel), then the banner comes. A stall whose place
+   is not known, met only by a work in the background, is told by the next task, which fails at
+   once with it.
 
 ## 7. Order of work
 
@@ -368,18 +428,26 @@ answer late or never.
 
    A guard that passes before and after: quick steps log nothing, also at DEBUG (quiet since
    step 1).
-5. **The window (D4).** Failing tests:
-   - after a stall in a task the banner says it, and no refresh of that device starts while it
-     stays at its place on USB;
-   - once the place is gone the banner goes and the device is detected as usual;
-   - a mount that reaches its limit with no stall before it keeps today's behaviour;
-   - the banner's text wraps in the narrowest window.
+5. **The window (D4, D9–D12).** Failing tests:
+   - a stall keeps its device out (not found, not counted on USB) until it is gone from its
+     place; only that device of several; a stall while a device is opened knows its place;
+   - after a stall in a task the banner says it with the device's name, the device open is
+     closed, and no error dialog says it, also from a page that tells its failure itself;
+   - no detection starts while the stalled device stays at its place on USB; once it is back
+     at a new device number the banner goes and it is detected as any device plugged in;
+   - a stall that only a work in the background met gets the banner from the USB poll (the
+     device closed then, or by the running task);
+   - a stall whose place is not known is told and keeps nothing out, its banner going when the
+     devices on USB change; with another device open, that one stays open and the banner names
+     the stalled one;
+   - the banner comes before those of the setup and the sign-in, with no button; its words in
+     English and Polish (one device, two, a name not known);
+   - the banner wraps in the narrowest window, on the start page and on the device view.
 
-   To solve here: the window opens a device through `open_device_storage` too, without
-   waiting: one try each time, with no advice about another program, but each detection of
-   the window opens the device again, and each such try waits 35 s on its first listing. After
-   a stall no detection may open that device at its place on USB (D4), and nothing the window
-   says may add the advice about another program.
+   Guards that pass before and after: another failure, and a mount that reaches its limit with
+   no stall before it, keep their error dialog and no banner. The window opens a device through
+   `open_device_storage` without waiting (one try each time, no advice about another program);
+   with the place left out (D11), no detection tries the stalled device again.
 6. **Documentation**: `docs/guide.md`, the status of this design.
 
 On a device: the speed of reads in chunks against today's, and a listing of a large folder. A

@@ -261,10 +261,16 @@ class GioStorage(Storage):
     def _f(self, real: str) -> Gio.File:
         return self.root.resolve_relative_path(real) if real else self.root
 
+    @property
+    def stalled(self) -> bool:
+        return self._stalled is not None
+
     def _responding(self) -> None:
         """DeviceNotResponding again, with the same words, once the storage has stalled."""
         if self._stalled is not None:
-            raise DeviceNotResponding(str(self._stalled))
+            again = DeviceNotResponding(str(self._stalled))
+            again.usb = self._stalled.usb
+            raise again
 
     def _step(self, start, what: str, name: str, context=None) -> None:
         """One step of a read from the device, waited for (_wait) at most STALL_S: with no
@@ -276,6 +282,8 @@ class GioStorage(Storage):
             _wait(start, STALL_S, what, name, context=context, quiet=True)
         except GioTimedOut as e:
             self._stalled = DeviceNotResponding.during(what)
+            self._stalled.usb = self.usb
+            note_stalled(self.usb)
             self._log_stall(name, started)
             raise self._stalled from e
         except Exception:
@@ -739,7 +747,64 @@ def find_devices() -> list[FoundDevice]:
             uri = vol.get_activation_root().get_uri()
             if uri.rstrip("/") not in found:
                 found[uri.rstrip("/")] = FoundDevice(uri, vol.get_name(), False, vol, usb)
-    return list(found.values())
+    stalled = {_place(usb) for usb in stalled_places()} if _stalled_keys() else set()
+    return [d for d in found.values() if _place(d.usb) is None or _place(d.usb) not in stalled]
+
+
+# --- the devices that stopped responding --------------------------------------------------
+#
+# A device that stopped responding blocks gvfs until it is unplugged: every try would wait for
+# it again. So its place on USB (bus, device number) is kept for as long as it stays there, and
+# what this process finds and counts on USB leaves it out meanwhile: no detection, no mount and
+# no reading of it. Unplugged, or restarted (a new device number), it is a device as any other.
+
+_stalled_at: dict[tuple[int, int], GarminUsb] = {}
+_stalled_lock = threading.Lock()
+
+
+def _place(usb: GarminUsb | None) -> tuple[int, int] | None:
+    if usb is None or usb.bus is None or usb.address is None:
+        return None
+    return usb.bus, usb.address
+
+
+def note_stalled(usb: GarminUsb | None) -> None:
+    """The device at `usb` stopped responding; nothing when its place is not known."""
+    place = _place(usb)
+    if place is None:
+        return
+    with _stalled_lock:
+        if place in _stalled_at:
+            return
+        _stalled_at[place] = usb
+    log.info("device: one that stopped responding (USB %s) is left out until it is gone from "
+             "its place on USB", usb.usb_id)
+
+
+def stalled_places() -> list[GarminUsb]:
+    """The devices that stopped responding and are still at their place on USB; those gone are
+    forgotten. Only /sys is read."""
+    with _stalled_lock:
+        kept = list(_stalled_at.items())
+    gone = [place for place, usb in kept if not usb_still_there(usb)]
+    if gone:
+        with _stalled_lock:
+            for place in gone:
+                _stalled_at.pop(place, None)
+        log.info("device: %d that stopped responding gone from its place on USB", len(gone))
+    return [usb for place, usb in kept if place not in gone]
+
+
+def _stalled_keys() -> set[tuple[int, int]]:
+    with _stalled_lock:
+        return set(_stalled_at)
+
+
+def _sysfs_place(base: Path) -> tuple[int, int] | None:
+    try:
+        return int((base / "busnum").read_text()), int((base / "devnum").read_text())
+    except (OSError, ValueError):
+        return None
 
 
 # --- a Garmin device in mass storage mode: a USB drive ------------------------------------
@@ -1310,9 +1375,12 @@ def _garmin_at_places() -> list[tuple[str, str, bool]]:
         entries = sorted(SYSFS_USB.iterdir())
     except OSError:
         return found
+    stalled = _stalled_keys()  # devices that stopped responding are left out
     for base in entries:
         try:
             if (base / "idVendor").read_text().strip().lower() == GARMIN_VID:
+                if stalled and _sysfs_place(base) in stalled:
+                    continue
                 found.append((base.name, (base / "idProduct").read_text().strip().lower(),
                               _mass_storage_only(base)))
         except OSError:
@@ -1625,9 +1693,15 @@ def _mtp_storage(uri: str, usb: GarminUsb | None) -> GioStorage:
     """The storage of a mounted MTP device that has GARMIN/GarminDevice.xml: the device
     itself or one of its top folders (its internal storage)."""
     _note_mounted(uri, by_us=False)  # mounted by now; by this process when mount() noted it
+    # Each with the device's place on USB from the start: a stall while it is opened keeps
+    # the device out too (note_stalled).
     top = GioStorage(uri)
+    top.usb = usb
     candidates = [e.name for e in top._list("") if e.is_dir]
-    for st in [GioStorage(top._f(name).get_uri()) for name in candidates] + [top]:
+    storages = [GioStorage(top._f(name).get_uri()) for name in candidates]
+    for st in storages:
+        st.usb = usb
+    for st in storages + [top]:
         if st.exists("GARMIN/GarminDevice.xml"):
             st.usb_id = usb.usb_id if usb is not None else None
             st.usb, st.device_uri = usb, uri

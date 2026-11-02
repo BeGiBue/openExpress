@@ -504,6 +504,42 @@ def window_methods(win, names):
     return win
 
 
+def tasks_at_once(monkeypatch):
+    """The window's thread and main loop, run at once: a task of run_task (and a work of
+    in_background) runs and tells its end within the call."""
+    import types
+
+    from gi.repository import GLib
+
+    replace_in_window(monkeypatch, "threading", types.SimpleNamespace(
+        Thread=lambda target, daemon: types.SimpleNamespace(start=target)))
+    monkeypatch.setattr(GLib, "idle_add", lambda fn, *args: fn(*args))
+
+
+def usb_devices(monkeypatch, folder):
+    """/sys/bus/usb/devices as gio_storage reads it, in `folder`: returns put(devices), which
+    lays out Garmin devices in their normal mode, {place ("3-1"): (product, bus, device
+    number)}; a device left out is unplugged, one at another device number came back."""
+    import shutil
+
+    from openexpress.device import gio_storage
+
+    monkeypatch.setattr(gio_storage, "SYSFS_USB", folder)
+
+    def put(devices):
+        shutil.rmtree(folder, ignore_errors=True)
+        folder.mkdir(parents=True)
+        for place, (product, bus, devnum) in devices.items():
+            base = folder / place
+            base.mkdir()
+            for name, value in (("idVendor", "091e"), ("idProduct", product),
+                                ("busnum", str(bus)), ("devnum", str(devnum))):
+                (base / name).write_text(value + "\n")
+
+    put({})
+    return put
+
+
 # --- a name of the window replaced where the window looks it up -----------------------------
 
 

@@ -9,7 +9,8 @@ import types
 from pathlib import Path
 
 import pytest
-from fakes import ACTIVITY_URL, COURSE, DriveAccount, SyncAccount, stalls
+from fakes import ACTIVITY_URL, COURSE, DriveAccount, SyncAccount, stalls, usb_devices
+from gio_fake import GioOp, MtpFiles
 
 import openexpress
 from openexpress import ciq, cli, maps, service, sync, trueup, watch
@@ -203,6 +204,105 @@ def test_a_stall_is_not_remembered_as_a_refusal_to_make_the_app_folder(monkeypat
         ciq.prepare_app_dir(types.SimpleNamespace(software_version_str="1.00"), st,
                             "IQWatchFaces")
     assert remembered == []
+
+
+# --- the place on USB of a device that stopped responding --------------------------------
+
+LIMIT = 0.2
+FENIX = gio_storage.GarminUsb("51b4", 3, 14)
+EDGE = gio_storage.GarminUsb("4e86", 3, 20)
+
+
+@pytest.fixture
+def quick(monkeypatch):
+    monkeypatch.setattr(gio_storage, "STALL_S", LIMIT)
+    monkeypatch.setattr(gio_storage, "CANCEL_WAIT_S", LIMIT)
+
+
+def places(usbs) -> list[tuple[int, int]]:
+    return sorted((u.bus, u.address) for u in usbs)
+
+
+def mounted(monkeypatch, devices: dict):
+    """The volume monitor shows a mount of each device, {address: GarminUsb}."""
+    def mount(uri):
+        return types.SimpleNamespace(get_root=lambda: types.SimpleNamespace(get_uri=lambda: uri),
+                                     get_name=lambda: "made-up")
+
+    monkeypatch.setattr(gio_storage.Gio.VolumeMonitor, "get", staticmethod(
+        lambda: types.SimpleNamespace(get_mounts=lambda: [mount(u) for u in devices],
+                                      get_volumes=list)))
+    monkeypatch.setattr(gio_storage, "garmin_usb",
+                        lambda obj, monitor=None: devices.get(obj.get_root().get_uri()))
+
+
+def stall_at(usb, plan_kind="list"):
+    """A storage of the device at `usb` whose first listing gets no answer: its error."""
+    files = MtpFiles({"GARMIN/GarminDevice.xml": b"<Device/>"},
+                     plan={(plan_kind, 1): GioOp("never", strict=True)})
+    st = gio_storage.GioStorage("mtp://Made_Up_Device/")
+    st.root, st.usb = files.file(), usb
+    try:
+        with pytest.raises(DeviceNotResponding) as error:
+            st._list("")
+    finally:
+        files.clean()
+    return error.value
+
+
+def test_a_stall_keeps_its_device_out_until_it_is_gone_from_its_place(quick, monkeypatch,
+                                                                      tmp_path):
+    """Every try would wait for the same blocked gvfs: the device at that place is not found,
+    nor counted on USB (so the window starts no detection of it), until it is unplugged or
+    restarted (a new device number)."""
+    put = usb_devices(monkeypatch, tmp_path / "usb")
+    put({"3-1": ("51b4", 3, 14)})
+    mounted(monkeypatch, {"mtp://Made_Up_Device/": FENIX})
+    error = stall_at(FENIX)
+    assert (error.usb.bus, error.usb.address) == (3, 14)
+    assert places(gio_storage.stalled_places()) == [(3, 14)]
+    assert gio_storage.find_devices() == []
+    assert gio_storage.usb_state() == gio_storage.ABSENT
+    assert gio_storage.garmin_products_on_usb() == []
+    put({"3-1": ("51b4", 3, 15)})  # unplugged and plugged in again
+    assert gio_storage.stalled_places() == []
+    found = gio_storage.find_devices()
+    assert [f.uri for f in found] == ["mtp://Made_Up_Device/"]
+    assert gio_storage.usb_state() == gio_storage.PRESENT
+
+
+def test_only_the_device_that_stopped_responding_is_left_out(quick, monkeypatch, tmp_path):
+    put = usb_devices(monkeypatch, tmp_path / "usb")
+    put({"3-1": ("51b4", 3, 14), "3-2": ("4e86", 3, 20)})
+    mounted(monkeypatch, {"mtp://Made_Up_Fenix/": FENIX, "mtp://Made_Up_Edge/": EDGE})
+    stall_at(FENIX)
+    assert [f.uri for f in gio_storage.find_devices()] == ["mtp://Made_Up_Edge/"]
+    assert gio_storage.usb_state() == gio_storage.PRESENT
+    assert gio_storage.garmin_products_on_usb() == ["4e86"]
+
+
+def test_a_stall_as_the_device_is_opened_knows_its_place(quick, monkeypatch, tmp_path):
+    """Its storages get the place on USB from the start: a stall at its first listing keeps
+    the device out too."""
+    put = usb_devices(monkeypatch, tmp_path / "usb")
+    put({"3-1": ("51b4", 3, 14)})
+    files = MtpFiles({"GARMIN/GarminDevice.xml": b"<Device/>"},
+                     plan={("list", 1): GioOp("never", strict=True)})
+    real = gio_storage.GioStorage
+
+    class OnTheFiles(real):
+        def __init__(self, uri):
+            super().__init__(uri)
+            self.root = files.file()
+
+    monkeypatch.setattr(gio_storage, "GioStorage", OnTheFiles)
+    try:
+        with pytest.raises(DeviceNotResponding) as error:
+            gio_storage._mtp_storage("mtp://Made_Up_Device/", FENIX)
+    finally:
+        files.clean()
+    assert (error.value.usb.bus, error.value.usb.address) == (3, 14)
+    assert places(gio_storage.stalled_places()) == [(3, 14)]
 
 
 # --- no handler takes it for another failure ---------------------------------------------

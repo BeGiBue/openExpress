@@ -331,7 +331,7 @@ def test_its_words_in_polish():
     finally:
         i18n.setup("en")
     assert said == ("Nie można odczytać GARMIN/x.fit: urządzenie przestało odpowiadać. Odłącz "
-                    "je i podłącz ponownie.")
+                    "je i\u00a0podłącz ponownie.")
     assert replug == said
 
 

@@ -73,6 +73,7 @@ from openexpress.gui.words import (  # noqa: E402
     no_sync_record,
     primary_wearable_text,
     software_text,
+    stalled_text,
     to_upload_text,
     update_state_text,
 )
@@ -761,7 +762,14 @@ class DevicePage:
 
     def _update_banner(self) -> None:
         s = self.session
-        if s is not None and getattr(s, "drive_refusal", None) is not None:
+        if self._stalled:
+            # Above all: nothing else can be done with it, and no button (every try would wait
+            # for the same blocked device).
+            self.banner.set_title(stalled_text([st.name for st in self._stalled]))
+            self.banner.set_button_label(None)
+            self._banner_kind = "stalled"
+            self.banner.set_revealed(True)
+        elif s is not None and getattr(s, "drive_refusal", None) is not None:
             # A drive openExpress does not sync needs neither the setup nor the account.
             self.banner.set_revealed(False)
         elif s is not None and s.client.consumer is None:

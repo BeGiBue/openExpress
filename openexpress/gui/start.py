@@ -508,6 +508,9 @@ class StartPage:
 
         view = Adw.ToolbarView(content=self.stack)
         view.add_top_bar(self.header)
+        # Devices that stopped responding: what to do, above everything (set_stalled).
+        self.banner = Adw.Banner(revealed=False)
+        view.add_top_bar(self.banner)
         # TRANSLATORS: title of the start page, which lists the Garmin devices
         self.page = Adw.NavigationPage(title=_("Devices"), tag="start", child=view)
 
@@ -521,6 +524,12 @@ class StartPage:
         self.notice.set_subtitle(description)
         self.notice_spinner.set_visible(busy)
         self.notice_icon.set_visible(not busy)
+
+    def set_stalled(self, text: str | None) -> None:
+        """The banner of the devices that stopped responding (stalled.show); None: none."""
+        if text:
+            self.banner.set_title(text)
+        self.banner.set_revealed(bool(text))
 
     def set_account_note(self, text: str | None) -> None:
         """The sentence under the tiles about the account (start_window.account_note);

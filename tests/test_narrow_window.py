@@ -848,3 +848,26 @@ def test_the_wait_for_trueup_is_whole_in_the_narrowest_window(narrow_window, lan
     assert "4 min 59 s" in label.get_text()
     assert label.get_width() > 0 and not label.get_layout().is_ellipsized(), label.get_text()
     assert label.get_tooltip_text() == wait.about
+
+
+@pytest.mark.parametrize("language", ["en", "pl"])
+def test_the_banner_of_devices_that_stopped_responding_fits_the_narrowest_window(narrow_window,
+                                                                                language):
+    """Two devices named, the longest words: the banner on the start page and on the device
+    view wraps, the pages no wider than the window."""
+    from openexpress.device.gio_storage import GarminUsb
+    from openexpress.gui import stalled
+
+    win = narrow_window(language)
+    win._stalled = [stalled.Stalled(GarminUsb("51b4", 3, 14), "fēnix 8 Pro – 47 mm, AMOLED"),
+                    stalled.Stalled(GarminUsb("4e86", 3, 20), "Edge 1050")]
+    stalled.show(win)
+    _iterate(0.05)
+    assert win.start.banner.get_revealed()
+    assert _min_width(win.start.page) <= NARROWEST
+    _fill(win, "device")
+    win.navigation.set_animate_transitions(False)
+    win.navigation.push(win.device_view)
+    _iterate(0.05)
+    assert win.banner.get_revealed() and "Edge 1050" in win.banner.get_title()
+    assert _min_width(win.device_view) <= NARROWEST

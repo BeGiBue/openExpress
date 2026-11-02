@@ -515,6 +515,8 @@ def usb_nodes(tmp_path, monkeypatch) -> Path:
     monkeypatch.setattr(gio_storage, "_said_0003", {})
     monkeypatch.setattr(gio_storage, "_without_drive", frozenset())
     monkeypatch.setattr(gio_storage, "_test_drive_said", set())
+    # Nor the devices that stopped responding (their places on USB).
+    monkeypatch.setattr(gio_storage, "_stalled_at", {})
     # Nor the connections whose error logs an earlier test read (diagnostics.at_open).
     from openexpress import diagnostics
 
