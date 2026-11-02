@@ -2,9 +2,9 @@
 
 Status: the decisions of section 5 are made (each took its option a, marked "chosen"; D3a with what
 section 5 adds to it; 10b kept as an idea for later; D11 with the tile of the ascent and every tile
-that applies, up to five). Steps 1 to 3 of section 8 are implemented (the data of an activity,
+that applies, up to five). Steps 1 to 4 of section 8 are implemented (the data of an activity,
 `fit.activity_data`; the words of its page, `gui/words.py`; the page with its tiles,
-`gui/activity_page.py`); steps 4–7 are not. The work goes step
+`gui/activity_page.py`; the chart, `gui/activity_chart.py`); steps 5–7 are not. The work goes step
 by step (section 8), each step after a yes. The scope in section 1 is set once: what it does not
 list is not added while it is implemented.
 
@@ -216,6 +216,17 @@ its height and narrows; the lap rows wrap.
 - **5b. The distance when the activity has one, the time otherwise.**
   - \+ What runners and riders often look at.
   - − Two axes to draw and to test; a lap or a pause looks different in each.
+- As implemented in step 4: the time since the first record; records more than 60 s apart (a
+  pause) and a value not given leave a gap. The cursor goes to the nearest record, its value
+  beside the switch ("31:20 · 152 bpm"; under the switch in a narrow window); with no record
+  within 30 s, "no reading". The arrow keys move it by a hundredth of the activity, to the next
+  record at least that far (never stuck at a pause); Home and End to the first and the last.
+  The series: heart rate first (chosen when the page opens), elevation, then pace or speed (D12)
+  for an activity with a distance; pace from the mean speed over 30 s around each record, none
+  below 0.2 m/s (standing still), drawn with the faster on top, its axis ending at the pace of
+  95% of the records so that slowing down to a stop does not squeeze the rest; speed as
+  recorded. One series: its name in place of the switch; none: the line "No heart rate,
+  elevation or speed in this activity".
 
 ### D6: what draws the chart — chosen: 6a
 

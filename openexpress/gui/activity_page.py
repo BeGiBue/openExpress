@@ -1,10 +1,11 @@
 """The page of one activity, opened from its row on the Activities page: its sport and start in
 its header bar with the back arrow and the GPX export, the tiles of what its sessions say (the
-words in gui/words.py), and what a file that could not be read, one still being written and
-one without a summary say. Its file is read again each time it opens, in a task
-(fit.activity_data), from the device or from a copy in a backup; nothing is kept and nothing is
-written. The page is pushed onto the window's navigation above the device view and goes with
-the pages of that view (the device gone, or drawn anew).
+words in gui/words.py), the chart of its records (gui/activity_chart.py), and what a file that
+could not be read, one still being written and one without a summary say. Its file is read
+again each time it opens, in a task (fit.activity_data), from the device or from a copy in a
+backup; nothing is kept and nothing is written. The page is pushed onto the window's
+navigation above the device view and goes with the pages of that view (the device gone, or
+drawn anew).
 Has: no attribute of the window; the page keeps what it needs in its closures."""
 from __future__ import annotations
 
@@ -20,7 +21,13 @@ from gi.repository import Adw, Gtk  # noqa: E402 - imports must follow gi.requir
 from openexpress.activities import Source  # noqa: E402
 from openexpress.errors import UserFacingError  # noqa: E402
 from openexpress.gui.activities_page import PAGE_ICON, export_button  # noqa: E402
-from openexpress.gui.words import activity_start, activity_tiles, activity_title  # noqa: E402
+from openexpress.gui.activity_chart import ActivityChart, chart_series  # noqa: E402
+from openexpress.gui.words import (  # noqa: E402
+    activity_start,
+    activity_tiles,
+    activity_title,
+    no_chart_text,
+)
 from openexpress.i18n import _  # noqa: E402
 
 log = logging.getLogger(__name__)
@@ -49,6 +56,11 @@ def _data(found, activity):
         raise ReadFailed(_("The file of this activity could not be read.")) from e
 
 
+def _with_chart(data):
+    """In the task's thread: what the file holds and the series of its chart."""
+    return data, chart_series(data)
+
+
 def leave(win) -> None:
     """Back to the device view when an activity's page is shown: the pages of the device are
     drawn anew, or Refresh or Sync is asked from the keyboard (the bar of their task is in the
@@ -70,11 +82,11 @@ def open_activity(win, read) -> None:
     view = ActivityView(win, read)
     win.navigation.push(view.page)
 
-    def done(data) -> None:
+    def done(shown) -> None:
         if win.navigation.get_visible_page() is not view.page:
             log.info("activity page: gone before its file was read")
             return
-        view.show(data)
+        view.show(*shown)
 
     def failed(_error) -> bool:
         # Said on the page, no error dialog (a stall: the banner, and the page goes with the
@@ -82,8 +94,8 @@ def open_activity(win, read) -> None:
         view.say(_("The file of this activity could not be read."))
         return True
 
-    win.run_task(_("Reading the activity…"), lambda: _data(found, read.activity), done, failed,
-                 device=read.activity.source is Source.DEVICE, in_page=True)
+    win.run_task(_("Reading the activity…"), lambda: _with_chart(_data(found, read.activity)),
+                 done, failed, device=read.activity.source is Source.DEVICE, in_page=True)
 
 
 def _tile(value: str, name: str) -> Gtk.Widget:
@@ -137,9 +149,10 @@ class ActivityView:
         self.message.set_title(text)
         self.stack.set_visible_child_name("message")
 
-    def show(self, data) -> None:
-        """What the file holds (fit.ActivityData): the tiles, a damaged file said under them;
-        of a file still being written and of one without a summary, only that."""
+    def show(self, data, series) -> None:
+        """What the file holds (fit.ActivityData): the tiles, a damaged file said under them,
+        the chart of `series` (activity_chart.Series), or a line in its place when there is
+        none; of a file still being written and of one without a summary, only that."""
         from openexpress import fit
 
         if data.state is fit.FileState.STILL_BEING_WRITTEN:
@@ -160,5 +173,14 @@ class ActivityView:
             damaged = Gtk.Label(label=_("Damaged file"), wrap=True, xalign=0)
             damaged.add_css_class("warning")
             self.content.append(damaged)
+        if series:
+            chart = ActivityChart(series)
+            chart.set_margin_top(12)
+            self.content.append(chart)
+        else:
+            line = Gtk.Label(label=no_chart_text(), wrap=True, xalign=0, margin_top=12)
+            line.add_css_class("dim-label")
+            self.content.append(line)
         self.stack.set_visible_child_name("content")
-        log.info("activity page: %d tiles, %s", len(tiles), data.state.value)
+        log.info("activity page: %d tiles, %s, chart of %s", len(tiles), data.state.value,
+                 ", ".join(s.kind for s in series) or "nothing")

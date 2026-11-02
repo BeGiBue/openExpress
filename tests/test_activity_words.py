@@ -6,7 +6,7 @@ import pytest
 
 from openexpress import fit, i18n
 
-NB = " "
+NB = "\u00a0"
 RUNNING, CYCLING, SWIMMING, TRAINING, HIKING = 1, 2, 5, 10, 17
 
 
@@ -152,3 +152,52 @@ def test_a_value_not_given_leaves_its_tile_out():
     assert w.activity_tiles(activity(sport=RUNNING, timer_time=600.0)) == [("10:00", "Time")]
     assert w.activity_tiles(activity(sport=TRAINING, calories=0)) == [("0 kcal", "Calories")]
     assert w.activity_tiles(activity()) == []  # no session: no tile
+
+
+# --- the chart -----------------------------------------------------------------------------------
+
+KINDS = ["heart rate", "elevation", "pace", "swim pace", "speed"]
+CHART = {
+    "en": {"names": ["Heart rate", "Elevation", "Pace", "Pace", "Speed"],
+           "units": ["bpm", "m", "min/km", "min/100 m", "km/h"]},
+    "pl": {"names": ["Tętno", "Wysokość", "Tempo", "Tempo", "Prędkość"],
+           "units": ["ud./min", "m", "min/km", "min/100 m", "km/h"]},
+}
+
+
+def test_the_names_and_units_of_the_chart(language):
+    w = words()
+    assert [w.chart_series_name(kind) for kind in KINDS] == CHART[language]["names"]
+    assert [w.chart_unit(kind) for kind in KINDS] == CHART[language]["units"]
+    assert w.chart_accessible_name("heart rate") == {"en": "Heart rate over time",
+                                                     "pl": f"Tętno w{NB}czasie"}[language]
+    assert w.no_chart_text() == {
+        "en": "No heart rate, elevation or speed in this activity",
+        "pl": f"Brak tętna, wysokości i{NB}prędkości w{NB}tej aktywności"}[language]
+
+
+def test_the_values_on_the_axes(language):
+    """Whole numbers for heart rate and elevation, the decimals of the step for a speed, a
+    pace as a clock."""
+    w = words()
+    assert w.chart_tick("heart rate", 125, 25) == "125"
+    assert w.chart_tick("elevation", -5, 5) == "-5"
+    assert w.chart_tick("speed", 3.5, 0.5) == {"en": "3.5", "pl": "3,5"}[language]
+    assert w.chart_tick("speed", 3.0, 0.5) == {"en": "3.0", "pl": "3,0"}[language]
+    assert w.chart_tick("speed", 25, 5) == "25"
+    assert w.chart_tick("pace", 750, 30) == "12:30"
+    assert w.chart_tick("swim pace", 125, 5) == "2:05"
+
+
+def test_the_value_at_the_cursor(language):
+    w = words()
+    at = w.chart_cursor_text
+    assert at(1880, "heart rate", 152) == {"en": f"31:20{NB}· 152 bpm",
+                                           "pl": f"31:20{NB}· 152 ud./min"}[language]
+    assert at(1880, "elevation", 412.4) == f"31:20{NB}· 412 m"
+    assert at(1880, "pace", 310) == f"31:20{NB}· 5:10 /km"
+    assert at(1880, "swim pace", 125) == f"31:20{NB}· 2:05 /100 m"
+    assert at(1880, "speed", 24.31) == {"en": f"31:20{NB}· 24.3 km/h",
+                                        "pl": f"31:20{NB}· 24,3 km/h"}[language]
+    assert at(1880, "heart rate", None) == {"en": f"31:20{NB}· no reading",
+                                            "pl": f"31:20{NB}· brak odczytu"}[language]

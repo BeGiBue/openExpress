@@ -441,3 +441,82 @@ def lap_caption(lap, sport: int | None) -> str:
              activity_pace(speed, sport) if distance else None,
              heart_rate_text(lap.avg_heart_rate)]
     return caption(*(part for part in parts if part))
+
+
+# --- the chart of an activity ------------------------------------------------------------------
+
+
+def chart_series_name(kind: str) -> str:
+    """The name of a series of the chart, as its switch says it; "swim pace" is a pace too."""
+    names = {
+        # TRANSLATORS: the switch above the chart of an activity
+        "heart rate": pgettext("activity chart", "Heart rate"),
+        "elevation": pgettext("activity chart", "Elevation"),
+        "pace": pgettext("activity chart", "Pace"),
+        "swim pace": pgettext("activity chart", "Pace"),
+        "speed": pgettext("activity chart", "Speed"),
+    }
+    return names[kind]
+
+
+def chart_unit(kind: str) -> str:
+    """The unit of a series, once on top of the axis of its values."""
+    units = {
+        # TRANSLATORS: the unit on top of the axis of the chart of an activity
+        "heart rate": pgettext("chart unit", "bpm"),
+        "elevation": pgettext("chart unit", "m"),
+        "pace": pgettext("chart unit", "min/km"),
+        "swim pace": pgettext("chart unit", "min/100 m"),
+        "speed": pgettext("chart unit", "km/h"),
+    }
+    return units[kind]
+
+
+def chart_accessible_name(kind: str) -> str:
+    """The chart as a screen reader names it: "Heart rate over time"."""
+    # TRANSLATORS: the name of the chart for a screen reader; {series}: e.g. "Heart rate"
+    return _("{series} over time").format(series=chart_series_name(kind))
+
+
+def no_chart_text() -> str:
+    """In place of the chart of an activity whose records give none of its series."""
+    return _("No heart rate, elevation or speed in this activity")
+
+
+def chart_tick(kind: str, value: float, step: float) -> str:
+    """A value on the axis of a series: a whole number of beats or metres, a speed with the
+    decimals of the axis' step, a pace as a clock."""
+    from openexpress.i18n import decimal
+
+    if kind in ("pace", "swim pace"):
+        return activity_clock(value)
+    if kind == "speed":
+        decimals = 0
+        while decimals < 3 and abs(step * 10**decimals - round(step * 10**decimals)) > 1e-9:
+            decimals += 1
+        return decimal(f"{value:.{decimals}f}")
+    return str(round(value))
+
+
+def chart_value_text(kind: str, value: float) -> str:
+    """A value of a series where the cursor is: "152 bpm", "412 m", "5:10 /km", "2:05 /100 m",
+    "24.3 km/h"."""
+    from openexpress.i18n import decimal
+
+    if kind == "heart rate":
+        return heart_rate_text(round(value))
+    if kind == "elevation":
+        return _("{metres} m").format(metres=round(value))
+    if kind == "pace":
+        return _("{pace} /km").format(pace=activity_clock(value))
+    if kind == "swim pace":
+        return _("{pace} /100 m").format(pace=activity_clock(value))
+    return _("{speed} km/h").format(speed=decimal(f"{value:.1f}"))
+
+
+def chart_cursor_text(seconds: float, kind: str, value: float | None) -> str:
+    """The line beside the chart's switch while its cursor is placed: the time since the start
+    and the value there ("31:20 · 152 bpm"), or that there is none (a gap, a pause)."""
+    # TRANSLATORS: beside the chart of an activity, where its cursor is on a gap or a pause
+    shown = _("no reading") if value is None else chart_value_text(kind, value)
+    return caption(activity_clock(seconds), shown)

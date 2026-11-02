@@ -284,3 +284,172 @@ def test_the_tiles_share_the_whole_line_of_a_wide_window(data, sport, count):
         assert bounds[-1].get_x() + bounds[-1].get_width() >= flow.get_width() - 1
     finally:
         win.toplevel.destroy()
+
+
+# --- the chart -------------------------------------------------------------------------------
+
+WALKING = 11
+# timestamp, position, enhanced altitude, heart rate, distance, enhanced speed
+WALK_RECORD = FitDefinition(1, 20, ((253, 0x86), (0, 0x85), (1, 0x85), (78, 0x86), (3, 0x02),
+                                    (5, 0x86), (73, 0x86)))
+
+
+def walk() -> bytes:
+    """Two minutes of a walk, a record each second: heart rate from 100 to 119 bpm and again,
+    the elevation up from 100 m by 0.1 m a second, 1.2 m/s."""
+    records = [FitData(1, (START + s, 624_000_000 + s * 10, 250_000_000,
+                           round((100 + s * 0.1 + 500) * 5), 100 + s % 20, round(s * 120),
+                           1200)) for s in range(120)]
+    return fit_file(WALK_RECORD, *records, SESSION,
+                    FitData(2, (START, WALKING, 0, 120_000, 119_000, 14_280, 30, None, 1200, 110,
+                                119, 12)))
+
+
+def heart_only() -> bytes:
+    return fit_file(HEART, *(FitData(1, (START + s, 100 + s)) for s in range(30)), SESSION,
+                    FitData(2, (START, TRAINING, 0, 30_000, 30_000, 0, 5, None, None, 115, 129,
+                                None)))
+
+
+def chart_of(page):
+    from openexpress.gui.activity_chart import ActivityChart
+
+    found = [w for w in _all(page) if isinstance(w, ActivityChart)]
+    return found[0] if found else None
+
+
+def switch_of(page) -> list:
+    from gi.repository import Gtk
+
+    return [w for w in _all(page) if isinstance(w, Gtk.ToggleButton)]
+
+
+def test_the_chart_of_a_walk_switches_between_what_it_has():
+    """Heart rate first; the switch shows the elevation and the pace in its place."""
+    win, _the_list = a_window(walk())
+    page = open_page(win, read_of(sport=WALKING))
+    buttons = switch_of(page)
+    assert [b.get_label() for b in buttons] == ["Heart rate", "Elevation", "Pace"]
+    assert [b.get_active() for b in buttons] == [True, False, False]
+    chart = chart_of(page)
+    assert chart.area.series.kind == "heart rate" and chart.value_label.get_label() == ""
+    buttons[1].set_active(True)
+    assert chart.area.series.kind == "elevation"
+    assert [b.get_active() for b in buttons] == [False, True, False]
+
+
+def test_one_series_has_its_name_in_place_of_the_switch():
+    win, _the_list = a_window(heart_only())
+    page = open_page(win, read_of(sport=TRAINING, positions=False))
+    assert switch_of(page) == [] and chart_of(page).area.series.kind == "heart rate"
+    assert "Heart rate" in labels(chart_of(page))
+
+
+def test_without_heart_rate_elevation_or_speed_no_chart_but_a_line():
+    win, _the_list = a_window(workout())  # its records: heart rate only…
+    page = open_page(win, read_of(sport=TRAINING, positions=False))
+    assert chart_of(page) is not None
+    positions = fit_file(PLACED, *(FitData(1, (START + s, 624_000_000 + s, 250_000_000, None))
+                                   for s in range(3)),
+                         SESSION, FitData(2, (START, HIKING, 0, 14_400_000, 13_800_000, 1_240_000,
+                                              900, None, 1000, None, None, 740)))
+    win, _the_list = a_window(positions)  # …positions only: nothing to chart
+    page = open_page(win, read_of())
+    assert chart_of(page) is None
+    assert "No heart rate, elevation or speed in this activity" in labels(page)
+
+
+def controllers(widget, kind):
+    model = widget.observe_controllers()
+    return next(c for c in (model.get_item(i) for i in range(model.get_n_items()))
+                if isinstance(c, kind))
+
+
+def cursor_time(text: str) -> int:
+    minutes, seconds = text.split(" ", 1)[0].split(":")
+    return int(minutes) * 60 + int(seconds)
+
+
+def test_the_cursor_by_click_drag_and_the_arrow_keys():
+    """A click puts it where it is, a drag moves it, the arrows and Home and End too; another
+    series keeps its place."""
+    from gi.repository import Gdk, GLib, Gtk
+
+    win, _the_list = a_window(walk())
+    page = open_page(win, read_of(sport=WALKING))
+    win.toplevel.set_default_size(1000, 700)
+    win.toplevel.present()
+    try:
+        chart = chart_of(page)
+        area = chart.area
+        for _ in range(500):
+            if area.get_width() > 0:
+                break
+            GLib.MainContext.default().iteration(False)
+        drag = controllers(area, Gtk.GestureDrag)
+        keys = controllers(area, Gtk.EventControllerKey)
+        said = chart.value_label.get_label
+
+        drag.emit("drag-begin", area.get_width() / 2, 100)
+        middle = cursor_time(said())
+        assert 40 <= middle <= 80 and said().endswith(" bpm")
+        for _ in range(50):
+            GLib.MainContext.default().iteration(False)
+        value = chart.value_label.compute_bounds(chart)[1]
+        switch = switch_of(page)[0].compute_bounds(chart)[1]
+        assert value.get_y() < switch.get_y() + switch.get_height()  # beside it, wide
+        drag.emit("drag-update", area.get_width() / 4, 0)
+        assert cursor_time(said()) > middle + 15
+        before = cursor_time(said())
+        assert keys.emit("key-pressed", Gdk.KEY_Left, 0, Gdk.ModifierType(0))
+        assert cursor_time(said()) < before
+        keys.emit("key-pressed", Gdk.KEY_Home, 0, Gdk.ModifierType(0))
+        assert said() == "0:00 · 100 bpm"
+        keys.emit("key-pressed", Gdk.KEY_End, 0, Gdk.ModifierType(0))
+        assert said() == "1:59 · 119 bpm"
+        switch_of(page)[1].set_active(True)
+        assert said() == "1:59 · 112 m"
+    finally:
+        win.toplevel.destroy()
+
+
+def test_the_chart_draws_each_series_with_its_cursor():
+    import cairo
+
+    from openexpress.gui import activity_chart
+
+    win, _the_list = a_window(walk())
+    page = open_page(win, read_of(sport=WALKING))
+    chart = chart_of(page)
+    for button in switch_of(page):
+        button.set_active(True)
+        for cursor in (None, 60):
+            chart.area.cursor = cursor
+            surface = cairo.ImageSurface(cairo.FORMAT_ARGB32, 600, 200)
+            activity_chart._draw(chart.area, cairo.Context(surface), 600, 200)
+            assert any(surface.get_data()), button.get_label()
+
+
+def test_the_page_and_its_chart_are_released_once_closed():
+    """No handler of the chart holds its widget or a sibling: back to the list, they go."""
+    import gc
+
+    from gi.repository import GLib
+
+    win, _the_list = a_window(walk())
+    page = open_page(win, read_of(sport=WALKING))
+    chart = chart_of(page)
+    switch_of(page)[1].set_active(True)
+    chart.area.place(30)
+    gone = []
+    chart.area.weak_ref(lambda: gone.append("chart"))
+    page.weak_ref(lambda: gone.append("page"))
+    del chart, page
+    win.navigation.pop()
+    win.run_task.calls.clear()  # the stand-in keeps every task; the window keeps none
+    win._action_buttons.clear()  # what the window drops as its pages are drawn again
+    for _ in range(3):
+        gc.collect()
+        while GLib.main_context_default().iteration(False):
+            pass
+    assert sorted(gone) == ["chart", "page"]

@@ -453,28 +453,34 @@ def test_the_bar_with_stop_waiting_fits_the_narrowest_window(narrow_window, lang
     assert win.action_bar.measure(Gtk.Orientation.HORIZONTAL, -1)[0] <= NARROWEST
 
 
-def _long_hike():
-    """A hike with all five tiles at their longest (two by two in a narrow window), its row a
-    copy in a backup with positions (the GPX button in its header bar)."""
+def _long_hike(sport=17):
+    """A hike (or a ride) with all five tiles at their longest (two by two in a narrow window)
+    and the chart of three series (its switch: the longest names), its row a copy in a backup
+    with positions (the GPX button in its header bar)."""
     from datetime import datetime
 
     from openexpress import activities, fit
 
     start = int(datetime(2026, 12, 31, 23, 59).timestamp())
-    data = fit.ActivityData(fit.FileState.DAMAGED, start=start, sport=17, timer_time=359_999.0,
-                            distance=123_456.0, avg_speed=0.2, avg_heart_rate=200,
-                            max_heart_rate=220, calories=9_999, ascent=9_999)
+    samples = tuple(fit.Sample(start + s, distance=s * 0.2, speed=0.2, heart_rate=200,
+                               altitude=4000 + s) for s in range(0, 359_999, 60))
+    data = fit.ActivityData(fit.FileState.DAMAGED, start=start, sport=sport,
+                            timer_time=359_999.0, distance=123_456.0, avg_speed=0.2,
+                            avg_heart_rate=200, max_heart_rate=220, calories=9_999,
+                            ascent=9_999, samples=samples)
     read = activities.Read(
         activities.Activity(activities.Source.BACKUP, "/backup/hike.fit", "hike.fit", 1, 1.0,
                             datetime(2026, 12, 31, 23, 59)),
-        fit.ActivitySummary(fit.FileState.DAMAGED, start=start, sport=17, has_positions=True))
+        fit.ActivitySummary(fit.FileState.DAMAGED, start=start, sport=sport, has_positions=True))
     return read, data
 
 
+@pytest.mark.parametrize("sport", [17, 2])  # a hike (Pace), a ride (Speed)
 @pytest.mark.parametrize("language", ["en", "pl"])
-def test_the_page_of_an_activity_fits_the_narrowest_window(narrow_window, monkeypatch, language):
-    """Its tiles two by two, the damaged file said under them, its sport and start in the
-    header bar with the GPX button."""
+def test_the_page_of_an_activity_fits_the_narrowest_window(narrow_window, monkeypatch, language,
+                                                           sport):
+    """Its tiles two by two, the damaged file said under them, the chart with its switch and
+    the value at its cursor, its sport and start in the header bar with the GPX button."""
     from fakes import RunNow
     from gi.repository import Gtk
 
@@ -486,7 +492,7 @@ def test_the_page_of_an_activity_fits_the_narrowest_window(narrow_window, monkey
     win.navigation.set_animate_transitions(False)
     win.navigation.push(win.device_view)
     win.select_section("activities")
-    read, data = _long_hike()
+    read, data = _long_hike(sport)
     monkeypatch.setattr(activity_page, "_data", lambda found, activity: data)
     win.run_task = RunNow()
     activity_page.open_activity(win, read)
@@ -495,7 +501,19 @@ def test_the_page_of_an_activity_fits_the_narrowest_window(narrow_window, monkey
     assert page.get_tag() == "activity"
     shown = [w.get_label() for w in _all(page) if isinstance(w, Gtk.Label)]
     assert {"99:59:59", "9999 m"} <= set(shown) and len(
-        [w for w in _all(page) if isinstance(w, Gtk.FlowBoxChild)]) == 5
+        [w for w in _all(page) if isinstance(w, Gtk.FlowBoxChild)
+         and w.get_child().has_css_class("card")]) == 5
+    assert len([w for w in _all(page) if isinstance(w, Gtk.ToggleButton)]) == 3
+    from openexpress.gui.activity_chart import ActivityChart
+
+    (chart,) = [w for w in _all(page) if isinstance(w, ActivityChart)]
+    chart.area.place(180_000)
+    assert chart.value_label.get_label()
+    _iterate(0.1)
+    value = chart.value_label.compute_bounds(chart)[1]
+    switch = next(w for w in _all(chart) if isinstance(w, Gtk.ToggleButton)).compute_bounds(
+        chart)[1]
+    assert value.get_y() >= switch.get_y() + switch.get_height()  # under the switch, narrow
     assert _min_width(page) <= NARROWEST
     assert page.get_width() <= NARROWEST
 
