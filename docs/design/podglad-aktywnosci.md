@@ -1,10 +1,11 @@
 # Design: the full view of an activity (summary, map, chart, laps)
 
 Status: the decisions of section 5 are made (each took its option a, marked "chosen"; D3a with what
-section 5 adds to it; 10b kept as an idea for later). Step 1 of section 8 is implemented (the data
-of an activity, `fit.activity_data`); steps 2–7 are not. The work goes step by step (section 8),
-each step after a yes. The scope in section 1 is set once: what it does not list is not added while
-it is implemented.
+section 5 adds to it; 10b kept as an idea for later; D11 with the tile of the ascent, the tiles
+beyond four places open until step 3). Steps 1 and 2 of section 8 are implemented (the data of an
+activity, `fit.activity_data`; the words of its page, `gui/words.py`); steps 3–7 are not. The work
+goes step by step (section 8), each step after a yes. The scope in section 1 is set once: what it
+does not list is not added while it is implemented.
 
 ## 1. Scope
 
@@ -267,6 +268,19 @@ its height and narrows; the lap rows wrap.
   value the file does not give: its tile left out, the others taking the row.
 - **11b. Always the four of the mockup,** "–" where a value is not given.
   - − A workout shows two dashes of four.
+- Added when step 2 began: a tile of the total ascent ("Total ascent", "Przewyższenie"), in whole
+  metres ("740 m"), only for an activity whose ascent is above zero, as the column of the list. A
+  distance of 0 m counts as none (workouts may record one). Which tiles there are when more
+  apply than the four places of the mockup (a hike with distance, time, pace, heart rate and
+  ascent) is decided before step 3, where the tiles are laid out; the lap's line keeps no
+  ascent. The options, in the order of the tiles (with a distance: distance, time, pace or speed,
+  average heart rate, ascent; without: time, average heart rate, maximum heart rate, calories,
+  ascent):
+  - **A. Four places, the first four that apply:** a hike with a heart rate shows no ascent.
+  - **B. Every tile that applies, up to five, flowing (recommended):** five in a row on a wide
+    window, two by two and one in a narrow one; nothing left out.
+  - **C. Four places, the ascent in place of the average heart rate for mountain sports**
+    (hiking, mountaineering, snowshoeing, skiing): a rule by sport to keep.
 
 ### D12: pace or speed — chosen: 12a
 
@@ -328,8 +342,10 @@ waits for a yes.
    positions or distance; pauses; compressed timestamps; laps and the session's extras; a file
    cut short or damaged (what reads, with its state); a long activity read within a time
    measured here.
-2. **The words.** Failing tests: durations, distances, pace by sport and speed (D12), heart
-   rate, calories, the tiles' names, a lap's line; English and Polish, hard spaces.
+2. **The words.** Failing tests: durations with seconds ("52:41"), distances (km with two
+   decimals, swimming in metres, 0 m none), pace by sport and speed (D12), heart rate ("148
+   bpm", "148 ud./min"), calories, ascent, the tiles' names (their own texts, not those of the
+   command line), a lap's line; English and Polish, hard spaces.
 3. **The page.** Failing tests: a click on a row opens it (D1), the back arrow returns to the
    list where it was, the GPX button exports as the row does; the tiles by what the activity has
    (D11); read from the device and from a backup copy (D8), with progress; unplugged meanwhile

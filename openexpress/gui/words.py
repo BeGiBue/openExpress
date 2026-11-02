@@ -292,3 +292,120 @@ def stalled_text(names: list[str | None]) -> str:
     return ngettext("The device stopped responding. Unplug it and plug it in again.",
                     "The devices stopped responding. Unplug them and plug them in again.",
                     count)
+
+
+# --- the page of an activity -------------------------------------------------------------------
+
+# FIT sports read with a pace a kilometre: running, walking, mountaineering, hiking, snowshoeing;
+# swimming with a pace a hundred metres; any other with a distance, with a speed.
+_PACE_SPORTS = {1, 11, 16, 17, 35}
+_SWIMMING = 5
+
+
+def speed_kind(sport: int | None) -> str:
+    """How an activity of this FIT sport tells how fast it went: "pace" (a kilometre), "swim
+    pace" (a hundred metres) or "speed"."""
+    if sport in _PACE_SPORTS:
+        return "pace"
+    return "swim pace" if sport == _SWIMMING else "speed"
+
+
+def activity_clock(seconds: float) -> str:
+    """A time with its seconds, the same in every language: "0:41", "52:41", "1:02:41"."""
+    total = max(0, round(seconds))
+    hours, rest = divmod(total, 3600)
+    minutes, secs = divmod(rest, 60)
+    return f"{hours}:{minutes:02}:{secs:02}" if hours else f"{minutes}:{secs:02}"
+
+
+def activity_distance(metres: float | None, sport: int | None) -> str | None:
+    """A distance: in kilometres with two decimals ("10.24 km"), a swim in whole metres ("1500
+    m"); None for none or 0 m (a workout may record 0 m)."""
+    from openexpress.i18n import decimal
+
+    if not metres or metres <= 0:
+        return None
+    if sport == _SWIMMING:
+        # TRANSLATORS: a distance or an ascent in whole metres on the page of an activity
+        return _("{metres} m").format(metres=round(metres))
+    # TRANSLATORS: a distance in kilometres on the page of an activity ("10.24 km")
+    return _("{distance} km").format(distance=decimal(f"{metres / 1000:.2f}"))
+
+
+def activity_pace(speed: float | None, sport: int | None) -> str | None:
+    """How fast, from a speed in metres a second, as the sport tells it (speed_kind): "5:10
+    /km", "2:05 /100 m" or "24.3 km/h"; None for none or 0."""
+    from openexpress.i18n import decimal
+
+    if not speed or speed <= 0:
+        return None
+    kind = speed_kind(sport)
+    if kind == "pace":
+        # TRANSLATORS: a pace, the time a kilometre takes ("5:10 /km")
+        return _("{pace} /km").format(pace=activity_clock(1000 / speed))
+    if kind == "swim pace":
+        # TRANSLATORS: a pace of a swim, the time a hundred metres take ("2:05 /100 m")
+        return _("{pace} /100 m").format(pace=activity_clock(100 / speed))
+    # TRANSLATORS: a speed in kilometres an hour ("24.3 km/h")
+    return _("{speed} km/h").format(speed=decimal(f"{speed * 3.6:.1f}"))
+
+
+def heart_rate_text(bpm: int | None) -> str | None:
+    """A heart rate: "148 bpm"; None when not given."""
+    if bpm is None:
+        return None
+    # TRANSLATORS: a heart rate in beats a minute ("148 bpm"; in Polish "148 ud./min")
+    return _("{rate} bpm").format(rate=bpm)
+
+
+def calories_text(kcal: int | None) -> str | None:
+    """Calories: "520 kcal"; None when not given."""
+    if kcal is None:
+        return None
+    # TRANSLATORS: the calories of an activity ("520 kcal")
+    return _("{calories} kcal").format(calories=kcal)
+
+
+def ascent_text(metres: int | None) -> str | None:
+    """A total ascent in whole metres: "740 m"; None for none or 0, as the list leaves it out."""
+    if not metres or metres <= 0:
+        return None
+    return _("{metres} m").format(metres=round(metres))
+
+
+def tile_name(kind: str) -> str:
+    """The name under the value of a tile of an activity's page; "swim pace" is a pace too."""
+    names = {
+        # TRANSLATORS: the names of the tiles on top of the page of an activity
+        "distance": pgettext("activity tile", "Distance"),
+        "time": pgettext("activity tile", "Time"),
+        "pace": pgettext("activity tile", "Average pace"),
+        "swim pace": pgettext("activity tile", "Average pace"),
+        "speed": pgettext("activity tile", "Average speed"),
+        "average heart rate": pgettext("activity tile", "Average heart rate"),
+        "maximum heart rate": pgettext("activity tile", "Maximum heart rate"),
+        "calories": pgettext("activity tile", "Calories"),
+        "ascent": pgettext("activity tile", "Total ascent"),
+    }
+    return names[kind]
+
+
+def lap_title(number: int) -> str:
+    """The title of a lap's row: "Lap 1"."""
+    # TRANSLATORS: the title of the row of a lap on the page of an activity
+    return _("Lap {number}").format(number=number)
+
+
+def lap_caption(lap, sport: int | None) -> str:
+    """The line of a lap (fit.Lap): its distance, its time (the timer's, the elapsed standing
+    in), how fast (its average speed, else worked out) and its average heart rate; only what it
+    gives."""
+    time = lap.timer_time if lap.timer_time is not None else lap.elapsed_time
+    speed = lap.avg_speed
+    if speed is None and lap.distance and time:
+        speed = lap.distance / time
+    distance = activity_distance(lap.distance, sport)
+    parts = [distance, activity_clock(time) if time is not None else None,
+             activity_pace(speed, sport) if distance else None,
+             heart_rate_text(lap.avg_heart_rate)]
+    return caption(*(part for part in parts if part))

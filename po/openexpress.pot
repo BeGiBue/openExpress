@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: openexpress 0.8.1\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-11-02 17:14+0100\n"
+"POT-Creation-Date: 2026-11-02 19:20+0100\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -5814,6 +5814,95 @@ msgid_plural ""
 "The devices stopped responding. Unplug them and plug them in again."
 msgstr[0] ""
 msgstr[1] ""
+
+#. TRANSLATORS: a distance or an ascent in whole metres on the page of an activity
+#: openexpress/gui/words.py:330 openexpress/gui/words.py:373
+#, python-brace-format
+msgid "{metres} m"
+msgstr ""
+
+#. TRANSLATORS: a distance in kilometres on the page of an activity ("10.24 km")
+#: openexpress/gui/words.py:332
+#, python-brace-format
+msgid "{distance} km"
+msgstr ""
+
+#. TRANSLATORS: a pace, the time a kilometre takes ("5:10 /km")
+#: openexpress/gui/words.py:345
+#, python-brace-format
+msgid "{pace} /km"
+msgstr ""
+
+#. TRANSLATORS: a pace of a swim, the time a hundred metres take ("2:05 /100 m")
+#: openexpress/gui/words.py:348
+#, python-brace-format
+msgid "{pace} /100 m"
+msgstr ""
+
+#. TRANSLATORS: a speed in kilometres an hour ("24.3 km/h")
+#: openexpress/gui/words.py:350
+#, python-brace-format
+msgid "{speed} km/h"
+msgstr ""
+
+#. TRANSLATORS: a heart rate in beats a minute ("148 bpm"; in Polish "148 ud./min")
+#: openexpress/gui/words.py:358
+#, python-brace-format
+msgid "{rate} bpm"
+msgstr ""
+
+#. TRANSLATORS: the calories of an activity ("520 kcal")
+#: openexpress/gui/words.py:366
+#, python-brace-format
+msgid "{calories} kcal"
+msgstr ""
+
+#. TRANSLATORS: the names of the tiles on top of the page of an activity
+#: openexpress/gui/words.py:380
+msgctxt "activity tile"
+msgid "Distance"
+msgstr ""
+
+#: openexpress/gui/words.py:381
+msgctxt "activity tile"
+msgid "Time"
+msgstr ""
+
+#: openexpress/gui/words.py:382 openexpress/gui/words.py:383
+msgctxt "activity tile"
+msgid "Average pace"
+msgstr ""
+
+#: openexpress/gui/words.py:384
+msgctxt "activity tile"
+msgid "Average speed"
+msgstr ""
+
+#: openexpress/gui/words.py:385
+msgctxt "activity tile"
+msgid "Average heart rate"
+msgstr ""
+
+#: openexpress/gui/words.py:386
+msgctxt "activity tile"
+msgid "Maximum heart rate"
+msgstr ""
+
+#: openexpress/gui/words.py:387
+msgctxt "activity tile"
+msgid "Calories"
+msgstr ""
+
+#: openexpress/gui/words.py:388
+msgctxt "activity tile"
+msgid "Total ascent"
+msgstr ""
+
+#. TRANSLATORS: the title of the row of a lap on the page of an activity
+#: openexpress/gui/words.py:396
+#, python-brace-format
+msgid "Lap {number}"
+msgstr ""
 
 #: openexpress/i18n.py:145
 msgid "just now"
