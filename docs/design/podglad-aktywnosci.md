@@ -1,11 +1,11 @@
 # Design: the full view of an activity (summary, map, chart, laps)
 
 Status: the decisions of section 5 are made (each took its option a, marked "chosen"; D3a with what
-section 5 adds to it; 10b kept as an idea for later; D11 with the tile of the ascent, the tiles
-beyond four places open until step 3). Steps 1 and 2 of section 8 are implemented (the data of an
-activity, `fit.activity_data`; the words of its page, `gui/words.py`); steps 3–7 are not. The work
-goes step by step (section 8), each step after a yes. The scope in section 1 is set once: what it
-does not list is not added while it is implemented.
+section 5 adds to it; 10b kept as an idea for later; D11 with the tile of the ascent and every tile
+that applies, up to five). Steps 1 and 2 of section 8 are implemented (the data of an activity,
+`fit.activity_data`; the words of its page, `gui/words.py`); steps 3–7 are not. The work goes step
+by step (section 8), each step after a yes. The scope in section 1 is set once: what it does not
+list is not added while it is implemented.
 
 ## 1. Scope
 
@@ -272,13 +272,13 @@ its height and narrows; the lap rows wrap.
   metres ("740 m"), only for an activity whose ascent is above zero, as the column of the list. A
   distance of 0 m counts as none (workouts may record one). Which tiles there are when more
   apply than the four places of the mockup (a hike with distance, time, pace, heart rate and
-  ascent) is decided before step 3, where the tiles are laid out; the lap's line keeps no
-  ascent. The options, in the order of the tiles (with a distance: distance, time, pace or speed,
+  ascent) was decided when step 3 began: B; the lap's line keeps no ascent. The options, in the
+  order of the tiles (with a distance: distance, time, pace or speed,
   average heart rate, ascent; without: time, average heart rate, maximum heart rate, calories,
   ascent):
   - **A. Four places, the first four that apply:** a hike with a heart rate shows no ascent.
-  - **B. Every tile that applies, up to five, flowing (recommended):** five in a row on a wide
-    window, two by two and one in a narrow one; nothing left out.
+  - **B. Every tile that applies, up to five, flowing (recommended; chosen):** five in a row
+    on a wide window, two by two and one in a narrow one; nothing left out.
   - **C. Four places, the ascent in place of the average heart rate for mountain sports**
     (hiking, mountaineering, snowshoeing, skiing): a rule by sport to keep.
 
