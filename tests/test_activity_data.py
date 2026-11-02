@@ -1,0 +1,196 @@
+"""What an activity file holds for its page (fit.activity_data): the series of its records
+(time, distance, speed, heart rate, altitude, position), its laps and what its sessions say;
+a value a record does not give is a gap, never a zero. Every file is made up from the public
+FIT protocol."""
+
+import time
+
+import pytest
+from fakes import FitData, FitDefinition, fit_file
+
+from openexpress import fit
+
+START = 1_100_000_000  # a time of the FIT protocol
+UNIX = START + fit.FIT_EPOCH_OFFSET
+
+# timestamp, position, enhanced altitude, heart rate, distance, enhanced speed
+RECORD = FitDefinition(1, 20, ((253, 0x86), (0, 0x85), (1, 0x85), (78, 0x86), (3, 0x02),
+                               (5, 0x86), (73, 0x86)))
+# timestamp, altitude and speed (the fields without "enhanced"), heart rate
+PLAIN_RECORD = FitDefinition(1, 20, ((253, 0x86), (2, 0x84), (3, 0x02), (6, 0x84)))
+# timestamp and heart rate only (a workout)
+HEART_RECORD = FitDefinition(1, 20, ((253, 0x86), (3, 0x02)))
+# timestamp, start, elapsed and timer time, distance, calories, average speed and its enhanced
+# field, average and maximum heart rate, ascent
+LAP = FitDefinition(3, 19, ((253, 0x86), (2, 0x86), (7, 0x86), (8, 0x86), (9, 0x86),
+                            (11, 0x84), (13, 0x84), (110, 0x86), (15, 0x02), (16, 0x02),
+                            (21, 0x84)))
+# start, sport, sub-sport, elapsed and timer time, distance, calories, average speed and its
+# enhanced field, average and maximum heart rate, ascent
+SESSION = FitDefinition(2, 18, ((2, 0x86), (5, 0x00), (6, 0x00), (7, 0x86), (8, 0x86),
+                                (9, 0x86), (11, 0x84), (14, 0x84), (124, 0x86), (16, 0x02),
+                                (17, 0x02), (22, 0x84)))
+FILE_ID = (FitDefinition(0, 0, ((0, 0x00), (4, 0x86))), FitData(0, (4, START)))
+
+
+def semicircles(degrees: float) -> int:
+    return round(degrees * 2**31 / 180)
+
+
+def altitude(metres: float) -> int:
+    """The FIT value of an altitude, in steps of 0.2 m."""
+    return round((metres + 500) * 5)
+
+
+def record(second: int, metres: float, heart_rate: int | None = 140) -> FitData:
+    """A record of a run going north from 52°N 21°E at 2.5 m/s."""
+    return FitData(1, (START + second, semicircles(52 + second * 2.5e-5), semicircles(21.0),
+                       altitude(100 + second * 0.2), heart_rate, round(metres * 100),
+                       2500))
+
+
+def run(*, records=None, laps=None, sessions=None, cut=None, bad_crc=False) -> bytes:
+    records = [record(s, s * 2.5) for s in range(4)] if records is None else records
+    laps = [FitData(3, (START + 2, START, 2000, 2000, 500, 1, 2500, 2500, 140, 141, 0)),
+            FitData(3, (START + 4, START + 2, 2000, 2000, 500, 1, 2500, 2500, 142, 145, 1))
+            ] if laps is None else laps
+    sessions = [FitData(2, (START, 1, 0, 4000, 4000, 1000, 2, 2500, 2500, 141, 145, 1))
+                ] if sessions is None else sessions
+    return fit_file(*FILE_ID, RECORD, *records, LAP, *laps, SESSION, *sessions, cut=cut,
+                    bad_crc=bad_crc)
+
+
+def test_the_series_of_a_run():
+    data = fit.activity_data(run())
+    assert data.state is fit.FileState.WHOLE and data.has_positions
+    first, last = data.samples[0], data.samples[-1]
+    assert [s.time for s in data.samples] == [UNIX, UNIX + 1, UNIX + 2, UNIX + 3]
+    assert last.distance == pytest.approx(7.5) and last.speed == pytest.approx(2.5)
+    assert first.heart_rate == 140 and last.altitude == pytest.approx(100.6)
+    assert first.latitude == pytest.approx(52.0, abs=1e-6)
+    assert first.longitude == pytest.approx(21.0, abs=1e-6)
+    assert last.latitude == pytest.approx(52 + 3 * 2.5e-5, abs=1e-6)
+
+
+def test_what_its_session_says():
+    data = fit.activity_data(run())
+    assert (data.start, data.sport, data.sub_sport) == (UNIX, 1, 0)
+    assert data.elapsed_time == pytest.approx(4.0) and data.timer_time == pytest.approx(4.0)
+    assert data.distance == pytest.approx(10.0) and data.ascent == 1
+    assert data.avg_speed == pytest.approx(2.5) and data.calories == 2
+    assert (data.avg_heart_rate, data.max_heart_rate) == (141, 145)
+
+
+def test_its_laps():
+    laps = fit.activity_data(run()).laps
+    assert [lap.start for lap in laps] == [UNIX, UNIX + 2]
+    assert [lap.distance for lap in laps] == [pytest.approx(5.0), pytest.approx(5.0)]
+    assert [lap.timer_time for lap in laps] == [pytest.approx(2.0), pytest.approx(2.0)]
+    assert [lap.elapsed_time for lap in laps] == [pytest.approx(2.0), pytest.approx(2.0)]
+    assert [(lap.avg_heart_rate, lap.max_heart_rate) for lap in laps] == [(140, 141),
+                                                                          (142, 145)]
+    assert [lap.avg_speed for lap in laps] == [pytest.approx(2.5), pytest.approx(2.5)]
+    assert [(lap.ascent, lap.calories) for lap in laps] == [(0, 1), (1, 1)]
+
+
+def test_the_enhanced_fields_come_first_and_the_others_stand_in():
+    """The average speed of a lap and a session from their enhanced fields; the speed and the
+    altitude of a record from the plain ones when the enhanced are not there."""
+    laps = [FitData(3, (START + 2, START, 2000, 2000, 500, 1, None, 3100, 140, 141, 0))]
+    sessions = [FitData(2, (START, 1, 0, 4000, 4000, 1000, 2, 2400, 3200, 141, 145, 1))]
+    data = fit.activity_data(run(laps=laps, sessions=sessions))
+    assert data.laps[0].avg_speed == pytest.approx(3.1)
+    assert data.avg_speed == pytest.approx(3.2)
+    plain = fit.activity_data(fit_file(*FILE_ID, PLAIN_RECORD,
+                                       FitData(1, (START, altitude(250), 120, 1800))))
+    (sample,) = plain.samples
+    assert sample.altitude == pytest.approx(250.0) and sample.speed == pytest.approx(1.8)
+    assert (sample.latitude, sample.longitude, sample.distance) == (None, None, None)
+
+
+def test_a_workout_without_positions_or_distance():
+    """Heart rate and time only: no position, no distance, no laps."""
+    data = fit.activity_data(fit_file(
+        *FILE_ID, HEART_RECORD, *(FitData(1, (START + s, 100 + s)) for s in range(3)),
+        SESSION, FitData(2, (START, 10, 20, 1800_000, 1800_000, None, 250, None, None, 101,
+                             102, None))))
+    assert not data.has_positions and data.laps == ()
+    assert [s.heart_rate for s in data.samples] == [100, 101, 102]
+    assert {s.distance for s in data.samples} == {None}
+    assert (data.sport, data.sub_sport, data.calories) == (10, 20, 250)
+    assert (data.distance, data.avg_speed, data.ascent) == (None, None, None)
+    assert data.timer_time == pytest.approx(1800.0)
+
+
+def test_a_value_not_given_is_a_gap():
+    data = fit.activity_data(run(records=[record(0, 0.0), record(1, 2.5, heart_rate=None),
+                                          record(2, 5.0)]))
+    assert [s.heart_rate for s in data.samples] == [140, None, 140]
+
+
+def test_a_pause_keeps_the_times_of_the_records():
+    """The time stands still during a pause: the records after it keep their own times; the
+    session says the elapsed time with the pause and the timer time without."""
+    sessions = [FitData(2, (START, 1, 0, 64_000, 4000, 1000, 2, 2500, 2500, 141, 145, 1))]
+    data = fit.activity_data(run(records=[record(0, 0.0), record(1, 2.5), record(61, 5.0),
+                                          record(62, 7.5)], sessions=sessions))
+    assert [s.time - UNIX for s in data.samples] == [0, 1, 61, 62]
+    assert data.elapsed_time == pytest.approx(64.0) and data.timer_time == pytest.approx(4.0)
+
+
+def test_compressed_timestamps_give_each_record_its_time():
+    """After a record with its time, records with a compressed-timestamp header: the offset
+    replaces the lowest five bits of the time before it, over the 32 s boundary too."""
+    base = START - START % 32 + 30  # two seconds before a multiple of 32
+    records = [FitData(1, (base, 120)),
+               FitData(1, (None, 121), time_offset=(base + 1) % 32),
+               FitData(1, (None, 122), time_offset=(base + 3) % 32)]
+    data = fit.activity_data(fit_file(*FILE_ID, HEART_RECORD, *records))
+    assert [s.time - fit.FIT_EPOCH_OFFSET for s in data.samples] == [base, base + 1, base + 3]
+    assert [s.heart_rate for s in data.samples] == [120, 121, 122]
+
+
+def test_several_sessions_together():
+    """A multisport activity: its sport is multisport, its times, distance, ascent and
+    calories added up, its average speed over all of it, its maximum heart rate the
+    highest."""
+    sessions = [FitData(2, (START, 2, 0, 3_600_000, 3_600_000, 3_000_000, 600, None, 8333,
+                            130, 160, 200)),
+                FitData(2, (START + 3600, 1, 0, 1_800_000, 1_800_000, 600_000, 400, None,
+                            3333, 150, 175, 50))]
+    data = fit.activity_data(run(sessions=sessions))
+    assert data.sport == fit.SPORT_MULTISPORT and data.sub_sport is None
+    assert data.timer_time == pytest.approx(5400.0) and data.distance == pytest.approx(36000.0)
+    assert (data.ascent, data.calories, data.max_heart_rate) == (250, 1000, 175)
+    assert data.avg_speed == pytest.approx(36000 / 5400)
+    assert data.avg_heart_rate == round((130 * 3600 + 150 * 1800) / 5400)
+
+
+def test_a_file_cut_short_gives_what_reads():
+    """A file the device was still writing: said so, with the records read up to where it
+    breaks off."""
+    whole = run()
+    data = fit.activity_data(whole[:len(whole) - 120])
+    assert data.state is fit.FileState.STILL_BEING_WRITTEN
+    assert 0 < len(data.samples) <= 4
+
+
+def test_a_damaged_file_gives_what_reads():
+    data = fit.activity_data(run(bad_crc=True))
+    assert data.state is fit.FileState.DAMAGED and len(data.samples) == 4
+
+
+def test_what_is_no_fit_file_is_an_error():
+    with pytest.raises(fit.FitError):
+        fit.activity_data(b"not a FIT file at all")
+
+
+def test_a_long_activity_is_read_in_a_few_seconds():
+    """A hike of 8 h with a record every second (28,800 records): its page waits for this."""
+    records = [record(s, s * 1.2) for s in range(8 * 3600)]
+    data = run(records=records)
+    started = time.monotonic()
+    read = fit.activity_data(data)
+    took = time.monotonic() - started
+    assert len(read.samples) == 8 * 3600
+    assert took < 5.0, f"{took:.2f} s"

@@ -1,9 +1,10 @@
 # Design: the full view of an activity (summary, map, chart, laps)
 
 Status: the decisions of section 5 are made (each took its option a, marked "chosen"; D3a with what
-section 5 adds to it; 10b kept as an idea for later); nothing is implemented yet. The work goes step
-by step (section 8), each step after a yes. The scope in section 1 is set once: what it does not
-list is not added while it is implemented.
+section 5 adds to it; 10b kept as an idea for later). Step 1 of section 8 is implemented (the data
+of an activity, `fit.activity_data`); steps 2–7 are not. The work goes step by step (section 8),
+each step after a yes. The scope in section 1 is set once: what it does not list is not added while
+it is implemented.
 
 ## 1. Scope
 
@@ -42,7 +43,7 @@ Not in scope (a closed list; each would be a project of its own):
 
 - `openexpress/fit.py`, own code from the public FIT protocol (Appendix A):
   - `iter_messages(data, wanted)` with the base types of the fields (signed values, invalid
-    values recognised); compressed-timestamp headers are read, their time is not worked out.
+    values recognised); a message after a compressed-timestamp header gets the time it gives.
   - `summary(data)`: from the sessions the start, the sport (several: multisport), the timer
     time (pauses left out), the distance and the ascent, and whether a position is there.
   - `points(data)`: of each record that has a position, latitude, longitude, altitude and time;
@@ -79,8 +80,9 @@ zero.
 
 **Sizes.** A hike of 8 h with a record every second is about 28,800 records, a file of about
 1–2 MB; over MTP the device gives about 1.3 MB/s (30 activities, 10 MB, in 7.4–8.0 s), so 1–2 s
-to read it. How long Python takes to go through 28,800 records is to be measured in step 1;
-the series are lists of numbers of a few MB.
+to read it. Python goes through such a file (28,800 records with position, altitude, heart
+rate, distance and speed, 0.75 MB) in about 0.2 s (measured in step 1); the samples take a
+few MB.
 
 **The map's tiles.** OpenStreetMap's tile policy (operations.osmfoundation.org/policies/tiles)
 asks of an application: the HTTPS URL `https://tile.openstreetmap.org/{z}/{x}/{y}.png`, best
@@ -277,7 +279,7 @@ its height and narrows; the lap rows wrap.
 
 | Module | Change |
 |---|---|
-| `fit.py` | `activity_data(data)`: the series (time, distance, speed, heart rate, altitude, position), the laps and the session's extras (Appendix A); compressed timestamps worked out. FitError where the file breaks off, after what was read. |
+| `fit.py` | `activity_data(data)`: the samples of the records (time, distance, speed, heart rate, altitude, position; a value not given is a gap), the laps and what the sessions say together (Appendix A). Of a file cut short or damaged, what reads with its state, as `summary`; FitError for what is no FIT file. |
 | `activities.py` | The data of one activity (`Read`), from the device or from its backup copy, as a task with progress. |
 | `gui/activity_page.py` (new) | The page: header bar (back, GPX), tiles, map, chart, laps; reading, errors, the narrow window. |
 | `gui/activity_chart.py` (new) | The chart widget (D5, D6): series, axes, cursor, keyboard, highlighted lap. |
@@ -324,7 +326,8 @@ waits for a yes.
 1. **The data of an activity (`fit.activity_data`).** Failing tests on made-up FIT files: the
    series of a run (time, distance, speed, heart rate, altitude, position); a workout without
    positions or distance; pauses; compressed timestamps; laps and the session's extras; a file
-   cut short (what reads, then FitError); a long activity read within a time measured here.
+   cut short or damaged (what reads, with its state); a long activity read within a time
+   measured here.
 2. **The words.** Failing tests: durations, distances, pace by sport and speed (D12), heart
    rate, calories, the tiles' names, a lap's line; English and Polish, hard spaces.
 3. **The page.** Failing tests: a click on a row opens it (D1), the back arrow returns to the

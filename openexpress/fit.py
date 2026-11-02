@@ -518,6 +518,183 @@ def points(data: bytes) -> Iterator[Point]:
                     _unix_time(values.get(FIELD_TIMESTAMP)))
 
 
+# FIT profile: more of a record, the lap, and more of a session.
+_RECORD_HEART_RATE = 3  # beats a minute
+_RECORD_DISTANCE = 5  # centimetres from the start
+_RECORD_SPEED, _RECORD_ENHANCED_SPEED = 6, 73  # millimetres a second
+_MESG_LAP = 19
+_LAP_START_TIME = 2
+_LAP_ELAPSED_TIME, _LAP_TIMER_TIME = 7, 8  # milliseconds, with and without the pauses
+_LAP_DISTANCE = 9  # centimetres
+_LAP_CALORIES = 11
+_LAP_AVG_SPEED, _LAP_ENHANCED_AVG_SPEED = 13, 110  # millimetres a second
+_LAP_AVG_HEART_RATE, _LAP_MAX_HEART_RATE = 15, 16
+_LAP_ASCENT = 21  # metres
+_SESSION_SUB_SPORT = 6
+_SESSION_ELAPSED_TIME = 7  # milliseconds, pauses included
+_SESSION_CALORIES = 11
+_SESSION_AVG_SPEED, _SESSION_ENHANCED_AVG_SPEED = 14, 124  # millimetres a second
+_SESSION_AVG_HEART_RATE, _SESSION_MAX_HEART_RATE = 16, 17
+
+
+@dataclass(frozen=True)
+class Sample:
+    """A record of an activity: its time (a Unix time) and what it gives; None: not given (a
+    gap, never a zero)."""
+
+    time: int
+    distance: float | None = None  # metres from the start
+    speed: float | None = None  # metres a second
+    heart_rate: int | None = None  # beats a minute
+    altitude: float | None = None  # metres
+    latitude: float | None = None  # degrees
+    longitude: float | None = None
+
+
+@dataclass(frozen=True)
+class Lap:
+    """A lap as the device recorded it; None: not given."""
+
+    start: int | None = None  # a Unix time
+    elapsed_time: float | None = None  # seconds, pauses included
+    timer_time: float | None = None  # seconds, pauses left out
+    distance: float | None = None  # metres
+    avg_speed: float | None = None  # metres a second
+    avg_heart_rate: int | None = None
+    max_heart_rate: int | None = None
+    ascent: int | None = None  # metres
+    calories: int | None = None
+
+
+@dataclass(frozen=True)
+class ActivityData:
+    """What an activity file holds for its page (activity_data): how the file is, what its
+    sessions say together, its records and its laps. None: not said."""
+
+    state: FileState
+    start: int | None = None  # the start of its first session (a Unix time)
+    sport: int | None = None  # several sports: SPORT_MULTISPORT
+    sub_sport: int | None = None  # of one session only
+    elapsed_time: float | None = None  # seconds, pauses included
+    timer_time: float | None = None  # seconds, pauses left out
+    distance: float | None = None  # metres
+    ascent: int | None = None  # metres
+    avg_speed: float | None = None  # metres a second
+    avg_heart_rate: int | None = None
+    max_heart_rate: int | None = None
+    calories: int | None = None
+    samples: tuple[Sample, ...] = ()
+    laps: tuple[Lap, ...] = ()
+
+    @property
+    def has_positions(self) -> bool:
+        return any(s.latitude is not None for s in self.samples)
+
+
+def _scaled(value: Value, scale: int) -> float | None:
+    number = _whole_number(value)
+    return None if number is None else number / scale
+
+
+def _speed(values: dict[int, Value], enhanced: int, plain: int) -> float | None:
+    """A speed in metres a second: the enhanced field first, the plain one standing in."""
+    speed = _scaled(values.get(enhanced), 1000)
+    return _scaled(values.get(plain), 1000) if speed is None else speed
+
+
+def _sample(values: dict[int, Value]) -> Sample | None:
+    """The sample of a record; None for one without a time, which cannot be placed."""
+    time = _unix_time(values.get(FIELD_TIMESTAMP))
+    if time is None:
+        return None
+    lat, long = (_whole_number(values.get(n)) for n in (_RECORD_LAT, _RECORD_LONG))
+    altitude = _metres(values.get(_RECORD_ENHANCED_ALTITUDE))
+    if altitude is None:
+        altitude = _metres(values.get(_RECORD_ALTITUDE))
+    placed = lat is not None and long is not None
+    return Sample(time, _scaled(values.get(_RECORD_DISTANCE), 100),
+                  _speed(values, _RECORD_ENHANCED_SPEED, _RECORD_SPEED),
+                  _whole_number(values.get(_RECORD_HEART_RATE)), altitude,
+                  _degrees(lat) if placed else None, _degrees(long) if placed else None)
+
+
+def _lap(values: dict[int, Value]) -> Lap:
+    return Lap(_unix_time(values.get(_LAP_START_TIME)),
+               _scaled(values.get(_LAP_ELAPSED_TIME), 1000),
+               _scaled(values.get(_LAP_TIMER_TIME), 1000),
+               _scaled(values.get(_LAP_DISTANCE), 100),
+               _speed(values, _LAP_ENHANCED_AVG_SPEED, _LAP_AVG_SPEED),
+               _whole_number(values.get(_LAP_AVG_HEART_RATE)),
+               _whole_number(values.get(_LAP_MAX_HEART_RATE)),
+               _whole_number(values.get(_LAP_ASCENT)),
+               _whole_number(values.get(_LAP_CALORIES)))
+
+
+def _sessions_together(sessions: list[dict[int, Value]]) -> dict:
+    """What the sessions say together: the times, distance, ascent and calories added up, the
+    average speed over all of them (from one session as it gives it), the average heart rate
+    weighted by each one's timer time, the maximum the highest."""
+    if not sessions:
+        return {}
+    sports = {_whole_number(s.get(_SESSION_SPORT)) for s in sessions} - {None}
+    sport = sports.pop() if len(sports) == 1 else SPORT_MULTISPORT if sports else None
+    timer_time = _total(sessions, _SESSION_TIMER_TIME, 1000)
+    distance = _total(sessions, _SESSION_DISTANCE, 100)
+    if len(sessions) == 1:
+        avg_speed = _speed(sessions[0], _SESSION_ENHANCED_AVG_SPEED, _SESSION_AVG_SPEED)
+    else:
+        avg_speed = distance / timer_time if distance is not None and timer_time else None
+    weighted = [(hr, t) for hr, t in ((_whole_number(s.get(_SESSION_AVG_HEART_RATE)),
+                                       _whole_number(s.get(_SESSION_TIMER_TIME)))
+                                      for s in sessions) if hr is not None and t]
+    heart_rates = [hr for hr in (_whole_number(s.get(_SESSION_MAX_HEART_RATE))
+                                 for s in sessions) if hr is not None]
+    return {
+        "start": _unix_time(sessions[0].get(_SESSION_START_TIME)),
+        "sport": sport,
+        "sub_sport": (_whole_number(sessions[0].get(_SESSION_SUB_SPORT))
+                      if len(sessions) == 1 else None),
+        "elapsed_time": _total(sessions, _SESSION_ELAPSED_TIME, 1000),
+        "timer_time": timer_time,
+        "distance": distance,
+        "ascent": _total(sessions, _SESSION_ASCENT),
+        "avg_speed": avg_speed,
+        "avg_heart_rate": (round(sum(hr * t for hr, t in weighted) / sum(t for _hr, t in weighted))
+                           if weighted else None),
+        "max_heart_rate": max(heart_rates) if heart_rates else None,
+        "calories": _total(sessions, _SESSION_CALORIES),
+    }
+
+
+def activity_data(data: bytes) -> ActivityData:
+    """What the activity file `data` holds for its page: its records with a time, its laps
+    and what its sessions say together. Of a file cut short (the device was still writing it)
+    or damaged, what reads up to where it breaks off, with its state. FitError for what is no
+    FIT file, as summary."""
+    _check_header(data)
+    found = not_whole(data)
+    state = (FileState.WHOLE if found is None else FileState.STILL_BEING_WRITTEN if found[0]
+             else FileState.DAMAGED)
+    samples: list[Sample] = []
+    laps: list[Lap] = []
+    sessions: list[dict[int, Value]] = []
+    try:
+        for num, values in iter_messages(data, wanted=(_MESG_RECORD, _MESG_LAP, _MESG_SESSION)):
+            if num == _MESG_RECORD:
+                sample = _sample(values)
+                if sample is not None:
+                    samples.append(sample)
+            elif num == _MESG_LAP:
+                laps.append(_lap(values))
+            else:
+                sessions.append(values)
+    except FitError:
+        if state is FileState.WHOLE:
+            state = FileState.DAMAGED
+    return ActivityData(state, samples=tuple(samples), laps=tuple(laps),
+                        **_sessions_together(sessions))
+
+
 # FIT profile: workout (sport, num_valid_steps, wkt_name), course (sport, name) and schedule
 # (scheduled_time, a local_date_time), the messages a file of Garmin Connect's queue may hold.
 _MESG_WORKOUT, _WORKOUT_SPORT, _WORKOUT_STEPS, _WORKOUT_NAME = 26, 4, 6, 8
