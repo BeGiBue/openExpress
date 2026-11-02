@@ -1,10 +1,12 @@
 """The map of an activity (gui/activity_map.py) without a screen: the track from the records with
 positions (its time as the chart's), thinned for a long one, its bounds and the zoom that shows
-it, where the chart's cursor is on it; the tiles of OpenStreetMap asked by openExpress itself,
-with its User-Agent, kept in the program's cache as long as the server allows, asked again
-with what the cache has, nothing said of a place in the log. No tile is asked of a server
-here: the download is a stand-in. Every value is made up."""
+it, where the chart's cursor is on it, the markers of its ends; the tiles a view shows and
+where they are drawn (each edge on a pixel of the screen); the tiles of OpenStreetMap asked by
+openExpress itself, with its User-Agent, kept in the program's cache as long as the server
+allows, asked again with what the cache has, nothing said of a place in the log. No tile is
+asked of a server here: the download is a stand-in. Every value is made up."""
 
+import itertools
 import time
 
 import pytest
@@ -66,6 +68,57 @@ def test_where_the_chart_s_cursor_is_on_the_track():
     assert amap().position_at(track, 6) == (51.6, -0.2)
     assert amap().position_at(track, -3) == (51.5, -0.1)
     assert amap().position_at(track, 100) is None
+
+
+def test_the_start_and_the_finish_one_marker_for_a_loop():
+    """Apart: the start and the finish where they are; closer than 50 m (a loop): one marker
+    for both, at the start."""
+    line = amap().Track((0, 600), ((51.5, -0.16), (51.51, -0.16)))
+    assert amap().ends_of(line) == [("start", (51.5, -0.16)), ("finish", (51.51, -0.16))]
+    loop = amap().Track((0, 300, 600), ((51.5, -0.16), (51.51, -0.16), (51.5003, -0.16)))
+    assert amap().ends_of(loop) == [("start-and-finish", (51.5, -0.16))]
+    alone = amap().Track((0,), ((51.5, -0.16),))
+    assert amap().ends_of(alone) == [("start-and-finish", (51.5, -0.16))]
+
+
+# --- where the tiles are drawn ----------------------------------------------------------------
+
+
+def test_the_tiles_of_a_view_in_the_order_they_are_drawn():
+    """Rows from the top, each from the left, every tile touching the next: the whole view
+    covered, nothing more than a tile around it."""
+    places = amap().tile_places(15, 51.5065, -0.1665, 600, 300)
+    rows = sorted({p.y for p in places})
+    assert [p.y for p in places] == sorted(p.y for p in places)
+    for y in rows:
+        row = [p for p in places if p.y == y]
+        assert [p.x for p in row] == sorted(p.x for p in row)
+        assert all(a.x + a.width == b.x for a, b in itertools.pairwise(row))
+        assert row[0].x <= 0 < row[0].x + row[0].width and row[-1].x + row[-1].width >= 600
+    assert places[0].y <= 0 and places[-1].y + places[-1].height >= 300
+    assert {p.key[0] for p in places} == {15}
+    assert all(p.width == p.height == 256 for p in places)
+    zoom, x, y = places[0].key
+    assert (x, y) == (16367, 10895)  # the tile of OpenStreetMap at the view's top left
+
+
+def test_tiles_across_the_antimeridian_are_those_of_the_other_side():
+    keys = {p.key[1] for p in amap().tile_places(3, 0.0, 179.9, 600, 300)}
+    assert 0 in keys and 7 in keys and max(keys) < 8
+
+
+def test_the_tiles_land_on_the_pixels_of_the_screen():
+    """Each edge on a pixel of a screen of this scale (the view's centre anywhere)."""
+    for scale in (1, 1.25, 1.5, 2):
+        for place in amap().tile_places(15, 51.50651234, -0.16653456, 600, 300, scale):
+            for edge in (place.x, place.y, place.x + place.width, place.y + place.height):
+                assert edge * scale == pytest.approx(round(edge * scale))
+
+
+def test_between_two_zooms_the_tiles_of_the_zoom_below_drawn_larger():
+    places = amap().tile_places(15.5, 51.5065, -0.1665, 600, 300)
+    assert {p.key[0] for p in places} == {15}
+    assert all(p.width == pytest.approx(256 * 2 ** 0.5, abs=1) for p in places)
 
 
 # --- the tiles -------------------------------------------------------------------------------

@@ -472,7 +472,9 @@ def map_of(page):
 def tile_layers(widget) -> list:
     from gi.repository import Shumate
 
-    return [w for w in _all(widget) if isinstance(w, Shumate.MapLayer)]
+    from openexpress.gui.activity_map import TileLayer
+
+    return [w for w in _all(widget) if isinstance(w, (TileLayer, Shumate.MapLayer))]
 
 
 def show_the_map_button(page):
@@ -697,3 +699,238 @@ def test_the_map_has_a_name_for_a_screen_reader_and_is_released_once_closed(no_t
         while GLib.main_context_default().iteration(False):
             pass
     assert gone == ["map"]
+
+
+# --- the look of the map ---------------------------------------------------------------------
+
+
+def a_map(track=None):
+    """The map of a track (by default a straight one, 1.1 km from its start to its finish) in
+    a window on the screen."""
+    from gi.repository import GLib, Gtk
+
+    from openexpress.gui import activity_map
+
+    track = track or activity_map.Track((0, 600), ((51.5, -0.16), (51.51, -0.16)))
+    shown = activity_map.ActivityMap(track)
+    toplevel = Gtk.Window(child=shown, default_width=800)
+    toplevel.present()
+    for _ in range(100):
+        GLib.MainContext.default().iteration(False)
+    return shown, toplevel
+
+
+def rgba(text):
+    from gi.repository import Gdk
+
+    color = Gdk.RGBA()
+    color.parse(text)
+    return color
+
+
+def test_the_track_is_thick_in_its_own_colour_with_a_dark_edge():
+    """Orange-red, apart from the water, the green and the streets of the tiles, whatever the
+    accent colour of the desktop: 4 pixels of colour and 1.5 of a dark edge on each side."""
+    shown, toplevel = a_map()
+    try:
+        path = shown.path.props  # copies: libshumate's getters of colours give its own
+        assert path.stroke_color.equal(rgba("#e5420e"))
+        assert path.outline_color.equal(rgba("#6b1d05"))
+        assert path.outline_width == 1.5
+        assert path.stroke_width - 2 * path.outline_width == 4
+    finally:
+        toplevel.destroy()
+
+
+def layer_of(marker):
+    return marker.get_parent()
+
+
+def order_of(widget) -> int:
+    parent, i = widget.get_parent(), 0
+    child = parent.get_first_child()
+    while child is not widget:
+        child, i = child.get_next_sibling(), i + 1
+    return i
+
+
+def test_the_start_and_the_finish_are_marked_and_the_cursor_above_them():
+    shown, toplevel = a_map()
+    try:
+        assert set(shown.ends) == {"start", "finish"}
+        start, finish = shown.ends["start"], shown.ends["finish"]
+        assert (start.get_latitude(), start.get_longitude()) == pytest.approx((51.5, -0.16))
+        assert (finish.get_latitude(), finish.get_longitude()) == pytest.approx((51.51, -0.16))
+        assert start.get_visible() and finish.get_visible()
+        assert shown.marker.get_child().get_content_width() == 20  # larger than the ends
+        assert start.get_child().get_content_width() < 20
+        assert order_of(layer_of(shown.marker)) > order_of(layer_of(start)) > order_of(shown.path)
+    finally:
+        toplevel.destroy()
+
+
+def test_a_loop_has_one_marker_for_its_start_and_finish():
+    """The walk of the page: its finish a few metres from its start."""
+    win, _the_list = a_window(walk())
+    page = open_page(win, read_of(sport=WALKING))
+    shown = map_of(page)
+    assert list(shown.ends) == ["start-and-finish"]
+    marker = shown.ends["start-and-finish"]
+    assert (marker.get_latitude(), marker.get_longitude()) == pytest.approx(shown.track.points[0])
+
+
+def plain_png(rgba_value=0xFFFFFFFF) -> bytes:
+    """A made-up tile of one colour (by default white)."""
+    from gi.repository import GdkPixbuf
+
+    pixbuf = GdkPixbuf.Pixbuf.new(GdkPixbuf.Colorspace.RGB, False, 8, 256, 256)
+    pixbuf.fill(rgba_value)
+    _ok, data = pixbuf.save_to_bufferv("png", [], [])
+    return bytes(data)
+
+
+def red_of(widget, scale):
+    """The widget drawn on black as on a screen of this scale (the desktop's fractional
+    scale): the red of each of its pixels, by rows, away from its outer edge."""
+    from gi.repository import Gdk, Graphene, Gtk
+
+    width, height = widget.get_width(), widget.get_height()
+    snapshot = Gtk.Snapshot()
+    snapshot.scale(scale, scale)
+    snapshot.append_color(rgba("black"), Graphene.Rect().init(0, 0, width, height))
+    Gtk.WidgetPaintable.new(widget).snapshot(snapshot, width, height)
+    w, h = int(width * scale), int(height * scale)
+    texture = widget.get_native().get_renderer().render_texture(
+        snapshot.to_node(), Graphene.Rect().init(0, 0, w, h))
+    downloader = Gdk.TextureDownloader.new(texture)
+    downloader.set_format(Gdk.MemoryFormat.R8G8B8A8)
+    data, stride = downloader.download_bytes()
+    data = data.get_data()
+    return [data[y * stride + 8:y * stride + (w - 2) * 4:4] for y in range(2, h - 2)]
+
+
+def only_tiles(shown) -> None:
+    """The track and every marker hidden: only the tiles drawn."""
+    from gi.repository import Shumate
+
+    for layer in _all(shown.map):
+        if isinstance(layer, (Shumate.PathLayer, Shumate.MarkerLayer)):
+            layer.set_visible(False)
+
+
+def until(condition, seconds=5):
+    import time
+
+    from gi.repository import GLib
+
+    end = time.monotonic() + seconds
+    while not condition() and time.monotonic() < end:
+        GLib.MainContext.default().iteration(False)
+
+
+@pytest.mark.parametrize("scale", [1.25, 1.5])
+def test_the_tiles_meet_without_a_seam_at_a_fractional_scale(monkeypatch, scale):
+    """White tiles on a black background, the track and its markers hidden: where two tiles
+    meet between two pixels of the screen, no pixel darker than the tiles (the background
+    showing through)."""
+    from openexpress.gui import activity_map
+
+    png = plain_png()
+    monkeypatch.setattr(activity_map, "_fetch",
+                        lambda url, etag: activity_map.Fetched(200, png, '"t"', 3600))
+    activity_map.set_tiles(True)
+    shown, toplevel = a_map()
+    try:
+        only_tiles(shown)
+        # until the tiles cover the view
+        until(lambda: sorted(r for row in red_of(shown.map, 1) for r in row)[100] == 255)
+        darkest = min(min(row) for row in red_of(shown.map, scale))
+        assert darkest == 255
+    finally:
+        toplevel.destroy()
+
+
+def pending(monkeypatch):
+    """Tiles asked of the server never answered: (url, cancellable, done) of each."""
+    from openexpress.gui import activity_map
+
+    asked = []
+    monkeypatch.setattr(activity_map, "_download_later",
+                        lambda url, etag, cancellable, done: asked.append((url, cancellable,
+                                                                           done)))
+    return asked
+
+
+def test_only_the_tiles_in_view_are_asked_and_those_gone_from_it_let_go(monkeypatch):
+    from openexpress.gui import activity_map
+
+    asked = pending(monkeypatch)
+    activity_map.set_tiles(True)
+    shown, toplevel = a_map()
+    try:
+        until(lambda: asked, 2)
+        until(lambda: False, 0.3)
+        width, height = shown.map.get_width(), shown.map.get_height()
+        viewport = shown.map.get_viewport()
+        view = {activity_map.TILE_URL.format(z=z, x=x, y=y) for z, x, y in (
+            p.key for p in activity_map.tile_places(viewport.get_zoom_level(),
+                                                    viewport.get_latitude(),
+                                                    viewport.get_longitude(), width, height))}
+        assert {url for url, _c, _d in asked} == view
+        shown.map.center_on(-33.86, 151.21)  # far away
+        until(lambda: len(asked) > len(view), 2)
+        before = [c for url, c, _d in asked if url in view]
+        assert before and all(c.is_cancelled() for c in before)
+    finally:
+        toplevel.destroy()
+
+
+def test_a_tile_that_failed_is_asked_again_once_the_network_is_back(monkeypatch):
+    from openexpress.gui import activity_map
+
+    monitor = Monitor(False)
+    monkeypatch.setattr(activity_map, "_network_monitor", lambda: monitor)
+    asked = pending(monkeypatch)
+    activity_map.set_tiles(True)
+    shown, toplevel = a_map()
+    try:
+        until(lambda: asked, 2)
+        first = [url for url, _c, _d in asked]
+        for _url, _c, done in list(asked):
+            done(activity_map.Fetched(None, None, None, 0))  # not reached
+        until(lambda: False, 0.3)
+        assert len(asked) == len(first)  # not asked again while offline
+        monitor.change(True)
+        until(lambda: len(asked) >= 2 * len(first), 2)
+        assert sorted(url for url, _c, _d in asked[len(first):]) == sorted(first)
+    finally:
+        toplevel.destroy()
+
+
+def test_while_a_tile_loads_the_one_of_the_zoom_below_is_shown(monkeypatch):
+    """The tiles of the view never answered; those of the zoom below already drawn once."""
+    from gi.repository import Gdk, GLib
+
+    from openexpress.gui import activity_map
+
+    pending(monkeypatch)
+    activity_map.set_tiles(True)
+    shown, toplevel = a_map()
+    try:
+        only_tiles(shown)
+        red = Gdk.Texture.new_from_bytes(GLib.Bytes.new(plain_png(0xFF0000FF)))
+        viewport = shown.map.get_viewport()
+        for place in activity_map.tile_places(viewport.get_zoom_level(),
+                                              viewport.get_latitude(), viewport.get_longitude(),
+                                              shown.map.get_width(), shown.map.get_height()):
+            zoom, x, y = place.key
+            shown.tiles.textures[(zoom - 1, x // 2, y // 2)] = red
+        shown.tiles.queue_draw()
+
+        def darkest():
+            return min(min(row) for row in red_of(shown.map, 1))
+
+        until(lambda: darkest() == 255, 2)  # drawn anew once the window's loop turns
+        assert darkest() == 255
+    finally:
+        toplevel.destroy()

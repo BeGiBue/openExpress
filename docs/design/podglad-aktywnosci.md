@@ -169,6 +169,18 @@ its height and narrows; the lap rows wrap.
   - \+ Panning, zooming, scaling and the attribution as GNOME has them.
   - − Not in the GNOME runtime: one module more in the Flatpak manifest; from source the
     distribution's package (Fedora: `libshumate`); without it the page has no map and says why.
+- As corrected after step 5 was tried on a screen: the track thick in a colour of its own,
+  orange-red (`#e5420e`, 4 px) with a dark edge (`#6b1d05`, 1.5 px on each side), seen on the
+  water, the green and the streets of the tiles and on the plain background, whatever the accent
+  colour of the desktop; its start a green disc, its finish a chequered one, a loop's (a finish
+  closer than 50 m) one disc half of each; the marker of the cursor in the accent colour, 20 px
+  with a white ring, above them. The tiles are drawn by openExpress (a layer of its own), not by
+  libshumate's: libshumate places its tiles on whole pixels of the widget's whole scale, so on
+  a screen at a fractional scale (125 %) two tiles meet between two pixels and the background
+  shows through as a thin line. Each tile is drawn a pixel past its right and bottom edges,
+  under the next one (at 100 % and 200 % nothing changes); while one loads, the tile of a zoom
+  below is shown scaled, if drawn before; those that failed are asked again when the network
+  is back.
 - **2b. The track drawn by openExpress itself** (a `Gtk.DrawingArea`, no tiles).
   - \+ No new library, no network.
   - − A line without streets or terrain; panning and zooming written anew.
