@@ -1,8 +1,9 @@
 # Design: the full view of an activity (summary, map, chart, laps)
 
-Status: a design; no decision of section 5 is taken and nothing is implemented. The work goes
-step by step (section 8), each step after a yes. The scope in section 1 is set once: what it does
-not list is not added while it is implemented.
+Status: the decisions of section 5 are made (each took its option a, marked "chosen"; D3a with what
+section 5 adds to it; 10b kept as an idea for later); nothing is implemented yet. The work goes step
+by step (section 8), each step after a yes. The scope in section 1 is set once: what it does not
+list is not added while it is implemented.
 
 ## 1. Scope
 
@@ -139,10 +140,10 @@ its height and narrows; the lap rows wrap.
 
 ## 5. Decisions
 
-### D1: where the activity's page opens
+### D1: where the activity's page opens — chosen: 1a
 
-- **1a. A page pushed onto the window's navigation (recommended):** after the start page and the
-  device view, a third page, with its own header bar: the back arrow (Alt+Left and the mouse's
+- **1a. A page pushed onto the window's navigation (recommended; chosen):** after the start page and
+  the device view, a third page, with its own header bar: the back arrow (Alt+Left and the mouse's
   back button too), the activity's sport and start as the title, the GPX button at the end.
   - \+ The navigation the window has already; the whole width for the map and the chart.
   - − On a wide window the sections on the side are hidden while it is open.
@@ -151,10 +152,10 @@ its height and narrows; the lap rows wrap.
   - − The content side has one header bar for every section (Refresh, Sync, the banner): a
     second one under it for the activity, or a back button added to the shared one by hand.
 
-### D2: what draws the map
+### D2: what draws the map — chosen: 2a
 
-- **2a. libshumate (recommended):** the GTK 4 map widget of GNOME (GNOME Maps uses it): tiles,
-  a path layer for the track, a marker layer for the cursor, its file cache.
+- **2a. libshumate (recommended; chosen):** the GTK 4 map widget of GNOME (GNOME Maps uses it):
+  tiles, a path layer for the track, a marker layer for the cursor, its file cache.
   - \+ Panning, zooming, scaling and the attribution as GNOME has them.
   - − Not in the GNOME runtime: one module more in the Flatpak manifest; from source the
     distribution's package (Fedora: `libshumate`); without it the page has no map and says why.
@@ -164,26 +165,33 @@ its height and narrows; the lap rows wrap.
 - **2c. A web map in WebKit** (as the sign-in window uses WebKit).
   - − A web page and JavaScript for a map; heavier than both.
 
-### D3: the map's tiles and privacy
+### D3: the map's tiles and privacy — chosen: 3a
 
-- **3a. Off until the user turns them on (recommended):** at the first map, a line over it:
-  "The map loads its tiles from OpenStreetMap, which then learns the area of the activity"
-  with "Show the map"; the choice kept (Preferences, Privacy, can be changed); meanwhile the
-  track on a plain background, zoom and pan working.
+- **3a. Off until the user turns them on (recommended; chosen):** at the first map, a line over it:
+  "The map loads its tiles from OpenStreetMap, which then learns the area of the activity" with
+  "Show the map"; the choice kept (Preferences, Privacy, can be changed); meanwhile the track on a
+  plain background, zoom and pan working.
   - \+ Nothing about an activity leaves the computer without a yes, as the diagnostics.
   - − One click before the first map.
+  - As chosen: the yes is given once for the whole program, kept in its settings, and can be
+    taken back at any time (Preferences); until then every map shows the track on a plain
+    background and, in the map's place, a short note of what turning the tiles on does (the
+    OpenStreetMap server learns the area of the activity) with a button that turns them on.
+    `docs/privacy.md` says it in the step that brings the tiles (step 5); the exact texts of the
+    note, the button, the preference and the privacy page, in English and Polish, are shown for
+    a yes before that step.
 - **3b. On, said in `docs/privacy.md`.**
   - − The area of every activity opened goes to the tile server without a question.
 - **3c. Never: the track alone.**
   - − The map says little without streets.
 
-### D4: where the tiles come from
+### D4: where the tiles come from — chosen: 4a
 
-- **4a. tile.openstreetmap.org (recommended):** the HTTPS URL of the policy, the User-Agent
-  `openExpress/<version> (+https://github.com/TomaszBojanowski/openExpress)`, the attribution
-  on the map, libshumate's cache in the program's cache folder (`~/.cache/openexpress/tiles`,
-  in the Flatpak its own), kept as the headers say; only the tiles shown. The URL in one
-  constant, so that it can change without other code.
+- **4a. tile.openstreetmap.org (recommended; chosen):** the HTTPS URL of the policy, the User-Agent
+  `openExpress/<version> (+https://github.com/TomaszBojanowski/openExpress)`, the attribution on the
+  map, libshumate's cache in the program's cache folder (`~/.cache/openexpress/tiles`, in the
+  Flatpak its own), kept as the headers say; only the tiles shown. The URL in one constant, so that
+  it can change without other code.
   - \+ Free, no key, within the policy for an occasional use.
   - − It may be blocked without notice; no guarantee.
 - **4b. A provider with a key** (MapTiler, Thunderforest…).
@@ -191,70 +199,76 @@ its height and narrows; the lap rows wrap.
 - **4c. A URL the user sets.**
   - − A setting few need; the policy of each server is the user's to read.
 
-### D5: the chart's axis
+### D5: the chart's axis — chosen: 5a
 
-- **5a. The time since the start (recommended):** pauses as gaps in the line.
+- **5a. The time since the start (recommended; chosen):** pauses as gaps in the line.
   - \+ The same for every activity, with or without a distance; laps and pauses fall where
     they happened.
 - **5b. The distance when the activity has one, the time otherwise.**
   - \+ What runners and riders often look at.
   - − Two axes to draw and to test; a lap or a pause looks different in each.
 
-### D6: what draws the chart
+### D6: what draws the chart — chosen: 6a
 
-- **6a. Own drawing in a `Gtk.DrawingArea` with Cairo (recommended):** the line, the axes with
-  round values, the cursor and its value, the highlighted lap; the points brought down to about
+- **6a. Own drawing in a `Gtk.DrawingArea` with Cairo (recommended; chosen):** the line, the axes
+  with round values, the cursor and its value, the highlighted lap; the points brought down to about
   two per pixel column (the lowest and the highest of each, so that peaks stay).
   - \+ No new library; the look of the window; the numbers testable without a screen.
   - − About 250 lines of our own.
 - **6b. A plotting library** (matplotlib with its GTK 4 backend).
   - − Large, not in the GNOME runtime, a look of its own.
 
-### D7: the laps
+### D7: the laps — chosen: 7a
 
-- **7a. A list of rows that wrap (recommended):** "Lap 1" and "1.00 km · 5:02 · 5:02 /km · 141
-  bpm"; a click highlights it on the map and the chart, a second click takes it off; one lap at
+- **7a. A list of rows that wrap (recommended; chosen):** "Lap 1" and "1.00 km · 5:02 · 5:02 /km ·
+  141 bpm"; a click highlights it on the map and the chart, a second click takes it off; one lap at
   a time; no laps (or one, the whole activity): no list.
   - \+ Fits 360 px; the rows of the window.
 - **7b. A table** (`Gtk.ColumnView`, a column each).
   - − Columns cut or scrolled in a narrow window.
 
-### D8: where the data comes from
+### D8: where the data comes from — chosen: 8a
 
 - **8a. The file read again at each opening, from the device or from its copy in a backup;
-  nothing new kept (recommended):** a task with its progress (bytes), as every reading; the page
+  nothing new kept (recommended; chosen):** a task with its progress (bytes), as every reading; the
+  page
   gone before it ends, its result is dropped.
   - \+ "Activities are read, not kept" stays true; nothing to clean up.
   - − 1–2 s over MTP for a long activity, each time.
+  - What follows from it: an activity's page is seen only while its device is connected, as the
+    list today: it opens from the Activities page of the open device, which also lists the
+    copies in that device's backups (read from this computer then); a device unplugged while
+    the page is open closes it with the device view.
 - **8b. A copy of each activity opened in the program's cache.**
   - \+ The second opening at once, also without the device.
   - − Tracks with positions on the disk in one more place; it overlaps with the backups.
 
-### D9: a wide window
+### D9: a wide window — chosen: 9a
 
-- **9a. One column at every width (recommended for the first version),** in a clamp (about
+- **9a. One column at every width (recommended for the first version; chosen),** in a clamp (about
   1000 px).
   - \+ One layout to build and to test.
 - **9b. The map and the chart side by side above a breakpoint.**
   - − A second layout; the chart is better wide, the map tall.
 
-### D10: units
+### D10: units — chosen: 10a
 
-- **10a. Metric only, as the list (recommended).**
+- **10a. Metric only, as the list (recommended; chosen).**
 - **10b. The unit system of the Garmin Connect profile** (asked of the account).
   - − A question to the account for a page that otherwise asks nothing; every text twice.
+  - Kept as an idea for later, of its own, for the list and the page together.
 
-### D11: the summary tiles
+### D11: the summary tiles — chosen: 11a
 
-- **11a. By what the activity has (recommended):** with a distance: distance, time, pace or
-  speed, average heart rate; without: time, average heart rate, maximum heart rate, calories;
-  a value the file does not give: its tile left out, the others taking the row.
+- **11a. By what the activity has (recommended; chosen):** with a distance: distance, time, pace or
+  speed, average heart rate; without: time, average heart rate, maximum heart rate, calories; a
+  value the file does not give: its tile left out, the others taking the row.
 - **11b. Always the four of the mockup,** "–" where a value is not given.
   - − A workout shows two dashes of four.
 
-### D12: pace or speed
+### D12: pace or speed — chosen: 12a
 
-- **12a. By sport (recommended):** running, walking, hiking: pace per km; swimming: pace per
+- **12a. By sport (recommended; chosen):** running, walking, hiking: pace per km; swimming: pace per
   100 m; cycling and others with a distance: speed in km/h.
 - **12b. Speed always.**
   - − Runners read pace.
@@ -322,10 +336,12 @@ waits for a yes.
    axis (D5) with round values; the points brought down without losing a peak; the value at a
    place; the cursor by click, drag and arrow keys; pace smoothed; a gap where a value is
    missing; the narrow window.
-5. **The map.** Failing tests: no map without positions; the track and its bounds; the marker
-   follows the chart's cursor; tiles only after the yes of D3, the User-Agent and the cache
-   folder of D4, the attribution shown; without libshumate a line instead; no tile asked in the
-   tests. The Flatpak manifest with libshumate, `docs/privacy.md`.
+5. **The map.** Before it, the exact texts of D3 (the note, the button, the preference, the
+   privacy page; English and Polish) for a yes. Failing tests: no map without positions; the
+   track and its bounds; the marker follows the chart's cursor; tiles only after the yes of D3,
+   kept for the program and taken back in Preferences, the note and the button meanwhile; the
+   User-Agent and the cache folder of D4, the attribution shown; without libshumate a line
+   instead; no tile asked in the tests. The Flatpak manifest with libshumate, `docs/privacy.md`.
 6. **The laps.** Failing tests: the rows (D7), a click highlights the lap on the chart and on
    the map, a second click takes it off, another lap moves it; no list for one lap.
 7. **Documentation**: `docs/guide.md`, `README.md`, the status of this design.
