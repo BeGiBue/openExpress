@@ -1,8 +1,9 @@
 # Design: a device that stops answering over MTP
 
 Status: the decisions in section 4 are made (D1 1a, D2 2a, D3 3a, D4 4a, and D5 5a, D6 6a,
-D7 7a, taken when step 1 began; marked "chosen"). Step 1 of section 7 is implemented: listings
-and queries under the limit, the error, the device layer letting it through. Steps 2–6 are not.
+D7 7a, taken when step 1 began; marked "chosen"). Steps 1 and 2 of section 7 are implemented:
+listings, queries and reads of files under the limit, the error, the device layer letting it
+through. Steps 3–6 are not.
 Sections 2 and 3 describe the program before this work. The work goes step by step (section 7),
 each step after a yes. The scope in section 1 is set once: what it does not list is not added
 while it is implemented.
@@ -202,7 +203,7 @@ From the program's log, 13 October to 2 November 2026:
 
 | Module | Change |
 |---|---|
-| `device/gio_storage.py` | The six reading operations asynchronous, each step under `_wait` with `STALL_S = 30`: `_list` with `enumerate_children_async` and `next_files_async` (portions of 100), all its steps on one main context (`_wait(context=…)`, section 6), `info` and `_size_now` with `query_info_async`, `_read` reading a stream in chunks of 256 KiB (`read_async`, `read_bytes_async`, `close_async`), `_read_start` the same up to its count, `_fs_attr` with `query_filesystem_info_async` (its action: "Cannot read the space on the device"). A step that reaches its limit raises `DeviceNotResponding`. |
+| `device/gio_storage.py` | The six reading operations asynchronous, each step under `_wait` with `STALL_S = 30`: `_list` with `enumerate_children_async` and `next_files_async` (portions of 100), all its steps on one main context (`_wait(context=…)`, section 6), `info` and `_size_now` with `query_info_async`, `_read` reading a stream in chunks of 256 KiB (`read_async`, `read_bytes_async`, `close_async`), all its steps on one main context too, `_read_start` the same up to its count, `_fs_attr` with `query_filesystem_info_async` (its action: "Cannot read the space on the device"). A step that reaches its limit raises `DeviceNotResponding`. |
 | `device/storage.py` | `DeviceNotResponding(DeviceError)`, made by `DeviceNotResponding.during(action)`, with `says_replug = True` as `replug_text` reads it: "{action}: the device stopped responding. Unplug it and plug it in again." (Polish: "{action}: urządzenie przestało odpowiadać. Odłącz je i podłącz ponownie."). In step 1 (D5). |
 | `device/storage.py` | `Storage.resolve` and `Storage.sizes` let it through (D6); `write` and `write_file` let it through without a clean-up (D7). |
 | `device/gio_storage.py` | `_remount`, `_device_state` and `refresh` let it through (D6). |
@@ -237,7 +238,10 @@ its next sync comes with the next mount of the device.
    own limits.
 2. **The speed of reads in chunks.** `load_contents` reads in its own way; chunks of 256 KiB
    under `_wait` (a main context and a timer a chunk) may be faster or slower. To measure on a
-   device against today's 30 activities in 7.6–8.0 s; the chunk size can change.
+   device against today's 30 activities in 7.6–8.0 s; the chunk size can change. gvfs reads at
+   most 256 KiB for one request of a client (`modify_read_size` in
+   `daemon/gvfsreadchannel.c`), so a chunk is one read of the device; should fewer bytes come,
+   the read goes on to an empty answer.
 3. **gvfs stays blocked.** A cancel ends only our wait; the backend of gvfs-mtp holds its mutex
    until the device is unplugged. That is why the advice is to unplug it, and why nothing is
    tried automatically: mounting the device again, as for a file read cut short, would wait on
@@ -258,7 +262,9 @@ its next sync comes with the next mount of the device.
    would never come and every listing would reach the limit. The steps of one listing therefore
    wait on one context (`_steps_context`); the fake gives portions only in that context, so a
    test fails if they do not. A listing that stalled is not closed: closing it would wait on the
-   same blocked device; the enumerator is dropped.
+   same blocked device; the enumerator is dropped. A file read does the same (one context, not
+   closed after a stall); whether gvfs needs one context for a stream was not looked into, and
+   it costs nothing.
 
 ## 7. Order of work
 
@@ -286,10 +292,18 @@ answer late or never.
    A guard that passes before and after: a folder on the disk read through the real Gio (the
    calls as Gio takes them).
 2. **Reads in chunks under `_wait`.** Failing tests:
-   - a file of 0 B, of less than a chunk, of exactly two chunks and of several reads whole;
+   - a file of 0 B, of less than a chunk, of exactly two chunks and of several reads whole, in
+     the main thread and in a worker; a file given in smaller pieces than asked for too;
    - a read slow but steady, longer in all than the limit, ends well;
-   - a chunk with no answer: `DeviceNotResponding`;
-   - `read_start` reads its count only, and stops at a stall.
+   - a step of a read (opening the file, a chunk, closing it) with no answer:
+     `DeviceNotResponding`, whatever the answer to the cancel; a file whose read stalled is not
+     closed;
+   - another error keeps today's words ("Cannot read …"), and the file is closed after it once
+     open;
+   - `read_start` reads its count only (asking for what is still missing), gives all of a
+     shorter file, closes the file after an error, and stops at a stall.
+
+   The guard of step 1 also reads a file whole and in part through the real Gio.
 3. **Fast failure, the sync and the backup.** Failing tests:
    - after a stall the next operation of the same storage fails at once, a write too; a new
      storage works;

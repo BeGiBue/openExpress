@@ -203,10 +203,11 @@ def host_copy(local: Path, target_uri: str, what: str, progress=None, started=No
 # The size of a file that could not be told.
 _UNKNOWN = object()
 
-# A step of a read (one answer of gvfs: opening a listing, a portion of it, a query) with no
-# answer this long: the device stopped responding.
+# A step of a read (one answer of gvfs: opening a listing or a file, a portion of the listing,
+# a chunk of the file, a query) with no answer this long: the device stopped responding.
 STALL_S = 30.0
 LIST_PORTION = 100  # entries asked for at a time in a listing
+READ_CHUNK = 256 * 1024  # bytes asked for at a time when a file is read: the most gvfs reads
 
 
 def _entry(info) -> Entry:
@@ -216,10 +217,11 @@ def _entry(info) -> Entry:
 
 
 def _steps_context():
-    """The main context all the steps of one listing are waited on in a worker thread: gvfs
-    gives the entries of a listing in the context where it began (its enumerator takes them
-    there), so a portion waited for on another context would never come. None in the main
-    thread, which waits on the global default context."""
+    """The main context all the steps of one listing or one file read are waited on in a
+    worker thread: gvfs gives the entries of a listing in the context where it began (its
+    enumerator takes them there), so a portion waited for on another context would never come;
+    a file read does the same. None in the main thread, which waits on the global default
+    context."""
     if threading.current_thread() is threading.main_thread():
         return None
     return GLib.MainContext.new()
@@ -245,13 +247,24 @@ def _next_portion(enum, what: str, context) -> list:
     return portion
 
 
-def _close_listing(enum, what: str, context) -> None:
-    """A refusal to close does not matter: the listing is read, or its error is said."""
+def _next_chunk(stream, count: int, what: str, context) -> bytes:
+    """Up to `count` next bytes of a file (gvfs may give fewer); none at its end."""
+    chunk: list = []
+    _read_step(lambda done, cancellable: stream.read_bytes_async(
+        count, GLib.PRIORITY_DEFAULT, cancellable,
+        lambda s, res: done(lambda: chunk.append(s.read_bytes_finish(res).get_data()))),
+        what, "read", context)
+    return chunk[0] or b""
+
+
+def _close(opened, what: str, name: str, context) -> None:
+    """Closes a listing or a file. A refusal does not matter: it is read, or its error is
+    said."""
     try:
-        _read_step(lambda done, cancellable: enum.close_async(
+        _read_step(lambda done, cancellable: opened.close_async(
             GLib.PRIORITY_DEFAULT, cancellable,
-            lambda e, res: done(lambda: e.close_finish(res))),
-            what, "listing", context)
+            lambda o, res: done(lambda: o.close_finish(res))),
+            what, name, context)
     except DeviceNotResponding:
         raise
     except DeviceError:
@@ -298,9 +311,9 @@ class GioStorage(Storage):
         except DeviceNotResponding:
             raise  # not closed: that would wait on the same device
         except DeviceError:
-            _close_listing(enum, what, context)
+            _close(enum, what, "listing", context)
             raise
-        _close_listing(enum, what, context)
+        _close(enum, what, "listing", context)
         return out
 
     def _query(self, real_path: str, attributes: str, flags):
@@ -327,32 +340,40 @@ class GioStorage(Storage):
         return None if found is None else _entry(found)
 
     def _read(self, real_path: str) -> bytes:
-        try:
-            _ok, data, _etag = self._f(real_path).load_contents(None)
-        except GLib.Error as e:
-            raise _err(e, _("Cannot read {path}").format(path=real_path)) from e
-        return bytes(data)
+        return self._read_stream(real_path)
 
     def _read_start(self, real_path: str, count: int) -> bytes:
-        # A stream opened for reading; gvfs fetches only what is asked for.
+        return self._read_stream(real_path, count)
+
+    def _read_stream(self, real_path: str, count: int | None = None) -> bytes:
+        """The file, or its first `count` bytes (fewer when it is shorter), read as a stream
+        in chunks of at most READ_CHUNK: gvfs fetches only what is asked for."""
         what = _("Cannot read {path}").format(path=real_path)
+        context = _steps_context()  # one for all the steps of the read
+        target = self._f(real_path)
+        opened: list = []
+        _read_step(lambda done, cancellable: target.read_async(
+            GLib.PRIORITY_DEFAULT, cancellable,
+            lambda f, res: done(lambda: opened.append(f.read_finish(res)))),
+            what, "read", context)
+        stream = opened[0]
+        chunks: list[bytes] = []
+        got = 0
         try:
-            stream = self._f(real_path).read(None)
-        except GLib.Error as e:
-            raise _err(e, what) from e
-        try:
-            data = b""
-            while len(data) < count:
-                chunk = stream.read_bytes(count - len(data), None).get_data()
+            while count is None or got < count:
+                chunk = _next_chunk(stream, READ_CHUNK if count is None
+                                    else min(READ_CHUNK, count - got), what, context)
                 if not chunk:
-                    break  # the file is shorter
-                data += chunk
-            return data
-        except GLib.Error as e:
-            raise _err(e, what) from e
-        finally:
-            with suppress(GLib.Error):
-                stream.close(None)
+                    break  # the end of the file
+                chunks.append(chunk)
+                got += len(chunk)
+        except DeviceNotResponding:
+            raise  # not closed: that would wait on the same device
+        except DeviceError:
+            _close(stream, what, "read", context)
+            raise
+        _close(stream, what, "read", context)
+        return b"".join(chunks)
 
     def _write(self, real_path: str, data: bytes) -> None:
         """gvfs-mtp cannot write streams, only copy a whole local file: the bytes go to a

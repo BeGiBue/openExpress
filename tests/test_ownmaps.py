@@ -6,11 +6,10 @@ import types
 import pytest
 import requests
 from fakes import RunNow, window_methods
-from gi.repository import GLib
 
 from openexpress import ownmaps
 from openexpress.cli import main
-from openexpress.device import gio_storage, storage
+from openexpress.device import storage
 from openexpress.device.storage import DeviceError, LocalStorage
 
 
@@ -123,70 +122,6 @@ def test_local_read_start_opens_for_reading_only_and_always_closes(tmp_path, mon
     else:
         assert st.read_start("a.img", 512) == b"x" * 512
     assert log == [("open", "rb"), ("read", 512), "closed"]
-
-
-class FakeStream:
-    def __init__(self, log, chunks, fail_close=False):
-        self.log, self.chunks, self.fail_close = log, list(chunks), fail_close
-
-    def read_bytes(self, count, cancellable):
-        self.log.append(("read", count))
-        chunk = self.chunks.pop(0) if self.chunks else b""
-        if isinstance(chunk, Exception):
-            raise chunk
-        return types.SimpleNamespace(get_data=lambda: chunk[:count])
-
-    def close(self, cancellable):
-        self.log.append("closed")
-        if self.fail_close:
-            raise GLib.Error("close failed")
-
-
-def gvfs_storage(monkeypatch, log, chunks, fail_close=False):
-    st = gio_storage.GioStorage("mtp://made-up/Internal")
-    monkeypatch.setattr(st, "resolve", lambda path: path)
-
-    def opened(real):
-        # Gio.File.read() opens for reading; nothing else is ever called on the file.
-        return types.SimpleNamespace(read=lambda c: log.append("opened for reading")
-                                     or FakeStream(log, chunks, fail_close))
-
-    monkeypatch.setattr(st, "_f", opened)
-    return st
-
-
-def test_gvfs_read_start_reads_only_what_is_asked_and_closes(monkeypatch):
-    log = []
-    st = gvfs_storage(monkeypatch, log, [b"a" * 300, b"b" * 300])  # arrives in two pieces
-    assert st.read_start("Garmin/x.img", 512) == b"a" * 300 + b"b" * 212
-    assert log == ["opened for reading", ("read", 512), ("read", 212), "closed"]
-
-    log.clear()
-    st = gvfs_storage(monkeypatch, log, [b"abc"])  # a file shorter than asked for
-    assert st.read_start("Garmin/x.img", 512) == b"abc"
-    assert log[-1] == "closed"
-
-
-@pytest.mark.parametrize("fail_close", [False, True])
-def test_gvfs_read_start_closes_the_stream_after_an_error(monkeypatch, fail_close):
-    log = []
-    st = gvfs_storage(monkeypatch, log, [b"a" * 10, GLib.Error("device gone")], fail_close)
-    with pytest.raises(DeviceError) as error:
-        st.read_start("Garmin/x.img", 512)
-    assert "Cannot read Garmin/x.img" in str(error.value)
-    assert log == ["opened for reading", ("read", 512), ("read", 502), "closed"]
-
-
-def test_gvfs_read_start_when_the_file_cannot_be_opened(monkeypatch):
-    st = gio_storage.GioStorage("mtp://made-up/Internal")
-    monkeypatch.setattr(st, "resolve", lambda path: path)
-
-    def refuse(cancellable):
-        raise GLib.Error("no such file")
-
-    monkeypatch.setattr(st, "_f", lambda real: types.SimpleNamespace(read=refuse))
-    with pytest.raises(DeviceError):
-        st.read_start("Garmin/x.img", 512)
 
 
 # --- the list of own maps ------------------------------------------------------------------------

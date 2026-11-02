@@ -264,17 +264,23 @@ class MtpFiles:
     context where the listing began: gvfs hands them to its enumerator there, so a portion
     waited for in another context never comes.
 
-    `tree`: real path -> None for a folder, else the size of a file; "" is the root and the
-    folders on the way need no entry. `space`: the filesystem attributes of the storage.
-    `plan`: (kind, n) -> the GioOp the n-th call of a kind (from 1) answers as, instead of at
-    the next turn; kinds: "list" (opening a listing), "portion", "close", "query", "space".
-    Leaves `calls`, the kinds in the order called."""
+    A file is read as a stream, in chunks of the size asked for, at most `most` bytes an
+    answer when given (gvfs reads at most 256 KiB at a time).
 
-    def __init__(self, tree, space=None, plan=None):
+    `tree`: real path -> None for a folder, else a file: its bytes, or its size (then zeros);
+    "" is the root and the folders on the way need no entry. `space`: the filesystem
+    attributes of the storage. `plan`: (kind, n) -> the GioOp the n-th call of a kind (from 1)
+    answers as, instead of at the next turn; kinds: "list" (opening a listing), "portion",
+    "close", "query", "space", "open" (opening a file), "chunk", "close file". Leaves `calls`,
+    the kinds in the order called, and `asked`, the bytes asked for by each chunk."""
+
+    def __init__(self, tree, space=None, plan=None, most=None):
         self.tree = dict(tree)
         self.space = dict(space or {})
         self.plan = dict(plan or {})
+        self.most = most
         self.calls: list[str] = []
+        self.asked: list[int] = []
         self._ops: list[GioOp] = []
 
     def file(self, path=""):
@@ -287,12 +293,16 @@ class MtpFiles:
     def there(self, path):
         return self.is_folder(path) or path in self.tree
 
+    def contents(self, path):
+        value = self.tree[path]
+        return value if isinstance(value, bytes) else bytes(value)
+
     def info(self, path):
         info = Gio.FileInfo.new()
         info.set_name(posixpath.basename(path))
         folder = self.is_folder(path)
         info.set_file_type(Gio.FileType.DIRECTORY if folder else Gio.FileType.REGULAR)
-        info.set_size(0 if folder else self.tree[path])
+        info.set_size(0 if folder else len(self.contents(path)))
         info.set_modification_date_time(GLib.DateTime.new_from_unix_utc(MTIME))
         return info
 
@@ -349,6 +359,13 @@ class _MtpFile:
         info = files.info(self.path) if there else None
         op.start(lambda finish: callback(self, (finish, info)), cancellable)
 
+    def read_async(self, priority, cancellable, callback):
+        files = self.files
+        a_file = files.there(self.path) and not files.is_folder(self.path)
+        op = files.answer("open", missing=not a_file)
+        stream = _MtpStream(files, files.contents(self.path) if a_file else b"")
+        op.start(lambda finish: callback(self, (finish, stream)), cancellable)
+
     def query_filesystem_info_async(self, attributes, priority, cancellable, callback):
         op = self.files.answer("space")
         info = Gio.FileInfo.new()
@@ -358,7 +375,33 @@ class _MtpFile:
         op.start(lambda finish: callback(self, (finish, info)), cancellable)
 
     enumerate_children_finish = query_info_finish = query_filesystem_info_finish = (
-        staticmethod(_finished))
+        read_finish) = staticmethod(_finished)
+
+
+class _MtpStream:
+    """A file opened for reading (a Gio.FileInputStream of gvfs)."""
+
+    def __init__(self, files, data):
+        self.files, self.data, self.at = files, data, 0
+
+    def read_bytes_async(self, count, priority, cancellable, callback):
+        files = self.files
+        files.asked.append(count)
+        op = files.answer("chunk")
+        op.start(lambda finish: callback(self, (finish, self._take(count))), cancellable)
+
+    def _take(self, count):
+        if self.files.most is not None:
+            count = min(count, self.files.most)
+        chunk = self.data[self.at:self.at + count]
+        self.at += len(chunk)
+        return GLib.Bytes.new(chunk)
+
+    def close_async(self, priority, cancellable, callback):
+        op = self.files.answer("close file")
+        op.start(lambda finish: callback(self, (finish, True)), cancellable)
+
+    read_bytes_finish = close_finish = staticmethod(_finished)
 
 
 class _MtpListing:

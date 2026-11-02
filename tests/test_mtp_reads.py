@@ -18,6 +18,12 @@ LIMIT = 0.2
 GRACE = 0.2
 STALLED = "the device stopped responding. Unplug it and plug it in again."
 URI = "mtp://Made_Up_Device/"
+CHUNK = 256 * 1024  # what a file is read in: the most gvfs reads at a time
+
+
+def a_file(size):
+    """Bytes that tell their places apart."""
+    return (bytes(range(251)) * (size // 251 + 1))[:size]
 
 
 @pytest.fixture
@@ -33,8 +39,8 @@ def device():
     (MtpFiles); answers still due are taken away after the test."""
     made = []
 
-    def make(tree, space=None, plan=None):
-        files = MtpFiles(tree, space, plan)
+    def make(tree, space=None, plan=None, most=None):
+        files = MtpFiles(tree, space, plan, most)
         made.append(files)
         st = gio_storage.GioStorage(URI + "Internal")
         st.root = files.file()
@@ -187,6 +193,123 @@ def test_the_space_as_the_device_says_it(device):
     assert st.free_space() is None  # refused: not known
 
 
+# --- files ---------------------------------------------------------------------------------
+
+
+@pytest.mark.parametrize("where", ["main", "worker"])
+@pytest.mark.parametrize("size", [0, 1000, 2 * CHUNK, 5 * CHUNK + 7])
+def test_a_file_is_read_whole_in_chunks(device, fast, where, size):
+    data = a_file(size)
+    st, files = device({"GARMIN/x.fit": data})
+    assert run_in(where, lambda: st.read("GARMIN/x.fit")) == data
+    assert gio_storage.READ_CHUNK == CHUNK
+    chunks = -(-size // CHUNK) + 1  # the last one empty: the end
+    assert files.asked == [CHUNK] * chunks
+    assert files.calls[-(chunks + 2):] == ["open"] + ["chunk"] * chunks + ["close file"]
+
+
+def test_a_file_given_in_smaller_pieces_is_read_whole(device, fast):
+    """gvfs may give less than asked for: the read goes on to an empty answer."""
+    data = a_file(2 * CHUNK)
+    st, files = device({"GARMIN/x.fit": data}, most=CHUNK // 2 + 1)
+    assert run_in("worker", lambda: st.read("GARMIN/x.fit")) == data
+    assert files.calls.count("chunk") == 5  # four pieces, then the end
+
+
+def test_a_read_slower_in_all_than_the_limit_ends_well(device, fast):
+    """The limit counts from the last answer: every chunk comes in time, all of them together
+    take longer than the limit."""
+    plan = {("chunk", n): GioOp("before", delay_s=LIMIT / 2) for n in range(1, 6)}
+    data = a_file(4 * CHUNK)
+    st, _files = device({"GARMIN/x.fit": data}, plan=plan)
+    started = time.monotonic()
+    assert run_in("worker", lambda: st.read("GARMIN/x.fit")) == data
+    assert time.monotonic() - started > LIMIT
+
+
+@pytest.mark.parametrize("how", NO_ANSWER)
+@pytest.mark.parametrize("step", [("open", 1), ("chunk", 1), ("chunk", 3), ("close file", 1)])
+def test_a_read_step_with_no_answer_is_a_device_that_stopped_responding(device, fast, step,
+                                                                       how):
+    """A step of a read (opening the file, a chunk, closing it) with no answer within the
+    limit: the device stopped responding. A file whose read stalled is not closed."""
+    op = NO_ANSWER[how]()
+    st, files = device({"GARMIN/x.fit": a_file(3 * CHUNK)}, plan={step: op})
+    started = time.monotonic()
+    with pytest.raises(storage.DeviceNotResponding) as error:
+        run_in("worker", lambda: st.read("GARMIN/x.fit"))
+    took = time.monotonic() - started
+    assert str(error.value) == f"Cannot read GARMIN/x.fit: {STALLED}"
+    assert LIMIT - 0.05 <= took < LIMIT + GRACE + 1
+    assert op.was_cancelled
+    assert files.calls.count("close file") == (1 if step[0] == "close file" else 0)
+
+
+@pytest.mark.parametrize("step", [("open", 1), ("chunk", 2)])
+def test_a_refused_read_says_why(device, step):
+    st, files = device({"GARMIN/x.fit": a_file(3 * CHUNK)}, plan={step: GioOp(says="error")})
+    with pytest.raises(storage.DeviceError) as error:
+        st.read("GARMIN/x.fit")
+    assert str(error.value) == "Cannot read GARMIN/x.fit: made-up refusal"
+    assert not isinstance(error.value, storage.DeviceNotResponding)
+    assert files.calls.count("close file") == (1 if step[0] == "chunk" else 0)  # once open
+
+
+def test_a_read_whose_close_is_refused_is_whole(device):
+    st, _files = device({"GARMIN/x.fit": a_file(10)}, plan={("close file", 1): GioOp(says="error")})
+    assert st.read("GARMIN/x.fit") == a_file(10)
+
+
+@pytest.mark.parametrize("count, asked", [(512, [512]), (CHUNK + 10, [CHUNK, 10]),
+                                          (3 * CHUNK + 1, [CHUNK, CHUNK, CHUNK, 1])])
+def test_read_start_reads_its_count_only(device, fast, count, asked):
+    data = a_file(3 * CHUNK + 100)
+    st, files = device({"Garmin/x.img": data})
+    assert run_in("worker", lambda: st.read_start("Garmin/x.img", count)) == data[:count]
+    assert files.asked == asked and files.calls[-1] == "close file"
+
+
+def test_read_start_asks_for_what_is_still_missing(device):
+    """A start that comes in two pieces."""
+    st, files = device({"Garmin/x.img": a_file(600)}, most=300)
+    assert st.read_start("Garmin/x.img", 512) == a_file(512)
+    assert files.asked == [512, 212] and files.calls[-1] == "close file"
+
+
+def test_read_start_of_a_shorter_file_gives_all_of_it(device):
+    st, files = device({"Garmin/x.img": b"abc"})
+    assert st.read_start("Garmin/x.img", 512) == b"abc"
+    assert files.asked == [512, 509] and files.calls[-1] == "close file"
+
+
+@pytest.mark.parametrize("close", ["done", "error"])
+def test_read_start_closes_the_file_after_an_error(device, close):
+    plan = {("chunk", 2): GioOp(says="error")}
+    if close == "error":
+        plan[("close file", 1)] = GioOp(says="error")
+    st, files = device({"Garmin/x.img": a_file(600)}, plan=plan, most=10)
+    with pytest.raises(storage.DeviceError) as error:
+        st.read_start("Garmin/x.img", 512)
+    assert str(error.value) == "Cannot read Garmin/x.img: made-up refusal"
+    assert files.asked == [512, 502] and files.calls[-1] == "close file"
+
+
+def test_read_start_of_a_file_that_cannot_be_opened(device):
+    st, files = device({"Garmin/x.img": b"abc"}, plan={("open", 1): GioOp(says="error")})
+    with pytest.raises(storage.DeviceError, match="Cannot read Garmin/x.img: made-up refusal"):
+        st.read_start("Garmin/x.img", 512)
+    assert files.asked == [] and "close file" not in files.calls
+
+
+def test_read_start_stops_at_a_stall(device, fast):
+    st, files = device({"Garmin/x.img": a_file(3 * CHUNK)},
+                       plan={("chunk", 2): GioOp("never", strict=True)})
+    with pytest.raises(storage.DeviceNotResponding) as error:
+        run_in("worker", lambda: st.read_start("Garmin/x.img", 2 * CHUNK))
+    assert str(error.value) == f"Cannot read Garmin/x.img: {STALLED}"
+    assert files.asked == [CHUNK, CHUNK] and "close file" not in files.calls
+
+
 # --- the error -----------------------------------------------------------------------------
 
 
@@ -319,12 +442,14 @@ def test_a_write_cleans_nothing_up_after_the_device_stopped_responding(device, f
 
 @pytest.mark.parametrize("where", ["main", "worker"])
 def test_a_folder_on_the_disk_is_read_through_the_real_gio(tmp_path, where):
-    """The calls as the real Gio takes them: a listing of more than a portion, queries and
-    the space of a folder on the disk."""
+    """The calls as the real Gio takes them: a listing of more than a portion, queries, the
+    space, and files read whole and in part, of a folder on the disk."""
     folder = tmp_path / "GARMIN" / "Activity"
     folder.mkdir(parents=True)
     for n in range(250):
         (folder / f"{n:03d}.fit").write_bytes(b"x" * n)
+    big = a_file(3 * CHUNK + 5)
+    (tmp_path / "GARMIN" / "big.img").write_bytes(big)
     st = gio_storage.GioStorage(tmp_path.as_uri())
     listed, info, gone, size, no_size, free, capacity = run_in(where, lambda: (
         st.listdir("garmin/activity"), st.info("GARMIN/Activity/007.fit"), st.info("GARMIN/x"),
@@ -334,3 +459,7 @@ def test_a_folder_on_the_disk_is_read_through_the_real_gio(tmp_path, where):
     assert (info.name, info.is_dir, info.size) == ("007.fit", False, 7) and info.mtime > 0
     assert gone is None and size == 9 and no_size is None
     assert capacity >= free >= 0
+    assert run_in(where, lambda: (st.read("GARMIN/big.img"), st.read_start("GARMIN/big.img",
+                                                                           CHUNK + 3),
+                                  st.read("GARMIN/Activity/000.fit"))) == (big, big[:CHUNK + 3],
+                                                                          b"")
