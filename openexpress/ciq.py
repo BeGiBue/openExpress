@@ -26,7 +26,13 @@ from openexpress import answers, applog, netstatus, paths, proto
 from openexpress.backup import keep_newest
 from openexpress.connect import ApiError, GarminClient, lower_keys
 from openexpress.device import ptp
-from openexpress.device.storage import DeviceError, RemountFailed, Storage, replug_text
+from openexpress.device.storage import (
+    DeviceError,
+    DeviceNotResponding,
+    RemountFailed,
+    Storage,
+    replug_text,
+)
 from openexpress.device.xmldevice import GarminDevice
 from openexpress.errors import UserFacingError
 from openexpress.i18n import N_, _, caption, ngettext
@@ -710,6 +716,8 @@ def _hides_app_files(device: GarminDevice, storage: Storage) -> bool:
     show: its app folder exists and is only hidden."""
     try:
         apps = parse_out_bin(storage.read(_config_path(device, False))).apps
+    except DeviceNotResponding:
+        raise
     except (DeviceError, CiqError):
         return False
     paths_ = [app_file_path(device, a) for a in apps]
@@ -745,6 +753,8 @@ def prepare_app_dir(device: GarminDevice, storage: Storage, datatype: str) -> bo
     save_app_list_copy(device, storage)  # creating the folder is a change too
     try:
         storage.make_dir(path)
+    except DeviceNotResponding:
+        raise  # not a refusal to remember
     except DeviceError as e:
         log.info("Cannot install apps on this device over USB (%s): %s", path, e)
         _remember_refusal(device, path)
@@ -1155,7 +1165,7 @@ def _install_pass(device, storage, client, messages, known, only, progress,
                     new_entries.append(entry)
                     new_paths.append(real)
                 to_ack.append((m, name))
-            except (ApiError, AppListCopyError):
+            except (ApiError, AppListCopyError, DeviceNotResponding):
                 raise
             except Exception as e:  # noqa: BLE001
                 report.failed.append((name, str(e)))
@@ -1171,6 +1181,8 @@ def _install_pass(device, storage, client, messages, known, only, progress,
         if new_entries and not registered:
             try:
                 write_app_list(device, storage, build_in_bin(state.listed + new_entries))
+            except DeviceNotResponding:
+                raise  # nothing more is asked of the device, nothing is acknowledged
             except Exception as e:
                 for p in new_paths:
                     storage.delete_quietly(p)
@@ -1255,6 +1267,8 @@ def _install_hidden(device, storage, state, hidden: list[_Hidden], new_entries, 
                     sent.append(h)
                 except ptp.PtpWriteError as e:
                     fail(h, _with_leftovers(e, _ptp_delete(session, e.handle, h.path)))
+                except DeviceNotResponding:
+                    raise
                 except (DeviceError, CiqError) as e:
                     fail(h, e)
             if sent:
@@ -1266,6 +1280,8 @@ def _install_hidden(device, storage, state, hidden: list[_Hidden], new_entries, 
                     session.send_file(store, parent.handle, posixpath.basename(in_path),
                                       build_in_bin(entries), verify_content=True)
                     registered = True
+                except DeviceNotResponding:
+                    raise
                 except (DeviceError, CiqError) as e:
                     left = (_ptp_delete(session, e.handle, in_path)
                             if isinstance(e, ptp.PtpWriteError) else [])
@@ -1287,6 +1303,8 @@ def _install_hidden(device, storage, state, hidden: list[_Hidden], new_entries, 
             report.for_phone += [h.name for h in hidden]
         if broken:
             return False
+    except DeviceNotResponding:
+        raise
     except DeviceError as e:
         broken_off(e)  # the session broke
         return False
@@ -1334,6 +1352,8 @@ def _ptp_delete(session, handle: int | None, path: str) -> list[str]:
         return []
     try:
         session.delete(handle)
+    except DeviceNotResponding:
+        raise
     except DeviceError as e:
         log.warning("Cannot delete the unfinished file %s on the device: %s", path, e)
         return [path]
@@ -1367,6 +1387,8 @@ def write_app_list(device: GarminDevice, storage: Storage, data: bytes) -> str:
     # longer names.
     try:
         return _write_list_checked(storage, path, data)
+    except DeviceNotResponding:
+        raise  # putting it right would ask the same device
     except Exception as e:  # noqa: BLE001 - any failure: the list is put right, then raised
         failure = e
     if before is not None:
@@ -1571,6 +1593,8 @@ def _remove_hidden(device, storage, state: InstalledState, app: InstalledApp) ->
                 session.send_file(store, parent.handle, posixpath.basename(in_path), in_bin,
                                   verify_content=True)
                 finished = True
+            except DeviceNotResponding:
+                raise
             except DeviceError as e:
                 left = (_ptp_delete(session, e.handle, in_path)
                         if isinstance(e, ptp.PtpWriteError) else [])
@@ -1582,6 +1606,8 @@ def _remove_hidden(device, storage, state: InstalledState, app: InstalledApp) ->
                 try:
                     session.delete(settings.handle)
                     removed.append(settings_path)
+                except DeviceNotResponding:
+                    raise
                 except DeviceError as e:  # the app is removed all the same
                     log.warning("apps remove over PTP: the settings file of %s was not "
                                 "deleted (%s)", app.name, type(e).__name__)
@@ -1595,6 +1621,8 @@ def _remove_hidden(device, storage, state: InstalledState, app: InstalledApp) ->
                 else None)
         usb = replug_text(e)
         raise CiqError(usb if said is None else said + "\n" + usb) from e
+    except DeviceNotResponding:
+        raise
     except DeviceError as e:
         # The session broke (or could not start); the device is mounted again.
         raise CiqError(what_became(e)) from e
@@ -1783,6 +1811,8 @@ def save_app_list_copy(device: GarminDevice, storage: Storage, backup_dir: Path 
         return None
     try:
         data = storage.read(_config_path(device, False))
+    except DeviceNotResponding:
+        raise
     except DeviceError as e:
         raise AppListCopyError(_("Cannot read the app list of the device to make a copy of "
                                  "it: {error}. Nothing was changed.").format(error=e)) from e

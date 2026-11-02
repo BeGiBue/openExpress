@@ -170,6 +170,8 @@ class Storage(ABC):
         parent, name = posixpath.split(real_path)
         try:
             return next((e for e in self._list(parent) if e.name == name), None)
+        except DeviceNotResponding:
+            raise
         except DeviceError:
             return None
 

@@ -20,7 +20,7 @@ from pathlib import Path
 from typing import NamedTuple
 
 from openexpress import answers, applog, cache, download, known_devices, paths
-from openexpress.device.storage import DeviceError, Storage
+from openexpress.device.storage import DeviceError, DeviceNotResponding, Storage
 from openexpress.errors import UserFacingError
 from openexpress.i18n import N_, _, human_size
 from openexpress.progress import Step, byte_steps, copying_text, downloading_text, say_to
@@ -235,6 +235,8 @@ def presence(storage: Storage, u: SoftwareUpdate) -> Presence:
                             f"{applog.size(u.size)} offered)", real)
         same = hashlib.md5(storage.read(real)).hexdigest() == md5
         return Presence(MATCHES if same else MD5_DIFFERS, real)
+    except DeviceNotResponding:
+        raise
     except DeviceError as e:
         log.info("updates: cannot compare %s with the device: %s", u.part_number, e)
         return Presence("not compared (cannot be read)", real)

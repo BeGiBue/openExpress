@@ -29,7 +29,12 @@ from openexpress.connect import (
     GarminClient,
     Unauthorized,
 )
-from openexpress.device.storage import RemountFailed, Storage, refresh_to_read_again
+from openexpress.device.storage import (
+    DeviceNotResponding,
+    RemountFailed,
+    Storage,
+    refresh_to_read_again,
+)
 from openexpress.device.xmldevice import DeviceFile, GarminDevice
 from openexpress.fit import (
     Described,
@@ -460,7 +465,7 @@ def _run_uploads(plan, device, storage, client, state, progress,
     for c in acts:
         try:
             data, why = reads.read(c, state)
-        except RemountFailed:
+        except (RemountFailed, DeviceNotResponding):
             raise  # the device is not there to read: the sync stops
         except Exception as e:  # noqa: BLE001 - one unreadable file must not stop the sync
             report.failed.append((_label(c), str(e)))
@@ -514,7 +519,7 @@ def _run_uploads(plan, device, storage, client, state, progress,
         ordered = c.datatype in MONITORING_TYPES or c.datatype in SLEEP_TYPES
         try:
             data, why = reads.read(c, state)
-        except RemountFailed:
+        except (RemountFailed, DeviceNotResponding):
             raise  # the device is not there to read: the sync stops
         except Exception as e:  # noqa: BLE001
             report.failed.append((label, str(e)))
@@ -688,9 +693,11 @@ def activities_to_sync(device: GarminDevice, storage: Storage) -> ActivitiesToSy
     """The activities of `device` not uploaded yet, from its activity folder (GarminDevice.xml)
     listed, no file read (also on a drive). None when not known: a device without a unit ID,
     or a folder or state.json that could not be read. A device never synced here is not listed.
-    Never raises: the device opens all the same."""
+    Raises only DeviceNotResponding: otherwise the device opens all the same."""
     try:
         return _activities_to_sync(device, storage)
+    except DeviceNotResponding:
+        raise
     except Exception as e:  # noqa: BLE001 - not known, never 0: the tile shows nothing
         log.info("activities: not counted (%s)", type(e).__name__)
         return None
@@ -909,7 +916,7 @@ def _run_downloads(items, storage, client, progress, state) -> DownloadReport:
                 target = posixpath.join(it.target.path, it.device_name())  # type: ignore[union-attr]
                 # Of another size, it is deleted and not acknowledged: it comes again.
                 real = storage.write_checked(target, data)
-            except (Unauthorized, DeviceNotVerified):
+            except (Unauthorized, DeviceNotVerified, DeviceNotResponding):
                 raise
             except Exception as e:  # noqa: BLE001
                 report.failed.append((label, str(e)))

@@ -22,7 +22,7 @@ from datetime import UTC, datetime, timedelta
 from pathlib import Path
 
 from openexpress import applog, paths
-from openexpress.device.storage import DeviceError, Storage
+from openexpress.device.storage import DeviceError, DeviceNotResponding, Storage
 from openexpress.device.xmldevice import GarminDevice
 from openexpress.errors import UserFacingError
 from openexpress.i18n import _, ngettext
@@ -154,6 +154,8 @@ def read_errors(storage: Storage, at: dict[str, int] | None = None) -> list[Erro
             continue
         try:
             out += parse_err_log(storage.read_at(real), name)
+        except DeviceNotResponding:
+            raise
         except DeviceError as e:
             log.info("diagnostics: %s not read (%s)", name, type(e).__name__)
     for path in ERR_LOGS if at is None else ():
@@ -166,6 +168,8 @@ def read_errors(storage: Storage, at: dict[str, int] | None = None) -> list[Erro
                 log.info("diagnostics: %s is %s, not read", name, applog.size(size))
                 continue
             out += parse_err_log(storage.read(path), name)
+        except DeviceNotResponding:
+            raise
         except DeviceError as e:
             log.info("diagnostics: %s not read (%s)", name, type(e).__name__)
     return sorted(out, key=lambda e: e.at or datetime.min, reverse=True)
@@ -731,6 +735,8 @@ def at_open(device: GarminDevice, storage: Storage, now: datetime | None = None)
     copying = copy_on()
     try:
         seen = seen_now(device, storage, with_files=copying)
+    except DeviceNotResponding:
+        raise
     except DeviceError as e:
         log.info("diagnostics: the folders not listed (%s)", type(e).__name__)
         seen = None
@@ -748,6 +754,8 @@ def at_open(device: GarminDevice, storage: Storage, now: datetime | None = None)
         try:
             found.copied = copy_files(device, storage, now,
                                       found=seen.files if seen is not None else None)
+        except DeviceNotResponding:
+            raise
         except (DeviceError, OSError) as e:
             log.info("diagnostics: the copy failed (%s: %s)", type(e).__name__, e)
     if key is not None:

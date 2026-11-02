@@ -227,50 +227,6 @@ def _steps_context():
     return GLib.MainContext.new()
 
 
-def _read_step(start, what: str, name: str, context=None) -> None:
-    """One step of a read from the device, waited for (_wait) at most STALL_S: with no answer
-    by then the device stopped responding (DeviceNotResponding, whatever its answer to the
-    cancel); other failures as _wait says them."""
-    try:
-        _wait(start, STALL_S, what, name, context=context, quiet=True)
-    except GioTimedOut as e:
-        raise DeviceNotResponding.during(what) from e
-
-
-def _next_portion(enum, what: str, context) -> list:
-    """The next entries of a listing; none at its end."""
-    portion: list = []
-    _read_step(lambda done, cancellable: enum.next_files_async(
-        LIST_PORTION, GLib.PRIORITY_DEFAULT, cancellable,
-        lambda e, res: done(lambda: portion.extend(e.next_files_finish(res)))),
-        what, "listing", context)
-    return portion
-
-
-def _next_chunk(stream, count: int, what: str, context) -> bytes:
-    """Up to `count` next bytes of a file (gvfs may give fewer); none at its end."""
-    chunk: list = []
-    _read_step(lambda done, cancellable: stream.read_bytes_async(
-        count, GLib.PRIORITY_DEFAULT, cancellable,
-        lambda s, res: done(lambda: chunk.append(s.read_bytes_finish(res).get_data()))),
-        what, "read", context)
-    return chunk[0] or b""
-
-
-def _close(opened, what: str, name: str, context) -> None:
-    """Closes a listing or a file. A refusal does not matter: it is read, or its error is
-    said."""
-    try:
-        _read_step(lambda done, cancellable: opened.close_async(
-            GLib.PRIORITY_DEFAULT, cancellable,
-            lambda o, res: done(lambda: o.close_finish(res))),
-            what, name, context)
-    except DeviceNotResponding:
-        raise
-    except DeviceError:
-        pass
-
-
 @dataclass
 class _Attempt:
     """A write to the device under way: the size of the target before it (None: no file;
@@ -280,6 +236,11 @@ class _Attempt:
 
 
 class GioStorage(Storage):
+    # The first stall of this storage (DeviceNotResponding): every later operation of it fails
+    # at once with it, as gvfs stays blocked on the device until it is unplugged; a device
+    # plugged in again is a new storage.
+    _stalled: DeviceNotResponding | None = None
+
     def __init__(self, root_uri: str):
         self.root = Gio.File.new_for_uri(root_uri.rstrip("/") + "/")
         self.label = root_uri
@@ -294,26 +255,73 @@ class GioStorage(Storage):
     def _f(self, real: str) -> Gio.File:
         return self.root.resolve_relative_path(real) if real else self.root
 
+    def _responding(self) -> None:
+        """DeviceNotResponding again, with the same words, once the storage has stalled."""
+        if self._stalled is not None:
+            raise DeviceNotResponding(str(self._stalled))
+
+    def _step(self, start, what: str, name: str, context=None) -> None:
+        """One step of a read from the device, waited for (_wait) at most STALL_S: with no
+        answer by then the device stopped responding (DeviceNotResponding, whatever its answer
+        to the cancel), which the storage keeps; other failures as _wait says them."""
+        self._responding()
+        try:
+            _wait(start, STALL_S, what, name, context=context, quiet=True)
+        except GioTimedOut as e:
+            self._stalled = DeviceNotResponding.during(what)
+            raise self._stalled from e
+
+    def _next_portion(self, enum, what: str, context) -> list:
+        """The next entries of a listing; none at its end."""
+        portion: list = []
+        self._step(lambda done, cancellable: enum.next_files_async(
+            LIST_PORTION, GLib.PRIORITY_DEFAULT, cancellable,
+            lambda e, res: done(lambda: portion.extend(e.next_files_finish(res)))),
+            what, "listing", context)
+        return portion
+
+    def _next_chunk(self, stream, count: int, what: str, context) -> bytes:
+        """Up to `count` next bytes of a file (gvfs may give fewer); none at its end."""
+        chunk: list = []
+        self._step(lambda done, cancellable: stream.read_bytes_async(
+            count, GLib.PRIORITY_DEFAULT, cancellable,
+            lambda s, res: done(lambda: chunk.append(s.read_bytes_finish(res).get_data()))),
+            what, "read", context)
+        return chunk[0] or b""
+
+    def _close(self, opened, what: str, name: str, context) -> None:
+        """Closes a listing or a file. A refusal does not matter: it is read, or its error is
+        said."""
+        try:
+            self._step(lambda done, cancellable: opened.close_async(
+                GLib.PRIORITY_DEFAULT, cancellable,
+                lambda o, res: done(lambda: o.close_finish(res))),
+                what, name, context)
+        except DeviceNotResponding:
+            raise
+        except DeviceError:
+            pass
+
     def _list(self, real_path: str) -> list[Entry]:
         what = _("Cannot list {path}").format(path=real_path or "/")
         context = _steps_context()  # one for all the steps of the listing
         folder = self._f(real_path)
         opened: list = []
-        _read_step(lambda done, cancellable: folder.enumerate_children_async(
+        self._step(lambda done, cancellable: folder.enumerate_children_async(
             _ATTRS, Gio.FileQueryInfoFlags.NONE, GLib.PRIORITY_DEFAULT, cancellable,
             lambda f, res: done(lambda: opened.append(f.enumerate_children_finish(res)))),
             what, "listing", context)
         enum = opened[0]
         out: list[Entry] = []
         try:
-            while portion := _next_portion(enum, what, context):
+            while portion := self._next_portion(enum, what, context):
                 out.extend(_entry(info) for info in portion)
         except DeviceNotResponding:
             raise  # not closed: that would wait on the same device
         except DeviceError:
-            _close(enum, what, "listing", context)
+            self._close(enum, what, "listing", context)
             raise
-        _close(enum, what, "listing", context)
+        self._close(enum, what, "listing", context)
         return out
 
     def _query(self, real_path: str, attributes: str, flags):
@@ -329,7 +337,7 @@ class GioStorage(Storage):
                     raise
                 found.append(None)
 
-        _read_step(lambda done, cancellable: target.query_info_async(
+        self._step(lambda done, cancellable: target.query_info_async(
             attributes, flags, GLib.PRIORITY_DEFAULT, cancellable,
             lambda f, res: done(lambda: finish(f, res))),
             _("Cannot read {path}").format(path=real_path), "query")
@@ -352,7 +360,7 @@ class GioStorage(Storage):
         context = _steps_context()  # one for all the steps of the read
         target = self._f(real_path)
         opened: list = []
-        _read_step(lambda done, cancellable: target.read_async(
+        self._step(lambda done, cancellable: target.read_async(
             GLib.PRIORITY_DEFAULT, cancellable,
             lambda f, res: done(lambda: opened.append(f.read_finish(res)))),
             what, "read", context)
@@ -361,8 +369,8 @@ class GioStorage(Storage):
         got = 0
         try:
             while count is None or got < count:
-                chunk = _next_chunk(stream, READ_CHUNK if count is None
-                                    else min(READ_CHUNK, count - got), what, context)
+                chunk = self._next_chunk(stream, READ_CHUNK if count is None
+                                         else min(READ_CHUNK, count - got), what, context)
                 if not chunk:
                     break  # the end of the file
                 chunks.append(chunk)
@@ -370,15 +378,16 @@ class GioStorage(Storage):
         except DeviceNotResponding:
             raise  # not closed: that would wait on the same device
         except DeviceError:
-            _close(stream, what, "read", context)
+            self._close(stream, what, "read", context)
             raise
-        _close(stream, what, "read", context)
+        self._close(stream, what, "read", context)
         return b"".join(chunks)
 
     def _write(self, real_path: str, data: bytes) -> None:
         """gvfs-mtp cannot write streams, only copy a whole local file: the bytes go to a
         temporary file, copied as any file is (_write_file, so that what a copy cut short
         left is known to _discard_partial). Failing before the copy: CopyNotStarted."""
+        self._responding()
         what = _("Cannot write {path}").format(path=real_path)
         with _staging():
             try:
@@ -400,6 +409,7 @@ class GioStorage(Storage):
         """Everything that can fail before the device is touched (the file to send, its
         staging in the Flatpak, starting the copy) raises CopyNotStarted: the old file stays.
         What fails once the copy runs leaves half a file, which write_file removes."""
+        self._responding()
         what = _("Cannot write {path}").format(path=real_path)
         local = Path(local)
         try:
@@ -494,12 +504,14 @@ class GioStorage(Storage):
             raise _err(e, what) from e
 
     def _delete(self, real_path: str) -> None:
+        self._responding()
         try:
             self._f(real_path).delete(None)
         except GLib.Error as e:
             raise _err(e, _("Cannot delete {path}").format(path=real_path)) from e
 
     def _mkdir(self, real_path: str) -> None:
+        self._responding()
         try:
             self._f(real_path).make_directory(None)
         except GLib.Error as e:
@@ -508,7 +520,7 @@ class GioStorage(Storage):
     def _fs_attr(self, attr: str) -> int | None:
         found: list = []
         try:
-            _read_step(lambda done, cancellable: self.root.query_filesystem_info_async(
+            self._step(lambda done, cancellable: self.root.query_filesystem_info_async(
                 attr, GLib.PRIORITY_DEFAULT, cancellable,
                 lambda f, res: done(lambda: found.append(f.query_filesystem_info_finish(res)))),
                 _("Cannot read the space on the device"), "free space")
@@ -532,6 +544,7 @@ class GioStorage(Storage):
         return in_flatpak() and usb_node(self.usb) is None
 
     def exclusive_ptp(self):
+        self._responding()  # the device would have to be unmounted from gvfs first
         usb = self.usb
         if usb is None or usb.bus is None or usb.address is None or not self.device_uri:
             return None
@@ -547,6 +560,7 @@ class GioStorage(Storage):
         return _exclusive(self.device_uri, usb.bus, usb.address, self, node)
 
     def refresh(self, progress=None) -> bool:
+        self._responding()  # it would be unmounted and mounted again through gvfs
         usb = self.usb
         # Without its place on USB our own unmount would be taken for an unplug.
         if usb is None or usb.bus is None or usb.address is None or not self.device_uri:
@@ -1473,8 +1487,8 @@ def open_device_storage(uri: str | None = None, wait: bool = False, notify=None,
             log.info("device: opened over MTP after %.1f s (USB %s)", clock() - started,
                      st.usb_id or "?")
             return st
-        except SeveralDevices:
-            raise
+        except (SeveralDevices, DeviceNotResponding):
+            raise  # a stall: each try would wait for the same blocked device
         except DeviceError as e:
             state = usb_state()
             if state != seen:
@@ -1641,6 +1655,8 @@ def _probe(found: FoundDevice, parse) -> DeviceSummary:
             storage = _mtp_storage(found.uri, found.usb)
     except NotThereYet:
         return DeviceSummary(found, reason=NO_DEVICE_FILE)
+    except DeviceNotResponding:
+        raise  # not one more device that cannot be read: nothing more is asked of it
     except Exception as e:  # noqa: BLE001 - a summary, never an error; the reason is kept
         from openexpress import applog
 
@@ -1651,6 +1667,8 @@ def _probe(found: FoundDevice, parse) -> DeviceSummary:
         return DeviceSummary(found, reason=UNREADABLE)
     try:
         device = parse(storage.read("GARMIN/GarminDevice.xml"))
+    except DeviceNotResponding:
+        raise
     except Exception as e:  # noqa: BLE001 - the error may quote the file; only its kind
         log.debug("device: probe could not read GarminDevice.xml (%s)", type(e).__name__)
         return DeviceSummary(found, reason=UNREADABLE)
@@ -1858,6 +1876,8 @@ def _remount(uri: str, storage: Storage, sleep=time.sleep) -> None:
             Gio.MountMountFlags.NONE, None, cancellable,
             lambda f, res: done(lambda: _mounted_again(f, res))),
             MOUNT_TIMEOUT_S, _("Cannot mount the device"), "mount again")
+    except DeviceNotResponding:
+        raise
     except DeviceError as e:
         raise RemountFailed(str(e)) from e
     # Right after mounting gvfs may not list the files yet.

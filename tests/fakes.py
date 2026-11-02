@@ -245,6 +245,74 @@ def drive_session(root, account, storage_class=None):
     return service.DeviceSession(storage, device, Settings(), account)
 
 
+def stalls(root, reads=(), writes=(), lists=()):
+    """The made-up device in `root` over MTP, which stops responding when it reads a file whose
+    name holds one of `reads`, writes one whose name holds one of `writes`, or lists a folder
+    whose path ends with one of `lists`; from then on every operation of it fails at once
+    with the same error, as GioStorage does after a stall. A write stalls as GioStorage's
+    does, when the size of the file there is asked before the copy ("Cannot read …").
+    `stalled`: that error."""
+    import posixpath
+
+    from openexpress.device.storage import DeviceNotResponding, LocalStorage
+
+    class Stalling(LocalStorage):
+        stalled = None
+
+        def _go_on(self, real_path="", action=None, stall=False):
+            if self.stalled is not None:
+                raise DeviceNotResponding(str(self.stalled))
+            if stall:
+                self.stalled = DeviceNotResponding.during(action.format(path=real_path or "/"))
+                raise self.stalled
+
+        def _named(self, real_path, names):
+            return any(n in posixpath.basename(real_path) for n in names)
+
+        def _list(self, real_path):
+            self._go_on(real_path, "Cannot list {path}", real_path.endswith(lists) if lists
+                        else False)
+            return super()._list(real_path)
+
+        def info(self, real_path):
+            self._go_on()
+            return super().info(real_path)
+
+        def _read(self, real_path):
+            self._go_on(real_path, "Cannot read {path}", self._named(real_path, reads))
+            return super()._read(real_path)
+
+        def _read_start(self, real_path, count):
+            self._go_on(real_path, "Cannot read {path}", self._named(real_path, reads))
+            return super()._read_start(real_path, count)
+
+        def _write(self, real_path, data):
+            self._go_on(real_path, "Cannot read {path}", self._named(real_path, writes))
+            super()._write(real_path, data)
+
+        def _write_file(self, real_path, local, progress=None):
+            self._go_on(real_path, "Cannot read {path}", self._named(real_path, writes))
+            super()._write_file(real_path, local, progress)
+
+        def _delete(self, real_path):
+            self._go_on()
+            super()._delete(real_path)
+
+        def _mkdir(self, real_path):
+            self._go_on()
+            super()._mkdir(real_path)
+
+        def free_space(self):
+            self._go_on()
+            return super().free_space()
+
+        def capacity(self):
+            self._go_on()
+            return super().capacity()
+
+    return Stalling(root)
+
+
 def other_bytes_drive():
     """A kind of drive (LocalStorage) that keeps each file written at its size but with other
     bytes (zeros), as a drive whose medium lost what was written while its folder kept the

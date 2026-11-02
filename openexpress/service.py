@@ -28,7 +28,7 @@ from openexpress.connect import (
     OwnershipUnknown,
     Unauthorized,
 )
-from openexpress.device.storage import DeviceError, Storage
+from openexpress.device.storage import DeviceError, DeviceNotResponding, Storage
 from openexpress.device.xmldevice import GarminDevice, parse
 from openexpress.errors import OrdinaryStop, UserFacingError
 from openexpress.i18n import N_, _, ngettext
@@ -369,7 +369,7 @@ def open_device_or_drive(wait: bool = False, notify=None) -> Storage:
 
     try:
         storage = gio_storage.open_device_storage(wait=wait, notify=notify)
-    except gio_storage.SeveralDevices:
+    except (gio_storage.SeveralDevices, DeviceNotResponding):
         raise
     except DeviceError:
         if gio_storage.usb_state() not in (gio_storage.ABSENT, gio_storage.MASS_STORAGE,
@@ -1580,6 +1580,8 @@ def _trueup(s, messages, progress, errors, received: list | None = None) -> list
     stop = getattr(s, "stop_waiting", None)
     try:
         res = trueup.run(s.device, s.storage, s.client, messages, progress, stop=stop)
+    except DeviceNotResponding:
+        raise  # the sync stops: nothing more is asked of the device
     except Exception as e:  # noqa: BLE001
         log.warning("TrueUp failed: %s: %s", type(e).__name__, e)
         errors.append(f"TrueUp: {e}")

@@ -4,6 +4,7 @@ there before (or none) is written back; failing that, the file is deleted and th
 so. All data is made up."""
 
 import pytest
+from fakes import stalls
 from test_ciq_music import (  # noqa: F401 - the fixtures
     FACE,
     PRELOADED,
@@ -14,7 +15,7 @@ from test_ciq_music import (  # noqa: F401 - the fixtures
 )
 
 from openexpress import ciq
-from openexpress.device.storage import DeviceError, LocalStorage
+from openexpress.device.storage import DeviceError, DeviceNotResponding, LocalStorage
 
 IN_BIN = "GARMIN/APPS/IN.BIN"
 FACE_MESSAGE = {"messageid": 7, "devicexmldatatype": "IQWatchFaces",
@@ -149,6 +150,28 @@ def test_an_install_whose_list_is_cut_short_takes_back_its_app(iq_device):
     media = st.root / "GARMIN/APPS/MEDIA"
     assert not media.exists() or list(media.iterdir()) == []
     assert client.acks == []
+
+
+def test_a_stall_while_an_app_is_written_stops_the_install(iq_device):
+    """The device stops responding at the app's file: the install stops with it, no list is
+    written, nothing is acknowledged (the app comes again)."""
+    st, dev = iq_device
+    client = FakeClient()
+    with pytest.raises(DeviceNotResponding):
+        ciq.install_queued(dev, stalls(st.root, writes=(".PRG",)), client, [FACE_MESSAGE],
+                           known={})
+    assert waiting(st) is None and client.acks == []
+
+
+def test_a_stall_while_the_list_is_written_is_not_put_right(iq_device):
+    """The app's file is written, its list stalls: nothing more is asked of the device (no list
+    written back or deleted, which would wait on it), nothing is acknowledged."""
+    st, dev = iq_device
+    client = FakeClient()
+    with pytest.raises(DeviceNotResponding):
+        ciq.install_queued(dev, stalls(st.root, writes=("IN.BIN",)), client, [FACE_MESSAGE],
+                           known={})
+    assert waiting(st) is None and client.acks == []
 
 
 def test_an_install_puts_back_the_list_that_waited(iq_device):

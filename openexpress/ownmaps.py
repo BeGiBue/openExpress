@@ -18,7 +18,7 @@ from datetime import datetime
 from pathlib import Path
 
 from openexpress import applog, paths
-from openexpress.device.storage import DeviceError, Storage
+from openexpress.device.storage import DeviceError, DeviceNotResponding, Storage
 from openexpress.device.xmldevice import GarminDevice
 from openexpress.i18n import _
 from openexpress.maps import SPACE_MARGIN, MapError
@@ -139,6 +139,8 @@ def list_own(device: GarminDevice, storage: Storage, garmin_maps: list) -> list[
             continue
         try:
             title = read_title(storage.read_start(path, HEADER_SIZE))
+        except DeviceNotResponding:
+            raise
         except DeviceError as e:
             log.info("own maps: the start of a file could not be read (%s)", type(e).__name__)
             title = None
@@ -156,6 +158,8 @@ def overview(device: GarminDevice, storage: Storage, garmin_maps: list) -> Overv
         return Overview(None, [], set())
     try:
         maps = list_own(device, storage, garmin_maps)
+    except DeviceNotResponding:
+        raise
     except DeviceError as e:
         log.info("own maps: the map folder could not be read (%s)", type(e).__name__)
         return Overview(folder, [], set(), unreadable=True)
@@ -253,6 +257,8 @@ def add(plan: AddPlan, device: GarminDevice, storage: Storage,
             raise DeviceError(_("the file on the device has {actual} instead of {expected}")
                               .format(actual="?" if written is None else f"{written} B",
                                       expected=f"{plan.size} B"))
+    except DeviceNotResponding:
+        raise
     except (DeviceError, OSError) as e:
         log.warning("own map: the copy failed (%s)", type(e).__name__)
         raise MapError(f"{_failed_text(storage, plan.path)} ({e})") from e
@@ -268,6 +274,8 @@ def _failed_text(storage: Storage, path: str) -> str:
         return _("Writing {path} failed.").format(path=path)
     try:
         storage.delete(path)
+    except DeviceNotResponding:
+        raise
     except (DeviceError, OSError):
         return _("Writing {path} failed and the incomplete file could not be removed; "
                  "delete {path} from the device yourself.").format(path=path)

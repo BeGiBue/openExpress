@@ -24,7 +24,7 @@ from openexpress.device.gio_storage import (  # noqa: E402
     garmin_usb,
     own_remount,
 )
-from openexpress.device.storage import DeviceError  # noqa: E402
+from openexpress.device.storage import DeviceError, DeviceNotResponding  # noqa: E402
 from openexpress.i18n import _  # noqa: E402
 from openexpress.paths import APP_ID  # noqa: E402
 from openexpress.progress import nothing  # noqa: E402
@@ -124,9 +124,10 @@ class Watcher(Gio.Application):
         for attempt in range(OPEN_RETRIES + 1):
             try:
                 return service.open_session()
-            except (SeveralDevices, MassStorageNotice):
-                # Nothing to wait for: syncing waits for a choice in the window, and a drive
-                # is never synced.
+            except (SeveralDevices, MassStorageNotice, DeviceNotResponding):
+                # Nothing to wait for: syncing waits for a choice in the window, a drive is
+                # never synced, and a device that stopped responding stays so until it is
+                # unplugged.
                 raise
             except DeviceError:
                 # Right after mounting, gvfs may not be ready yet.

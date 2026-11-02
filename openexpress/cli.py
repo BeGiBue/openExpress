@@ -24,7 +24,7 @@ from openexpress.connect import (
     Unauthorized,
 )
 from openexpress.console import error as _error
-from openexpress.device.storage import DeviceError, LocalStorage, Storage
+from openexpress.device.storage import DeviceError, DeviceNotResponding, LocalStorage, Storage
 from openexpress.device.xmldevice import GarminDevice, parse
 from openexpress.i18n import N_, _, decimal, full_time, human_size, ngettext, pgettext
 from openexpress.progress import Reporter
@@ -771,6 +771,8 @@ def _status_updates_online(client, s) -> str:
             device = parse(storage.read("GARMIN/GarminDevice.xml"))
         items = upd.offered(storage, client.software_updates(device.raw), device,
                             forget_installed=False)  # keeps nothing
+    except DeviceNotResponding:
+        raise
     except (ApiError, DeviceError) as e:
         return _("could not be checked: {error}").format(error=e)
     new, staged = upd.pending(items), upd.staged(items)

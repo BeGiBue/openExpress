@@ -25,7 +25,7 @@ from pathlib import Path
 
 from openexpress import answers, applog, cache, download, paths
 from openexpress.connect import ApiError
-from openexpress.device.storage import DeviceError, Storage
+from openexpress.device.storage import DeviceError, DeviceNotResponding, Storage
 from openexpress.errors import UserFacingError
 from openexpress.i18n import _, country_name
 from openexpress.progress import Step, byte_steps, copying_text, downloading_text, say_to
@@ -426,6 +426,8 @@ def cleanup_plan(storage: Storage, device, maps: list[UniversalMap]) -> list[Cle
                             storage.read_start(path, ownmaps.HEADER_SIZE)) is not None)):
                     continue
                 found.setdefault(path.casefold(), CleanupFile(path, entry.size))
+    except DeviceNotResponding:
+        raise
     except DeviceError as e:
         log.info("maps: the cleanup rules could not be checked (%s)", type(e).__name__)
         return []
@@ -752,11 +754,15 @@ def _write_shared(storage: Storage, f: MapFile, local: Path, told,
     is never deleted."""
     try:
         return _write_checked(storage, f, local, told, keep=True)
+    except DeviceNotResponding:
+        raise  # not tried again
     except Exception as e:  # noqa: BLE001 - any failure gets the one retry
         log.warning("map install: writing a file other maps use failed, trying once more: %s",
                     e)
     try:
         return _write_checked(storage, f, local, told, keep=True)
+    except DeviceNotResponding:
+        raise
     except Exception as e:
         raise MapError(_("Cannot write {path}, which other maps on the device also use "
                          "({maps}). Install the map again.")
@@ -791,6 +797,8 @@ def _write_unlock(storage: Storage, path: str, data: bytes, progress, sleep) -> 
     while True:
         try:
             return storage.write(path, data)
+        except DeviceNotResponding:
+            raise  # not tried again
         except DeviceError as e:
             log.warning("map install: writing an unlock file failed (try %d of %d): %s",
                         attempt, UNLOCK_TRIES, e)

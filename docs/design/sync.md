@@ -1,9 +1,9 @@
 # Design: a device that stops answering over MTP
 
 Status: the decisions in section 4 are made (D1 1a, D2 2a, D3 3a, D4 4a, and D5 5a, D6 6a,
-D7 7a, taken when step 1 began; marked "chosen"). Steps 1 and 2 of section 7 are implemented:
-listings, queries and reads of files under the limit, the error, the device layer letting it
-through. Steps 3–6 are not.
+D7 7a, taken when step 1 began, D8 8a when step 3 began; marked "chosen"). Steps 1–3 of
+section 7 are implemented: listings, queries and reads of files under the limit, the error,
+fast failure, and every handler outside the window letting it through. Steps 4–6 are not.
 Sections 2 and 3 describe the program before this work. The work goes step by step (section 7),
 each step after a yes. The scope in section 1 is set once: what it does not list is not added
 while it is implemented.
@@ -199,6 +199,34 @@ From the program's log, 13 October to 2 November 2026:
 - **7b. Clean up as after any failure.**
   - − Waits another 35 s for the same device, then fails the same way.
 
+### D8: the handlers in other modules — chosen: 8a
+
+Besides the 25 handlers of `DeviceError` left from step 1 (section 5), a few broad handlers
+(`except Exception`) on the way of the device catch the error too: the loops of a sync (files
+uploaded, files of the queue written, TrueUp, apps of the queue) and the look at a device for a
+list (`gio_storage._probe`, for `status` and the start page).
+
+- **8a. It goes past every handler that can meet it, outside the window (recommended;
+  chosen).** Each handler of `DeviceError` outside `gui/` has one of `DeviceNotResponding`
+  before it, which raises it on; the broad handlers on the way of the device too. A test of the
+  syntax tree finds any handler of `DeviceError` without it.
+  - \+ The first stall always reaches the top: the command line says it once with exit code 1,
+    a sync stops before TrueUp, and nothing keeps a false fact.
+  - \+ TrueUp is told received before it is written (as Garmin Express does it): a sync that
+    went on after a stall in the apps of its queue would download it, tell Garmin Connect it was
+    received, and lose it when its write failed at once.
+  - \+ A stall when the app folder is made would be remembered as the device refusing apps over
+    USB (`_remember_refusal`), for the whole software version: the device would not be asked
+    again until it is updated.
+  - − About 30 small changes in 10 modules; in the window a stall while a device opens (the
+    count of its activities) is told to that task, not taken for "not known".
+- **8b. Only handlers that let one item fail and go on, or try again.** Summaries (the line of
+  `status`, the overview of own maps, the comparison of updates) answer "not known".
+  - − `status`, `maps` and `updates` would end with exit code 0, the stall hidden in a line.
+- **8c. Only the sync and the backup, as section 5 had it.**
+  - − Both losses of 8a stay; the apps, maps and diagnostics go through all their items, each
+    failing with the same words.
+
 ## 5. What changes
 
 | Module | Change |
@@ -207,25 +235,31 @@ From the program's log, 13 October to 2 November 2026:
 | `device/storage.py` | `DeviceNotResponding(DeviceError)`, made by `DeviceNotResponding.during(action)`, with `says_replug = True` as `replug_text` reads it: "{action}: the device stopped responding. Unplug it and plug it in again." (Polish: "{action}: urządzenie przestało odpowiadać. Odłącz je i podłącz ponownie."). In step 1 (D5). |
 | `device/storage.py` | `Storage.resolve` and `Storage.sizes` let it through (D6); `write` and `write_file` let it through without a clean-up (D7). |
 | `device/gio_storage.py` | `_remount`, `_device_state` and `refresh` let it through (D6). |
-| `device/gio_storage.py` | Fast failure: after a `DeviceNotResponding` the storage keeps it, and every later operation of it, writes too, raises it again at once instead of waiting 30 s each. A device plugged in again is a new mount and a new storage. |
-| `sync.py`, `backup.py` | `DeviceNotResponding` stops the sync or the backup: it goes past the handlers that let one unreadable file not stop them, as a device not mounted again does. The backup leaves no partial folder. |
+| `device/gio_storage.py` | Fast failure: after a `DeviceNotResponding` the storage keeps it, and every later operation of it (reads, writes, a delete, a new folder, a refresh, a PTP session) raises it again at once, with the same words, instead of waiting 30 s each. A device plugged in again is a new mount and a new storage. |
+| `device/gio_storage.py` | `open_device_storage` lets it through at once, also while it waits for a device (the command line, unless `--no-wait`): no try after it and no advice about another program. |
+| `sync.py`, `backup.py` | `DeviceNotResponding` stops the sync or the backup: it goes past the handlers that let one unreadable file not stop them, as a device not mounted again does (the files uploaded, the files of the queue written). The backup stopped at any error and leaves no partial folder already. |
+| other modules | D8: every handler of `DeviceError` lets it through, and the broad ones on the way of the device: TrueUp in a sync (`service._trueup`), an app of the queue and the app list (`ciq._install_pass`, `ciq.write_app_list`), a file other maps use (`maps._write_shared`), the count of activities to sync, the look at a device for a list (`gio_storage._probe`: not one more device that cannot be read). |
 | `device/gio_storage.py` | Log lines, never with a path or a file name. A step that reached its limit: what it was (a read, a listing, a query, the free space), how long since the device last answered, how long since this process opened the storage (a mount older than the process is said to be so). A step that took more than 5 s (`SLOW_STEP_S`): what it was and how long. |
 | `gui/` | D4: the window keeps the place on USB of a device that stopped responding, shows the banner with its own text (the window's words, not the command line's), and does not start a refresh of that device while it stays at that place. |
 | `docs/guide.md` | What the message means and what to do. |
 
-Left on purpose as they are in step 1, and looked at again in step 3: the 25 handlers of
-`DeviceError` in other modules. Each turns the error into a line of a report, an answer of "not
-known" or an item skipped; with fast failure (step 3) the later operations of the same device
-fail at once, but what each then says is to be settled there:
+The 25 handlers of `DeviceError` in other modules, left as they were in step 1, let it through
+since step 3 (D8):
 
 - `ciq.py` (10): `_hides_app_files`, `prepare_app_dir`, `_install_hidden` (3), `_ptp_delete`,
   `_remove_hidden` (3), `save_app_list_copy`;
 - `ownmaps.py` (4): `list_own`, `overview`, `add`, `_failed_text`;
 - `diagnostics.py` (4): `read_errors` (2), `at_open` (2);
 - `maps.py` (2): `cleanup_plan`, `_write_unlock`;
-- `cli.py` (2): `_status_updates_online`, `_eject_drive`;
+- `cli.py` (1): `_status_updates_online`;
 - `watch.py` (1): `_open_session`; `updates.py` (1): `presence`; `service.py` (1):
   `open_device_or_drive`.
+
+Exempt, as they only ever see a drive's folder: `cli._eject_drive`, `gio_storage.find_ums_devices`
+and `gio_storage.open_ums_storage`. The handlers inside our own PTP sessions cannot meet it
+(libusb, not gvfs) and let it through all the same, so that the rule has no other exception.
+Clean-ups after a failure that is said already keep only logging theirs (`delete_quietly`,
+`_discard_partial`). The window (`gui/`) is step 5.
 
 The command line says the error once and ends with exit code 1, as for other errors of the
 device. The background service logs it and tells it in its notification of a sync that failed;
@@ -304,20 +338,27 @@ answer late or never.
      shorter file, closes the file after an error, and stops at a stall.
 
    The guard of step 1 also reads a file whole and in part through the real Gio.
-3. **Fast failure, the sync and the backup.** Failing tests:
-   - after a stall the next operation of the same storage fails at once, a write too; a new
-     storage works;
-   - a sync stops with the message, what it uploaded before stays done;
-   - a backup stops and leaves no partial folder;
-   - the command line says it once and ends with exit code 1.
+3. **Fast failure, the sync and the backup, the handlers (D8).** Failing tests:
+   - after a stall every later operation of the same storage fails at once with the same words:
+     a listing, a query, a read, the space, a write, a delete, a new folder, a refresh, a PTP
+     session; nothing more is asked of gvfs;
+   - a sync stops with the message, once, exit code 1 on the command line; what it uploaded
+     before stays done and the queue is not asked; a stall while a file of the queue is written
+     stops it too, with nothing acknowledged; TrueUp lets it through;
+   - `open_device_storage` with waiting stops at the first stall, without the advice about
+     another program (each try would wait 35 s for the same blocked device; then, the device
+     being on USB, the advice was added);
+   - the background service does not open a stalled device again; an unlock file and a file
+     other maps use are not written again; a stall is not remembered as a refusal to make the
+     app folder; an app of the queue and the app list stop the install, nothing acknowledged
+     and nothing put right on the device; the count of activities to sync and the look at
+     a device for a list let it through;
+   - a test of the syntax tree: every handler of `DeviceError` outside `gui/` has one of
+     `DeviceNotResponding` before it, but for those that only see a drive.
 
-   To solve here: the 25 handlers left from step 1 (section 5); and `open_device_storage` with
-   waiting, as the command line opens a device (unless `--no-wait`). A device that stalls while
-   it is opened (its first listing, the look for `GarminDevice.xml`) is a `DeviceError` to its
-   waiting loop, which opens it again, each try waiting 35 s for the same blocked device, until
-   its time for waiting is over; then, the device being on USB, it adds the advice that another
-   program may hold the device. The command line must stop at the first stall and say only
-   that the device stopped responding.
+   Guards that pass before and after: a backup stops at a stall and leaves no partial folder
+   (it stopped at any error already), with the error said once and exit code 1; a new storage
+   of the same device reads as usual.
 4. **Log lines.** Failing tests:
    - a stall logs what it was and the times since the last answer and since opening, without
      a path or a name;

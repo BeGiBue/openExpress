@@ -437,6 +437,63 @@ def test_a_write_cleans_nothing_up_after_the_device_stopped_responding(device, f
     assert copied == [] and files.calls.count("query") == 1
 
 
+# --- after a stall: every operation fails at once ------------------------------------------
+
+
+AFTER = {
+    "listing": lambda st, local: st.listdir("GARMIN"),
+    "query": lambda st, local: st.info("GARMIN/Activity/000.fit"),
+    "size now": lambda st, local: st._size_now("GARMIN/Activity/000.fit"),
+    "read": lambda st, local: st.read_at("GARMIN/Activity/000.fit"),
+    "read start": lambda st, local: st._read_start("GARMIN/Activity/000.fit", 10),
+    "free space": lambda st, local: st.free_space(),
+    "capacity": lambda st, local: st.capacity(),
+    "write": lambda st, local: st.write("GARMIN/NewFiles/x.fit", b"NEW"),
+    "write a file": lambda st, local: st.write_file("GARMIN/NewFiles/x.fit", local),
+    "bytes to a known path": lambda st, local: st._write("GARMIN/NewFiles/x.fit", b"NEW"),
+    "a file to a known path": lambda st, local: st._write_file("GARMIN/NewFiles/x.fit", local),
+    "delete": lambda st, local: st._delete("GARMIN/Activity/000.fit"),
+    "make a folder": lambda st, local: st._mkdir("GARMIN/New"),
+    "refresh": lambda st, local: st.refresh(),
+    "PTP session": lambda st, local: st.exclusive_ptp(),
+}
+
+
+@pytest.mark.parametrize("operation", AFTER)
+def test_after_a_stall_every_operation_of_the_storage_fails_at_once(device, fast, monkeypatch,
+                                                                    tmp_path, operation):
+    """gvfs stays blocked on the device until it is unplugged: nothing more is asked of it,
+    a write neither (nothing copied, the device not unmounted), and the same error is said."""
+    monkeypatch.setattr(gio_storage, "in_flatpak", lambda: False)
+    monkeypatch.setattr(gio_storage, "_unmount", lambda uri: pytest.fail("unmounted"))
+    st, files = device(activities(3), space={"filesystem::free": 5},
+                       plan={("list", 1): GioOp("never", strict=True)})
+    st.usb, st.device_uri = gio_storage.GarminUsb("51b4", 3, 14), URI
+    with pytest.raises(storage.DeviceNotResponding) as first:
+        run_in("worker", lambda: st._list("GARMIN/Activity"))
+    copied = []
+    monkeypatch.setattr(st, "_copy_local", lambda *a: copied.append(a))
+    local = tmp_path / "x.fit"
+    local.write_bytes(b"NEW")
+    asked = list(files.calls)
+    started = time.monotonic()
+    with pytest.raises(storage.DeviceNotResponding) as again:
+        run_in("worker", lambda: AFTER[operation](st, local))
+    assert time.monotonic() - started < LIMIT
+    assert str(again.value) == str(first.value) == f"Cannot list GARMIN/Activity: {STALLED}"
+    assert files.calls == asked and copied == []
+
+
+def test_a_new_storage_of_the_same_device_reads_as_usual(device, fast):
+    """A device plugged in again is a new storage: what the old one kept does not stop it."""
+    st, files = device(activities(3), plan={("list", 1): GioOp("never", strict=True)})
+    with pytest.raises(storage.DeviceNotResponding):
+        run_in("worker", lambda: st._list("GARMIN/Activity"))
+    again = gio_storage.GioStorage(URI + "Internal")
+    again.root = files.file()
+    assert len(run_in("worker", lambda: again._list("GARMIN/Activity"))) == 3
+
+
 # --- the real Gio ----------------------------------------------------------------------------
 
 
