@@ -27,7 +27,6 @@ log = logging.getLogger(__name__)
 
 TAG = "activity"
 CONTENT_WIDTH = 1000  # its content in one column, at most this wide
-TILES_IN_A_LINE = 5  # all of them on a wide window; two by two on a narrow one
 
 
 class ReadFailed(UserFacingError):
@@ -150,8 +149,9 @@ class ActivityView:
         if not tiles:
             self.say(_("This activity has no summary."), PAGE_ICON)
             return
+        # All of them in one line on a wide window, sharing its width; two by two on a narrow one.
         flow = Gtk.FlowBox(homogeneous=True, selection_mode=Gtk.SelectionMode.NONE,
-                           min_children_per_line=2, max_children_per_line=TILES_IN_A_LINE,
+                           min_children_per_line=2, max_children_per_line=max(2, len(tiles)),
                            column_spacing=12, row_spacing=12)
         for value, name in tiles:
             flow.append(Gtk.FlowBoxChild(child=_tile(value, name), focusable=False))

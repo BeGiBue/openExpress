@@ -261,3 +261,26 @@ def test_rows_open_their_activity_but_for_a_file_that_is_no_fit_file():
     assert shown(win).get_tag() == "activity"
     unreadable = activity_row(win, read_of(state=None))
     assert not unreadable.get_activatable()
+
+
+@pytest.mark.parametrize(("data", "sport", "count"), [(hike, HIKING, 5), (workout, TRAINING, 4)])
+def test_the_tiles_share_the_whole_line_of_a_wide_window(data, sport, count):
+    """No empty place at the end of the line: five tiles or four, they take its whole width."""
+    from gi.repository import GLib, Gtk
+
+    win, _the_list = a_window(data())
+    page = open_page(win, read_of(sport=sport))
+    win.toplevel.set_default_size(1000, 600)
+    win.toplevel.present()
+    try:
+        flow = next(w for w in _all(page) if isinstance(w, Gtk.FlowBox))
+        tiles = [w for w in _all(flow) if isinstance(w, Gtk.FlowBoxChild)]
+        for _ in range(500):
+            if flow.get_width() > 0:
+                break
+            GLib.MainContext.default().iteration(False)
+        bounds = [t.compute_bounds(flow)[1] for t in tiles]
+        assert len(tiles) == count and len({round(b.get_y()) for b in bounds}) == 1
+        assert bounds[-1].get_x() + bounds[-1].get_width() >= flow.get_width() - 1
+    finally:
+        win.toplevel.destroy()
