@@ -23,6 +23,7 @@ from openexpress.console import error as print_error  # noqa: E402
 from openexpress.device.gio_storage import ABSENT  # noqa: E402
 from openexpress.gui import pictures, start  # noqa: E402
 from openexpress.gui.activities_page import ActivitiesPage  # noqa: E402
+from openexpress.gui.activity_page import leave as leave_activity  # noqa: E402
 from openexpress.gui.apps_page import AppsPage  # noqa: E402
 from openexpress.gui.connected import Connected  # noqa: E402
 from openexpress.gui.detection import DeviceDetection  # noqa: E402
@@ -395,8 +396,10 @@ class MainWindow(TaskRunner, DeviceDetection, StartWindow, DevicePage, MapsPage,
         self.nav.select_row(self.nav.get_row_at_index(0))
 
     def _install_actions(self) -> None:
-        for name, cb in (("refresh", lambda *_a: self._on_refresh()),
-                         ("sync", lambda *_a: self.start_sync())):
+        # From the page of an activity (the keyboard) back to the device view first, where the
+        # bar of their task is.
+        for name, cb in (("refresh", lambda *_a: (leave_activity(self), self._on_refresh())),
+                         ("sync", lambda *_a: (leave_activity(self), self.start_sync()))):
             action = Gio.SimpleAction.new(name, None)
             action.connect("activate", cb)
             self.add_action(action)

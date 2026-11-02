@@ -1,7 +1,8 @@
 """The Activities page of the window: the activities of the open device and of its backups,
 the newest 30 first and 30 more at a time on request (activities.py lists and reads them; the
 words of a row are in gui/words.py). Nothing is written to the device; the button of a row
-exports its activity as a GPX file where the user chooses.
+exports its activity as a GPX file where the user chooses, and a row opens the page of its
+activity (gui/activity_page.py).
 Has: the activities of the open device (activities) and the groups of the page that grow as
 more are read (activities_list, activities_more).
 ActivitiesPage is a mixin of MainWindow (gui/app.py), without __init__ of its own; what it uses
@@ -45,7 +46,7 @@ class ExportFailed(UserFacingError):
     path: the window's log writes them)."""
 
 
-def _export_button(win, read) -> Gtk.Button | None:
+def export_button(win, read) -> Gtk.Button | None:
     """The button that exports an activity as GPX: one that can is one of the window's buttons
     (off while a task runs); one without positions is off for good, its tooltip says why, and
     it starts nothing. None for a file the device was still writing or that is no FIT file."""
@@ -71,13 +72,24 @@ def _export_button(win, read) -> Gtk.Button | None:
 
 def activity_row(win, read) -> Adw.ActionRow:
     """The row of an activity (activities.Read): its sport as the title, the details in one
-    caption that wraps, the export button."""
+    caption that wraps, the export button; the row of a FIT file opens the page of its
+    activity (an arrow at its end)."""
     row = Adw.ActionRow(title=GLib.markup_escape_text(activity_title(read)),
                         subtitle=GLib.markup_escape_text(activity_caption(read)))
-    button = _export_button(win, read)
+    button = export_button(win, read)
     if button is not None:
         row.add_suffix(button)
+    if read.summary is not None:
+        row.add_suffix(Gtk.Image(icon_name="go-next-symbolic"))
+        row.set_activatable(True)
+        row.connect("activated", lambda _row: _open(win, read))
     return row
+
+
+def _open(win, read) -> None:
+    from openexpress.gui.activity_page import open_activity  # it imports this module
+
+    open_activity(win, read)
 
 
 def _export(win, read, button: Gtk.Button) -> None:

@@ -2,8 +2,9 @@
 
 Status: the decisions of section 5 are made (each took its option a, marked "chosen"; D3a with what
 section 5 adds to it; 10b kept as an idea for later; D11 with the tile of the ascent and every tile
-that applies, up to five). Steps 1 and 2 of section 8 are implemented (the data of an activity,
-`fit.activity_data`; the words of its page, `gui/words.py`); steps 3–7 are not. The work goes step
+that applies, up to five). Steps 1 to 3 of section 8 are implemented (the data of an activity,
+`fit.activity_data`; the words of its page, `gui/words.py`; the page with its tiles,
+`gui/activity_page.py`); steps 4–7 are not. The work goes step
 by step (section 8), each step after a yes. The scope in section 1 is set once: what it does not
 list is not added while it is implemented.
 
@@ -150,6 +151,11 @@ its height and narrows; the lap rows wrap.
   back button too), the activity's sport and start as the title, the GPX button at the end.
   - \+ The navigation the window has already; the whole width for the map and the chart.
   - − On a wide window the sections on the side are hidden while it is open.
+  - What follows from it, found when step 3 was implemented: the page lies over the whole
+    device view, its Refresh and Sync and its bar at the bottom too. Refresh and Sync from the
+    keyboard (F5, Ctrl+R, Ctrl+S) go back to the device view first, where their bar is; the
+    pages of the device drawn anew (opened again, Refresh) close the page as well, the device
+    view staying on its Activities page.
 - **1b. A navigation of its own inside the Activities section** (as some panels of GNOME
   Settings have), the sections staying on the side.
   - − The content side has one header bar for every section (Refresh, Sync, the banner): a
@@ -238,6 +244,9 @@ its height and narrows; the lap rows wrap.
   gone before it ends, its result is dropped.
   - \+ "Activities are read, not kept" stays true; nothing to clean up.
   - − 1–2 s over MTP for a long activity, each time.
+  - Its progress, as implemented in step 3: reading a file again tells no bytes, so the page
+    shows a spinner with "Reading the activity…" in its place until the file is read (1–2 s over
+    MTP); a file that cannot be read is said there, without an error dialog.
   - What follows from it: an activity's page is seen only while its device is connected, as the
     list today: it opens from the Activities page of the open device, which also lists the
     copies in that device's backups (read from this computer then); a device unplugged while
@@ -294,11 +303,12 @@ its height and narrows; the lap rows wrap.
 | Module | Change |
 |---|---|
 | `fit.py` | `activity_data(data)`: the samples of the records (time, distance, speed, heart rate, altitude, position; a value not given is a gap), the laps and what the sessions say together (Appendix A). Of a file cut short or damaged, what reads with its state, as `summary`; FitError for what is no FIT file. |
-| `activities.py` | The data of one activity (`Read`), from the device or from its backup copy, as a task with progress. |
+| `activities.py` | Nothing: `read_file` reads the file again, from the device or from its backup copy, in the page's task. |
 | `gui/activity_page.py` (new) | The page: header bar (back, GPX), tiles, map, chart, laps; reading, errors, the narrow window. |
 | `gui/activity_chart.py` (new) | The chart widget (D5, D6): series, axes, cursor, keyboard, highlighted lap. |
 | `gui/activity_map.py` (new) | libshumate around the track (D2–D4): tiles or not, the marker, the highlighted lap, the attribution, the User-Agent, the cache folder. |
-| `gui/activities_page.py` | Rows activatable; a click opens the page. |
+| `gui/activities_page.py` | Rows of FIT files activatable (an arrow at their end); a click opens the page; the export button shared with the page. |
+| `gui/device_page.py`, `gui/app.py` | The page closed when the pages of the device are drawn anew, and before Refresh and Sync from the keyboard. |
 | `gui/words.py` | Durations, distances, pace and speed by sport, heart rate, the tiles' names, the laps' lines; English and Polish. |
 | `gui_settings` | The choice of D3 (tiles on or off). |
 | `packaging/flatpak/` | libshumate as a module (if 2a), without its vector renderer. |

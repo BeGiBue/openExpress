@@ -181,3 +181,75 @@ def test_the_device_plugged_in_again_opens_on_its_device_page(device_window, dev
     win.show_device()
     _turn()
     assert _on_device_page(win)
+
+
+# --- the page of an activity ----------------------------------------------------------------
+
+
+def _activity_page(win, device_root):
+    """The Activities page of the made-up device with a hike of its own, and the hike's row
+    clicked: its page, its file read at once (the window's tasks run at once)."""
+    from fakes import FitData, FitDefinition, RunNow, fit_file
+
+    session = FitDefinition(2, 18, ((2, 0x86), (5, 0x00), (7, 0x86), (8, 0x86), (9, 0x86),
+                                    (124, 0x86), (16, 0x02), (22, 0x84)))
+    hike = fit_file(session, FitData(2, (1_100_200_000, 17, 14_400_000, 13_800_000,
+                                         1_240_000, 1000, 128, 740)))
+    (device_root / "GARMIN" / "Activity" / "2026-10-03-10-00-00.fit").write_bytes(hike)
+    win.run_task = RunNow()
+    win.select_section("activities")
+    _turn()
+    rows = [r for r in _all(win.sections["activities"].page)
+            if r.__class__.__name__ == "ActionRow" and r.get_title() == "Hiking"]
+    assert len(rows) == 1 and rows[0].get_activatable()
+    win.navigation.set_animate_transitions(False)  # the arrow in view is then the page's own
+    rows[0].emit("activated")
+    _turn()
+    assert _stack(win) == ["start", "device", "activity"]
+    return win.navigation.get_visible_page()
+
+
+@pytest.mark.parametrize("width", [1000, 500])
+def test_back_from_the_page_of_an_activity_to_the_activities_page(device_window, device_root,
+                                                                  width):
+    """Folded too: the arrow goes back to the list, in front of the side panel."""
+    from gi.repository import Gtk
+
+    win = device_window(width=width)
+    page = _activity_page(win, device_root)
+    assert {"12.40 km", "Distance", "740 m"} <= {w.get_label() for w in _all(page)
+                                                if isinstance(w, Gtk.Label)}
+    _back(win)
+    assert _stack(win) == ["start", "device"]
+    assert win.pages.get_visible_child_name() == "activities"
+    assert win.split.get_show_content() == win.split.get_collapsed()
+
+
+@pytest.mark.parametrize("action", ["refresh", "sync"])
+def test_refresh_and_sync_from_the_keyboard_go_back_to_the_device_view_first(
+        device_window, device_root, monkeypatch, action):
+    """Their task's bar is in the device view: they start there."""
+    from openexpress.gui import app
+
+    started = []
+    monkeypatch.setattr(app.MainWindow, {"refresh": "_on_refresh", "sync": "start_sync"}[action],
+                        lambda self: started.append(_stack(self)))
+    win = device_window()
+    win._sync_blocked = lambda: ""  # signed in, as far as the action knows
+    win._update_actions()
+    _activity_page(win, device_root)
+    win.activate_action(f"win.{action}", None)
+    assert started == [["start", "device"]]
+    assert win.pages.get_visible_child_name() == "activities"
+
+
+def test_the_page_of_an_activity_goes_with_the_pages_of_the_device_view(device_window,
+                                                                      device_root):
+    """The device drawn anew (opened again, Refresh): the page of an activity read from it
+    before goes, the device view stays on its Activities page."""
+    win = device_window()
+    _activity_page(win, device_root)
+    win._clear_device_pages()
+    _turn()
+    assert _stack(win) == ["start", "device"]
+    assert win.pages.get_visible_child_name() == "activities"

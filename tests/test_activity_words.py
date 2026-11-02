@@ -107,3 +107,48 @@ def test_a_lap_line_has_only_what_the_lap_gives():
         f"5.00 km{NB}· 10:00{NB}· 30.0 km/h")
     assert w.lap_caption(lap(avg_heart_rate=120), TRAINING) == "120 bpm"
     assert w.lap_caption(lap(), TRAINING) == ""
+
+
+# --- the tiles on top of the page ----------------------------------------------------------------
+
+
+def activity(**values):
+    return fit.ActivityData(fit.FileState.WHOLE, **values)
+
+
+HIKE = activity(sport=HIKING, timer_time=13_800.0, elapsed_time=14_400.0, distance=12_400.0,
+                avg_speed=1.0, avg_heart_rate=128, max_heart_rate=165, calories=900, ascent=740)
+WORKOUT = activity(sport=TRAINING, timer_time=2700.0, distance=0.0, avg_heart_rate=112,
+                   max_heart_rate=151, calories=320)
+
+TILES_OF = {
+    "en": {"hike": [("12.40 km", "Distance"), ("3:50:00", "Time"), ("16:40 /km", "Average pace"),
+                    ("128 bpm", "Average heart rate"), ("740 m", "Total ascent")],
+           "workout": [("45:00", "Time"), ("112 bpm", "Average heart rate"),
+                       ("151 bpm", "Maximum heart rate"), ("320 kcal", "Calories")]},
+    "pl": {"hike": [("12,40 km", "Dystans"), ("3:50:00", "Czas"), ("16:40 /km", "Średnie tempo"),
+                    ("128 ud./min", "Średnie tętno"), ("740 m", "Przewyższenie")],
+           "workout": [("45:00", "Czas"), ("112 ud./min", "Średnie tętno"),
+                       ("151 ud./min", "Maksymalne tętno"), ("320 kcal", "Kalorie")]},
+}
+
+
+def test_the_tiles_of_a_hike_and_of_a_workout(language):
+    """With a distance: distance, time, pace, average heart rate and ascent, five at most; a
+    workout with a distance of 0 m: time, average and maximum heart rate, calories."""
+    w = words()
+    assert w.activity_tiles(HIKE) == TILES_OF[language]["hike"]
+    assert w.activity_tiles(WORKOUT) == TILES_OF[language]["workout"]
+
+
+def test_a_ride_has_its_speed_worked_out_when_its_session_does_not_say_it():
+    ride = activity(sport=CYCLING, timer_time=3600.0, distance=30_000.0)
+    assert words().activity_tiles(ride) == [("30.00 km", "Distance"), ("1:00:00", "Time"),
+                                           ("30.0 km/h", "Average speed")]
+
+
+def test_a_value_not_given_leaves_its_tile_out():
+    w = words()
+    assert w.activity_tiles(activity(sport=RUNNING, timer_time=600.0)) == [("10:00", "Time")]
+    assert w.activity_tiles(activity(sport=TRAINING, calories=0)) == [("0 kcal", "Calories")]
+    assert w.activity_tiles(activity()) == []  # no session: no tile

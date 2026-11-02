@@ -235,6 +235,14 @@ def activity_title(read) -> str:
     return sport_name(read.summary.sport)
 
 
+def activity_start(read) -> str:
+    """When an activity (activities.Read) started (its first session; the time its file was
+    made standing in); "" when its file does not say."""
+    found = read.summary
+    when = (found.start or found.created) if found is not None else None
+    return full_time(datetime.fromtimestamp(when)) if when else ""
+
+
 def activity_caption(read) -> str:
     """The details of an activity's row: when it started, its time, distance and ascent,
     where it was read, and what is wrong with its file; of a file the device was still writing
@@ -252,8 +260,7 @@ def activity_caption(read) -> str:
             date=a.backup.strftime(_("%Y-%m-%d")))
     if found is None:
         return source
-    when = found.start or found.created
-    parts = [full_time(datetime.fromtimestamp(when)) if when else ""]
+    parts = [activity_start(read)]
     if found.state is fit.FileState.STILL_BEING_WRITTEN:
         return caption(*parts, _("Still being written: disconnect and reconnect the device"))
     if found.timer_time is not None:
@@ -388,6 +395,31 @@ def tile_name(kind: str) -> str:
         "ascent": pgettext("activity tile", "Total ascent"),
     }
     return names[kind]
+
+
+def activity_tiles(data) -> list[tuple[str, str]]:
+    """The tiles on top of an activity's page (fit.ActivityData), each (value, name): with a
+    distance its distance, time, pace or speed, average heart rate and ascent; without one (a
+    workout, also one of 0 m) its time, average and maximum heart rate, calories and ascent. A
+    value not given leaves its tile out, an ascent of 0 m too; the time is the timer's, the
+    elapsed standing in; a speed its sessions do not give is worked out."""
+    sport = data.sport
+    time = data.timer_time if data.timer_time is not None else data.elapsed_time
+    clock = activity_clock(time) if time is not None else None
+    distance = activity_distance(data.distance, sport)
+    if distance:
+        speed = data.avg_speed
+        if speed is None and time:
+            speed = data.distance / time
+        tiles = [("distance", distance), ("time", clock),
+                 (speed_kind(sport), activity_pace(speed, sport)),
+                 ("average heart rate", heart_rate_text(data.avg_heart_rate)),
+                 ("ascent", ascent_text(data.ascent))]
+    else:
+        tiles = [("time", clock), ("average heart rate", heart_rate_text(data.avg_heart_rate)),
+                 ("maximum heart rate", heart_rate_text(data.max_heart_rate)),
+                 ("calories", calories_text(data.calories)), ("ascent", ascent_text(data.ascent))]
+    return [(value, tile_name(kind)) for kind, value in tiles if value]
 
 
 def lap_title(number: int) -> str:
