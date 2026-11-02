@@ -28,12 +28,15 @@ log = logging.getLogger(__name__)
 CATEGORIES = {"maps": ("maps",), "updates": ("software",), "pictures": ("images",),
               # What Garmin's servers answered a moment ago (answers.FOLDER).
               "answers": ("answers",),
+              # The tiles of OpenStreetMap under the maps of activities (gui/activity_map.py).
+              "tiles": ("tiles",),
               # Files on their way to the device (the Flatpak), and what older versions left.
               "temp": ("transfer", "tmp")}
 # TRANSLATORS: the parts of the cache, as `openexpress cache` and the preferences list them
 CATEGORY_NAMES = {"maps": N_("Maps"), "updates": N_("Software updates"),
                   "pictures": N_("Pictures and icons"),
-                  "answers": N_("Answers of Garmin's servers"), "temp": N_("Temporary files")}
+                  "answers": N_("Answers of Garmin's servers"),
+                  "tiles": N_("Activity map tiles"), "temp": N_("Temporary files")}
 
 
 # The lock of the cache, in its folder; a clearing never deletes it. Shared while files of the

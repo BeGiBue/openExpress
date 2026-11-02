@@ -73,6 +73,34 @@ modules:
         url: https://files.pythonhosted.org/packages/47/d8/a29e4e3991765e7ce4ed1f7e4074fe1ba9da03e0048639734de60f9cadb9/mutagen-1.48.1-py3-none-any.whl
         sha256: 4f077fe87d3fc7fba259aa63d8c026b18382ca6a42ef37c61e16f1b1b5b82fe7
 
+  # libshumate, GNOME's map widget (the map of an activity's page; not in the GNOME runtime),
+  # and protobuf-c, which libshumate always links for its vector renderer (not used here).
+  - name: protobuf-c
+    buildsystem: autotools
+    config-opts:
+      - --disable-protoc
+    cleanup:
+      - "*.la"
+    sources:
+      - type: archive
+        url: https://github.com/protobuf-c/protobuf-c/releases/download/v1.5.2/protobuf-c-1.5.2.tar.gz
+        sha256: e2c86271873a79c92b58fef7ebf8de1aa0df4738347a8bd5d4e65a80a16d0d24
+
+  - name: libshumate
+    buildsystem: meson
+    config-opts:
+      - -Dgir=true
+      - -Dvapi=false
+      - -Dgtk_doc=false
+      - -Ddemos=false
+      - -Dsysprof=disabled
+    cleanup:
+      - /share/gir-1.0
+    sources:
+      - type: archive
+        url: https://download.gnome.org/sources/libshumate/1.7/libshumate-1.7.0.tar.xz
+        sha256: 3896cc4b6a7bf83141c27df23ce48cdd68467603bc6b764960307cdcbbef80e5
+
   - name: openexpress
     buildsystem: simple
     build-commands:

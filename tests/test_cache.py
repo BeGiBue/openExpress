@@ -1,5 +1,5 @@
 """The cache of openExpress: how big it is, part by part, and clearing it, all of it or some
-parts (maps, updates, pictures, answers, temp)."""
+parts (maps, updates, pictures, answers, tiles, temp)."""
 
 import os
 from pathlib import Path
@@ -42,8 +42,10 @@ def test_sizes_of_the_cache_folders(cache, tmp_path):
     os.symlink(tmp_path / "outside" / "big", cache / "maps" / "link")
     use = oe_cache.usage()
     assert use.root == cache
-    assert use.sizes == {"maps": 1750, "updates": 4000, "pictures": 30, "answers": 0, "temp": 99}
-    assert use.files == {"maps": 3, "updates": 1, "pictures": 1, "answers": 0, "temp": 1}
+    assert use.sizes == {"maps": 1750, "updates": 4000, "pictures": 30, "answers": 0,
+                         "tiles": 0, "temp": 99}
+    assert use.files == {"maps": 3, "updates": 1, "pictures": 1, "answers": 0, "tiles": 0,
+                         "temp": 1}
     assert use.total == 5879
 
 
@@ -52,7 +54,8 @@ def test_no_cache_yet_is_nothing(cache):
     from openexpress import cache as oe_cache
 
     use = oe_cache.usage()
-    assert use.sizes == {"maps": 0, "updates": 0, "pictures": 0, "answers": 0, "temp": 0}
+    assert use.sizes == {"maps": 0, "updates": 0, "pictures": 0, "answers": 0, "tiles": 0,
+                         "temp": 0}
     assert use.total == 0 and not cache.exists()
 
 
@@ -92,6 +95,7 @@ def test_cache_command_lists_the_parts_and_the_total(cache, capsys):
         "  Software updates: 4.0 kB",
         "  Pictures and icons: 30 B",
         "  Answers of Garmin's servers: 0 B",
+        "  Activity map tiles: 0 B",
         "  Temporary files: 0 B",
         "  Total: 5.8 kB"]
     assert (cache / "maps" / "aaa").exists()
@@ -259,7 +263,7 @@ def filled(cache, tmp_path) -> dict:
     fill(cache, {"maps/aaa": 1000, "maps/bbb.part": 500, "maps/sub/ccc": 250,
                  "images/device-x.png": 30, "software/006/1/GUPDATE.GCD": 4000,
                  "transfer/openexpress-staged": 20, "tmp/other": 99, "notes.txt": 7,
-                 "unknown/file": 55})
+                 "tiles/openstreetmap/15/1/2.png": 100, "unknown/file": 55})
     fill(tmp_path, {"outside/big": 7777})
     os.symlink(tmp_path / "outside" / "big", cache / "maps" / "link")
     return {"unknown": cache / "unknown" / "file", "notes": cache / "notes.txt",
@@ -279,8 +283,9 @@ def test_clear_without_apply_deletes_nothing(cache, tmp_path, capsys):
         "  Software updates: 4.0 kB",
         "  Pictures and icons: 30 B",
         "  Answers of Garmin's servers: 0 B",
+        "  Activity map tiles: 100 B",
         "  Temporary files: 119 B",
-        "  Total: 5.9 kB",
+        "  Total: 6.0 kB",
         "Dry run: nothing was deleted. Add --apply to delete it.",
         KEPT_LINE]
     assert sorted(p for p in cache.rglob("*")) == before
@@ -295,8 +300,8 @@ def test_clear_with_apply_empties_the_folders_of_the_parts(cache, tmp_path, caps
     stay = filled(cache, tmp_path)
     assert main(["cache", "--clear", "--apply"]) == 0
     out = capsys.readouterr().out.splitlines()
-    assert out[-2:] == ["Freed 5.9 kB.", KEPT_LINE] and "  Total: 5.9 kB" in out
-    for name in ("maps", "images", "software", "transfer", "tmp"):
+    assert out[-2:] == ["Freed 6.0 kB.", KEPT_LINE] and "  Total: 6.0 kB" in out
+    for name in ("maps", "images", "software", "transfer", "tmp", "tiles"):
         assert (cache / name).is_dir() and list((cache / name).iterdir()) == []
     assert (cache / "cache.lock").exists()
     assert all(p.exists() for p in stay.values())
@@ -406,7 +411,7 @@ def test_a_part_that_is_not_one_is_an_error_with_the_list(cache, tmp_path, capsy
     assert captured.err.strip() == (
         (f"Error: Not a part of the cache: {unknown}. " if unknown
          else "Error: No part of the cache named. ")
-        + "The parts are: maps, updates, pictures, answers, temp.")
+        + "The parts are: maps, updates, pictures, answers, tiles, temp.")
     assert captured.out == ""
     assert sorted(p for p in cache.rglob("*")) == before
 
@@ -418,21 +423,22 @@ def test_the_help_names_the_parts(capsys):
         main(["cache", "--help"])
     help_text = " ".join(capsys.readouterr().out.split())
     assert "--only PARTS" in help_text
-    assert "maps, updates, pictures, answers, temp" in help_text
+    assert "maps, updates, pictures, answers, tiles, temp" in help_text
 
 
 # --- clearing some parts of the cache: cache.clear(only=…) ---------------------------------------
 
 # The folders of each part, as the user knows them; and a file in each, of a known size.
 PARTS = {"maps": ["maps"], "updates": ["software"], "pictures": ["images"],
-         "answers": ["answers"], "temp": ["transfer", "tmp"]}
-SIZES = {"maps": 1750, "updates": 4000, "pictures": 30, "answers": 0, "temp": 119}
+         "answers": ["answers"], "tiles": ["tiles"], "temp": ["transfer", "tmp"]}
+SIZES = {"maps": 1750, "updates": 4000, "pictures": 30, "answers": 0, "tiles": 100,
+         "temp": 119}
 
 
 def _left(cache) -> dict[str, list[str]]:
     """What is still in each folder of the cache, as paths below it."""
     return {name: sorted(str(p.relative_to(cache / name)) for p in (cache / name).rglob("*"))
-            for name in ("maps", "software", "images", "transfer", "tmp")
+            for name in ("maps", "software", "images", "transfer", "tmp", "tiles")
             if (cache / name).is_dir() and not (cache / name).is_symlink()}
 
 
@@ -463,10 +469,11 @@ def test_some_parts_at_once_and_all_by_default(cache, tmp_path):
     filled(cache, tmp_path)
     freed = oe_cache.clear(only=["temp", "maps", "temp"])
     assert list(freed.sizes) == ["maps", "temp"] and freed.total == 1750 + 119
-    assert oe_cache.usage().sizes == {"maps": 0, "updates": 4000, "pictures": 30, "answers": 0, "temp": 0}
+    assert oe_cache.usage().sizes == {"maps": 0, "updates": 4000, "pictures": 30, "answers": 0,
+                                      "tiles": 100, "temp": 0}
     freed = oe_cache.clear()
-    assert list(freed.sizes) == ["maps", "updates", "pictures", "answers", "temp"]
-    assert freed.total == 4030 and oe_cache.usage().total == 0
+    assert list(freed.sizes) == ["maps", "updates", "pictures", "answers", "tiles", "temp"]
+    assert freed.total == 4130 and oe_cache.usage().total == 0
     assert (cache / "cache.lock").exists()
 
 
@@ -637,9 +644,11 @@ def test_the_group_shows_each_part_and_all_of_it(prefs, cache, tmp_path, monkeyp
         ("Software updates", "0\u00a0B\u00a0· 0 files"),
         ("Pictures and icons", "30\u00a0B\u00a0· 1 file"),
         ("Answers of Garmin's servers", "0\u00a0B\u00a0· 0 files"),
+        ("Activity map tiles", "0\u00a0B\u00a0· 0 files"),
         ("Temporary files", "0\u00a0B\u00a0· 0 files"),
         ("All of the cache", "1.8\u00a0kB\u00a0· 3 files")]
-    assert [b.get_sensitive() for _t, _s, b in rows] == [True, False, True, False, False, True]
+    assert [b.get_sensitive() for _t, _s, b in rows] == [True, False, True, False, False, False,
+                                                         True]
     assert _button(group, "All of the cache").get_label() == "Clear All…"
 
 
@@ -647,7 +656,7 @@ def test_the_group_shows_each_part_and_all_of_it(prefs, cache, tmp_path, monkeyp
 def test_an_empty_cache_has_every_button_grey(prefs, cache):
     group = prefs._cache_group()
     rows = _counted(prefs, group)
-    assert [s for _t, s, _b in rows] == ["0\u00a0B\u00a0· 0 files"] * 6
+    assert [s for _t, s, _b in rows] == ["0\u00a0B\u00a0· 0 files"] * 7
     assert not any(b.get_sensitive() for _t, _s, b in rows)
 
 
@@ -665,7 +674,7 @@ def test_the_sizes_are_counted_off_the_window_thread(prefs, cache, monkeypatch):
                                            real(only))[1])
     fill(cache, {"maps/a": 1000})
     group = prefs._cache_group()
-    assert [s for _t, s, _b in storage_rows(group)] == ["Counting…"] * 6
+    assert [s for _t, s, _b in storage_rows(group)] == ["Counting…"] * 7
     assert not any(b.get_sensitive() for _t, _s, b in storage_rows(group))
     _counted(prefs, group)
     assert threads and threading.main_thread() not in threads
@@ -740,16 +749,16 @@ def test_clear_all_asks_with_the_total_and_clears_everything(prefs, cache, tmp_p
     (question,) = prefs.dialogs
     assert question.get_heading() == "Clear the cache?"
     assert question.get_body() == ("This deletes the downloaded maps (1.8\u00a0kB) and the other "
-                                   "files of the cache (4.1\u00a0kB). The maps will have to be "
+                                   "files of the cache (4.2\u00a0kB). The maps will have to be "
                                    "downloaded again. The pictures of the devices openExpress "
                                    "remembers stay.")
     question.emit("response", "clear")
     assert all(files == [] for files in _left(cache).values())
     assert all(p.exists() for p in stay.values()) and (cache / "cache.lock").exists()
     rows = storage_rows(group)
-    assert [s for _t, s, _b in rows] == ["0\u00a0B\u00a0· 0 files"] * 6
+    assert [s for _t, s, _b in rows] == ["0\u00a0B\u00a0· 0 files"] * 7
     assert not any(b.get_sensitive() for _t, _s, b in rows)
-    assert prefs.toasts == ["Freed 5.9\u00a0kB."]
+    assert prefs.toasts == ["Freed 6.0\u00a0kB."]
 
 
 @pytest.mark.needs_display
@@ -807,7 +816,8 @@ def types_namespace(**kw):
 
 @pytest.mark.needs_display
 def test_preferences_have_the_storage_group(cache, monkeypatch):
-    """The "Storage" group is in the preferences, after Sync, Language and Setup."""
+    """The "Storage" group is in the preferences, after Sync, Language and Setup; the
+    activity maps after Diagnostics."""
     import types
 
     from gi.repository import Adw, Gtk
@@ -829,7 +839,7 @@ def test_preferences_have_the_storage_group(cache, monkeypatch):
     MainWindow.show_preferences(win)
     (dialog,) = shown
     assert titles == ["Garmin Connect account", "Sync with Garmin Connect", "Language", "Setup",
-                      "Storage", "Diagnostics"]
+                      "Storage", "Diagnostics", "Activity maps"]
     assert isinstance(dialog, Gtk.Widget)
 
 

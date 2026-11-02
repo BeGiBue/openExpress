@@ -21,6 +21,7 @@ from gi.repository import Adw, GLib, Gtk  # noqa: E402 - imports must follow gi.
 
 from openexpress import cache, diagnostics, i18n, paths, service  # noqa: E402
 from openexpress.auth import sso, store  # noqa: E402
+from openexpress.gui import activity_map  # noqa: E402
 from openexpress.gui.connected import open_address  # noqa: E402
 from openexpress.gui.gui_settings import update_gui_settings  # noqa: E402
 from openexpress.gui.navigation import Cause  # noqa: E402
@@ -65,6 +66,25 @@ def diagnostics_group(win) -> Adw.PreferencesGroup:
             win.error(_("Diagnostics"), str(e))
             return
         log.info("diagnostics: the copy at each connection turned %s", "on" if wanted else "off")
+
+    sw.connect("notify::active", toggled)
+    g.add(sw)
+    return g
+
+
+def maps_group(win) -> Adw.PreferencesGroup:
+    """The "Activity maps" group: OpenStreetMap's tiles under the track of an activity, off
+    until the yes (here or on the page, gui.json); taken back or given here, the map shown now
+    follows."""
+    g = Adw.PreferencesGroup(title=_("Activity maps"))
+    sw = Adw.SwitchRow(title=_("Streets and terrain from OpenStreetMap"),
+                       subtitle=_("The OpenStreetMap server learns the area of each activity "
+                                  "you open"),
+                       active=activity_map.tiles_on())
+
+    def toggled(row, _pspec):
+        activity_map.set_tiles(row.get_active())
+        activity_map.tiles_changed(win)
 
     sw.connect("notify::active", toggled)
     g.add(sw)
@@ -368,6 +388,7 @@ class Preferences:
         page.add(g)
         page.add(self._cache_group())
         page.add(diagnostics_group(self))
+        page.add(maps_group(self))
         dialog.add(page)
         dialog.present(self)
 

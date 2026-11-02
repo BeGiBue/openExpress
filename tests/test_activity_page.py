@@ -453,3 +453,247 @@ def test_the_page_and_its_chart_are_released_once_closed():
         while GLib.main_context_default().iteration(False):
             pass
     assert sorted(gone) == ["chart", "page"]
+
+
+# --- the map ---------------------------------------------------------------------------------
+
+NOTE = ("The map can show streets and terrain under the track, from OpenStreetMap. The "
+        "OpenStreetMap server then learns the area of each activity you open. You can turn this "
+        "off again in Preferences.")
+
+
+def map_of(page):
+    from openexpress.gui.activity_map import ActivityMap
+
+    found = [w for w in _all(page) if isinstance(w, ActivityMap)]
+    return found[0] if found else None
+
+
+def tile_layers(widget) -> list:
+    from gi.repository import Shumate
+
+    return [w for w in _all(widget) if isinstance(w, Shumate.MapLayer)]
+
+
+def show_the_map_button(page):
+    from gi.repository import Gtk
+
+    found = [w for w in _all(page) if isinstance(w, Gtk.Button)
+             and w.get_label() == "Show the Map" and seen(w, page)]
+    return found[0] if found else None
+
+
+@pytest.fixture
+def no_tile_server(monkeypatch):
+    """Tiles asked are answered at once, never by a server: what was asked in `asked`."""
+    from openexpress.gui import activity_map
+
+    asked = []
+
+    def fetch(url, etag):
+        asked.append(url)
+        return activity_map.Fetched(404, None, None, 0)
+
+    monkeypatch.setattr(activity_map, "_fetch", fetch)
+    return asked
+
+
+def test_before_the_yes_the_track_is_on_a_plain_background_with_the_note(no_tile_server):
+    """No tile layer, so nothing is asked of OpenStreetMap; the note and its button say what
+    turning the tiles on does; no attribution without tiles."""
+    win, _the_list = a_window(walk())
+    page = open_page(win, read_of(sport=WALKING))
+    shown = map_of(page)
+    assert shown is not None and tile_layers(shown) == [] and shown.tiles is None
+    assert NOTE in labels(page) and show_the_map_button(page) is not None
+    assert not shown.attribution.get_visible()
+    assert no_tile_server == []
+
+
+def test_show_the_map_turns_the_tiles_on_for_the_program(no_tile_server):
+    """Once for the program: the next activity has its tiles at once."""
+    from openexpress.gui.activity_map import COPYRIGHT_URL
+    from openexpress.gui.gui_settings import load_gui_settings
+
+    win, _the_list = a_window(walk())
+    page = open_page(win, read_of(sport=WALKING))
+    show_the_map_button(page).emit("clicked")
+    shown = map_of(page)
+    assert load_gui_settings().get("map_tiles") is True
+    assert len(tile_layers(shown)) == 1 and NOTE not in labels(page)
+    assert shown.attribution.get_visible()
+    assert COPYRIGHT_URL in shown.attribution.get_label()
+    assert "© OpenStreetMap contributors" in shown.attribution.get_label()
+    win, _the_list = a_window(walk())
+    page = open_page(win, read_of(sport=WALKING))
+    assert len(tile_layers(map_of(page))) == 1 and show_the_map_button(page) is None
+
+
+def test_the_yes_is_taken_back_in_preferences(no_tile_server):
+    """The switch in Preferences: off, the map open now loses its tiles and the note is back."""
+    from gi.repository import Adw
+
+    from openexpress.gui.activity_map import set_tiles
+    from openexpress.gui.gui_settings import load_gui_settings
+    from openexpress.gui.preferences import maps_group
+
+    set_tiles(True)
+    win, _the_list = a_window(walk())
+    page = open_page(win, read_of(sport=WALKING))
+    group = maps_group(win)
+    (row,) = [w for w in _all(group) if isinstance(w, Adw.SwitchRow)]
+    assert row.get_title() == "Streets and terrain from OpenStreetMap" and row.get_active()
+    assert row.get_subtitle() == ("The OpenStreetMap server learns the area of each activity "
+                                  "you open")
+    row.set_active(False)
+    assert load_gui_settings().get("map_tiles") is False
+    assert tile_layers(map_of(page)) == [] and NOTE in labels(page)
+
+
+def test_an_activity_without_positions_has_no_map():
+    win, _the_list = a_window(heart_only())
+    page = open_page(win, read_of(sport=TRAINING, positions=False))
+    assert map_of(page) is None
+    assert not [t for t in labels(page) if "map" in t.lower()]
+
+
+def test_without_libshumate_a_line_says_what_is_missing(monkeypatch):
+    from openexpress.gui import activity_map
+
+    monkeypatch.setattr(activity_map, "Shumate", None)
+    win, _the_list = a_window(walk())
+    page = open_page(win, read_of(sport=WALKING))
+    assert map_of(page) is None
+    assert "The map needs the libshumate library, which is not installed" in labels(page)
+
+
+def test_a_libshumate_too_old_for_tiles_keeps_the_plain_track(monkeypatch, no_tile_server):
+    """It cannot ask tiles as openExpress: no button, no tiles even with the yes, a line."""
+    from openexpress.gui import activity_map
+
+    monkeypatch.setattr(activity_map, "can_ask", lambda: False)
+    activity_map.set_tiles(True)
+    win, _the_list = a_window(walk())
+    page = open_page(win, read_of(sport=WALKING))
+    shown = map_of(page)
+    assert shown is not None and tile_layers(shown) == [] and show_the_map_button(page) is None
+    assert ("The map needs a newer libshumate library to show streets and terrain"
+            in labels(page))
+
+
+def test_no_map_makes_libshumate_s_own_cache(tmp_path):
+    """Neither with the tiles nor without them, nor with an older libshumate: its own cache
+    (~/.cache/shumate, made as soon as one of its downloaders is) is never made. In a process
+    of its own: GLib keeps the cache folder it found first, maybe before the tests' own."""
+    import os
+    import subprocess
+    import sys
+    from pathlib import Path
+
+    code = (
+        "import gi\n"
+        "gi.require_version('Gtk', '4.0')\n"
+        "from gi.repository import Gtk\n"
+        "Gtk.init()\n"
+        "from openexpress.gui import activity_map\n"
+        "track = activity_map.Track((0, 1), ((51.5, -0.16), (51.501, -0.161)))\n"
+        "for older in (False, True):\n"
+        "    if older:\n"
+        "        activity_map.can_ask = lambda: False\n"
+        "    for tiles in (False, True):\n"
+        "        activity_map.set_tiles(tiles)\n"
+        "        activity_map.ActivityMap(track)\n")
+    env = {**os.environ, "XDG_CACHE_HOME": str(tmp_path / "cache"),
+           "XDG_CONFIG_HOME": str(tmp_path / "config")}
+    subprocess.run([sys.executable, "-c", code], env=env, check=True, timeout=60,
+                   cwd=Path(__file__).resolve().parent.parent)
+    assert not (tmp_path / "cache" / "shumate").exists()
+
+
+class Monitor:
+    """A stand-in for Gio.NetworkMonitor: `available`, and its change told to the map."""
+
+    def __init__(self, available):
+        self.available, self.handlers = available, {}
+
+    def get_network_available(self):
+        return self.available
+
+    def connect(self, name, handler):
+        self.handlers[len(self.handlers) + 1] = handler
+        return len(self.handlers)
+
+    def disconnect(self, handler_id):
+        del self.handlers[handler_id]
+
+    def change(self, available):
+        self.available = available
+        for handler in list(self.handlers.values()):
+            handler(self, available)
+
+
+def present(win):
+    from gi.repository import GLib
+
+    win.toplevel.set_default_size(1000, 800)
+    win.toplevel.present()
+    for _ in range(200):
+        GLib.MainContext.default().iteration(False)
+
+
+def test_without_internet_the_map_says_only_tiles_downloaded_before_are_shown(
+        monkeypatch, no_tile_server):
+    from openexpress.gui import activity_map
+
+    monitor = Monitor(False)
+    monkeypatch.setattr(activity_map, "_network_monitor", lambda: monitor)
+    activity_map.set_tiles(True)
+    win, _the_list = a_window(walk())
+    page = open_page(win, read_of(sport=WALKING))
+    present(win)
+    try:
+        offline = ("No internet connection: only the parts of the map downloaded before are "
+                   "shown")
+        assert offline in labels(page)
+        monitor.change(True)
+        assert offline not in labels(page)
+    finally:
+        win.toplevel.destroy()
+    assert monitor.handlers == {}  # let go once the map is gone from the screen
+
+
+def test_the_chart_s_cursor_is_marked_on_the_map():
+    """The marker at the record of the cursor; hidden until the cursor is placed."""
+    win, _the_list = a_window(walk())
+    page = open_page(win, read_of(sport=WALKING))
+    shown = map_of(page)
+    assert not shown.marker.get_visible()
+    chart_of(page).area.place(60)
+    assert shown.marker.get_visible()
+    point = shown.track.points[shown.track.times.index(60)]
+    assert (shown.marker.get_latitude(), shown.marker.get_longitude()) == pytest.approx(point)
+
+
+def test_the_map_has_a_name_for_a_screen_reader_and_is_released_once_closed(no_tile_server):
+    import gc
+
+    from gi.repository import GLib
+
+    from openexpress.gui import activity_map
+
+    activity_map.set_tiles(True)
+    win, _the_list = a_window(walk())
+    page = open_page(win, read_of(sport=WALKING))
+    shown = map_of(page)
+    assert shown.accessible_name == "Map of the track"
+    gone = []
+    shown.weak_ref(lambda: gone.append("map"))
+    del shown, page
+    win.navigation.pop()
+    win.run_task.calls.clear()
+    win._action_buttons.clear()
+    for _ in range(3):
+        gc.collect()
+        while GLib.main_context_default().iteration(False):
+            pass
+    assert gone == ["map"]

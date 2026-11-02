@@ -463,7 +463,8 @@ def _long_hike(sport=17):
 
     start = int(datetime(2026, 12, 31, 23, 59).timestamp())
     samples = tuple(fit.Sample(start + s, distance=s * 0.2, speed=0.2, heart_rate=200,
-                               altitude=4000 + s) for s in range(0, 359_999, 60))
+                               altitude=4000 + s, latitude=51.5 + s * 1e-7,
+                               longitude=-0.17 + s * 1e-7) for s in range(0, 359_999, 60))
     data = fit.ActivityData(fit.FileState.DAMAGED, start=start, sport=sport,
                             timer_time=359_999.0, distance=123_456.0, avg_speed=0.2,
                             avg_heart_rate=200, max_heart_rate=220, calories=9_999,
@@ -475,12 +476,14 @@ def _long_hike(sport=17):
     return read, data
 
 
+@pytest.mark.parametrize("tiles", [False, True])  # the map before the yes, and after
 @pytest.mark.parametrize("sport", [17, 2])  # a hike (Pace), a ride (Speed)
 @pytest.mark.parametrize("language", ["en", "pl"])
 def test_the_page_of_an_activity_fits_the_narrowest_window(narrow_window, monkeypatch, language,
-                                                           sport):
-    """Its tiles two by two, the damaged file said under them, the chart with its switch and
-    the value at its cursor, its sport and start in the header bar with the GPX button."""
+                                                           sport, tiles):
+    """Its tiles two by two, the damaged file said under them, the map with its note and
+    button (or its attribution), the chart with its switch and the value at its cursor, its
+    sport and start in the header bar with the GPX button."""
     from fakes import RunNow
     from gi.repository import Gtk
 
@@ -492,8 +495,13 @@ def test_the_page_of_an_activity_fits_the_narrowest_window(narrow_window, monkey
     win.navigation.set_animate_transitions(False)
     win.navigation.push(win.device_view)
     win.select_section("activities")
+    from openexpress.gui import activity_map
+
     read, data = _long_hike(sport)
     monkeypatch.setattr(activity_page, "_data", lambda found, activity: data)
+    monkeypatch.setattr(activity_map, "_fetch",
+                        lambda url, etag: activity_map.Fetched(404, None, None, 0))
+    activity_map.set_tiles(tiles)
     win.run_task = RunNow()
     activity_page.open_activity(win, read)
     _iterate(0.3)
@@ -514,6 +522,9 @@ def test_the_page_of_an_activity_fits_the_narrowest_window(narrow_window, monkey
     switch = next(w for w in _all(chart) if isinstance(w, Gtk.ToggleButton)).compute_bounds(
         chart)[1]
     assert value.get_y() >= switch.get_y() + switch.get_height()  # under the switch, narrow
+    (shown,) = [w for w in _all(page) if isinstance(w, activity_map.ActivityMap)]
+    assert shown.attribution.get_visible() is tiles
+    assert shown.note.get_visible() is not tiles
     assert _min_width(page) <= NARROWEST
     assert page.get_width() <= NARROWEST
 

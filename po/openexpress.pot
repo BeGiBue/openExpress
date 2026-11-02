@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: openexpress 0.8.1\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-11-02 20:05+0100\n"
+"POT-Creation-Date: 2026-11-02 21:09+0100\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -239,36 +239,40 @@ msgid "Copying to the backup"
 msgstr ""
 
 #. TRANSLATORS: the parts of the cache, as `openexpress cache` and the preferences list them
-#: openexpress/cache.py:34
+#: openexpress/cache.py:36
 msgid "Maps"
 msgstr ""
 
-#: openexpress/cache.py:34
+#: openexpress/cache.py:36
 msgid "Software updates"
 msgstr ""
 
-#: openexpress/cache.py:35
+#: openexpress/cache.py:37
 msgid "Pictures and icons"
 msgstr ""
 
-#: openexpress/cache.py:36
+#: openexpress/cache.py:38
 msgid "Answers of Garmin's servers"
 msgstr ""
 
-#: openexpress/cache.py:36
+#: openexpress/cache.py:39
+msgid "Activity map tiles"
+msgstr ""
+
+#: openexpress/cache.py:39
 msgid "Temporary files"
 msgstr ""
 
-#: openexpress/cache.py:64
+#: openexpress/cache.py:67
 msgid "The cache is being cleared."
 msgstr ""
 
-#: openexpress/cache.py:79
+#: openexpress/cache.py:82
 msgid ""
 "The cache is in use (a download or an install is running). Try again later."
 msgstr ""
 
-#: openexpress/cache.py:202
+#: openexpress/cache.py:205
 #, python-brace-format
 msgid "Could not delete {path}: {error}"
 msgstr ""
@@ -986,7 +990,7 @@ msgid ""
 "the form or a comment)"
 msgstr ""
 
-#: openexpress/cli.py:347 openexpress/gui/preferences.py:125
+#: openexpress/cli.py:347 openexpress/gui/preferences.py:145
 #, python-brace-format
 msgid "{count} file"
 msgid_plural "{count} files"
@@ -1388,7 +1392,7 @@ msgstr ""
 msgid "Total: {size}"
 msgstr ""
 
-#: openexpress/cli.py:833 openexpress/gui/preferences.py:183
+#: openexpress/cli.py:833 openexpress/gui/preferences.py:203
 #, python-brace-format
 msgid "Freed {size}."
 msgstr ""
@@ -3678,7 +3682,7 @@ msgstr ""
 msgid "No GPS positions in this activity"
 msgstr ""
 
-#: openexpress/gui/activities_page.py:101 openexpress/gui/activity_page.py:78
+#: openexpress/gui/activities_page.py:101 openexpress/gui/activity_page.py:90
 #: openexpress/gui/app.py:429 openexpress/gui/apps_page.py:596
 #: openexpress/gui/detection.py:717 openexpress/gui/device_page.py:797
 #: openexpress/gui/window_tasks.py:498
@@ -3693,8 +3697,8 @@ msgstr ""
 msgid "Exporting as GPX…"
 msgstr ""
 
-#: openexpress/gui/activities_page.py:131 openexpress/gui/activity_page.py:50
-#: openexpress/gui/activity_page.py:55 openexpress/gui/activity_page.py:93
+#: openexpress/gui/activities_page.py:131 openexpress/gui/activity_page.py:53
+#: openexpress/gui/activity_page.py:58 openexpress/gui/activity_page.py:105
 msgid "The file of this activity could not be read."
 msgstr ""
 
@@ -3734,20 +3738,52 @@ msgid_plural "Show {count} More"
 msgstr[0] ""
 msgstr[1] ""
 
-#: openexpress/gui/activity_page.py:96 openexpress/gui/activity_page.py:129
+#: openexpress/gui/activity_map.py:353 openexpress/gui/activity_map.py:443
+msgid "© OpenStreetMap contributors"
+msgstr ""
+
+#: openexpress/gui/activity_map.py:413
+msgid "Map of the track"
+msgstr ""
+
+#: openexpress/gui/activity_map.py:455
+msgid ""
+"The map can show streets and terrain under the track, from OpenStreetMap. "
+"The OpenStreetMap server then learns the area of each activity you open. You "
+"can turn this off again in Preferences."
+msgstr ""
+
+#: openexpress/gui/activity_map.py:458
+msgid "Show the Map"
+msgstr ""
+
+#: openexpress/gui/activity_map.py:463
+msgid "The map needs a newer libshumate library to show streets and terrain"
+msgstr ""
+
+#: openexpress/gui/activity_map.py:466
+msgid ""
+"No internet connection: only the parts of the map downloaded before are shown"
+msgstr ""
+
+#: openexpress/gui/activity_page.py:108 openexpress/gui/activity_page.py:140
 msgid "Reading the activity…"
 msgstr ""
 
-#: openexpress/gui/activity_page.py:159 openexpress/gui/words.py:265
+#: openexpress/gui/activity_page.py:172 openexpress/gui/words.py:265
 msgid "Still being written: disconnect and reconnect the device"
 msgstr ""
 
-#: openexpress/gui/activity_page.py:163
+#: openexpress/gui/activity_page.py:176
 msgid "This activity has no summary."
 msgstr ""
 
-#: openexpress/gui/activity_page.py:173 openexpress/gui/words.py:274
+#: openexpress/gui/activity_page.py:186 openexpress/gui/words.py:274
 msgid "Damaged file"
+msgstr ""
+
+#: openexpress/gui/activity_page.py:194
+msgid "The map needs the libshumate library, which is not installed"
 msgstr ""
 
 #: openexpress/gui/app.py:78
@@ -3810,11 +3846,11 @@ msgctxt "tab"
 msgid "Activities"
 msgstr ""
 
-#: openexpress/gui/app.py:267 openexpress/gui/preferences.py:240
+#: openexpress/gui/app.py:267 openexpress/gui/preferences.py:260
 msgid "Preferences"
 msgstr ""
 
-#: openexpress/gui/app.py:269 openexpress/gui/preferences.py:241
+#: openexpress/gui/app.py:269 openexpress/gui/preferences.py:261
 msgid "Keyboard Shortcuts"
 msgstr ""
 
@@ -3831,13 +3867,13 @@ msgid "Main Menu"
 msgstr ""
 
 #: openexpress/gui/app.py:314 openexpress/gui/app.py:373
-#: openexpress/gui/preferences.py:239
+#: openexpress/gui/preferences.py:259
 msgid "Refresh"
 msgstr ""
 
 #. TRANSLATORS: button that starts syncing
 #: openexpress/gui/app.py:317 openexpress/gui/app.py:321
-#: openexpress/gui/app.py:437 openexpress/gui/preferences.py:239
+#: openexpress/gui/app.py:437 openexpress/gui/preferences.py:259
 #: openexpress/gui/start.py:637
 msgid "Sync"
 msgstr ""
@@ -4441,12 +4477,12 @@ msgid ""
 "(GarminExpress.exe from garmin.com). openExpress only reads it."
 msgstr ""
 
-#: openexpress/gui/device_page.py:778 openexpress/gui/preferences.py:103
-#: openexpress/gui/preferences.py:512
+#: openexpress/gui/device_page.py:778 openexpress/gui/preferences.py:123
+#: openexpress/gui/preferences.py:533
 msgid "Choose Installer…"
 msgstr ""
 
-#: openexpress/gui/device_page.py:783 openexpress/gui/preferences.py:106
+#: openexpress/gui/device_page.py:783 openexpress/gui/preferences.py:126
 msgid "Log In"
 msgstr ""
 
@@ -4461,7 +4497,7 @@ msgstr ""
 
 #. TRANSLATORS: under "Sync with Garmin Connect" on the page of a device connected
 #. as a USB drive, which has no row of the background sync
-#: openexpress/gui/device_page.py:944 openexpress/gui/preferences.py:312
+#: openexpress/gui/device_page.py:944 openexpress/gui/preferences.py:332
 #: openexpress/gui/start.py:662
 msgid "Sync with Garmin Connect"
 msgstr ""
@@ -4492,12 +4528,12 @@ msgstr ""
 msgid "Apps and music"
 msgstr ""
 
-#: openexpress/gui/device_page.py:1002 openexpress/gui/preferences.py:377
+#: openexpress/gui/device_page.py:1002 openexpress/gui/preferences.py:398
 #: openexpress/gui/start.py:670
 msgid "Garmin Connect account"
 msgstr ""
 
-#: openexpress/gui/device_page.py:1005 openexpress/gui/preferences.py:109
+#: openexpress/gui/device_page.py:1005 openexpress/gui/preferences.py:129
 msgid "Log out"
 msgstr ""
 
@@ -5013,46 +5049,58 @@ msgid ""
 "comes on."
 msgstr ""
 
-#: openexpress/gui/preferences.py:50 openexpress/gui/preferences.py:65
+#: openexpress/gui/preferences.py:51 openexpress/gui/preferences.py:66
 msgid "Diagnostics"
 msgstr ""
 
-#: openexpress/gui/preferences.py:51
+#: openexpress/gui/preferences.py:52
 msgid "Keep a copy of the device's diagnostic files on this computer"
 msgstr ""
 
-#: openexpress/gui/preferences.py:52
+#: openexpress/gui/preferences.py:53
 msgid "They stay on this computer; openExpress never sends them"
 msgstr ""
 
-#: openexpress/gui/preferences.py:98 openexpress/gui/preferences.py:105
+#: openexpress/gui/preferences.py:79
+msgid "Activity maps"
+msgstr ""
+
+#: openexpress/gui/preferences.py:80
+msgid "Streets and terrain from OpenStreetMap"
+msgstr ""
+
+#: openexpress/gui/preferences.py:81
+msgid "The OpenStreetMap server learns the area of each activity you open"
+msgstr ""
+
+#: openexpress/gui/preferences.py:118 openexpress/gui/preferences.py:125
 msgid "Not logged in"
 msgstr ""
 
 #. TRANSLATORS: under "Not logged in" in the preferences, before the installer is
 #. chosen (the button beside it: Choose Installer…)
-#: openexpress/gui/preferences.py:101
+#: openexpress/gui/preferences.py:121
 msgid ""
 "First choose the Garmin Express installer for Windows: openExpress reads the "
 "application key from it"
 msgstr ""
 
-#: openexpress/gui/preferences.py:115
+#: openexpress/gui/preferences.py:135
 msgid "Clear the downloaded maps?"
 msgstr ""
 
-#: openexpress/gui/preferences.py:116
+#: openexpress/gui/preferences.py:136
 #, python-brace-format
 msgid ""
 "This deletes the downloaded maps ({size}). They will have to be downloaded "
 "again."
 msgstr ""
 
-#: openexpress/gui/preferences.py:118
+#: openexpress/gui/preferences.py:138
 msgid "Clear the downloaded updates?"
 msgstr ""
 
-#: openexpress/gui/preferences.py:119
+#: openexpress/gui/preferences.py:139
 #, python-brace-format
 msgid ""
 "This deletes the downloaded software updates ({size}). They are downloaded "
@@ -5060,132 +5108,132 @@ msgid ""
 msgstr ""
 
 #. TRANSLATORS: button that clears the cache
-#: openexpress/gui/preferences.py:170
+#: openexpress/gui/preferences.py:190
 msgid "Clear"
 msgstr ""
 
-#: openexpress/gui/preferences.py:187
+#: openexpress/gui/preferences.py:207
 msgid "The cache was not cleared"
 msgstr ""
 
-#: openexpress/gui/preferences.py:191
+#: openexpress/gui/preferences.py:211
 msgid "Clearing the cache…"
 msgstr ""
 
-#: openexpress/gui/preferences.py:241
+#: openexpress/gui/preferences.py:261
 msgid "Quit"
 msgstr ""
 
-#: openexpress/gui/preferences.py:263
+#: openexpress/gui/preferences.py:283
 msgid "Background sync enabled"
 msgstr ""
 
-#: openexpress/gui/preferences.py:264
+#: openexpress/gui/preferences.py:284
 msgid "Background sync disabled"
 msgstr ""
 
-#: openexpress/gui/preferences.py:268
+#: openexpress/gui/preferences.py:288
 msgid "Background sync"
 msgstr ""
 
-#: openexpress/gui/preferences.py:268
+#: openexpress/gui/preferences.py:288
 msgid "The change failed."
 msgstr ""
 
-#: openexpress/gui/preferences.py:281
+#: openexpress/gui/preferences.py:301
 msgid "Sync automatically when connected"
 msgstr ""
 
-#: openexpress/gui/preferences.py:303 openexpress/gui/preferences.py:458
+#: openexpress/gui/preferences.py:323 openexpress/gui/preferences.py:479
 msgid "General"
 msgstr ""
 
-#: openexpress/gui/preferences.py:314
+#: openexpress/gui/preferences.py:334
 msgid "Sync in the background"
 msgstr ""
 
-#: openexpress/gui/preferences.py:315
+#: openexpress/gui/preferences.py:335
 msgid ""
 "Starts at login and syncs whenever the device is connected, also when this "
 "window is closed"
 msgstr ""
 
-#: openexpress/gui/preferences.py:336 openexpress/gui/preferences.py:350
+#: openexpress/gui/preferences.py:356 openexpress/gui/preferences.py:370
 msgid "Language"
 msgstr ""
 
-#: openexpress/gui/preferences.py:338
+#: openexpress/gui/preferences.py:358
 msgid "System default"
 msgstr ""
 
-#: openexpress/gui/preferences.py:340
+#: openexpress/gui/preferences.py:360
 msgid "Interface language"
 msgstr ""
 
-#: openexpress/gui/preferences.py:355
+#: openexpress/gui/preferences.py:375
 msgid "Restart the application to change the language"
 msgstr ""
 
-#: openexpress/gui/preferences.py:361
+#: openexpress/gui/preferences.py:381
 msgid "Setup"
 msgstr ""
 
-#: openexpress/gui/preferences.py:363
+#: openexpress/gui/preferences.py:383
 msgid "Garmin Express installer for Windows"
 msgstr ""
 
-#: openexpress/gui/preferences.py:364
+#: openexpress/gui/preferences.py:384
 msgid ""
 "GarminExpress.exe from garmin.com: the application key is read from it "
 "again, nothing is installed"
 msgstr ""
 
-#: openexpress/gui/preferences.py:366
+#: openexpress/gui/preferences.py:386
 msgid "Choose File…"
 msgstr ""
 
-#: openexpress/gui/preferences.py:401
+#: openexpress/gui/preferences.py:422
 msgid "Flatpak"
 msgstr ""
 
-#: openexpress/gui/preferences.py:401
+#: openexpress/gui/preferences.py:422
 msgid "version from source"
 msgstr ""
 
 #. TRANSLATORS: group in the preferences: the cache (downloaded maps and updates,
 #. pictures, temporary files) on the disk of the computer (not the device's storage of
 #. the device page)
-#: openexpress/gui/preferences.py:405
+#: openexpress/gui/preferences.py:426
 msgctxt "preferences"
 msgid "Storage"
 msgstr ""
 
-#: openexpress/gui/preferences.py:406
+#: openexpress/gui/preferences.py:427
 #, python-brace-format
 msgid ""
 "Only the files of this installation ({kind}); openExpress downloads them "
 "again when needed"
 msgstr ""
 
-#: openexpress/gui/preferences.py:410 openexpress/gui/preferences.py:421
+#: openexpress/gui/preferences.py:431 openexpress/gui/preferences.py:442
 msgid "Counting…"
 msgstr ""
 
-#: openexpress/gui/preferences.py:412
+#: openexpress/gui/preferences.py:433
 msgid "Delete these files"
 msgstr ""
 
 #. TRANSLATORS: the last row of the cache in the preferences, with "Clear All…"
-#: openexpress/gui/preferences.py:421
+#: openexpress/gui/preferences.py:442
 msgid "All of the cache"
 msgstr ""
 
 #. TRANSLATORS: button that clears every part of the cache
-#: openexpress/gui/preferences.py:423
+#: openexpress/gui/preferences.py:444
 msgid "Clear All…"
 msgstr ""
 
-#: openexpress/gui/preferences.py:445
+#: openexpress/gui/preferences.py:466
 #, python-brace-format
 msgid ""
 "This deletes the downloaded maps ({maps}) and the other files of the cache "
@@ -5193,38 +5241,38 @@ msgid ""
 "devices openExpress remembers stay."
 msgstr ""
 
-#: openexpress/gui/preferences.py:450
+#: openexpress/gui/preferences.py:471
 #, python-brace-format
 msgid ""
 "This deletes the files of the cache ({size}). They are downloaded again when "
 "needed. The pictures of the devices openExpress remembers stay."
 msgstr ""
 
-#: openexpress/gui/preferences.py:453
+#: openexpress/gui/preferences.py:474
 msgid "Clear the cache?"
 msgstr ""
 
-#: openexpress/gui/preferences.py:466
+#: openexpress/gui/preferences.py:487
 msgid "Select the Garmin Express installer for Windows (GarminExpress.exe)"
 msgstr ""
 
-#: openexpress/gui/preferences.py:486
+#: openexpress/gui/preferences.py:507
 msgid "Choose a file stored on this computer"
 msgstr ""
 
-#: openexpress/gui/preferences.py:492
+#: openexpress/gui/preferences.py:513
 msgid "Application key saved"
 msgstr ""
 
-#: openexpress/gui/preferences.py:495
+#: openexpress/gui/preferences.py:516
 msgid "Reading the installer…"
 msgstr ""
 
-#: openexpress/gui/preferences.py:506
+#: openexpress/gui/preferences.py:527
 msgid "Choose the Garmin Express installer first"
 msgstr ""
 
-#: openexpress/gui/preferences.py:507
+#: openexpress/gui/preferences.py:528
 msgid ""
 "openExpress signs in to Garmin Connect with the application key of Garmin "
 "Express, which it reads from the Garmin Express installer for Windows "
@@ -5232,20 +5280,20 @@ msgid ""
 "read, nothing is installed. No key needs to be created in Garmin Connect."
 msgstr ""
 
-#: openexpress/gui/preferences.py:540
+#: openexpress/gui/preferences.py:561
 #, python-brace-format
 msgid "Logged in as {account}"
 msgstr ""
 
-#: openexpress/gui/preferences.py:541
+#: openexpress/gui/preferences.py:562
 msgid "Logged in, but the account details could not be loaded"
 msgstr ""
 
-#: openexpress/gui/preferences.py:548
+#: openexpress/gui/preferences.py:569
 msgid "Logging in…"
 msgstr ""
 
-#: openexpress/gui/preferences.py:563
+#: openexpress/gui/preferences.py:584
 msgid "Logged out"
 msgstr ""
 

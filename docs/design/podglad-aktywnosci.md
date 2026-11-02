@@ -2,9 +2,10 @@
 
 Status: the decisions of section 5 are made (each took its option a, marked "chosen"; D3a with what
 section 5 adds to it; 10b kept as an idea for later; D11 with the tile of the ascent and every tile
-that applies, up to five). Steps 1 to 4 of section 8 are implemented (the data of an activity,
+that applies, up to five). Steps 1 to 5 of section 8 are implemented (the data of an activity,
 `fit.activity_data`; the words of its page, `gui/words.py`; the page with its tiles,
-`gui/activity_page.py`; the chart, `gui/activity_chart.py`); steps 5–7 are not. The work goes step
+`gui/activity_page.py`; the chart, `gui/activity_chart.py`; the map, `gui/activity_map.py`);
+steps 6–7 are not. The work goes step
 by step (section 8), each step after a yes. The scope in section 1 is set once: what it does not
 list is not added while it is implemented.
 
@@ -203,6 +204,18 @@ its height and narrows; the lap rows wrap.
   it can change without other code.
   - \+ Free, no key, within the policy for an occasional use.
   - − It may be blocked without notice; no guarantee.
+- As implemented in step 5: libshumate's own downloader keeps its tiles in `~/.cache/shumate`
+  whatever the program asks, so openExpress gives libshumate a tile source of its own (libshumate
+  1.1 and later): each tile asked with `requests` and the User-Agent above, at most two at a
+  time, kept in `~/.cache/openexpress/tiles` (a part of the cache, `tiles`, cleared in
+  Preferences → Storage and by `openexpress cache`) with how long the server's Cache-Control
+  lets it be used (a week when it says nothing), asked again then with its tag, the cache
+  brought to 100 MB from time to time; the log names no tile. The map's view is set to the
+  track, never flown to, so that only the tiles shown are asked. The yes is kept in `gui.json`
+  (`map_tiles`). Without a network (Gio.NetworkMonitor) a line under the map says that only the
+  tiles downloaded before are shown; with a libshumate older than 1.1 the track stays on a plain
+  background and a line says why. The Flatpak builds libshumate 1.7.0 and protobuf-c 1.5.2 (its
+  vector renderer needs it; not used here).
 - **4b. A provider with a key** (MapTiler, Thunderforest…).
   - − A key in the program or for the user to get; a contract.
 - **4c. A URL the user sets.**

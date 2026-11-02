@@ -58,6 +58,20 @@ the application key, its secret and the value that signs download addresses are 
   `sync` downloads the files waiting in Garmin Connect into memory to describe them and keeps
   nothing. The log says how many files were read and how large they were, never a file name,
   a date, a sport or a place.
+- **The map of an activity asks OpenStreetMap only after a yes.** The page of an activity with
+  positions draws its track on a plain background. Streets and terrain under it come from the
+  tile server of OpenStreetMap (`tile.openstreetmap.org`) only once you turn them on, with
+  **Show the Map** on such a page or in **Preferences → Activity maps** (off until then; it can
+  be turned off there at any time). From then on, each map you look at asks that server for the
+  tiles of the area it shows, and for more as you move or zoom it: the server, and the network
+  on the way, learn that area (often near where you live or were), when it was asked and your
+  IP address. Each request names the program, its version and its address (`User-Agent:
+  openExpress/<version> (+https://github.com/TomaszBojanowski/openExpress)`); it never carries
+  the activity, its track, the device or your account. The tiles are kept in the cache for as
+  long as the server allows, at most 100 MB (`~/.cache/openexpress/tiles`, in the Flatpak
+  `~/.var/app/io.github.tomaszbojanowski.OpenExpress/cache/openexpress/tiles`); **Preferences
+  → Storage** or `openexpress cache --clear --only tiles --apply` deletes them. The map data is
+  © OpenStreetMap contributors, under the Open Database License.
 - Sync **never deletes files from the watch**. Files are deleted only when you ask for it:
   by `maps install/update/remove` (old map files indicated by the server), `maps remove
   --own`, `music remove` and `apps remove`; on the command line only with `--apply` (without

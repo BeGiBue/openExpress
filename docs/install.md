@@ -21,9 +21,10 @@ Requirements:
 - Linux with Python 3.11+, `requests`, PyGObject 3.46+ with GTK 4, libadwaita 1.5+, WebKitGTK 6.0
   (login window), GIO/gvfs (MTP) and `7z` (7-Zip or p7zip: setup needs it to read the
   installer). Optional: `mutagen` (music tags), `libusb-1.0` (Connect IQ apps on devices
-  that hide their app folder, and their hidden crash logs; usually installed).
-  - Fedora: `sudo dnf install python3-requests python3-gobject gtk4 libadwaita webkitgtk6.0 gvfs-mtp python3-mutagen p7zip-plugins libusb1`
-  - Debian/Ubuntu: `sudo apt install python3-requests python3-gi gir1.2-gtk-4.0 gir1.2-adw-1 gir1.2-webkit-6.0 gvfs-backends python3-mutagen 7zip libusb-1.0-0`
+  that hide their app folder, and their hidden crash logs; usually installed), libshumate
+  1.1+ (the map on the page of an activity; without it the page says so and has no map).
+  - Fedora: `sudo dnf install python3-requests python3-gobject gtk4 libadwaita webkitgtk6.0 gvfs-mtp python3-mutagen p7zip-plugins libusb1 libshumate`
+  - Debian/Ubuntu: `sudo apt install python3-requests python3-gi gir1.2-gtk-4.0 gir1.2-adw-1 gir1.2-webkit-6.0 gvfs-backends python3-mutagen 7zip libusb-1.0-0 gir1.2-shumate-1.0`
 - Watch connected with a USB cable. GNOME (gvfs-mtp) mounts it automatically, and
   openexpress uses the same connection, so the file manager can stay open.
 - The official Garmin Express installer for Windows (`GarminExpress.exe`, free download from

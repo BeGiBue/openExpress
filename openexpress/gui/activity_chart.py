@@ -12,6 +12,7 @@ from __future__ import annotations
 import bisect
 import math
 from dataclasses import dataclass
+from typing import ClassVar
 
 import cairo
 import gi
@@ -20,7 +21,7 @@ gi.require_version("Gtk", "4.0")
 gi.require_version("Adw", "1")
 gi.require_version("PangoCairo", "1.0")
 
-from gi.repository import Adw, Gdk, Gtk, Pango, PangoCairo  # noqa: E402 - imports must follow gi.require_version
+from gi.repository import Adw, Gdk, GObject, Gtk, Pango, PangoCairo  # noqa: E402 - imports must follow gi.require_version
 
 from openexpress.gui.words import (  # noqa: E402
     activity_clock,
@@ -399,7 +400,7 @@ def _plot(area, width: int, height: int) -> Plot:
     return Plot(left, top, right, bottom, times, values, faster_on_top(series.kind))
 
 
-def _accent() -> Gdk.RGBA:
+def accent_color() -> Gdk.RGBA:
     """The accent colour of the desktop for a line (libadwaita 1.6 and later), else blue."""
     manager = Adw.StyleManager.get_default()
     if hasattr(manager, "get_accent_color") and hasattr(Adw, "AccentColor"):
@@ -423,7 +424,7 @@ def _draw(area, cr, width: int, height: int) -> None:
     cursor and, with the keyboard's focus, a frame."""
     series, kind = area.series, area.series.kind
     plot = _plot(area, width, height)
-    fg, accent = area.get_color(), _accent()
+    fg, accent = area.get_color(), accent_color()
     text_height = _layout(area, "0").get_pixel_size()[1]
     cr.set_line_width(1)
     for value in plot.values.ticks:
@@ -573,6 +574,7 @@ class ChartArea(Gtk.DrawingArea):
         chart = self.get_ancestor(ActivityChart)
         if chart is not None:
             chart.value_label.set_label(text)
+            chart.emit("cursor-moved", self.cursor)
 
     def cursor_text(self) -> str:
         if self.cursor is None:
@@ -591,9 +593,13 @@ def _toggled(button) -> None:
 
 class ActivityChart(Gtk.Box):
     """The chart with its switch (or the name of its one series) and, beside it, the value at
-    its cursor. Its handlers reach it through the widget of their signal."""
+    its cursor, said to the page too (cursor-moved). Its handlers reach it through the widget
+    of their signal."""
 
     __gtype_name__ = "OpenExpressActivityChart"
+    # The cursor placed, at this time since the first record (the map marks it).
+    __gsignals__: ClassVar[dict] = {
+        "cursor-moved": (GObject.SignalFlags.RUN_FIRST, None, (float,))}
 
     def __init__(self, series: list[Series]):
         super().__init__(orientation=Gtk.Orientation.VERTICAL, spacing=8)
