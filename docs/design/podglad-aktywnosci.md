@@ -222,10 +222,17 @@ its height and narrows; the lap rows wrap.
   within 30 s, "no reading". The arrow keys move it by a hundredth of the activity, to the next
   record at least that far (never stuck at a pause); Home and End to the first and the last.
   The series: heart rate first (chosen when the page opens), elevation, then pace or speed (D12)
-  for an activity with a distance; pace from the mean speed over 30 s around each record, none
-  below 0.2 m/s (standing still), drawn with the faster on top, its axis ending at the pace of
-  95% of the records so that slowing down to a stop does not squeeze the rest; speed as
-  recorded. One series: its name in place of the switch; none: the line "No heart rate,
+  for an activity with a distance; pace drawn with the faster on top, speed as recorded.
+- Changed after the chart was tried on a walk with many stops (each stop pulled the line down to
+  the end of the axis, a "comb", and squeezed the walking into a strip): a stop is a gap in the
+  pace. A stop: over 10 s, slower than 0.2 m/s or than a quarter of the activity's typical speed
+  (the median of its moving records), whichever is more, and not climbing or descending 0.05 m/s
+  (180 m an hour, over 20 s): a climb slow forward, on a mountain hike, is no stop. Pace is the
+  mean of the middle half of the speeds of moving records over 30 s around each record (the zeros
+  of a stop and the slowing down before it do not pull it); its axis spans the pace of 5% to 95%
+  of the moving records with a tenth of that more on each side, never from 0:00, and a pace
+  beyond it (a very steep climb, a minute walked in a run) is drawn at its edge, not lost. The
+  cursor on a stop says "no reading". One series: its name in place of the switch; none: the line "No heart rate,
   elevation or speed in this activity".
 
 ### D6: what draws the chart — chosen: 6a

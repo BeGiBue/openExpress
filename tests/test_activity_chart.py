@@ -200,3 +200,85 @@ def test_the_keys_move_the_cursor_over_a_pause_too():
     assert moved(series, 0, "right") == 5 and moved(series, 205, "right") == 205
     assert moved(series, 120, "home") == 0 and moved(series, 120, "end") == 205
     assert moved(series, None, "right") == 0 and moved(series, None, "left") == 205
+
+
+# --- stops -----------------------------------------------------------------------------------
+
+
+def records(parts, sport=WALKING):
+    """Records each second from parts: (seconds, speed in m/s, climb in m/s); the speed of a
+    walk or a run wavers by a tenth of a metre a second."""
+    samples, second, distance, altitude = [], 0, 0.0, 500.0
+    for length, speed, climb in parts:
+        for i in range(length):
+            v = speed + (0.1 if i % 3 == 0 else -0.05) if speed > 0.5 else speed
+            distance += v
+            altitude += climb
+            samples.append(sample(second, distance=distance, speed=v, heart_rate=120,
+                                  altitude=altitude))
+            second += 1
+    return activity(samples, sport=sport, distance=distance)
+
+
+def a_walk_with_stops():
+    """A walk at 1.45 m/s (11:30 /km) with fourteen stops of 15 to 60 s, slowing down and
+    starting again in three seconds around each."""
+    parts = []
+    for stop in (15, 40, 60, 25, 30, 45, 20, 55, 35, 15, 50, 30, 25, 40):
+        parts += [(200, 1.45, 0.0), (3, 0.7, 0.0), (stop, 0.04, 0.0), (3, 0.7, 0.0)]
+    return records([*parts, (200, 1.45, 0.0)])
+
+
+def walking_and_stopped(data):
+    """The pace of each record while walking, and of each record in the middle of a stop."""
+    pace = series_of(data)["pace"]
+    speeds = [s.speed for s in data.samples]
+    walking = [v for v, s in zip(pace.values, speeds, strict=True) if s > 1.3]
+    stopped = [v for i, v in enumerate(pace.values)
+               if all(s < 0.1 for s in speeds[max(0, i - 5):i + 6])]
+    return walking, stopped
+
+
+def test_a_stop_is_a_gap_in_the_pace_and_leaves_the_walk_as_it_was():
+    """No pace in the middle of a stop, and none of the stop's zeros in the pace walked next to
+    it, nor of the slowing down before it: the walk stays between 10 and 12:30 min/km, no
+    tooth down to the axis' end."""
+    data = a_walk_with_stops()
+    walking, stopped = walking_and_stopped(data)
+    assert stopped and set(stopped) == {None}
+    values = [v for v in series_of(data)["pace"].values if v is not None]
+    assert all(600 <= v <= 750 for v in values), (min(values), max(values))
+    assert all(v is not None for v in walking)
+
+
+def test_the_axis_of_pace_is_the_walk_s_not_the_stops():
+    """Typical pace takes most of the height: the axis from the moving records only."""
+    pace = series_of(a_walk_with_stops())["pace"]
+    a = chart().value_axis(pace, 4)
+    assert 540 <= a.low <= 660 and 720 <= a.high <= 900, (a.low, a.high)
+
+
+def test_a_slow_climb_is_no_stop():
+    """A mountain hike: the climb at 0.4 m/s forward, a very steep part at 0.12 m/s forward
+    but 0.1 m/s up, keep their pace; a rest on the way and the summit stop are gaps."""
+    data = records([(600, 1.3, 0.0), (1800, 0.4, 0.15), (90, 0.0, 0.0), (600, 0.12, 0.1),
+                    (720, 0.0, 0.0), (1800, 1.0, -0.15)], sport=17)
+    pace = series_of(data)["pace"]
+    at = dict(zip(pace.times, pace.values, strict=True))
+    assert at[1500] == pytest.approx(1000 / 0.4, rel=0.15)  # the climb: about 42 min/km
+    assert at[2800] == pytest.approx(1000 / 0.12, rel=0.15)  # the very steep part
+    assert at[2445] is None and at[3400] is None  # a rest, the summit
+    assert at[4800] == pytest.approx(1000.0, rel=0.15)  # down at 1 m/s
+    assert chart().value_axis(pace, 3).low > 0  # a pace of 0:00 means nothing
+
+
+def test_a_minute_of_walking_in_a_run_is_no_stop():
+    """A run at 3.3 m/s with a minute walked at 1.4 m/s and a stop at the lights: the walk keeps
+    its pace, the lights are a gap, and the axis of pace never starts at 0:00."""
+    data = records([(420, 3.3, 0.0), (60, 1.4, 0.0), (420, 3.3, 0.0), (2, 1.2, 0.0),
+                    (25, 0.03, 0.0), (2, 1.2, 0.0), (300, 3.3, 0.0)], sport=RUNNING)
+    pace = series_of(data)["pace"]
+    at = dict(zip(pace.times, pace.values, strict=True))
+    assert at[450] == pytest.approx(1000 / 1.4, rel=0.15)
+    assert at[915] is None
+    assert chart().value_axis(pace, 3).low > 0

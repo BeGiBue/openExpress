@@ -1,10 +1,11 @@
 """The chart of an activity's page: one of the series its records give (heart rate, elevation,
 and pace or speed by its sport; their words in gui/words.py) over the time since its first
 record. A value not given and records that stop for a while (a pause) leave a gap in the line;
-pace is smoothed over about 30 s and drawn with the faster on top, the slowest of it (the stops)
-left off its axis; the points are brought down to two a pixel column without losing a peak; the
-axes have round values. A click, a drag or the keys place a cursor, its value said beside the
-switch. The numbers need no screen; the drawing is Cairo in a Gtk.DrawingArea.
+so does a stop in the pace, never a slow climb. Pace is smoothed over about 30 s of moving and
+drawn with the faster on top, its axis from the pace of most of the moving records (a value
+beyond it drawn at its edge); the points are brought down to two a pixel column without losing a
+peak; the axes have round values. A click, a drag or the keys place a cursor, its value said
+beside the switch. The numbers need no screen; the drawing is Cairo in a Gtk.DrawingArea.
 Has: no attribute of the window; the chart's widgets keep their series and cursor themselves."""
 from __future__ import annotations
 
@@ -32,9 +33,17 @@ from openexpress.gui.words import (  # noqa: E402
 )
 
 GAP_S = 60  # records further apart than this: a pause, a gap in the line
-SMOOTHING_S = 30  # pace: the mean speed over this time around each record
-MOVING = 0.2  # metres a second: slower is standing still, without a pace
-STOPS = 0.95  # pace: its axis ends at the pace of this share of the records
+SMOOTHING_S = 30  # pace: the speed of moving over this time around each record
+# A stop: over STOP_WINDOW_S, slower than STOP_SPEED or than STOP_SHARE of the activity's
+# typical speed, whichever is more, and not climbing nor descending CLIMB_RATE (180 m an hour,
+# over CLIMB_WINDOW_S): a climb slow forward is no stop.
+STOP_SPEED = 0.2  # metres a second
+STOP_SHARE = 0.25
+STOP_WINDOW_S = 10
+CLIMB_RATE = 0.05  # metres a second, up or down
+CLIMB_WINDOW_S = 20
+AXIS_SHARES = (0.05, 0.95)  # pace: its axis from the pace of these shares of the records…
+AXIS_MARGIN = 0.1  # …and this share of that span more on each side
 KEY_STEP = 100  # a key moves the cursor by a hundredth of the activity
 CHART_HEIGHT = 200
 PACES = ("pace", "swim pace")
@@ -99,28 +108,83 @@ def _pieces(times, values) -> list[tuple[int, int]]:
     return pieces
 
 
-def _smoothed(times, speeds) -> list[float | None]:
-    """The mean speed over SMOOTHING_S around each record, within its piece of the line."""
+def _window_means(times, values, half: float) -> list[float | None]:
+    """The mean of the values given within `half` seconds of each record."""
+    sums, counts = [0.0], [0]
+    for v in values:
+        sums.append(sums[-1] + (0.0 if v is None else v))
+        counts.append(counts[-1] + (v is not None))
+    out, low, high = [], 0, 0
+    for t in times:
+        while times[low] < t - half:
+            low += 1
+        while high < len(times) and times[high] <= t + half:
+            high += 1
+        count = counts[high] - counts[low]
+        out.append((sums[high] - sums[low]) / count if count else None)
+    return out
+
+
+def _climb_rates(times, altitudes, half: float) -> list[float]:
+    """How fast each record climbs or descends (metres a second, either way): the altitude
+    `half` seconds before it against `half` after it."""
+    known = [(t, a) for t, a in zip(times, altitudes, strict=True) if a is not None]
+    at = [t for t, _a in known]
+    out = []
+    for t in times:
+        first = bisect.bisect_left(at, t - half)
+        last = bisect.bisect_right(at, t + half) - 1
+        if last <= first or at[last] == at[first]:
+            out.append(0.0)
+            continue
+        out.append(abs(known[last][1] - known[first][1]) / (at[last] - at[first]))
+    return out
+
+
+def _stops(times, speeds, altitudes) -> tuple[list[bool], list[bool]]:
+    """Which records are stops (a gap in the pace), and which count in the pace around them:
+    those moving forward, or climbing with some speed forward; never the zeros of a stop."""
+    moving = sorted(v for v in speeds if v is not None and v >= STOP_SPEED)
+    threshold = max(STOP_SPEED, (STOP_SHARE * moving[len(moving) // 2]) if moving else 0)
+    means = _window_means(times, speeds, STOP_WINDOW_S / 2)
+    climbs = [c >= CLIMB_RATE for c in _climb_rates(times, altitudes, CLIMB_WINDOW_S / 2)]
+    stopped = [not climb and (mean is None or mean < threshold)
+               for mean, climb in zip(means, climbs, strict=True)]
+    counted = [v is not None and not stop and (v >= threshold or (climb and v >= CLIMB_RATE))
+               for v, stop, climb in zip(speeds, stopped, climbs, strict=True)]
+    return stopped, counted
+
+
+def _smoothed(times, speeds, stopped, counted) -> list[float | None]:
+    """The mean of the middle half of the speeds counted over SMOOTHING_S around each record
+    (slowing down to a stop or a jump of the GPS does not pull it), within its piece of the
+    line (a stop, a speed not given or a pause ends one); None for a stop."""
     out: list[float | None] = [None] * len(times)
     half = SMOOTHING_S / 2
-    for first, last in _pieces(times, speeds):
-        sums = [0.0]
-        for i in range(first, last):
-            sums.append(sums[-1] + speeds[i])
+    marks = [None if stop or v is None else v for v, stop in zip(speeds, stopped, strict=True)]
+    for first, last in _pieces(times, marks):
+        window: list[float] = []  # the speeds counted around the record, in order
         low = high = first
         for i in range(first, last):
-            while times[low] < times[i] - half:
-                low += 1
             while high < last and times[high] <= times[i] + half:
+                if counted[high]:
+                    bisect.insort(window, speeds[high])
                 high += 1
-            out[i] = (sums[high - first] - sums[low - first]) / (high - low)
+            while times[low] < times[i] - half:
+                if counted[low]:
+                    window.pop(bisect.bisect_left(window, speeds[low]))
+                low += 1
+            if window:
+                quarter = len(window) // 4
+                middle = window[quarter:len(window) - quarter]
+                out[i] = sum(middle) / len(middle)
     return out
 
 
 def chart_series(data) -> list[Series]:
     """The series of an activity (fit.ActivityData) its records give, in the order of the
     switch: heart rate, elevation, then for an activity with a distance its pace (smoothed;
-    none while standing still) or its speed, by its sport."""
+    none at a stop) or its speed, by its sport."""
     samples = data.samples
     if not samples:
         return []
@@ -138,8 +202,9 @@ def chart_series(data) -> list[Series]:
             values = tuple(None if v is None else v * 3.6 for v in speeds)
         else:
             per = 1000 if kind == "pace" else 100
-            values = tuple(None if v is None or v < MOVING else per / v
-                           for v in _smoothed(times, speeds))
+            stopped, counted = _stops(times, speeds, [s.altitude for s in samples])
+            values = tuple(None if v is None or v <= 0 else per / v
+                           for v in _smoothed(times, speeds, stopped, counted))
         if any(v is not None for v in values):
             found.append(Series(kind, times, values))
     return found
@@ -190,8 +255,10 @@ class Axis:
 
     @property
     def ticks(self) -> tuple[float, ...]:
-        count = math.floor((self.high - self.low) / self.step + 1e-9)
-        return tuple(_clean(self.low + i * self.step) for i in range(count + 1))
+        """The multiples of the step from `low` to `high`."""
+        first = math.ceil(self.low / self.step - 1e-9)
+        last = math.floor(self.high / self.step + 1e-9)
+        return tuple(_clean(i * self.step) for i in range(first, last + 1))
 
 
 def _clean(value: float) -> float:
@@ -213,13 +280,17 @@ def _step(span: float, count: int, steps=None, whole: bool = False) -> float:
 
 
 def value_axis(series: Series, count: int) -> Axis:
-    """The axis of a series' values, round values around all of them (a pace: but its slowest,
-    the stops), about `count` steps."""
+    """The axis of a series' values, round values around all of them (a pace: around most of
+    them, with a margin, so that typical pace takes most of the height), about `count`
+    steps."""
     values = [v for v in series.values if v is not None]
     low, high = min(values), max(values)
     if series.kind in PACES:
         ordered = sorted(values)
-        high = ordered[max(0, math.ceil(STOPS * len(ordered)) - 1)]
+        low, high = (ordered[max(0, math.ceil(share * len(ordered)) - 1)]
+                     for share in AXIS_SHARES)
+        margin = (high - low) * AXIS_MARGIN
+        low, high = low - margin, high + margin
     least = LEAST_SPAN[series.kind]
     if high - low < least:
         middle = (low + high) / 2
@@ -227,6 +298,11 @@ def value_axis(series: Series, count: int) -> Axis:
     step = _step(high - low, count, PACE_STEPS if series.kind in PACES else None,
                  whole=series.kind in WHOLE)
     first = math.floor(low / step + 1e-9) * step
+    if series.kind in PACES and first <= 0 < low:
+        # A pace of 0:00 means nothing: the axis begins at a smaller round pace, its values
+        # still a step apart.
+        first = next((math.floor(low / smaller) * smaller for smaller in reversed(PACE_STEPS)
+                      if smaller < step and math.floor(low / smaller) > 0), low)
     last = math.ceil(high / step - 1e-9) * step
     if last <= first:
         last = first + step
@@ -369,12 +445,12 @@ def _draw(area, cr, width: int, height: int) -> None:
     cr.set_line_join(cairo.LINE_JOIN_ROUND)
     for run in _drawn_runs(area, plot):
         if len(run) == 1:
-            cr.arc(plot.x(run[0][0]), plot.y(run[0][1]), 1.5, 0, 2 * math.pi)
+            cr.arc(plot.x(run[0][0]), _within(plot, run[0][1]), 1.5, 0, 2 * math.pi)
             cr.fill()
             continue
-        cr.move_to(plot.x(run[0][0]), plot.y(run[0][1]))
+        cr.move_to(plot.x(run[0][0]), _within(plot, run[0][1]))
         for at, value in run[1:]:
-            cr.line_to(plot.x(at), plot.y(value))
+            cr.line_to(plot.x(at), _within(plot, value))
         cr.stroke()
     cr.restore()
     if area.cursor is not None:
@@ -386,8 +462,7 @@ def _draw(area, cr, width: int, height: int) -> None:
         cr.line_to(x, plot.bottom)
         cr.stroke()
         if value is not None:
-            y = min(max(plot.y(value), plot.top), plot.bottom)
-            cr.arc(x, y, 4.5, 0, 2 * math.pi)
+            cr.arc(x, _within(plot, value), 4.5, 0, 2 * math.pi)
             cr.set_source_rgba(accent.red, accent.green, accent.blue, 1)
             cr.fill_preserve()
             cr.set_source_rgba(fg.red, fg.green, fg.blue, 1)  # seen on the line too
@@ -398,6 +473,12 @@ def _draw(area, cr, width: int, height: int) -> None:
         cr.set_line_width(2)
         cr.rectangle(1, 1, width - 2, height - 2)
         cr.stroke()
+
+
+def _within(plot: Plot, value: float) -> float:
+    """The height of a value, one beyond the axis (a pace slower than most) at its edge: drawn
+    there, not lost."""
+    return min(max(plot.y(value), plot.top), plot.bottom)
 
 
 def _drawn_runs(area, plot: Plot) -> list:
