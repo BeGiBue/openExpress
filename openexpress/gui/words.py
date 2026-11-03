@@ -473,10 +473,12 @@ def activity_tile_kinds(data) -> list[tuple[str, str]]:
     return [(kind, value) for kind, value in tiles if value]
 
 
-# FIT sports on foot (two steps a stride, cadence in steps a minute), and on a bike (cadence in
-# revolutions a minute): cycling and e-biking.
-_ON_FOOT = _PACE_SPORTS
-_ON_A_BIKE = {2, 21}
+# FIT sports whose cadence is in steps a minute (two steps a stride): those read with a pace a
+# kilometre; and those whose cadence is in revolutions a minute: cycling and e-biking. Not the
+# groups of an activity's look (gui/sports.py), which put climbing on foot and snowshoeing in
+# winter.
+_STEP_CADENCE = _PACE_SPORTS
+_PEDAL_CADENCE = {2, 21}
 
 
 def details_title() -> str:
@@ -519,7 +521,7 @@ def _cadence_text(data) -> str | None:
     a minute on a bike; None in another sport."""
     if not data.avg_cadence:
         return None
-    if data.sport in _ON_FOOT:
+    if data.sport in _STEP_CADENCE:
         average = round(2 * data.avg_cadence)
         top = round(2 * data.max_cadence) if data.max_cadence else None
         if top is None:
@@ -527,7 +529,7 @@ def _cadence_text(data) -> str | None:
             return _("{cadence} spm").format(cadence=average)
         # TRANSLATORS: the average and the maximum cadence on foot ("104 spm (max 118)")
         return _("{average} spm (max {max})").format(average=average, max=top)
-    if data.sport in _ON_A_BIKE:
+    if data.sport in _PEDAL_CADENCE:
         average = round(data.avg_cadence)
         top = round(data.max_cadence) if data.max_cadence else None
         if top is None:
@@ -596,7 +598,7 @@ def activity_detail_kinds(data, moving: float | None = None) -> list[tuple[str, 
          activity_pace(data.max_speed, sport), None),
         ("cadence", _cadence_text(data), None),
         ("steps", whole(round(2 * data.cycles))
-         if data.cycles and sport in _ON_FOOT else None, None),
+         if data.cycles and sport in _STEP_CADENCE else None, None),
         ("heart rate", _("{low}–{high} bpm").format(low=data.min_heart_rate,
                                                      high=data.max_heart_rate)
          if data.min_heart_rate is not None and data.max_heart_rate is not None else None, None),
