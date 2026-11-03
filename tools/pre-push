@@ -3,7 +3,9 @@
 # on everything that is about to be pushed.
 # Install once per clone:  ln -sf ../../tools/pre-push .git/hooks/pre-push
 set -euo pipefail
-root=$(git rev-parse --show-toplevel)
+# The tools next to this hook (git runs the clone's hook, a link to tools/pre-push, from any of
+# its worktrees, also one whose tree has no tools/, such as the website's branch).
+tools=$(dirname "$(readlink -f "$0")")
 zero=0000000000000000000000000000000000000000
 while read -r local_ref local_sha remote_ref _remote_sha; do
     case "$local_ref $remote_ref" in
@@ -12,5 +14,5 @@ while read -r local_ref local_sha remote_ref _remote_sha; do
             exit 1 ;;
     esac
     [[ $local_sha == "$zero" ]] && continue   # deleting a remote ref
-    "$root/tools/check-secrets.sh" "$local_sha"
+    "$tools/check-secrets.sh" "$local_sha"
 done
