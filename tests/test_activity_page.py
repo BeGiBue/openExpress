@@ -415,20 +415,31 @@ def test_the_cursor_by_click_drag_and_the_arrow_keys():
 
 
 def test_the_chart_draws_each_series_with_its_cursor():
+    """Each series its line in the accent colour; the cursor adds to the picture."""
     import cairo
 
-    from openexpress.gui import activity_chart
+    from openexpress.gui import activity_chart, activity_colours
 
     win, _the_list = a_window(walk())
     page = open_page(win, read_of(sport=WALKING))
     chart = chart_of(page)
+
+    def drawn(cursor) -> bytes:
+        chart.area.cursor = cursor
+        surface = cairo.ImageSurface(cairo.FORMAT_ARGB32, 600, 200)
+        activity_chart._draw(chart.area, cairo.Context(surface), 600, 200)
+        surface.flush()
+        return bytes(surface.get_data())
+
+    accent = activity_colours.accent_colour()
+    line = [c * 255 for c in (accent.blue, accent.green, accent.red)]  # as cairo keeps a pixel
     for button in switch_of(page):
         button.set_active(True)
-        for cursor in (None, 60):
-            chart.area.cursor = cursor
-            surface = cairo.ImageSurface(cairo.FORMAT_ARGB32, 600, 200)
-            activity_chart._draw(chart.area, cairo.Context(surface), 600, 200)
-            assert any(surface.get_data()), button.get_label()
+        plain, with_cursor = drawn(None), drawn(60)
+        of_the_line = sum(1 for i in range(0, len(plain), 4) if plain[i + 3] == 255
+                          and all(abs(plain[i + k] - line[k]) <= 1 for k in range(3)))
+        assert of_the_line > 100, button.get_label()
+        assert with_cursor != plain, button.get_label()
 
 
 def test_the_page_and_its_chart_are_released_once_closed():
