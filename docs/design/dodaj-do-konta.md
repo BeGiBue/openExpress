@@ -30,6 +30,11 @@ comparing the account's GUID with the one the device keeps, and deleting files o
 was paired with another account (D5); removing a device from an account (only Garmin Connect
 does).
 
+An example of the case it solves: a fēnix 5X registered only as a product on garmin.com, not in
+Garmin Connect ([#27](https://github.com/TomaszBojanowski/openExpress/issues/27)). The account's
+list did not hold it, so openExpress refused it; once it was added in Garmin Connect, a sync
+worked. With this feature it is added from openExpress, after the question.
+
 ## 2. What Garmin Express does
 
 From the analysis of Garmin Express (Windows 7.29.1.0, macOS 7.29.3.0): facts about its use of

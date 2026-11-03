@@ -132,6 +132,17 @@ def test_a_device_not_on_the_account_says_what_the_account_lists(devices, enviro
     assert advice in str(refused.value)
 
 
+def test_the_refusal_says_that_registering_the_product_is_not_enough():
+    """A device registered only as a product on garmin.com is not in Garmin Connect, whose
+    list openExpress reads: the refusal says where it has to be added."""
+    client = make_client([{"unitid": OTHER}])
+    with pytest.raises(NotAccountDevice) as refused:
+        service.require_account_device(client, UNIT)
+    said = str(refused.value)
+    assert "in Garmin Connect (the phone app, or connect.garmin.com)" in said
+    assert "registering the product on garmin.com is not enough" in said
+
+
 def test_bool_never_matches_a_unit_id():
     client = make_client([{"unitid": True}])
     with pytest.raises(NotAccountDevice):

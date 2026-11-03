@@ -22,6 +22,11 @@
   2) lose their USB connection when the computer sleeps: unplug the cable and plug it in
   again.
 - **An Edge 1050 restarts each time it is unplugged.** It always does.
+- **"This device is not registered to your Garmin account", although you registered it.**
+  Registering the product on garmin.com does not add it to Garmin Connect, whose list of
+  devices openExpress checks. Add the device in Garmin Connect (pair it with the Garmin
+  Connect app on your phone, or add it at connect.garmin.com), then sync again. If it is
+  there already, check that the phone app and openExpress are signed in to the same account.
 
 ## KDE Plasma and Dolphin
 
