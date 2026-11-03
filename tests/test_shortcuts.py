@@ -3,6 +3,7 @@ with Ctrl+? (which needs Shift where "?" does, as on a Polish keyboard),
 and that window shows each shortcut as it is bound, the first of its keys."""
 
 import json
+import os
 import shutil
 import subprocess
 import sys
@@ -26,17 +27,42 @@ print(json.dumps({name: application.get_accels_for_action(name)
 """
 
 
+# The D-Bus of its own starts no service: nothing on it can start a second document portal
+# (xdg-document-portal unmounts the session's /run/user/UID/doc when it starts, and then no
+# Flatpak starts until the portal is restarted), nor gvfsd, nor the accessibility bus.
+BUS_CONFIG = """<!DOCTYPE busconfig PUBLIC "-//freedesktop//DTD D-Bus Bus Configuration 1.0//EN"
+ "http://www.freedesktop.org/standards/dbus/1.0/busconfig.dtd">
+<busconfig>
+  <type>session</type>
+  <listen>unix:tmpdir=/tmp</listen>
+  <auth>EXTERNAL</auth>
+  <policy context="default">
+    <allow send_destination="*" eavesdrop="true"/>
+    <allow eavesdrop="true"/>
+    <allow own="*"/>
+  </policy>
+</busconfig>
+"""
+
+# And the program asks for no portal, no accessibility bus and no gvfs.
+NO_SERVICES = {"ADW_DISABLE_PORTAL": "1", "GDK_DEBUG": "no-portals", "GTK_A11Y": "none",
+               "NO_AT_BRIDGE": "1", "GIO_USE_VFS": "local", "GSETTINGS_BACKEND": "memory"}
+
+
 @pytest.fixture(scope="module")
-def bound() -> dict[str, list[str]]:
+def bound(tmp_path_factory) -> dict[str, list[str]]:
     from gi.repository import Adw
 
     if not hasattr(Adw, "ShortcutsDialog"):
         pytest.skip("libadwaita without Adw.ShortcutsDialog (before 1.8)")
     if shutil.which("dbus-run-session") is None:
         pytest.skip("no dbus-run-session")
-    done = subprocess.run(["dbus-run-session", "--", sys.executable, "-c", BOUND],
-                          cwd=Path(__file__).parent.parent, capture_output=True, text=True,
-                          timeout=60, check=True)
+    config = tmp_path_factory.mktemp("bus") / "session.conf"
+    config.write_text(BUS_CONFIG)
+    done = subprocess.run(["dbus-run-session", f"--config-file={config}", "--", sys.executable,
+                           "-c", BOUND],
+                          cwd=Path(__file__).parent.parent, env=dict(os.environ, **NO_SERVICES),
+                          capture_output=True, text=True, timeout=60, check=True)
     return json.loads(done.stdout.splitlines()[-1])
 
 

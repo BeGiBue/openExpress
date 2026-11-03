@@ -611,3 +611,22 @@ def plain_http_to_the_test_servers(monkeypatch):
         return real(url)
 
     monkeypatch.setattr(download, "secure_url", secure_url)
+
+
+# --- the document portal: no test may take its mount away --------------------------------------
+#
+# A second xdg-document-portal (one started on a private D-Bus) unmounts the session's
+# /run/user/UID/doc when it starts; every Flatpak then fails until the portal is restarted.
+# After each test the mount must still be there; if it is gone, the run stops at once.
+
+DOCUMENTS = Path(os.environ.get("XDG_RUNTIME_DIR", f"/run/user/{os.getuid()}")) / "doc"
+
+
+@pytest.fixture(autouse=True)
+def documents_portal_stays(request):
+    there = os.path.ismount(DOCUMENTS)
+    yield
+    if there and not os.path.ismount(DOCUMENTS):
+        pytest.exit(f"{request.node.nodeid} took {DOCUMENTS} away: the document portal needs a "
+                    "restart (systemctl --user restart xdg-document-portal.service)",
+                    returncode=3)
