@@ -1193,7 +1193,10 @@ def test_the_chosen_lap_is_a_band_behind_the_chart(monkeypatch):
 
 def test_the_track_is_drawn_where_the_map_places_it_and_a_chosen_lap_stands_out(monkeypatch):
     """The track's colour at the place of a record, as libshumate places it; a lap chosen at
-    full strength, the rest of the track half as strong."""
+    full strength, the rest of the track half as strong. Its colours off: one colour."""
+    from openexpress.gui import activity_colours
+
+    activity_colours.set_colours(False)
     data = lapped_walk()
     win, page = page_of(monkeypatch, data)
     present(win)
@@ -1216,6 +1219,85 @@ def test_the_track_is_drawn_where_the_map_places_it_and_a_chosen_lap_stands_out(
         until(lambda: 60 < red_at(in_first) < 170)  # drawn anew once the window's loop turns
         assert 60 < red_at(in_first) < 170  # faded
         assert red_at(in_second) == pytest.approx(0xe5, abs=12)
+    finally:
+        win.toplevel.destroy()
+
+
+def rgb_of(hex_colour: str) -> tuple[int, int, int]:
+    return tuple(int(hex_colour[i:i + 2], 16) for i in (1, 3, 5))
+
+
+def test_the_track_coloured_by_the_chart_s_series_with_its_legend(monkeypatch):
+    """By heart rate when the page opens (the chart's first series): the ends of the scale the
+    activity's 5th and 95th percentile, said under the map with their unit; another series on
+    the chart, the track and the legend follow it."""
+    from openexpress.gui import activity_colours
+
+    win, page = page_of(monkeypatch, lapped_walk())  # 100 bpm the first km, 115 the last
+    shown = map_of(page)
+    legend = shown.legend
+    assert legend.get_parent() is shown and order_of(legend) < order_of(shown.note)
+    assert legend.get_visible() and legend.switch.get_active()
+    assert legend.name.get_label() == "Track colour: heart rate"
+    assert (legend.low.get_label(), legend.high.get_label()) == ("100 bpm", "115 bpm")
+    colours = shown.path.colours
+    assert len(colours) == len(shown.path.times)
+    assert colours[0] == activity_colours.SCALE[0] and colours[-1] == activity_colours.SCALE[-1]
+    assert shown.path.edge.to_string() == rgba(activity_colours.EDGE).to_string()
+    chart_of(page).show("elevation")
+    assert legend.name.get_label() == "Track colour: elevation"
+    assert (legend.low.get_label(), legend.high.get_label()) == ("95 m", "105 m")
+    assert shown.path.colours != colours
+
+
+def test_the_track_s_colours_turned_off_are_kept_for_the_next_page(monkeypatch):
+    """Off: the track in its one colour on its own edge, the legend but its switch hidden; so
+    on the next page too, until turned on."""
+    from openexpress.gui import activity_colours, activity_map
+    from openexpress.gui.gui_settings import load_gui_settings
+
+    _win, page = page_of(monkeypatch, lapped_walk())
+    shown = map_of(page)
+    shown.legend.switch.set_active(False)
+    assert shown.path.colours is None
+    assert shown.path.edge.to_string() == rgba(activity_map.TRACK_EDGE).to_string()
+    assert not shown.legend.scale.get_visible() and shown.legend.switch.get_visible()
+    assert load_gui_settings()[activity_colours.SETTING] is False
+    _win, page = page_of(monkeypatch, lapped_walk())
+    again = map_of(page)
+    assert again.path.colours is None and not again.legend.switch.get_active()
+    again.legend.switch.set_active(True)
+    assert again.path.colours is not None and again.legend.scale.get_visible()
+
+
+def test_the_coloured_track_on_the_map_and_a_chosen_lap_over_its_colours(monkeypatch):
+    """Each place in the colour of its record; a lap chosen at full strength, the rest of the
+    track half as strong in its colours."""
+    from openexpress.gui import activity_colours
+
+    data = lapped_walk()
+    win, page = page_of(monkeypatch, data)
+    present(win)
+    try:
+        shown = map_of(page)
+        for marker in shown.ends.values():
+            marker.set_visible(False)
+        viewport = shown.map.get_viewport()
+
+        def colour_at(sample):
+            x, y = viewport.location_to_widget_coords(shown.map, sample.latitude,
+                                                      sample.longitude)
+            return colours_of(shown.map)[round(y)][round(x)]
+
+        in_first, in_last = data.samples[200], data.samples[-50]  # 100 and 115 bpm
+        low, high = (rgb_of(activity_colours.SCALE[i]) for i in (0, -1))
+        until(lambda: colour_at(in_first)[2] > 150)
+        assert colour_at(in_first) == pytest.approx(low, abs=12)
+        assert colour_at(in_last) == pytest.approx(high, abs=12)
+        lap_rows(page)[3].emit("activated")
+        until(lambda: 60 < colour_at(in_first)[2] < 170)  # drawn anew once the loop turns
+        assert 60 < colour_at(in_first)[2] < 170  # faded, still blue
+        assert colour_at(in_last) == pytest.approx(high, abs=12)
     finally:
         win.toplevel.destroy()
 

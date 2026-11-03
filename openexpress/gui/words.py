@@ -576,6 +576,29 @@ def training_load_text(load: float) -> str:
     return str(math.floor(load + 0.5))
 
 
+def track_colour_text(kind: str) -> str:
+    """What the track's colours show, under the map: "Track colour: heart rate"."""
+    names = {
+        # TRANSLATORS: a series after "Track colour:", as a sentence goes on there (in Polish
+        # in lower case: "tętno")
+        "heart rate": pgettext("track colour", "heart rate"),
+        # TRANSLATORS: a series after "Track colour:" (in Polish "wysokość")
+        "elevation": pgettext("track colour", "elevation"),
+        # TRANSLATORS: a series after "Track colour:" (in Polish "tempo")
+        "pace": pgettext("track colour", "pace"),
+        # TRANSLATORS: a series after "Track colour:" (in Polish "prędkość")
+        "speed": pgettext("track colour", "speed"),
+    }
+    # TRANSLATORS: under the map of an activity: which series of the chart colours the track
+    return _("Track colour: {series}").format(series=names["pace" if kind == "swim pace"
+                                                            else kind])
+
+
+def colours_text() -> str:
+    # TRANSLATORS: beside the switch under the map of an activity that colours its track
+    return _("Colours")
+
+
 # --- the chart of an activity ------------------------------------------------------------------
 
 

@@ -371,6 +371,7 @@ its height and narrows; the lap rows wrap.
 | `gui/activity_laps.py` (new, step 6 of 10.5) | The laps' rows, the kilometres of D16, the lap chosen told to the chart and the map. |
 | `gui/activity_zones.py` (new, step 8 of 10.5) | The section of the heart-rate zones (D14): its rows and bars, the zones' colours. |
 | `gui/activity_effect.py` (new, step 9 of 10.5) | The section of the training effect and load (D15): its rows, the effects' bars. |
+| `gui/activity_colours.py` (new, step 10 of 10.5) | The track's colours by the chart's series (D13): the scale, its ends, each point's colour, the legend and its switch. |
 | `gui/activities_page.py` | Rows of FIT files activatable (an arrow at their end); a click opens the page; the export button shared with the page. |
 | `gui/device_page.py`, `gui/app.py` | The page closed when the pages of the device are drawn anew, and before Refresh and Sync from the keyboard. |
 | `gui/words.py` | Durations, distances, pace and speed by sport, heart rate, the tiles' names, the laps' lines; English and Polish. |
@@ -536,6 +537,26 @@ empty.
   tiles' layer), needed by the laps (D20) anyway.
   - \+ Where the effort, the climb or the pace changed, on the map; follows the chart.
   - − Colours that mean something else for each series; the legend says which.
+- As implemented in step 10 (`gui/activity_colours.py`): the scale is 64 steps of OKLCH from
+  blue `#017dd6` through purple to red-orange `#f75e1c` (hue 250° rising to 40°, chroma 0.17 to
+  0.20, lightness rising from 0.58 to 0.675), with no green and no yellow. Every colour stands
+  out at 3:1 at least from the map without tiles, the window's background (3.06 on `#fafafb`,
+  3.68 on `#222226`); on the tiles a coloured track has a neutral dark edge `#241f31` (6.9 on
+  the motorways of OpenStreetMap, 10.0 on its water, 13.9 on its land), as the colour alone
+  is 1.4–3.8 there. The ends are the activity's 5th and 95th percentile (nearest rank); a
+  point takes the value of the record at its time or the last before it, beyond an end the
+  colour of that end, without a value grey `#8a898e`; a series of one value is the middle.
+  The legend is under the map, before the note of the tiles: "Track colour: heart rate", the
+  two ends with their unit around the scale, and the switch "Colours" (gui.json
+  `track_colours`, on until turned off); off, the track is as before (`#e5420e` on
+  `#6b1d05`) and the legend its switch alone. A lap chosen fades the rest of the track in its
+  colours. The series is the chart's: another chosen there, the track and the legend follow.
+- **A limit of the scale:** with deuteranopia or protanopia its blue and its purple (the
+  lower half) look alike and its upper half turns olive; its ends stay apart (33 and 26 in
+  OKLab ×100, Machado 2009 at full severity) and its order is seen by its lightness and said
+  by the legend. Every scale from blue to red has it; one that keeps the order for them
+  (light to dark in one hue, or blue to yellow) would lose the track on the light tiles or
+  the dark background.
 - **13b. Heart rate by its zones (the zones' colours).**
   - − A walk mostly below zone 1 is one colour (10.1).
 - **13c. One colour always.**
@@ -741,6 +762,7 @@ Accepted, but for those of the sets (D19a put off), which are not added.
 | {average} brpm ({low}–{high}) | {average} odd./min ({low}–{high}) |
 | {low}–{high} m | {low}–{high} m |
 | Track colour: {series} | Kolor trasy: {series} |
+| (step 10) heart rate / elevation / pace / speed, after "Track colour:" (lower case) | tętno / wysokość / tempo / prędkość |
 | Colours | Kolory |
 | Zoom in / Zoom out | Przybliż / Oddal |
 | Ctrl + scroll to zoom | Ctrl + kółko przybliża |

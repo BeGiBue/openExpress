@@ -91,6 +91,15 @@ def _lap_chosen(laps, chosen: bool, start: float, end: float) -> None:
         child = child.get_next_sibling()
 
 
+def _series_shown(chart, kind: str) -> None:
+    """Another series on the chart: the map beside it colours the track by it."""
+    child = chart.get_parent().get_first_child()
+    while child is not None:
+        if isinstance(child, activity_map.ActivityMap):
+            child.colour_by(chart.series[kind])
+        child = child.get_next_sibling()
+
+
 def _cursor_moved(chart, at: float) -> None:
     """The chart's cursor placed: the map beside it marks the place."""
     child = chart.get_parent().get_first_child()
@@ -249,7 +258,9 @@ class ActivityView:
             chart = ActivityChart(series, data.zones.bounds if data.zones else None)
             chart.set_margin_top(12)
             chart.connect("cursor-moved", _cursor_moved)
+            chart.connect("series-shown", _series_shown)
             self.content.append(chart)
+            _series_shown(chart, series[0].kind)  # the track coloured by the first one
         else:
             line = Gtk.Label(label=no_chart_text(), wrap=True, xalign=0, margin_top=12)
             line.add_css_class("dim-label")

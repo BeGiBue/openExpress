@@ -3682,7 +3682,7 @@ msgstr ""
 msgid "No GPS positions in this activity"
 msgstr ""
 
-#: openexpress/gui/activities_page.py:101 openexpress/gui/activity_page.py:118
+#: openexpress/gui/activities_page.py:101 openexpress/gui/activity_page.py:127
 #: openexpress/gui/app.py:429 openexpress/gui/apps_page.py:596
 #: openexpress/gui/detection.py:717 openexpress/gui/device_page.py:797
 #: openexpress/gui/window_tasks.py:498
@@ -3698,7 +3698,7 @@ msgid "Exporting as GPX…"
 msgstr ""
 
 #: openexpress/gui/activities_page.py:131 openexpress/gui/activity_page.py:71
-#: openexpress/gui/activity_page.py:76 openexpress/gui/activity_page.py:133
+#: openexpress/gui/activity_page.py:76 openexpress/gui/activity_page.py:142
 msgid "The file of this activity could not be read."
 msgstr ""
 
@@ -3746,63 +3746,63 @@ msgstr ""
 msgid "Laps"
 msgstr ""
 
-#: openexpress/gui/activity_map.py:695 openexpress/gui/activity_map.py:900
+#: openexpress/gui/activity_map.py:740 openexpress/gui/activity_map.py:958
 msgid "© OpenStreetMap contributors"
 msgstr ""
 
-#: openexpress/gui/activity_map.py:863
+#: openexpress/gui/activity_map.py:921
 msgid "Map of the track"
 msgstr ""
 
-#: openexpress/gui/activity_map.py:904
+#: openexpress/gui/activity_map.py:962
 msgid "Ctrl + scroll to zoom"
 msgstr ""
 
-#: openexpress/gui/activity_map.py:912
+#: openexpress/gui/activity_map.py:970
 msgid "Zoom in"
 msgstr ""
 
-#: openexpress/gui/activity_map.py:913
+#: openexpress/gui/activity_map.py:971
 msgid "Zoom out"
 msgstr ""
 
-#: openexpress/gui/activity_map.py:928
+#: openexpress/gui/activity_map.py:990
 msgid ""
 "The map can show streets and terrain under the track, from OpenStreetMap. "
 "The OpenStreetMap server then learns the area of each activity you open. You "
 "can turn this off again in Preferences."
 msgstr ""
 
-#: openexpress/gui/activity_map.py:931
+#: openexpress/gui/activity_map.py:993
 msgid "Show the Map"
 msgstr ""
 
-#: openexpress/gui/activity_map.py:936
+#: openexpress/gui/activity_map.py:998
 msgid "The map needs a newer libshumate library to show streets and terrain"
 msgstr ""
 
-#: openexpress/gui/activity_map.py:939
+#: openexpress/gui/activity_map.py:1001
 msgid ""
 "No internet connection: only the parts of the map downloaded before are shown"
 msgstr ""
 
-#: openexpress/gui/activity_page.py:136 openexpress/gui/activity_page.py:183
+#: openexpress/gui/activity_page.py:145 openexpress/gui/activity_page.py:192
 msgid "Reading the activity…"
 msgstr ""
 
-#: openexpress/gui/activity_page.py:221 openexpress/gui/words.py:266
+#: openexpress/gui/activity_page.py:230 openexpress/gui/words.py:266
 msgid "Still being written: disconnect and reconnect the device"
 msgstr ""
 
-#: openexpress/gui/activity_page.py:225
+#: openexpress/gui/activity_page.py:234
 msgid "This activity has no summary."
 msgstr ""
 
-#: openexpress/gui/activity_page.py:236 openexpress/gui/words.py:275
+#: openexpress/gui/activity_page.py:245 openexpress/gui/words.py:275
 msgid "Damaged file"
 msgstr ""
 
-#: openexpress/gui/activity_page.py:244
+#: openexpress/gui/activity_page.py:253
 msgid "The map needs the libshumate library, which is not installed"
 msgstr ""
 
@@ -5895,7 +5895,7 @@ msgstr[1] ""
 
 #. TRANSLATORS: a distance or an ascent in whole metres on the page of an activity
 #: openexpress/gui/words.py:338 openexpress/gui/words.py:381
-#: openexpress/gui/words.py:642
+#: openexpress/gui/words.py:665
 #, python-brace-format
 msgid "{metres} m"
 msgstr ""
@@ -5907,19 +5907,19 @@ msgid "{distance} km"
 msgstr ""
 
 #. TRANSLATORS: a pace, the time a kilometre takes ("5:10 /km")
-#: openexpress/gui/words.py:353 openexpress/gui/words.py:644
+#: openexpress/gui/words.py:353 openexpress/gui/words.py:667
 #, python-brace-format
 msgid "{pace} /km"
 msgstr ""
 
 #. TRANSLATORS: a pace of a swim, the time a hundred metres take ("2:05 /100 m")
-#: openexpress/gui/words.py:356 openexpress/gui/words.py:646
+#: openexpress/gui/words.py:356 openexpress/gui/words.py:669
 #, python-brace-format
 msgid "{pace} /100 m"
 msgstr ""
 
 #. TRANSLATORS: a speed in kilometres an hour ("24.3 km/h")
-#: openexpress/gui/words.py:358 openexpress/gui/words.py:647
+#: openexpress/gui/words.py:358 openexpress/gui/words.py:670
 #, python-brace-format
 msgid "{speed} km/h"
 msgstr ""
@@ -6102,65 +6102,101 @@ msgstr ""
 msgid "Training load"
 msgstr ""
 
-#. TRANSLATORS: the switch above the chart of an activity
+#. TRANSLATORS: a series after "Track colour:", as a sentence goes on there (in Polish
+#. in lower case: "tętno")
+#: openexpress/gui/words.py:584
+msgctxt "track colour"
+msgid "heart rate"
+msgstr ""
+
+#. TRANSLATORS: a series after "Track colour:" (in Polish "wysokość")
 #: openexpress/gui/words.py:586
+msgctxt "track colour"
+msgid "elevation"
+msgstr ""
+
+#. TRANSLATORS: a series after "Track colour:" (in Polish "tempo")
+#: openexpress/gui/words.py:588
+msgctxt "track colour"
+msgid "pace"
+msgstr ""
+
+#. TRANSLATORS: a series after "Track colour:" (in Polish "prędkość")
+#: openexpress/gui/words.py:590
+msgctxt "track colour"
+msgid "speed"
+msgstr ""
+
+#. TRANSLATORS: under the map of an activity: which series of the chart colours the track
+#: openexpress/gui/words.py:593
+#, python-brace-format
+msgid "Track colour: {series}"
+msgstr ""
+
+#. TRANSLATORS: beside the switch under the map of an activity that colours its track
+#: openexpress/gui/words.py:599
+msgid "Colours"
+msgstr ""
+
+#. TRANSLATORS: the switch above the chart of an activity
+#: openexpress/gui/words.py:609
 msgctxt "activity chart"
 msgid "Heart rate"
 msgstr ""
 
-#: openexpress/gui/words.py:587
+#: openexpress/gui/words.py:610
 msgctxt "activity chart"
 msgid "Elevation"
 msgstr ""
 
-#: openexpress/gui/words.py:588 openexpress/gui/words.py:589
+#: openexpress/gui/words.py:611 openexpress/gui/words.py:612
 msgctxt "activity chart"
 msgid "Pace"
 msgstr ""
 
-#: openexpress/gui/words.py:590
+#: openexpress/gui/words.py:613
 msgctxt "activity chart"
 msgid "Speed"
 msgstr ""
 
 #. TRANSLATORS: the unit on top of the axis of the chart of an activity
-#: openexpress/gui/words.py:599
+#: openexpress/gui/words.py:622
 msgctxt "chart unit"
 msgid "bpm"
 msgstr ""
 
-#: openexpress/gui/words.py:600
+#: openexpress/gui/words.py:623
 msgctxt "chart unit"
 msgid "m"
 msgstr ""
 
-#: openexpress/gui/words.py:601
+#: openexpress/gui/words.py:624
 msgctxt "chart unit"
 msgid "min/km"
 msgstr ""
 
-#: openexpress/gui/words.py:602
+#: openexpress/gui/words.py:625
 msgctxt "chart unit"
 msgid "min/100 m"
 msgstr ""
 
-#: openexpress/gui/words.py:603
+#: openexpress/gui/words.py:626
 msgctxt "chart unit"
 msgid "km/h"
 msgstr ""
 
 #. TRANSLATORS: the name of the chart for a screen reader; {series}: e.g. "Heart rate"
-#: openexpress/gui/words.py:611
+#: openexpress/gui/words.py:634
 #, python-brace-format
 msgid "{series} over time"
 msgstr ""
 
-#: openexpress/gui/words.py:616
+#: openexpress/gui/words.py:639
 msgid "No heart rate, elevation or speed in this activity"
 msgstr ""
 
 #. TRANSLATORS: beside the chart of an activity, where its cursor is on a gap or a pause
-#: openexpress/gui/words.py:654
+#: openexpress/gui/words.py:677
 msgid "no reading"
 msgstr ""
 

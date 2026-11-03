@@ -41,6 +41,7 @@ except (ValueError, ImportError):  # not installed (the version from source): no
     Shumate = None
 
 from openexpress import __version__, cache, paths, useragent  # noqa: E402
+from openexpress.gui import activity_colours  # noqa: E402
 from openexpress.gui.activity_chart import ACCENT, GAP_S  # noqa: E402
 from openexpress.gui.gui_settings import load_gui_settings, update_gui_settings  # noqa: E402
 from openexpress.i18n import _  # noqa: E402
@@ -607,6 +608,33 @@ def _screen_scale(widget) -> float:
     return surface.get_scale() if surface is not None else widget.get_scale_factor()
 
 
+def _trace(cr, points, run) -> None:
+    """The line through the points of a run (their indices); one point alone: a dot."""
+    cr.move_to(*points[run[0]])
+    for i in run[1:] or run[:1]:
+        cr.line_to(*points[i])
+
+
+def _by_colour(runs, colours) -> dict[str | None, list[list[int]]]:
+    """The runs cut into pieces of one colour, each piece in the colour of the point it
+    starts at and reaching the next piece's first point; without colours, the runs as they
+    are (None: the track's colour)."""
+    if colours is None:
+        return {None: runs}
+    out: dict[str | None, list[list[int]]] = {}
+    for run in runs:
+        if len(run) == 1:
+            out.setdefault(colours[run[0]], []).append(run)
+            continue
+        piece = [run[0]]
+        for i in run[1:]:
+            piece.append(i)
+            if colours[i] != colours[piece[0]] or i == run[-1]:
+                out.setdefault(colours[piece[0]], []).append(piece)
+                piece = [i]
+    return out
+
+
 def _runs(points, inside, wanted: bool) -> list[list]:
     """The runs of `points` whose `inside` is `wanted`; a run outside the lap reaches one point
     into it on each side, so that no gap shows where they meet."""
@@ -628,9 +656,11 @@ def _runs(points, inside, wanted: bool) -> list[list]:
 
 if Shumate is not None:
     class TrackLayer(Shumate.Layer):
-        """The track, drawn by openExpress: its colour over a dark edge; a lap chosen (its
-        start and end on the chart's time) thicker at full strength, the rest at FADED. Its
-        points are kept on the whole map at zoom 0 and placed at each drawing."""
+        """The track, drawn by openExpress: its colour over a dark edge, or each piece in the
+        colour of the point it starts at (`colours`, gui/activity_colours.py) over the edge of
+        a coloured track; a lap chosen (its start and end on the chart's time) thicker at
+        full strength, the rest at FADED. Its points are kept on the whole map at zoom 0 and
+        placed at each drawing."""
 
         __gtype_name__ = "OpenExpressTrackLayer"
 
@@ -642,7 +672,15 @@ if Shumate is not None:
             self.color, self.edge = _rgba(TRACK_COLOR), _rgba(TRACK_EDGE)
             self.width, self.edge_width = TRACK_WIDTH, EDGE_WIDTH
             self.chosen: tuple[float, float] | None = None
+            self.colours: list[str] | None = None  # of each point; None: the track's colour
             viewport.connect("notify", _view_changed, weakref.ref(self))
+
+        def colour(self, colours: list[str] | None) -> None:
+            """Each point in its colour over the edge of a coloured track; None: the track's
+            own colour and edge."""
+            self.colours = colours
+            self.edge = _rgba(activity_colours.EDGE if colours is not None else TRACK_EDGE)
+            self.queue_draw()
 
         def do_snapshot(self, snapshot) -> None:
             width, height = self.get_width(), self.get_height()
@@ -662,23 +700,30 @@ if Shumate is not None:
                 cr.translate(-width / 2, -height / 2)
             cr.set_line_join(cairo.LINE_JOIN_ROUND)
             cr.set_line_cap(cairo.LINE_CAP_ROUND)
+            every = list(range(len(points)))
             if self.chosen is None:
-                self._stroke(cr, [points], self.width, 1.0)
+                self._stroke(cr, points, [every], self.width, 1.0)
                 return
             start, end = self.chosen
             inside = [start <= t <= end for t in self.times]
-            self._stroke(cr, _runs(points, inside, False), self.width, FADED)
-            self._stroke(cr, _runs(points, inside, True), CHOSEN_WIDTH, 1.0)
+            self._stroke(cr, points, _runs(every, inside, False), self.width, FADED)
+            self._stroke(cr, points, _runs(every, inside, True), CHOSEN_WIDTH, 1.0)
 
-        def _stroke(self, cr, runs, width: float, strength: float) -> None:
-            """The runs as lines `width` wide over their edge, at this strength."""
-            for color, line in ((self.edge, width + 2 * self.edge_width), (self.color, width)):
-                cr.set_line_width(line)
-                cr.set_source_rgba(color.red, color.green, color.blue, strength)
-                for run in runs:
-                    cr.move_to(*run[0])
-                    for point in run[1:] or run[:1]:  # one point alone: a dot
-                        cr.line_to(*point)
+        def _stroke(self, cr, points, runs, width: float, strength: float) -> None:
+            """The runs (of the points' indices) as lines `width` wide over their edge, at
+            this strength; in their colours, one stroke for each."""
+            edge = self.edge
+            cr.set_line_width(width + 2 * self.edge_width)
+            cr.set_source_rgba(edge.red, edge.green, edge.blue, strength)
+            for run in runs:
+                _trace(cr, points, run)
+            cr.stroke()
+            cr.set_line_width(width)
+            for colour, pieces in _by_colour(runs, self.colours).items():
+                rgba = self.color if colour is None else _rgba(colour)
+                cr.set_source_rgba(rgba.red, rgba.green, rgba.blue, strength)
+                for piece in pieces:
+                    _trace(cr, points, piece)
                 cr.stroke()
 
     class NoTiles(Shumate.DataSource):
@@ -701,6 +746,18 @@ def _network_monitor():
 
 
 # --- the widget ------------------------------------------------------------------------------
+
+
+def _colours_switched(switch, _pspec) -> None:
+    """The switch under the map: the track's colours on or off, kept for the next pages."""
+    on = switch.get_active()
+    if on == activity_colours.colours_on():
+        return
+    activity_colours.set_colours(on)
+    log.info("activity map: the track's colours turned %s", "on" if on else "off")
+    shown = switch.get_ancestor(ActivityMap)
+    if shown is not None:
+        shown.colour_by(shown.series)
 
 
 def _rgba(text: str) -> Gdk.RGBA:
@@ -851,7 +908,8 @@ class ActivityMap(Gtk.Box):
     """The map of a track: the tiles (after the yes) under the track (a lap chosen at full
     strength), the markers of its ends and of the chart's cursor above them, the attribution,
     the buttons that zoom it; the mouse wheel scrolls the page, Ctrl and the wheel zoom the map.
-    Under it the note and its button before the yes, or what is missing. Its handlers reach it
+    Under it the legend of the track's colours with their switch, the note and its button
+    before the yes, or what is missing. Its handlers reach it
     through the widget of their signal."""
 
     __gtype_name__ = "OpenExpressActivityMap"
@@ -922,6 +980,10 @@ class ActivityMap(Gtk.Box):
         frame = Gtk.Frame(child=overlay)
         frame.set_overflow(Gtk.Overflow.HIDDEN)
         self.append(frame)
+        self.series = None  # the chart's series the track is coloured by
+        self.legend = activity_colours.TrackLegend()
+        self.legend.switch.connect("notify::active", _colours_switched)
+        self.append(self.legend)
 
         self.note = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, spacing=8)
         self.note.append(Gtk.Label(label=_(
@@ -964,6 +1026,15 @@ class ActivityMap(Gtk.Box):
         self.too_old.set_visible(not asks)
         self.attribution.set_visible(on)
         self._show_network()
+
+    def colour_by(self, series) -> None:
+        """The track coloured by this series of the chart (gui/activity_colours.py) while the
+        switch under the map is on; None: no series, no colours and no legend."""
+        self.series = series
+        on = activity_colours.colours_on()
+        self.path.colour(activity_colours.point_colours(self.path.times, series)
+                         if series is not None and on else None)
+        self.legend.show_series(series, on)
 
     def show_lap(self, span: tuple[float, float] | None) -> None:
         """The lap chosen (its start and end on the chart's time) at full strength, the rest of

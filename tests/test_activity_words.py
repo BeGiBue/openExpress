@@ -219,6 +219,24 @@ def test_the_training_load_as_a_whole_number(load, said):
     assert words().training_load_text(load) == said
 
 
+TRACK = {
+    "en": {"heart rate": "Track colour: heart rate", "elevation": "Track colour: elevation",
+           "pace": "Track colour: pace", "swim pace": "Track colour: pace",
+           "speed": "Track colour: speed", "switch": "Colours"},
+    "pl": {"heart rate": "Kolor trasy: tętno", "elevation": "Kolor trasy: wysokość",
+           "pace": "Kolor trasy: tempo", "swim pace": "Kolor trasy: tempo",
+           "speed": "Kolor trasy: prędkość", "switch": "Kolory"},
+}
+
+
+def test_the_words_of_the_track_s_colours(language):
+    """The series after the colon in lower case, as a sentence goes on in Polish."""
+    w, said = words(), TRACK[language]
+    for kind in ("heart rate", "elevation", "pace", "swim pace", "speed"):
+        assert w.track_colour_text(kind) == said[kind]
+    assert w.colours_text() == said["switch"]
+
+
 # The bounds as a device keeps them: each the first beat of the zone above it, the last the top
 # of zone 5 (which has none on the page). Zones from the lactate threshold, as Garmin Connect
 # shows them: below zone 1 under 118, zone 1 118–140, …, zone 5 above 182; and from a maximum

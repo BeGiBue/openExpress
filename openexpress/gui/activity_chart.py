@@ -630,13 +630,15 @@ def _toggled(button) -> None:
 
 class ActivityChart(Gtk.Box):
     """The chart with its switch (or the name of its one series) and, beside it, the value at
-    its cursor, said to the page too (cursor-moved). Its handlers reach it through the widget
-    of their signal."""
+    its cursor, said to the page too (cursor-moved), as is the series it shows (series-shown).
+    Its handlers reach it through the widget of their signal."""
 
     __gtype_name__ = "OpenExpressActivityChart"
     # The cursor placed, at this time since the first record (the map marks it).
+    # Another series shown, of this kind (the map colours the track by it).
     __gsignals__: ClassVar[dict] = {
-        "cursor-moved": (GObject.SignalFlags.RUN_FIRST, None, (float,))}
+        "cursor-moved": (GObject.SignalFlags.RUN_FIRST, None, (float,)),
+        "series-shown": (GObject.SignalFlags.RUN_FIRST, None, (str,))}
 
     def __init__(self, series: list[Series], zones=None):
         super().__init__(orientation=Gtk.Orientation.VERTICAL, spacing=8)
@@ -674,6 +676,7 @@ class ActivityChart(Gtk.Box):
     def show(self, kind: str) -> None:
         self.area.show_series(self.series[kind])
         self.value_label.set_label(self.area.cursor_text())
+        self.emit("series-shown", kind)
 
     def show_lap(self, span: tuple[float, float] | None) -> None:
         """The lap chosen (its start and end on the chart's time) as a band behind the line;

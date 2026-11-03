@@ -529,6 +529,7 @@ def test_the_page_of_an_activity_fits_the_narrowest_window(narrow_window, monkey
         chart)[1]
     assert value.get_y() >= switch.get_y() + switch.get_height()  # under the switch, narrow
     (shown,) = [w for w in _all(page) if isinstance(w, activity_map.ActivityMap)]
+    assert shown.legend.get_visible() and shown.legend.scale.get_visible()  # the track's colours
     assert shown.attribution.get_visible() is tiles
     assert shown.note.get_visible() is not tiles
     from openexpress.gui.activity_laps import LapList
