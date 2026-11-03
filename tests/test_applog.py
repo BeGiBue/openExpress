@@ -723,6 +723,18 @@ def test_two_runs_of_the_same_role_can_be_told_apart(log_file, monkeypatch):
     assert all(" cli[2]" not in line for line in lines(log_file))
 
 
+def test_a_pid_of_seven_digits_survives_the_filter(monkeypatch):
+    """Linux gives PIDs up to 4194303 (kernel.pid_max 4194304 on 64-bit systems). A PID says
+    nothing about the user; another number of seven digits is still hidden."""
+    monkeypatch.setattr(os, "getpid", lambda: 4194303)
+    line = applog.environment()
+    assert line.endswith(", pid 4194303")
+    assert applog.redact(line) == line
+    assert applog.redact("unit 3987654321, pid 1234567") == "unit <number>, pid 1234567"
+    assert applog.redact("pid 12345678 of 3987654321") == "pid 12345678 of <number>"
+    assert applog.redact("rapid 1234567, apid 7654321") == "rapid <number>, apid <number>"
+
+
 def test_the_filter_leaves_every_marker_alone():
     applog.hide(3987654321, "unit")  # a made-up unit ID is hidden meanwhile
     for n in range(0x10000):
