@@ -583,7 +583,7 @@ empty.
   bar's track under it is the text's colour, faint.
 - Corrected when step 8 was tried on a watch (its times in the zones the same as Garmin
   Connect's to the second, its bounds a beat off): a device keeps as the bound of a zone the
-  first beat of the zone above it, and Garmin Connect shows them so. Bounds 118, 141, 158,
+  first beat of the zone above it, and Garmin Connect shows them so. Made-up bounds 118, 141, 158,
   170, 183, 195 are below zone 1 "below 118 bpm", zone 1 "118–140 bpm", zone 2 "141–157 bpm",
   zone 3 "158–169 bpm", zone 4 "170–182 bpm", zone 5 "above 182 bpm" (no top: the last bound
   is not shown, the time above it is zone 5's). The bands of D19b run from bound to bound as

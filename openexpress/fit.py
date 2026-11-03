@@ -574,8 +574,8 @@ _MESG_SET, _SET_DURATION, _SET_TYPE, _SET_REST = 225, 0, 5, 0
 # (seconds, scale 1000; an array: below zone 1, zones 1-5, above the top bound), the zones'
 # bounds (hr_zone_high_boundary, an array), how they are worked out, the max, resting and
 # threshold heart rate. A device keeps as the bound of a zone the first beat of the zone above
-# it, as Garmin Connect shows the zones: bounds 118, 141, … are below zone 1 under 118, zone 1
-# 118–140; the last is the top of zone 5, which Garmin Connect does not show.
+# it, as Garmin Connect shows the zones: made-up bounds 118, 141, … are below zone 1 under 118,
+# zone 1 118–140; the last is the top of zone 5, which Garmin Connect does not show.
 _MESG_TIME_IN_ZONE = 216
 _ZONE_REFERENCE, _ZONE_TIMES, _ZONE_BOUNDS, _ZONE_CALC = 0, 2, 6, 10
 _ZONE_MAX, _ZONE_RESTING, _ZONE_THRESHOLD = 11, 12, 13

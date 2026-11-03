@@ -239,9 +239,9 @@ def test_the_words_of_the_track_s_colours(language):
 
 
 # The bounds as a device keeps them: each the first beat of the zone above it, the last the top
-# of zone 5 (which has none on the page). Zones from the lactate threshold, as Garmin Connect
-# shows them: below zone 1 under 118, zone 1 118–140, …, zone 5 above 182; and from a maximum
-# heart rate of 190.
+# of zone 5 (which has none on the page). Made-up zones from the lactate threshold, as Garmin
+# Connect shows them: below zone 1 under 118, zone 1 118–140, …, zone 5 above 182; and from a
+# maximum heart rate of 190.
 ZONE_SPANS = {
     "threshold": ((118, 141, 158, 170, 183, 195), {
         "en": ["below 118 bpm", "118–140 bpm", "141–157 bpm", "158–169 bpm", "170–182 bpm",
