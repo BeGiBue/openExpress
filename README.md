@@ -206,6 +206,15 @@ your `GarminDevice.xml` or the files in `~/.config/openexpress`. When something 
 - [Other ways to install](docs/install.md) – a bundle from a release, from source, building the Flatpak
 - [Contributing](CONTRIBUTING.md) – tests and translations
 
+## Thanks
+
+- [Sommet](https://github.com/skinnie/sommet) by skinnie and
+  [Activity Profile Editor](https://github.com/fullcarbonbike/Activity-Profile-Editor) by
+  fullcarbonbike described the files of sport profiles that the planned view of data screens
+  reads ([design](docs/design/ekrany-danych.md)). openExpress copies no code of Sommet
+  (GPL-3.0-only); what it takes from Activity Profile Editor (MIT) keeps that project's notice
+  and its author's name.
+
 ## License
 
 openExpress is free software under the [GNU General Public License v3.0 or later](LICENSE).
