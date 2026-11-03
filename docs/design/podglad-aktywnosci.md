@@ -348,8 +348,9 @@ its height and narrows; the lap rows wrap.
   value the file does not give: its tile left out, the others taking the row.
 - **11b. Always the four of the mockup,** "–" where a value is not given.
   - − A workout shows two dashes of four.
-- Added when step 2 began: a tile of the total ascent ("Total ascent", "Przewyższenie"), in whole
-  metres ("740 m"), only for an activity whose ascent is above zero, as the column of the list. A
+- Added when step 2 began: a tile of the total ascent ("Total ascent", "Całkowity wznios" as Garmin
+  Connect in Polish says it, as its "Całkowity spadek"), in whole metres ("740 m"), only for an
+  activity whose ascent is above zero, as the column of the list. A
   distance of 0 m counts as none (workouts may record one). Which tiles there are when more
   apply than the four places of the mockup (a hike with distance, time, pace, heart rate and
   ascent) was decided when step 3 began: B; the lap's line keeps no ascent. The options, in the
@@ -817,6 +818,7 @@ Accepted, but for those of the sets (D19a put off), which are not added.
 | No benefit / Minor benefit / Maintaining / Improving / Highly improving / Overreaching (0.0–0.9, 1.0–1.9, 2.0–2.9, 3.0–3.9, 4.0–4.9, 5.0) | Brak korzyści / Umiarkowana korzyść / Utrzymanie / Poprawa / Duża poprawa / Przeciążenie (Garmin Connect's help on the training effect, D15) |
 | Details | Szczegóły |
 | Elapsed time / Moving time / Work time / Rest time (corrected in step 11: Garmin Connect's words, D17) | Upływ czasu / Czas ruchu / Czas ćwiczeń / Czas odpoczynku |
+| Total ascent (the tile of step 2; Garmin Connect's word) | Całkowity wznios |
 | Total descent / Minimum elevation / Maximum elevation (step 11: two rows, not a range) | Całkowity spadek / Minimalna wysokość / Maksymalna wysokość |
 | Average moving pace / Average moving speed / Best pace / Maximum speed (step 11) | Średnie tempo ruchu / Średnia prędkość ruchu / Najlepsze tempo / Maksymalna prędkość |
 | Average cadence / Steps / Heart rate / Calories / Temperature / Respiration rate (step 11) | Średnia kadencja / Kroki / Tętno / Kalorie / Temperatura / Częstotliwość oddechu |

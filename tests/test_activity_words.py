@@ -78,7 +78,7 @@ TILES = {
     "pl": {"distance": "Dystans", "time": "Czas", "pace": "Średnie tempo",
            "speed": "Średnia prędkość", "average heart rate": "Średnie tętno",
            "maximum heart rate": "Maksymalne tętno", "calories": "Kalorie",
-           "ascent": "Przewyższenie"},
+           "ascent": "Całkowity wznios"},
 }
 
 
@@ -133,7 +133,7 @@ TILES_OF = {
            "workout": [("45:00", "Time"), ("112 bpm", "Average heart rate"),
                        ("151 bpm", "Maximum heart rate"), ("320 kcal", "Calories")]},
     "pl": {"hike": [("12,40 km", "Dystans"), ("3:50:00", "Czas"), ("16:40 /km", "Średnie tempo"),
-                    ("128 ud./min", "Średnie tętno"), ("740 m", "Przewyższenie")],
+                    ("128 ud./min", "Średnie tętno"), ("740 m", "Całkowity wznios")],
            "workout": [("45:00", "Czas"), ("112 ud./min", "Średnie tętno"),
                        ("151 ud./min", "Maksymalne tętno"), ("320 kcal", "Kalorie")]},
 }

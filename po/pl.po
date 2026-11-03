@@ -6541,7 +6541,7 @@ msgstr "Kalorie"
 #: openexpress/gui/words.py:446
 msgctxt "activity tile"
 msgid "Total ascent"
-msgstr "Przewyższenie"
+msgstr "Całkowity wznios"
 
 #. TRANSLATORS: the closed row of the details at the end of the page of an activity
 #: openexpress/gui/words.py:486
