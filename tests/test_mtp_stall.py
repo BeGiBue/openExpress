@@ -394,6 +394,43 @@ class _Handlers(ast.NodeVisitor):
     visit_TryStar = visit_Try
 
 
+def test_the_guard_sees_a_handler_that_would_take_a_stall():
+    """Planted handlers: of DeviceError, and a broad one around a storage that does not raise
+    again, are found; with a handler of the stall before them, or raising again, not."""
+    planted = ast.parse(
+        "def missing_file(storage):\n"
+        "    try:\n"
+        "        return storage.read('x')\n"
+        "    except DeviceError:\n"
+        "        return None\n"
+        "def broad(storage):\n"
+        "    try:\n"
+        "        storage.listdir('y')\n"
+        "    except Exception:\n"
+        "        pass\n"
+        "def let_through(storage):\n"
+        "    try:\n"
+        "        storage.listdir('y')\n"
+        "    except DeviceNotResponding:\n"
+        "        raise\n"
+        "    except (DeviceError, OSError):\n"
+        "        pass\n"
+        "def raises_again(storage):\n"
+        "    try:\n"
+        "        storage.listdir('y')\n"
+        "    except Exception:\n"
+        "        log.info('noted')\n"
+        "        raise\n"
+        "def no_storage(answer):\n"
+        "    try:\n"
+        "        return answer.json()\n"
+        "    except Exception:\n"
+        "        return None\n")
+    handlers = _Handlers()
+    handlers.visit(planted)
+    assert [function for function, _line in handlers.found] == ["missing_file", "broad"]
+
+
 def test_every_handler_of_device_errors_lets_a_stall_through():
     """A handler of DeviceError outside the window, and a broad one around what asks a
     storage that does not raise again, has one of DeviceNotResponding before it, which lets
