@@ -262,7 +262,7 @@ def watch_drives_while_open(win) -> None:
         return  # the first look: what is there is the open device's company
     if places - before:
         log.info("USB: a Garmin device in mass storage mode came while a device is open, the "
-                 "list of devices is read again in 2.5 s")
+                 "list of devices is read again in %g s", PLUGGED_MS / 1000)
         schedule_detection(win, PLUGGED_MS, cause=Cause.PLUGGED)
         return
     connected = win.connected
@@ -463,8 +463,8 @@ class DeviceDetection:
         connected = self.connected
         if connected.listed(key) if self.session is not None else connected.is_choice(key):
             return  # its tile is there
-        log.info("volume %s: a Garmin drive not mounted (USB %s), detecting in 2.5 s (a device "
-                 "is open: %s)", what, usb.usb_id, self.session is not None)
+        log.info("volume %s: a Garmin drive not mounted (USB %s), detecting in %g s (a device "
+                 "is open: %s)", what, usb.usb_id, PLUGGED_MS / 1000, self.session is not None)
         schedule_detection(self, PLUGGED_MS, key, Cause.PLUGGED)
 
     def _drive_gone(self, key: str, what: str) -> None:
@@ -613,13 +613,15 @@ class DeviceDetection:
             self._usb_since = clock()
         if state == PRESENT and self._usb_state != PRESENT:
             # It left its transitional mode: look for it once gvfs had a moment.
-            log.info("USB: a Garmin device in its normal mode, detecting in 2.5 s")
+            log.info("USB: a Garmin device in its normal mode, detecting in %g s",
+                     PLUGGED_MS / 1000)
             self._normal_since, self._replug_told = clock(), False
             schedule_detection(self, PLUGGED_MS, cause=Cause.PLUGGED)
         elif state == MASS_STORAGE and self._usb_state != MASS_STORAGE and not unplugged:
             # A drive the system does not mount (KDE) sends no mount event: looked for once,
             # for its tile.
-            log.info("USB: a Garmin device in mass storage mode, detecting in 2.5 s")
+            log.info("USB: a Garmin device in mass storage mode, detecting in %g s",
+                     PLUGGED_MS / 1000)
             schedule_detection(self, PLUGGED_MS, cause=Cause.PLUGGED)
         elif unplugged and isinstance(detection_plan(Cause.UNPLUGGED_OPEN, left_on_usb=state,
                                                      ejected_waits=ejected_drive_waits()),
@@ -628,7 +630,7 @@ class DeviceDetection:
             # mounted already, it sends no event, so it is looked for as one in its normal
             # mode is, above.
             log.info("USB: the open device unplugged, a Garmin drive is still connected, "
-                     "detecting in 2.5 s")
+                     "detecting in %g s", PLUGGED_MS / 1000)
             schedule_detection(self, PLUGGED_MS, cause=Cause.PLUGGED)
         self._usb_state = state
         normal_s = clock() - self._normal_since if state == PRESENT else 0.0
