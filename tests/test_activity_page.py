@@ -1479,7 +1479,16 @@ def test_the_heart_rate_zones_under_the_laps(monkeypatch):
     assert rows[4].share_text == "5:00 · 12%" and rows[5].share_text == "36:30 · 88%"
     assert [round(r.bar.share, 2) for r in rows] == [0, 0, 0, 0, 0.12, 0.88]
     assert [r.bar.colour for r in rows] == list(reversed(ZONE_COLOURS))
-    assert ZONE_COLOURS == ("#8a898e", "#3584e4", "#26a269", "#c88800", "#e66100", "#f0384a")
+
+
+def test_each_zone_s_colour_reads_on_the_cards_of_both_styles():
+    """A contrast of 3:1 and a margin (a twentieth) with the light card and the dark one, as a
+    bar needs."""
+    from openexpress.gui.activity_zones import ZONE_COLOURS
+
+    cards = {"light": "#ffffff", "dark": "#343437"}  # the dark: white at 8 % over #222226
+    weakest = min(contrast(colour, card) for colour in ZONE_COLOURS for card in cards.values())
+    assert weakest >= 3.15
 
 
 def test_no_zones_without_them_in_the_file(monkeypatch):

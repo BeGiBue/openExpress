@@ -2,7 +2,7 @@
 (fit.HeartRateZones): zone 5 on top, then 4 to 1 and the time below zone 1, each with its
 bounds, its time and share, and a bar of its share in the zone's colour; under the title how
 the bounds were worked out. The zones' colours read on the cards of the light style and of the
-dark one alike (a contrast of 3:1 at least with both); the chart of heart rate draws its bands
+dark one alike (a contrast of 3:1 and a margin with both); the chart of heart rate draws its bands
 in them (gui/activity_chart.py).
 Has: no attribute of the window; the list keeps its rows."""
 from __future__ import annotations
@@ -27,7 +27,7 @@ from openexpress.gui.words import (  # noqa: E402
 )
 
 # Below zone 1, zones 1-5.
-ZONE_COLOURS = (GREY, BLUE, GREEN, "#c88800", "#e66100", "#f0384a")
+ZONE_COLOURS = (GREY, BLUE, GREEN, "#bd8100", "#e66100", "#f0384a")
 BAR_HEIGHT = 8
 
 

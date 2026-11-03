@@ -576,8 +576,9 @@ empty.
   had the orange (`#ffa348`, 2.0); a red of the GNOME palette had it on the light cards only
   (`#e01b24`, 4.8 light, 2.6 dark). One colour each, of at least 3:1 on both: below zone 1
   `#8a898e` (3.5 light, 3.6 dark), zone 1 `#3584e4` (3.8, 3.3), zone 2 `#26a269` (3.3, 3.8),
-  zone 3 `#c88800` (3.0, 4.1), zone 4 `#e66100` (3.5, 3.6), zone 5 `#f0384a` (3.9, 3.2). The
-  bar's track under it is the text's colour, faint.
+  zone 3 `#bd8100` (3.3, 3.7; `#c88800` had 3.0 on the light cards, with no margin), zone 4
+  `#e66100` (3.5, 3.6), zone 5 `#f0384a` (3.9, 3.2): each at 3.15 at least, which a test keeps.
+  The bar's track under it is the text's colour, faint.
 - Corrected when step 8 was tried on a watch (its times in the zones the same as Garmin
   Connect's to the second, its bounds a beat off): a device keeps as the bound of a zone the
   first beat of the zone above it, and Garmin Connect shows them so. Made-up bounds 118, 141, 158,
