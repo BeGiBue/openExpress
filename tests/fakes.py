@@ -745,7 +745,8 @@ class RecordingSession:
     def __init__(self, devices=None, **routes):
         self.routes = {DEVICES_PATH: response(body=devices if devices is not None else [])}
         self.routes.update(routes)
-        self.handlers = {}  # url part -> function(method, request kwargs) -> response
+        # url part -> function(method, request kwargs) -> response, or None for the routes
+        self.handlers = {}
         self.sent = []
 
     def request(self, method, url, **kw):
@@ -753,7 +754,9 @@ class RecordingSession:
                           "body": repr((kw.get("data"), kw.get("json"), kw.get("files")))})
         for part, handler in self.handlers.items():
             if part in url:
-                return handler(method, kw)
+                answer = handler(method, kw)
+                if answer is not None:  # None: the routes answer it
+                    return answer
         for part, answer in self.routes.items():
             if part in url:
                 if isinstance(answer, Exception):

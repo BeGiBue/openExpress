@@ -42,6 +42,8 @@ def client_answering(answer, status_answer=None, **kw):
     def handler(method, request):
         sent.append({"method": method, "headers": request.get("headers") or {},
                      "data": request.get("data")})
+        if method == "GET":
+            return None  # the account's list (its path holds the registration's)
         reply = answer if method == "POST" else status_answer
         if isinstance(reply, Exception):
             raise reply

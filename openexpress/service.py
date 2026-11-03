@@ -27,6 +27,7 @@ from openexpress.connect import (
     NotAccountDevice,
     OwnershipError,
     OwnershipUnknown,
+    Registration,
     Unauthorized,
 )
 from openexpress.device.storage import DeviceError, DeviceNotResponding, Storage
@@ -485,6 +486,69 @@ def require_account_device(client: GarminClient, unit_id: int,
         return devices
     finally:
         client.verified_unit_id = verified
+
+
+# --- adding a device to the account (experimental) ------------------------------------------
+
+
+@dataclass
+class DeviceAddition:
+    """The outcome of `add_device`."""
+
+    already: bool  # the account listed the device before: nothing was sent
+    # With apply: what Garmin answered, whether a retired device was made active, and whether
+    # the account's list, read again, holds the device (None: it could not be read).
+    registration: Registration | None = None
+    made_active: bool = False
+    listed: bool | None = None
+
+
+LISTED_WORDS = {True: "yes", False: "no", None: "not read"}
+
+
+def add_device(client: GarminClient, device: GarminDevice, apply: bool = False) -> DeviceAddition:
+    """Add the connected device to the logged-in account, as an active device.
+
+    The account's list is read first, anew; a device on it already is left alone. Without
+    `apply` nothing more is sent. With it, one request carries the device's GarminDevice.xml
+    (`GarminClient.register_device`); a device Garmin keeps as retired is made active, as
+    Garmin Express does; and the list is read again: that, not Garmin's answer, tells whether
+    the device is on the account (then it is verified, as after any check). Nothing is
+    written to the device; its primary training device and preferred activity tracker are
+    not touched. Refusals (`RegistrationRefused`) and the list's errors are raised as they
+    are."""
+    try:
+        require_account_device(client, device.unit_id, fresh=True,
+                               part_number=device.part_number)
+        return DeviceAddition(already=True)
+    except NotAccountDevice:
+        pass
+    if not apply:
+        return DeviceAddition(already=False)
+    part = device.part_number if _PART.fullmatch(device.part_number or "") else "?"
+    log.info("register: %s sent as an active device (GarminDevice.xml %s, environment %s)",
+             part, applog.size(len(device.raw)), client.settings.environment)
+    made_active = False
+    try:
+        registration = client.register_device(device.raw, device.unit_id)
+        log.info("register: Garmin added it (new registration: %s, status: %s)",
+                 registration.new, registration.status or "not told")
+        if registration.status.casefold() == "retired":
+            client.set_device_active(device.unit_id)
+            made_active = True
+            log.info("register: the device Garmin kept as retired made active")
+    finally:  # what was kept of the account may be what it was before
+        answers.ANSWERS.forget((answers.PRIMARY_TRAINING, answers.ACCOUNT_DEVICES))
+    try:
+        require_account_device(client, device.unit_id, fresh=True,
+                               part_number=device.part_number)
+        listed: bool | None = True
+    except NotAccountDevice:
+        listed = False
+    except OwnershipUnknown:
+        listed = None
+    log.info("register: on the account's list after adding it: %s", LISTED_WORDS[listed])
+    return DeviceAddition(False, registration, made_active, listed)
 
 
 # --- may data be uploaded? ---------------------------------------------------------------
