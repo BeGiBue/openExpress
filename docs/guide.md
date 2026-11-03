@@ -301,7 +301,8 @@ as do a damaged file and a file that is no FIT file.
 
 A click on an activity (or Enter) opens its page, which reads its file again. On top are its
 distance, time, pace or speed, average heart rate and ascent (a workout without a distance: its
-time, heart rate and calories). An activity with positions has a map of its track, its start
+time, average and maximum heart rate, calories and ascent), each only when the file gives it.
+An activity with positions has a map of its track, its start
 and finish marked, the track coloured by what the chart shows: from blue (low, or a slow pace)
 to red (high, or a fast pace), with the legend and the **Colours** switch under the map.
 Streets and terrain come from OpenStreetMap only once you turn them on, with **Show the Map** or
