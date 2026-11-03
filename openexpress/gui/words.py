@@ -6,7 +6,7 @@ from __future__ import annotations
 import math
 from datetime import datetime
 
-from openexpress import known_devices
+from openexpress import known_devices, service
 from openexpress.i18n import (
     _,
     caption,
@@ -156,9 +156,7 @@ def with_activities_to_upload(text: str, record: dict | None, to_sync) -> str:
     device has to upload now (`to_sync`: sync.ActivitiesToSync, the count of the chip "To
     sync"), unless that sync could not upload (no chip then): the row "Last sync" of the
     device page and the line of `openexpress status`."""
-    from openexpress import service
-
-    count = getattr(to_sync, "count", None)
+    count = to_sync.count if to_sync is not None else None
     if count and (not record or service.not_uploaded(record) is None):
         return caption(text, to_upload_text(count))
     return text
