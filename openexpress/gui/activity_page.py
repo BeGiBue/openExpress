@@ -90,43 +90,42 @@ def _prepared(data):
     return data, chart_series(data), activity_map.track_of(data), moving_time(data)
 
 
+def _beside(widget, kinds):
+    """The widgets of `kinds` beside `widget` on the page (its parent's children)."""
+    child = widget.get_parent().get_first_child()
+    while child is not None:
+        if isinstance(child, kinds):
+            yield child
+        child = child.get_next_sibling()
+
+
 def _lap_chosen(laps, chosen: bool, start: float, end: float) -> None:
     """A lap chosen under the chart, or none: the chart and the map beside it show it."""
     span = (start, end) if chosen else None
-    child = laps.get_parent().get_first_child()
-    while child is not None:
-        if isinstance(child, (ActivityChart, activity_map.ActivityMap)):
-            child.show_lap(span)
-        child = child.get_next_sibling()
+    for shown in _beside(laps, (ActivityChart, activity_map.ActivityMap)):
+        shown.show_lap(span)
 
 
 def _series_shown(chart, kind: str) -> None:
     """Another series on the chart: the map beside it colours the track by it."""
-    child = chart.get_parent().get_first_child()
-    while child is not None:
-        if isinstance(child, activity_map.ActivityMap):
-            child.colour_by(chart.series[kind])
-        child = child.get_next_sibling()
+    for shown in _beside(chart, activity_map.ActivityMap):
+        shown.colour_by(chart.series[kind])
 
 
 def _cursor_moved(chart, at: float) -> None:
     """The chart's cursor placed: the map beside it marks the place."""
-    child = chart.get_parent().get_first_child()
-    while child is not None:
-        if isinstance(child, activity_map.ActivityMap):
-            child.show_cursor(at)
-        child = child.get_next_sibling()
+    for shown in _beside(chart, activity_map.ActivityMap):
+        shown.show_cursor(at)
 
 
 def leave(win) -> None:
     """Back to the device view when an activity's page is shown: the pages of the device are
     drawn anew, or Refresh or Sync is asked from the keyboard (the bar of their task is in the
     device view)."""
-    navigation = win.navigation
-    page = navigation.get_visible_page() if navigation is not None else None
-    if isinstance(page, Adw.NavigationPage) and page.get_tag() == TAG:
+    page = activity_map.visible_page(win)
+    if page is not None and page.get_tag() == TAG:
         log.info("activity page: closed with the device view")
-        navigation.pop_to_page(win.device_view)
+        win.navigation.pop_to_page(win.device_view)
 
 
 def open_activity(win, read) -> None:

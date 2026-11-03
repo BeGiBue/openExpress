@@ -1080,11 +1080,17 @@ def _maps_in(widget):
         child = child.get_next_sibling()
 
 
-def tiles_changed(win) -> None:
-    """The yes given or taken back in Preferences: the map shown now follows it."""
+def visible_page(win):
+    """The page the window's navigation shows (Adw.NavigationPage); None without one."""
     navigation = win.navigation
     page = navigation.get_visible_page() if navigation is not None else None
-    if not isinstance(page, Adw.NavigationPage):
+    return page if isinstance(page, Adw.NavigationPage) else None
+
+
+def tiles_changed(win) -> None:
+    """The yes given or taken back in Preferences: the map shown now follows it."""
+    page = visible_page(win)
+    if page is None:
         return
     on = tiles_on()
     for shown in _maps_in(page):
