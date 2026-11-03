@@ -150,6 +150,15 @@ def test_compressed_timestamps_give_each_record_its_time():
     assert [s.heart_rate for s in data.samples] == [120, 121, 122]
 
 
+def test_one_session_without_its_timer_time_has_its_average_heart_rate():
+    """One session's averages are its own as it gives them, its heart rate's as the others:
+    only several are weighted by their timer times."""
+    sessions = [FitData(2, (START, 1, 0, 4000, None, 1000, 2, 2500, 2500, 141, 145, 1))]
+    data = fit.activity_data(run(sessions=sessions))
+    assert data.timer_time is None
+    assert data.avg_heart_rate == 141
+
+
 def test_several_sessions_together():
     """A multisport activity: its sport is multisport, its times, distance, ascent and
     calories added up, its average speed over all of it, its maximum heart rate the

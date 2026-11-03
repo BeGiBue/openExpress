@@ -373,11 +373,10 @@ def _created(data: bytes) -> int | None:
 
 
 def _total(sessions: list[dict[int, Value]], number: int, scale: int = 1) -> float | int | None:
-    """The sum of a field over the sessions that give it; None when none does."""
-    known = [n for n in (_whole_number(s.get(number)) for s in sessions) if n is not None]
-    if not known:
-        return None
-    return sum(known) / scale if scale != 1 else sum(known)
+    """The sum of a field over the sessions that give it (a whole number unscaled); None when
+    none does."""
+    found = _added(sessions, lambda s: _whole_number(s.get(number)))
+    return found if found is None or scale == 1 else found / scale
 
 
 def _has_position(values: dict[int, Value], lat: int, long: int) -> bool:
@@ -672,10 +671,15 @@ def _scaled(value: Value, scale: int) -> float | None:
     return None if number is None else number / scale
 
 
+def _enhanced(values: dict[int, Value], enhanced: int, plain: int, read) -> float | None:
+    """A value as `read` gives it: of the enhanced field first, the plain one standing in."""
+    found = read(values.get(enhanced))
+    return read(values.get(plain)) if found is None else found
+
+
 def _speed(values: dict[int, Value], enhanced: int, plain: int) -> float | None:
-    """A speed in metres a second: the enhanced field first, the plain one standing in."""
-    speed = _scaled(values.get(enhanced), 1000)
-    return _scaled(values.get(plain), 1000) if speed is None else speed
+    """A speed in metres a second."""
+    return _enhanced(values, enhanced, plain, lambda value: _scaled(value, 1000))
 
 
 def _sample(values: dict[int, Value]) -> Sample | None:
@@ -717,9 +721,8 @@ def _with_fraction(values: dict[int, Value], whole: int, fraction: int) -> float
 
 
 def _altitude(values: dict[int, Value], enhanced: int, plain: int) -> float | None:
-    """An altitude in metres: the enhanced field first, the plain one standing in."""
-    altitude = _metres(values.get(enhanced))
-    return _metres(values.get(plain)) if altitude is None else altitude
+    """An altitude in metres."""
+    return _enhanced(values, enhanced, plain, _metres)
 
 
 def _each(sessions: list[dict[int, Value]], read) -> list[float]:
@@ -820,11 +823,7 @@ def _sessions_together(sessions: list[dict[int, Value]]) -> dict:
         avg_speed = _speed(sessions[0], _SESSION_ENHANCED_AVG_SPEED, _SESSION_AVG_SPEED)
     else:
         avg_speed = distance / timer_time if distance is not None and timer_time else None
-    weighted = [(hr, t) for hr, t in ((_whole_number(s.get(_SESSION_AVG_HEART_RATE)),
-                                       _whole_number(s.get(_SESSION_TIMER_TIME)))
-                                      for s in sessions) if hr is not None and t]
-    heart_rates = [hr for hr in (_whole_number(s.get(_SESSION_MAX_HEART_RATE))
-                                 for s in sessions) if hr is not None]
+    avg_heart_rate = _weighted(sessions, lambda s: _whole_number(s.get(_SESSION_AVG_HEART_RATE)))
     return {
         "start": _unix_time(sessions[0].get(_SESSION_START_TIME)),
         "sport": sport,
@@ -833,21 +832,15 @@ def _sessions_together(sessions: list[dict[int, Value]]) -> dict:
         "distance": distance,
         "ascent": _total(sessions, _SESSION_ASCENT),
         "avg_speed": avg_speed,
-        "avg_heart_rate": (round(sum(hr * t for hr, t in weighted) / sum(t for _hr, t in weighted))
-                           if weighted else None),
-        "max_heart_rate": max(heart_rates) if heart_rates else None,
+        "avg_heart_rate": round(avg_heart_rate) if avg_heart_rate is not None else None,
+        "max_heart_rate": _greatest(sessions, lambda s: _whole_number(
+            s.get(_SESSION_MAX_HEART_RATE))),
         "calories": _total(sessions, _SESSION_CALORIES),
-        "aerobic_effect": _highest(sessions, _SESSION_AEROBIC_EFFECT, 10),
-        "anaerobic_effect": _highest(sessions, _SESSION_ANAEROBIC_EFFECT, 10),
-        "training_load": _highest(sessions, _SESSION_TRAINING_LOAD, 65536),
+        "aerobic_effect": _greatest(sessions, _field(_SESSION_AEROBIC_EFFECT, 10)),
+        "anaerobic_effect": _greatest(sessions, _field(_SESSION_ANAEROBIC_EFFECT, 10)),
+        "training_load": _greatest(sessions, _field(_SESSION_TRAINING_LOAD, 65536)),
         **_details_together(sessions),
     }
-
-
-def _highest(sessions: list[dict[int, Value]], number: int, scale: int) -> float | None:
-    """The highest value of a field of the sessions, scaled; None when none gives it."""
-    values = [v for v in (_scaled(s.get(number), scale) for s in sessions) if v is not None]
-    return max(values) if values else None
 
 
 def _zones(found: list[dict[int, Value]]) -> HeartRateZones | None:
