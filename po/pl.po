@@ -6624,12 +6624,12 @@ msgstr "Granice z zegarka: własne"
 #. TRANSLATORS: the title of the section of the training effect on the page of an activity
 #: openexpress/gui/words.py:529
 msgid "Training effect"
-msgstr "Efekt treningowy"
+msgstr "Efekt treningu"
 
 #. TRANSLATORS: the aerobic training effect of an activity
 #: openexpress/gui/words.py:536
 msgid "Aerobic"
-msgstr "Tlenowy"
+msgstr "Aerobowy"
 
 #. TRANSLATORS: the anaerobic training effect of an activity
 #: openexpress/gui/words.py:538
@@ -6639,27 +6639,27 @@ msgstr "Beztlenowy"
 #. TRANSLATORS: a training effect below 1.0
 #: openexpress/gui/words.py:548
 msgid "No benefit"
-msgstr "Bez efektu"
+msgstr "Brak korzyści"
 
 #. TRANSLATORS: a training effect from 1.0 to 1.9
 #: openexpress/gui/words.py:550
 msgid "Minor benefit"
-msgstr "Niewielki efekt"
+msgstr "Niewielka korzyść"
 
 #. TRANSLATORS: a training effect from 2.0 to 2.9
 #: openexpress/gui/words.py:552
 msgid "Maintaining"
-msgstr "Podtrzymanie"
+msgstr "Utrzymanie"
 
 #. TRANSLATORS: a training effect from 3.0 to 3.9
 #: openexpress/gui/words.py:554
 msgid "Improving"
-msgstr "Poprawa"
+msgstr "Wzrost"
 
 #. TRANSLATORS: a training effect from 4.0 to 4.9
 #: openexpress/gui/words.py:556
 msgid "Highly improving"
-msgstr "Duża poprawa"
+msgstr "Znaczna poprawa"
 
 #. TRANSLATORS: a training effect of 5.0
 #: openexpress/gui/words.py:558
@@ -6669,7 +6669,7 @@ msgstr "Przeciążenie"
 #. TRANSLATORS: the training load of an activity (a number)
 #: openexpress/gui/words.py:571
 msgid "Training load"
-msgstr "Obciążenie treningowe"
+msgstr "Obciążenie wysiłkowe"
 
 #. TRANSLATORS: the switch above the chart of an activity
 #: openexpress/gui/words.py:586

@@ -583,6 +583,16 @@ empty.
   (as the chart's line); the load a whole number (a half up), with no bar, as it has no fixed
   top; a row the file does not give is left out, with none of the three no section; 0.0 is
   shown ("0.0 · No benefit"). The values are the session's fields 24, 137 and 168 (Appendix A).
+- Corrected when step 9 was tried on a watch: the Polish words are Garmin's own, as a user
+  compares them with Garmin Connect. "Efekt treningu", "Aerobowy", "Beztlenowy", "Obciążenie
+  wysiłkowe", "Brak korzyści" and "Utrzymanie" as Garmin Connect in Polish says them;
+  "Niewielka korzyść" as the Polish manual of the fēnix 8 ("Informacje o funkcji Training
+  Effect"); "Wzrost", "Znaczna poprawa" and "Przeciążenie" as Garmin's Polish page on the
+  aerobic training effect (garmin.com/pl-PL, running science, its note on the scale: "0 — Brak,
+  1 — Nieznaczna korzyść, 2 — Utrzymanie, 3 — Wzrost, 4 — Znaczna poprawa, 5 — Przeciążenie").
+  The manual describes the scale in sentences ("Utrzymanie sprawności aerobowej", "Wpływ na
+  sprawność aerobową", "Znaczny wpływ…", "Ponad siły…"), not as labels. The English words
+  were Garmin's already.
 - **An assumption to check:** of several sessions (a multisport activity) each of the three is
   the highest of the sessions. No such file was looked at; when one comes, compare with Garmin
   Connect (whether the device adds up the legs, or keeps each leg's own).
@@ -720,8 +730,8 @@ Accepted, but for those of the sets (D19a put off), which are not added.
 | Bounds from the device: % of heart rate reserve | Granice z zegarka, od rezerwy tętna |
 | Bounds from the device: % of lactate threshold ({bpm}) | Granice z zegarka, od progu mleczanowego ({bpm}) |
 | Bounds from the device: your own | Granice z zegarka: własne |
-| Training effect / Aerobic / Anaerobic / Training load | Efekt treningowy / Tlenowy / Beztlenowy / Obciążenie treningowe |
-| No benefit / Minor benefit / Maintaining / Improving / Highly improving / Overreaching | Bez efektu / Niewielki efekt / Podtrzymanie / Poprawa / Duża poprawa / Przeciążenie |
+| Training effect / Aerobic / Anaerobic / Training load | Efekt treningu / Aerobowy / Beztlenowy / Obciążenie wysiłkowe (corrected in step 9: Garmin's words, D15) |
+| No benefit / Minor benefit / Maintaining / Improving / Highly improving / Overreaching | Brak korzyści / Niewielka korzyść / Utrzymanie / Wzrost / Znaczna poprawa / Przeciążenie (corrected in step 9, D15) |
 | Details | Szczegóły |
 | Total time / Moving time / Active time | Czas całkowity / Czas w ruchu / Czas aktywny |
 | Descent / Elevation / Maximum pace / Maximum speed | Zejście / Wysokość / Tempo maks. / Prędkość maks. |
