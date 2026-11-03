@@ -9,6 +9,7 @@ import re
 import time
 
 import pytest
+from fakes import STALLED
 from gio_fake import MTIME, GioOf, GioOp, GvfsDevice, MtpFiles, Volume, in_a_worker, settle
 
 from openexpress import i18n
@@ -18,7 +19,6 @@ gio_storage = pytest.importorskip("openexpress.device.gio_storage")
 
 LIMIT = 0.2
 GRACE = 0.2
-STALLED = "the device stopped responding. Unplug it and plug it in again."
 LOGGER = "openexpress.device.gio_storage"
 URI = "mtp://Made_Up_Device/"
 CHUNK = 256 * 1024  # what a file is read in: the most gvfs reads at a time

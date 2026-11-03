@@ -7,6 +7,7 @@ up."""
 import types
 
 import pytest
+from fakes import descendants
 
 from openexpress import i18n
 
@@ -134,7 +135,7 @@ def test_the_page_says_which_device_is_the_primary_wearable_under_the_training_d
     assert _rows(texts) == [("Primary training device", "Checking…"),
                             ("Primary wearable", "This device")]
     (group,) = [g for g in section.groups if g.get_title() == "Garmin Connect account"]
-    titles = [w.get_title() for w in _descendants(group) if isinstance(w, Adw.ActionRow)]
+    titles = [w.get_title() for w in descendants(group) if isinstance(w, Adw.ActionRow)]
     assert titles[-2:] == ["Primary training device", "Primary wearable"]  # just under it
     _win, _section, texts = _page(account=_account(VENU))
     assert _rows(texts)[1] == ("Primary wearable", "Venu 2")
@@ -147,19 +148,11 @@ def test_the_row_offers_set_as_primary_when_another_device_is_it():
     from gi.repository import Adw, Gtk
 
     _win, section, _texts = _page(account=_account(VENU))
-    (row,) = [w for g in section.groups for w in _descendants(g)
+    (row,) = [w for g in section.groups for w in descendants(g)
               if isinstance(w, Adw.ActionRow) and w.get_title() == "Primary wearable"]
     assert not row.get_activatable()
-    assert [w.get_label() for w in _descendants(row) if isinstance(w, Gtk.Button)
+    assert [w.get_label() for w in descendants(row) if isinstance(w, Gtk.Button)
             and w.get_label()] == ["Set as Primary"]
-
-
-def _descendants(widget):
-    child = widget.get_first_child()
-    while child is not None:
-        yield child
-        yield from _descendants(child)
-        child = child.get_next_sibling()
 
 
 @pytest.mark.needs_display

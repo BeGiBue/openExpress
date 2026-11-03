@@ -9,15 +9,20 @@ from datetime import UTC, datetime
 
 import pytest
 from fakes import (
+    FIT_HEART_RECORD,
+    FIT_SESSION,
     FitData,
     FitDefinition,
     RunNow,
+    contrast,
+    descendants,
     fit_file,
+    luminance,
     program_style,
-    replace_in_window,
+    stalled_session,
     tasks_at_once,
+    tells_stalls,
     window,
-    window_methods,
 )
 
 pytestmark = pytest.mark.needs_display
@@ -25,11 +30,9 @@ pytestmark = pytest.mark.needs_display
 FIT_EPOCH = int(datetime(1989, 12, 31, tzinfo=UTC).timestamp())
 START = 1_100_000_000  # a time of the FIT protocol
 HIKING, TRAINING = 17, 10
-SESSION = FitDefinition(2, 18, ((2, 0x86), (5, 0x00), (6, 0x00), (7, 0x86), (8, 0x86),
-                                (9, 0x86), (11, 0x84), (14, 0x84), (124, 0x86), (16, 0x02),
-                                (17, 0x02), (22, 0x84)))
+SESSION = FIT_SESSION
 PLACED = FitDefinition(1, 20, ((253, 0x86), (0, 0x85), (1, 0x85), (3, 0x02)))
-HEART = FitDefinition(1, 20, ((253, 0x86), (3, 0x02)))
+HEART = FIT_HEART_RECORD
 NOTHING_READ = "The file of this activity could not be read"  # a title: no period
 
 
@@ -87,14 +90,6 @@ def shown(win):
     return win.navigation.get_visible_page()
 
 
-def _all(widget):
-    child = widget.get_first_child()
-    while child is not None:
-        yield child
-        yield from _all(child)
-        child = child.get_next_sibling()
-
-
 def seen(widget, page) -> bool:
     """Whether the widget would be seen on the page: it and every widget up to the page shown
     (a page of a Gtk.Stack that is not the visible one is not)."""
@@ -108,13 +103,13 @@ def seen(widget, page) -> bool:
 def labels(page) -> list[str]:
     from gi.repository import Gtk
 
-    return [w.get_label() for w in _all(page) if isinstance(w, Gtk.Label) and seen(w, page)]
+    return [w.get_label() for w in descendants(page) if isinstance(w, Gtk.Label) and seen(w, page)]
 
 
 def status_texts(page) -> list[str]:
     from gi.repository import Adw
 
-    return [t for w in _all(page) if isinstance(w, Adw.StatusPage) and seen(w, page)
+    return [t for w in descendants(page) if isinstance(w, Adw.StatusPage) and seen(w, page)
             for t in (w.get_title(), w.get_description()) if t]
 
 
@@ -133,7 +128,7 @@ def test_a_row_opens_the_page_of_its_activity_and_reads_it():
     assert page is not the_list and page.get_tag() == "activity"
     (call,) = win.run_task.calls
     assert call.title == "Reading the activity…" and call.in_page and call.device
-    title = next(w for w in _all(page) if isinstance(w, Adw.WindowTitle))
+    title = next(w for w in descendants(page) if isinstance(w, Adw.WindowTitle))
     assert title.get_title() == "Hiking" and title.get_subtitle()
     texts = labels(page)
     for value, name in [("12.40 km", "Distance"), ("3:50:00", "Time"),
@@ -160,8 +155,8 @@ def test_the_gpx_button_in_the_header_exports_as_the_row_does(monkeypatch):
     win, _the_list = a_window(hike())
     read = read_of()
     page = open_page(win, read)
-    header = next(w for w in _all(page) if isinstance(w, Adw.HeaderBar))
-    (button,) = [w for w in _all(header) if isinstance(w, Gtk.Button)
+    header = next(w for w in descendants(page) if isinstance(w, Adw.HeaderBar))
+    (button,) = [w for w in descendants(header) if isinstance(w, Gtk.Button)
                  and w.get_tooltip_text() == "Export as GPX…"]
     button.emit("clicked")
     assert exported == [read]
@@ -172,7 +167,7 @@ def test_an_activity_without_positions_has_its_gpx_button_off():
 
     win, _the_list = a_window(workout())
     page = open_page(win, read_of(sport=TRAINING, positions=False))
-    (button,) = [w for w in _all(page) if isinstance(w, Gtk.Button)
+    (button,) = [w for w in descendants(page) if isinstance(w, Gtk.Button)
                  and w.get_tooltip_text() == "No GPS positions in this activity"]
     assert not button.get_sensitive()
     texts = labels(page)
@@ -230,22 +225,12 @@ def test_a_stall_while_the_activity_is_read_closes_the_page_with_the_device(monk
     error = DeviceNotResponding.during("Cannot read GARMIN/Activity/a.fit")
     error.usb = GarminUsb("51b4", 3, 14)
     win, the_list = a_window(error)
-    told = []
-    replace_in_window(monkeypatch, "inform",
-                      lambda parent, name, heading, body, **kw: told.append(body))
-    window_methods(win, ["error"])
+    told = tells_stalls(win, monkeypatch)
     win.run_task = types.MethodType(MainWindow.run_task, win)
-    win.set_busy = lambda busy, *a, **kw: setattr(win, "busy", busy)
-    win._run_pending_refresh = lambda: None
-    win.session = types.SimpleNamespace(storage=types.SimpleNamespace(
-        usb=GarminUsb("51b4", 3, 14), device_uri="mtp://Made_Up/", stalled=True),
-        device=types.SimpleNamespace(description="Made-up watch"))
-    win.start = types.SimpleNamespace(set_stalled=lambda text: None)
-    win._update_banner = lambda: None
-    win.connected = types.SimpleNamespace(devices=[])
+    win.session = stalled_session(GarminUsb("51b4", 3, 14), "Made-up watch", stalled=True)
     win.show_no_device = lambda: win.navigation.pop_to_page(the_list)
     open_page(win, read_of())
-    assert told == [] and shown(win) is the_list and win.session is None
+    assert told.errors == [] and shown(win) is the_list and win.session is None
 
 
 def test_rows_open_their_activity_but_for_a_file_that_is_no_fit_file():
@@ -256,7 +241,7 @@ def test_rows_open_their_activity_but_for_a_file_that_is_no_fit_file():
     win, _the_list = a_window(hike())
     row = activity_row(win, read_of())
     assert row.get_activatable()
-    assert "go-next-symbolic" in [w.get_icon_name() for w in _all(row)
+    assert "go-next-symbolic" in [w.get_icon_name() for w in descendants(row)
                                   if isinstance(w, Gtk.Image)]
     row.emit("activated")
     assert shown(win).get_tag() == "activity"
@@ -274,8 +259,8 @@ def test_the_tiles_share_the_whole_line_of_a_wide_window(data, sport, count):
     win.toplevel.set_default_size(1000, 600)
     win.toplevel.present()
     try:
-        flow = next(w for w in _all(page) if isinstance(w, Gtk.FlowBox))
-        tiles = [w for w in _all(flow) if isinstance(w, Gtk.FlowBoxChild)]
+        flow = next(w for w in descendants(page) if isinstance(w, Gtk.FlowBox))
+        tiles = [w for w in descendants(flow) if isinstance(w, Gtk.FlowBoxChild)]
         for _ in range(500):
             if flow.get_width() > 0:
                 break
@@ -315,14 +300,14 @@ def heart_only() -> bytes:
 def chart_of(page):
     from openexpress.gui.activity_chart import ActivityChart
 
-    found = [w for w in _all(page) if isinstance(w, ActivityChart)]
+    found = [w for w in descendants(page) if isinstance(w, ActivityChart)]
     return found[0] if found else None
 
 
 def switch_of(page) -> list:
     from gi.repository import Gtk
 
-    return [w for w in _all(page) if isinstance(w, Gtk.ToggleButton)]
+    return [w for w in descendants(page) if isinstance(w, Gtk.ToggleButton)]
 
 
 def test_the_chart_of_a_walk_switches_between_what_it_has():
@@ -477,7 +462,7 @@ NOTE = ("The map can show streets and terrain under the track, from OpenStreetMa
 def map_of(page):
     from openexpress.gui.activity_map import ActivityMap
 
-    found = [w for w in _all(page) if isinstance(w, ActivityMap)]
+    found = [w for w in descendants(page) if isinstance(w, ActivityMap)]
     return found[0] if found else None
 
 
@@ -486,13 +471,13 @@ def tile_layers(widget) -> list:
 
     from openexpress.gui.activity_map import TileLayer
 
-    return [w for w in _all(widget) if isinstance(w, (TileLayer, Shumate.MapLayer))]
+    return [w for w in descendants(widget) if isinstance(w, (TileLayer, Shumate.MapLayer))]
 
 
 def show_the_map_button(page):
     from gi.repository import Gtk
 
-    found = [w for w in _all(page) if isinstance(w, Gtk.Button)
+    found = [w for w in descendants(page) if isinstance(w, Gtk.Button)
              and w.get_label() == "Show the Map" and seen(w, page)]
     return found[0] if found else None
 
@@ -555,7 +540,7 @@ def test_the_yes_is_taken_back_in_preferences(no_tile_server):
     win, _the_list = a_window(walk())
     page = open_page(win, read_of(sport=WALKING))
     group = maps_group(win)
-    (row,) = [w for w in _all(group) if isinstance(w, Adw.SwitchRow)]
+    (row,) = [w for w in descendants(group) if isinstance(w, Adw.SwitchRow)]
     assert row.get_title() == "Streets and terrain from OpenStreetMap" and row.get_active()
     assert row.get_subtitle() == ("The OpenStreetMap server learns the area of each activity "
                                   "you open")
@@ -825,7 +810,7 @@ def only_tiles(shown) -> None:
 
     from openexpress.gui.activity_map import TrackLayer
 
-    for layer in _all(shown.map):
+    for layer in descendants(shown.map):
         if isinstance(layer, (TrackLayer, Shumate.PathLayer, Shumate.MarkerLayer)):
             layer.set_visible(False)
 
@@ -1077,14 +1062,14 @@ def page_of(monkeypatch, data, sport=WALKING):
 def lap_list(page):
     from openexpress.gui.activity_laps import LapList
 
-    found = [w for w in _all(page) if isinstance(w, LapList)]
+    found = [w for w in descendants(page) if isinstance(w, LapList)]
     return found[0] if found else None
 
 
 def lap_rows(page):
     from gi.repository import Adw
 
-    return [w for w in _all(lap_list(page)) if isinstance(w, Adw.ActionRow)]
+    return [w for w in descendants(lap_list(page)) if isinstance(w, Adw.ActionRow)]
 
 
 def test_the_laps_are_rows_under_the_chart(monkeypatch):
@@ -1368,7 +1353,7 @@ def test_the_buttons_of_the_map_zoom_it_by_a_whole_level():
     shown, toplevel = a_map()
     try:
         viewport = shown.map.get_viewport()
-        buttons = [w for w in _all(shown) if isinstance(w, Gtk.Button)
+        buttons = [w for w in descendants(shown) if isinstance(w, Gtk.Button)
                    and w.get_tooltip_text() in ("Zoom in", "Zoom out")]
         zoom_in, zoom_out = sorted(buttons, key=lambda b: b.get_tooltip_text() != "Zoom in")
         viewport.set_zoom_level(14.4)
@@ -1389,14 +1374,14 @@ def test_the_buttons_of_the_map_zoom_it_by_a_whole_level():
 def sport_dot(page):
     from gi.repository import Gtk
 
-    found = [w for w in _all(page) if isinstance(w, Gtk.Widget) and w.has_css_class("oe-sport-dot")]
+    found = [w for w in descendants(page) if isinstance(w, Gtk.Widget) and w.has_css_class("oe-sport-dot")]
     return found[0] if found else None
 
 
 def tile_icons(page):
     from gi.repository import Gtk
 
-    return [w for w in _all(page) if isinstance(w, Gtk.Image) and w.get_ancestor(Gtk.FlowBoxChild)
+    return [w for w in descendants(page) if isinstance(w, Gtk.Image) and w.get_ancestor(Gtk.FlowBoxChild)
             and w.get_ancestor(Gtk.FlowBoxChild).get_child().has_css_class("card")]
 
 
@@ -1470,7 +1455,7 @@ def zoned(data, times=(2190, 300, 0, 0, 0, 0)):
 def zone_section(page):
     from openexpress.gui.activity_zones import ZoneList
 
-    found = [w for w in _all(page) if isinstance(w, ZoneList)]
+    found = [w for w in descendants(page) if isinstance(w, ZoneList)]
     return found[0] if found else None
 
 
@@ -1513,7 +1498,7 @@ def with_effect(data, aerobic=1.6, anaerobic=0.0, load=28.4):
 def effect_section(page):
     from openexpress.gui.activity_effect import EffectList
 
-    found = [w for w in _all(page) if isinstance(w, EffectList)]
+    found = [w for w in descendants(page) if isinstance(w, EffectList)]
     return found[0] if found else None
 
 
@@ -1607,7 +1592,7 @@ def test_the_bar_of_the_chart_s_switch_has_no_background_under_the_pointer(monke
 def detail_section(page):
     from openexpress.gui.activity_details import DetailsList
 
-    found = [w for w in _all(page) if isinstance(w, DetailsList)]
+    found = [w for w in descendants(page) if isinstance(w, DetailsList)]
     return found[0] if found else None
 
 
@@ -1690,16 +1675,9 @@ def test_without_the_accent_colours_a_line_is_in_the_blue_of_the_style(dark, mon
         other = activity_colours.LINE_BLUE[not dark]
     finally:
         style.set_color_scheme(Adw.ColorScheme.DEFAULT)
-
-    def luminance(rgb):
-        return sum(w * (c / 12.92 if c <= 0.04045 else ((c + 0.055) / 1.055) ** 2.4)
-                   for w, c in zip((0.2126, 0.7152, 0.0722), rgb))
-
-    ours = luminance((line.red, line.green, line.blue))
-    theirs = luminance(tuple(int(other[i:i + 2], 16) / 255 for i in (1, 3, 5)))
-    background = "#222226" if dark else "#fafafb"  # the window's
-    window = luminance(tuple(int(background[i:i + 2], 16) / 255 for i in (1, 3, 5)))
-    contrast = (max(ours, window) + 0.05) / (min(ours, window) + 0.05)
-    lighter_in_the_dark = (ours > theirs) == dark
+    ours = "#" + "".join(f"{round(c * 255):02x}" for c in (line.red, line.green, line.blue))
+    window = "#222226" if dark else "#fafafb"  # the window's background
+    lighter_in_the_dark = (luminance(ours) > luminance(other)) == dark
+    least = contrast(ours, window)
     assert lighter_in_the_dark
-    assert contrast >= 3
+    assert least >= 3

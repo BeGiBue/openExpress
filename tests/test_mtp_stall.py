@@ -9,7 +9,7 @@ import types
 from pathlib import Path
 
 import pytest
-from fakes import ACTIVITY_URL, COURSE, DriveAccount, SyncAccount, stalls, usb_devices
+from fakes import ACTIVITY_URL, COURSE, STALLED, DriveAccount, SyncAccount, stalls, usb_devices
 from gio_fake import GioOp, MtpFiles
 
 import openexpress
@@ -21,7 +21,6 @@ from openexpress.progress import say_to
 gio_storage = pytest.importorskip("openexpress.device.gio_storage")
 
 UNIT = SyncAccount.UNIT
-STALLED = "the device stopped responding. Unplug it and plug it in again."
 SECOND_COURSE = {"messageid": 7, "devicexmldatatype": "FIT_TYPE_6",
                  "metadata": {"messageurl": "course/7", "messagename": "Another course"}}
 

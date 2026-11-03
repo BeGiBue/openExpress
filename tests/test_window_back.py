@@ -5,6 +5,7 @@ panel first, then to the start page; a page chosen stays in front when the windo
 device is made up; no server is asked."""
 
 import pytest
+from fakes import descendants
 
 pytestmark = pytest.mark.needs_display
 
@@ -12,14 +13,6 @@ PAGES = ["updates", "maps", "apps", "music"]
 MUSIC = ("<DataType><Name>MEDIA_TRACK</Name><File><Location><Path>Music</Path>"
          "<FileExtension>MP3</FileExtension></Location>"
          "<TransferDirection>InputOutput</TransferDirection></File></DataType>")
-
-
-def _all(widget):
-    child = widget.get_first_child()
-    while child is not None:
-        yield child
-        yield from _all(child)
-        child = child.get_next_sibling()
 
 
 def _turn(times=200):
@@ -37,7 +30,7 @@ def _back(win):
     """A click on the back arrow in view (the side panel's; folded, the page's own first)."""
     from gi.repository import Gtk
 
-    arrows = [w for w in _all(win) if isinstance(w, Gtk.Button) and w.get_mapped()
+    arrows = [w for w in descendants(win) if isinstance(w, Gtk.Button) and w.get_mapped()
               and w.get_action_name() == "navigation.pop"]
     assert arrows, "no back arrow in view"
     arrows[0].emit("clicked")
@@ -105,7 +98,7 @@ def test_one_click_back_from_a_page_chosen_on_the_device_page(device_window, key
 @pytest.mark.parametrize("key", PAGES)
 def test_one_click_back_from_a_page_chosen_in_the_side_panel(device_window, key):
     win = device_window()
-    row = next(r for r in _all(win.nav) if getattr(r, "key", None) == key)
+    row = next(r for r in descendants(win.nav) if getattr(r, "key", None) == key)
     win.nav.select_row(row)
     row.emit("activate")
     _turn()
@@ -199,7 +192,7 @@ def _activity_page(win, device_root):
     win.run_task = RunNow()
     win.select_section("activities")
     _turn()
-    rows = [r for r in _all(win.sections["activities"].page)
+    rows = [r for r in descendants(win.sections["activities"].page)
             if r.__class__.__name__ == "ActionRow" and r.get_title() == "Hiking"]
     assert len(rows) == 1 and rows[0].get_activatable()
     win.navigation.set_animate_transitions(False)  # the arrow in view is then the page's own
@@ -217,7 +210,7 @@ def test_back_from_the_page_of_an_activity_to_the_activities_page(device_window,
 
     win = device_window(width=width)
     page = _activity_page(win, device_root)
-    assert {"12.40 km", "Distance", "740 m"} <= {w.get_label() for w in _all(page)
+    assert {"12.40 km", "Distance", "740 m"} <= {w.get_label() for w in descendants(page)
                                                 if isinstance(w, Gtk.Label)}
     _back(win)
     assert _stack(win) == ["start", "device"]

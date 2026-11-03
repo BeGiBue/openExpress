@@ -7,7 +7,7 @@ devices are made up."""
 import types
 
 import pytest
-from fakes import replace_in_window, tasks_at_once, usb_devices, window_methods
+from fakes import stalled_session, tasks_at_once, tells_stalls, usb_devices, window_methods
 from fakes import window as stand_in
 
 from openexpress import i18n
@@ -27,12 +27,6 @@ def stall(usb=FENIX):
     return error
 
 
-def session_of(usb, name, stalled=False):
-    storage = types.SimpleNamespace(usb=usb, device_uri=f"mtp://Made_Up_{len(name)}/",
-                                    stalled=stalled)
-    return types.SimpleNamespace(storage=storage, device=types.SimpleNamespace(description=name))
-
-
 def listed(usb, name):
     """An entry of the list of devices connected (a summary of its GarminDevice.xml)."""
     return types.SimpleNamespace(found=types.SimpleNamespace(usb=usb), description=name)
@@ -40,24 +34,12 @@ def listed(usb, name):
 
 def a_window(monkeypatch, session=None, busy=False, connected=()):
     """A stand-in window with the window's own error(): what it tells goes to `told`."""
-    told = types.SimpleNamespace(start=[], errors=[], no_device=0, banner=0)
-
     def no_device():
         told.no_device += 1
 
-    def banner():
-        told.banner += 1
-
-    win = stand_in(session=session, busy=busy,
-                   start=types.SimpleNamespace(set_stalled=told.start.append,
-                                               set_empty=lambda *notice: None),
-                   show_no_device=no_device, _update_banner=banner,
-                   connected=types.SimpleNamespace(devices=list(connected)),
-                   _run_pending_refresh=lambda: None)
-    win.set_busy = lambda busy, *a, **kw: setattr(win, "busy", busy)
-    window_methods(win, ["error"])
-    replace_in_window(monkeypatch, "inform",
-                      lambda parent, name, heading, body, **kw: told.errors.append(body))
+    win = stand_in(session=session, busy=busy, show_no_device=no_device)
+    told = tells_stalls(win, monkeypatch, connected)
+    told.no_device = 0
     return win, told
 
 
@@ -75,7 +57,7 @@ def test_a_task_that_meets_a_stall_says_it_in_the_banner_and_closes_the_device(m
     from openexpress.gui.app import MainWindow
 
     tasks_at_once(monkeypatch)
-    win, told = a_window(monkeypatch, session_of(FENIX, "fēnix 8"))
+    win, told = a_window(monkeypatch, stalled_session(FENIX, "fēnix 8"))
 
     def failed(e):
         win.error("Cannot install the map", str(e))  # as a page tells its failure
@@ -92,7 +74,7 @@ def test_a_stall_is_in_the_banner_also_when_the_page_fails_to_tell_it(monkeypatc
     from openexpress.gui.app import MainWindow
 
     tasks_at_once(monkeypatch)
-    win, told = a_window(monkeypatch, session_of(FENIX, "fēnix 8"))
+    win, told = a_window(monkeypatch, stalled_session(FENIX, "fēnix 8"))
 
     def failed(e):
         raise RuntimeError("a made-up failure of the page")
@@ -111,7 +93,7 @@ def test_another_failure_and_a_mount_that_reaches_its_limit_have_their_error_dia
     from openexpress.gui.app import MainWindow
 
     tasks_at_once(monkeypatch)
-    win, told = a_window(monkeypatch, session_of(FENIX, "fēnix 8"))
+    win, told = a_window(monkeypatch, stalled_session(FENIX, "fēnix 8"))
     MainWindow.run_task(win, "Working…", fails_with(error))
     assert told.errors == [str(error)]
     assert told.start == [] and win.session is not None and told.no_device == 0
@@ -170,7 +152,7 @@ def test_a_stall_in_a_background_work_is_found_by_the_usb_poll(monkeypatch, tmp_
     put = usb_devices(monkeypatch, tmp_path / "usb")
     put({"3-1": ("51b4", 3, 14)})
     gio_storage.note_stalled(FENIX)
-    win, told = a_window(monkeypatch, session_of(FENIX, "fēnix 8"), busy=busy)
+    win, told = a_window(monkeypatch, stalled_session(FENIX, "fēnix 8"), busy=busy)
     stalled.look(win)
     assert told.start[-1] == FENIX_TEXT
     assert (win.session is None) is not busy
@@ -184,7 +166,7 @@ def test_a_stall_whose_place_is_not_known_is_told_and_goes_when_the_devices_on_u
 
     put = usb_devices(monkeypatch, tmp_path / "usb")
     put({"3-1": ("51b4", 3, 14)})
-    win, told = a_window(monkeypatch, session_of(None, "fēnix 8", stalled=True))
+    win, told = a_window(monkeypatch, stalled_session(None, "fēnix 8", stalled=True))
     stalled.note(win, stall(usb=None))
     assert told.start[-1] == FENIX_TEXT and win.session is None
     assert gio_storage.stalled_places() == []
@@ -202,7 +184,7 @@ def test_a_stall_whose_place_is_not_known_told_again_is_one_device(monkeypatch, 
 
     put = usb_devices(monkeypatch, tmp_path / "usb")
     put({"3-1": ("51b4", 3, 14)})
-    win, told = a_window(monkeypatch, session_of(None, "fēnix 8", stalled=True))
+    win, told = a_window(monkeypatch, stalled_session(None, "fēnix 8", stalled=True))
     stalled.note(win, stall(usb=None))
     stalled.note(win, stall(usb=None))  # the device closed meanwhile: its name not known now
     assert len(win._stalled) == 1
@@ -215,7 +197,7 @@ def test_a_stall_whose_place_is_not_known_told_again_is_one_device(monkeypatch, 
 def test_another_device_stays_open_and_the_banner_names_the_stalled_one(monkeypatch):
     from openexpress.gui import stalled
 
-    win, told = a_window(monkeypatch, session_of(EDGE, "Edge 1050"),
+    win, told = a_window(monkeypatch, stalled_session(EDGE, "Edge 1050"),
                          connected=[listed(FENIX, "fēnix 8"), listed(EDGE, "Edge 1050")])
     stalled.note(win, stall(FENIX))
     assert win.session is not None and told.no_device == 0

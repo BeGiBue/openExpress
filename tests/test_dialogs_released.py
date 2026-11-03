@@ -6,7 +6,7 @@ import gc
 import types
 
 import pytest
-from fakes import RunNow, window_methods
+from fakes import RunNow, descendants, window_methods
 from fakes import window as stand_in
 
 
@@ -131,20 +131,12 @@ def test_the_language_changed_in_the_preferences_says_to_restart(monkeypatch, xd
                         lambda page, group: groups.append(group) or add(page, group))
     MainWindow.show_preferences(_preferences_window())
     (language,) = [g for g in groups if g.get_title() == "Language"]
-    combo = next(w for w in _descendants(language) if isinstance(w, Adw.ComboRow))
+    combo = next(w for w in descendants(language) if isinstance(w, Adw.ComboRow))
     groups.clear()
     _settle()
     combo.set_selected(combo.get_selected() + 1)
     assert toasts == ["Restart the application to change the language"]
     host.destroy()
-
-
-def _descendants(widget):
-    child = widget.get_first_child()
-    while child is not None:
-        yield child
-        yield from _descendants(child)
-        child = child.get_next_sibling()
 
 
 def _order_window(monkeypatch, chosen):
@@ -184,7 +176,7 @@ def test_the_choice_of_a_copy_of_the_app_list_is_released_once_closed(monkeypatc
     dialog = shown.pop()
     gone = _finalized(dialog)
     seen = weakref.ref(dialog)  # the test looks at it without holding it
-    box = next(w for w in _descendants(dialog.get_extra_child()) if isinstance(w, Gtk.ListBox))
+    box = next(w for w in descendants(dialog.get_extra_child()) if isinstance(w, Gtk.ListBox))
     del dialog
     _settle()
     box.select_row(box.get_row_at_index(0))
@@ -230,10 +222,10 @@ def test_next_clicked_goes_on_with_the_copy_chosen(monkeypatch):
         win.choose_order()
         dialog = shown.pop()
         assert _turn_until(dialog.get_mapped)
-        box = next(w for w in _descendants(dialog.get_extra_child())
+        box = next(w for w in descendants(dialog.get_extra_child())
                    if isinstance(w, Gtk.ListBox))
         box.select_row(box.get_row_at_index(0))
-        (button,) = [w for w in _descendants(dialog)
+        (button,) = [w for w in descendants(dialog)
                      if isinstance(w, Gtk.Button) and w.get_label() == "Next"]
         button.emit("clicked")
         assert _turn_until(lambda: chosen == [choice], 2)

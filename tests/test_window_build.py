@@ -7,6 +7,7 @@ import threading
 import types
 
 import pytest
+from fakes import descendants
 from test_forget_window import _turn_until
 
 pytestmark = pytest.mark.needs_display
@@ -22,14 +23,6 @@ def window(monkeypatch):
     yield win
     netstatus.STATUS.remove_listener(win._net_listener)
     win.destroy()
-
-
-def _all(widget):
-    child = widget.get_first_child()
-    while child is not None:
-        yield child
-        yield from _all(child)
-        child = child.get_next_sibling()
 
 
 def _items(model):
@@ -62,7 +55,7 @@ def test_the_main_menu_and_the_start_page_s_menu(window):
     main = [("app.preferences", None), *([("app.shortcuts", None)]
                                           if hasattr(Adw, "ShortcutsDialog") else []),
             ("app.report", None), ("app.about", None)]
-    menus = [_items(b.get_menu_model()) for b in [*_all(window), *_all(window.start.page)]
+    menus = [_items(b.get_menu_model()) for b in [*descendants(window), *descendants(window.start.page)]
              if isinstance(b, Gtk.MenuButton) and b.get_menu_model() is not None]
     start = [(None, None)] + main  # the row of the view's buttons: a custom item
     assert main in menus and start in menus
@@ -86,7 +79,7 @@ def test_the_side_panel_chooses_a_section(window):
     keys = list(window.sections)
     assert keys == ["watch", "updates", "maps", "apps", "music", "activities"]
     assert window.sections["activities"].icon == "x-office-calendar-symbolic"
-    rows = [r for r in _all(window.nav) if isinstance(r, Gtk.ListBoxRow)]
+    rows = [r for r in descendants(window.nav) if isinstance(r, Gtk.ListBoxRow)]
     assert [r.key for r in rows] == keys
     window.select_section("maps")
     assert window.pages.get_visible_child_name() == "maps"
@@ -137,7 +130,7 @@ def test_the_bar_at_the_bottom(window):
 
 
 def _toast_widgets(overlay):
-    return [w for w in _all(overlay) if "ToastWidget" in type(w).__name__ and w.get_mapped()]
+    return [w for w in descendants(overlay) if "ToastWidget" in type(w).__name__ and w.get_mapped()]
 
 
 def test_a_toast_on_a_device_s_view_stays_above_the_bar(window):

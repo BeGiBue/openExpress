@@ -6,7 +6,7 @@ FIT protocol."""
 import time
 
 import pytest
-from fakes import FitData, FitDefinition, fit_file
+from fakes import FIT_HEART_RECORD, FIT_SESSION, FitData, FitDefinition, fit_file
 
 from openexpress import fit
 
@@ -18,18 +18,13 @@ RECORD = FitDefinition(1, 20, ((253, 0x86), (0, 0x85), (1, 0x85), (78, 0x86), (3
                                (5, 0x86), (73, 0x86)))
 # timestamp, altitude and speed (the fields without "enhanced"), heart rate
 PLAIN_RECORD = FitDefinition(1, 20, ((253, 0x86), (2, 0x84), (3, 0x02), (6, 0x84)))
-# timestamp and heart rate only (a workout)
-HEART_RECORD = FitDefinition(1, 20, ((253, 0x86), (3, 0x02)))
+HEART_RECORD = FIT_HEART_RECORD
 # timestamp, start, elapsed and timer time, distance, calories, average speed and its enhanced
 # field, average and maximum heart rate, ascent
 LAP = FitDefinition(3, 19, ((253, 0x86), (2, 0x86), (7, 0x86), (8, 0x86), (9, 0x86),
                             (11, 0x84), (13, 0x84), (110, 0x86), (15, 0x02), (16, 0x02),
                             (21, 0x84)))
-# start, sport, sub-sport, elapsed and timer time, distance, calories, average speed and its
-# enhanced field, average and maximum heart rate, ascent
-SESSION = FitDefinition(2, 18, ((2, 0x86), (5, 0x00), (6, 0x00), (7, 0x86), (8, 0x86),
-                                (9, 0x86), (11, 0x84), (14, 0x84), (124, 0x86), (16, 0x02),
-                                (17, 0x02), (22, 0x84)))
+SESSION = FIT_SESSION
 FILE_ID = (FitDefinition(0, 0, ((0, 0x00), (4, 0x86))), FitData(0, (4, START)))
 
 

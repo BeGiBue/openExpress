@@ -5,7 +5,7 @@ import os
 from pathlib import Path
 
 import pytest
-from fakes import RunNow
+from fakes import RunNow, descendants
 from fakes import window as stand_in
 
 
@@ -551,7 +551,6 @@ def test_the_lock_is_never_deleted(cache, tmp_path):
 # --- the "Storage" group of the preferences: a row for each part, and all of it ----------------
 
 
-
 @pytest.fixture
 def prefs(cache, monkeypatch):
     """A stand-in for the window around the storage group: a task runs at once, as run_task
@@ -843,14 +842,6 @@ def test_preferences_have_the_storage_group(cache, monkeypatch):
     assert isinstance(dialog, Gtk.Widget)
 
 
-def _descendants(widget):
-    child = widget.get_first_child()
-    while child is not None:
-        yield child
-        yield from _descendants(child)
-        child = child.get_next_sibling()
-
-
 @pytest.mark.needs_display
 def test_the_preferences_show_the_account_and_log_in_or_out(monkeypatch, in_the_window):
     """The group "Garmin Connect account", first in the preferences: who is logged in with
@@ -886,8 +877,8 @@ def test_the_preferences_show_the_account_and_log_in_or_out(monkeypatch, in_the_
                         lambda page, group: groups.append(group) or add(page, group))
     MainWindow.show_preferences(win)
     assert groups[0].get_title() == "Garmin Connect account"
-    (row,) = [w for w in _descendants(groups[0]) if isinstance(w, Adw.ActionRow)]
-    (button,) = [w for w in _descendants(row) if isinstance(w, Gtk.Button)]
+    (row,) = [w for w in descendants(groups[0]) if isinstance(w, Adw.ActionRow)]
+    (button,) = [w for w in descendants(row) if isinstance(w, Gtk.Button)]
     assert (row.get_title(), button.get_label()) == ("someone", "Log out")
     button.emit("clicked")
     assert calls == ["logout"]

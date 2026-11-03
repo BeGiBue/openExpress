@@ -3,6 +3,7 @@ data; nothing here reaches a device, the network or the disk of this computer.""
 
 import struct
 import threading
+import types
 from collections import namedtuple
 from dataclasses import dataclass
 
@@ -466,6 +467,49 @@ def row_words(row):
     return words["title"], words["subtitle"]
 
 
+def descendants(widget):
+    """The widgets under `widget`, at any depth: its children, theirs, and so on."""
+    child = widget.get_first_child()
+    while child is not None:
+        yield child
+        yield from descendants(child)
+        child = child.get_next_sibling()
+
+
+# What a device that stopped responding says after the step it stopped at.
+STALLED = "the device stopped responding. Unplug it and plug it in again."
+
+
+def stalled_session(usb, name, stalled=False):
+    """A session as the banner of a stall reads it: its storage at `usb` (gio_storage.GarminUsb;
+    None: not known), whether it stalled, and its device's name."""
+    storage = types.SimpleNamespace(usb=usb, device_uri=f"mtp://Made_Up_{len(name)}/",
+                                    stalled=stalled)
+    return types.SimpleNamespace(storage=storage, device=types.SimpleNamespace(description=name))
+
+
+def tells_stalls(win, monkeypatch, connected=()):
+    """What of the window a stall goes through, on the stand-in `win`: the window's own
+    error(), inform() said into `told.errors`, the banners of the start page (`told.start`)
+    and of the device view (`told.banner`, a count), the list of devices connected, set_busy
+    and the refresh after a task. Returns `told`."""
+    told = types.SimpleNamespace(start=[], errors=[], banner=0)
+
+    def banner():
+        told.banner += 1
+
+    win.start = types.SimpleNamespace(set_stalled=told.start.append,
+                                      set_empty=lambda *notice: None)
+    win._update_banner = banner
+    win.connected = types.SimpleNamespace(devices=list(connected))
+    win._run_pending_refresh = lambda: None
+    win.set_busy = lambda busy, *a, **kw: setattr(win, "busy", busy)
+    window_methods(win, ["error"])
+    replace_in_window(monkeypatch, "inform",
+                      lambda parent, name, heading, body, **kw: told.errors.append(body))
+    return told
+
+
 def window(**changes):
     """A stand-in for the window without GTK: every attribute the real window has, with the
     value it has before anything is shown (MainWindow._init_state), then `changes`. None of
@@ -855,6 +899,15 @@ def fit_file(*messages, header_size: int = 14, cut: int | None = None,
     return data if cut is None else data[:cut]
 
 
+# A session of an activity: start, sport, sub-sport, elapsed and timer time, distance,
+# calories, average speed and its enhanced field, average and maximum heart rate, ascent.
+FIT_SESSION = FitDefinition(2, 18, ((2, 0x86), (5, 0x00), (6, 0x00), (7, 0x86), (8, 0x86),
+                                    (9, 0x86), (11, 0x84), (14, 0x84), (124, 0x86), (16, 0x02),
+                                    (17, 0x02), (22, 0x84)))
+# A record of a time and a heart rate only (a workout).
+FIT_HEART_RECORD = FitDefinition(1, 20, ((253, 0x86), (3, 0x02)))
+
+
 def fit_activity(start: int, *, sport: int = 1, timer_ms: int | None = 3_600_000,
                  distance_cm: int | None = 1_000_000, ascent: int | None = 100,
                  records: int = 1, position: tuple[int, int] | None = None, **options) -> bytes:
@@ -872,6 +925,20 @@ def fit_activity(start: int, *, sport: int = 1, timer_ms: int | None = 3_600_000
         *(FitData(1, (start + n, *at)) for n in range(records)),
         FitDefinition(2, 18, ((2, 0x86), (5, 0x00), (8, 0x86), (9, 0x86), (22, 0x84))),
         FitData(2, (start, sport, timer_ms, distance_cm, ascent)), **options)
+
+
+def luminance(colour: str) -> float:
+    """The relative luminance of "#rrggbb" (WCAG 2)."""
+    def linear(c):
+        return c / 12.92 if c <= 0.04045 else ((c + 0.055) / 1.055) ** 2.4
+    r, g, b = (linear(int(colour[i:i + 2], 16) / 255) for i in (1, 3, 5))
+    return 0.2126 * r + 0.7152 * g + 0.0722 * b
+
+
+def contrast(a: str, b: str) -> float:
+    """The contrast ratio of two colours "#rrggbb" (WCAG 2): 1 to 21."""
+    high, low = sorted((luminance(a), luminance(b)), reverse=True)
+    return (high + 0.05) / (low + 0.05)
 
 
 _STYLED: set = set()  # the displays that have the program's own style

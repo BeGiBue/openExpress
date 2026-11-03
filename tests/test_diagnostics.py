@@ -12,6 +12,7 @@ from pathlib import Path
 
 import pytest
 from conftest import DEVICE_XML
+from fakes import descendants
 from fakes import window as stand_in
 
 from openexpress import diagnostics, forget, paths
@@ -563,21 +564,13 @@ def _rows(win):
         while child is not None:
             # (the header of the expander is an action row of its own, with its title)
             if isinstance(child, Adw.ActionRow) and child.get_title() != row.get_title():
-                buttons = [b.get_label() for b in _all(child) if isinstance(b, Gtk.Button)
+                buttons = [b.get_label() for b in descendants(child) if isinstance(b, Gtk.Button)
                            and b.get_label()]
                 out.append((child.get_title(), child.get_subtitle(), buttons))
             else:
                 stack.append(child)
             child = child.get_next_sibling()
     return out
-
-
-def _all(widget):
-    child = widget.get_first_child()
-    while child is not None:
-        yield child
-        yield from _all(child)
-        child = child.get_next_sibling()
 
 
 def _found(**kw):
@@ -665,7 +658,7 @@ def test_the_preferences_switch_turns_the_copy_on_and_off():
 
     win = stand_in(error=lambda title, text: pytest.fail(text))
     group = diagnostics_group(win)
-    switch = next(w for w in _all(group) if isinstance(w, Adw.SwitchRow))
+    switch = next(w for w in descendants(group) if isinstance(w, Adw.SwitchRow))
     assert switch.get_title() == "Keep a copy of the device's diagnostic files on this computer"
     assert not switch.get_active() and not diagnostics.copy_on()
     switch.set_active(True)

@@ -7,6 +7,7 @@ import logging
 import types
 
 import pytest
+from fakes import descendants
 from test_ciq_music import (  # noqa: F401 - fixtures
     FACE,
     FACE_MESSAGE,
@@ -213,7 +214,7 @@ def test_the_apps_page_says_there_are_none_and_offers_the_account(no_list):
     assert groups["On the device"][0] == "No Connect IQ apps on the device"
     (row,) = groups["In your Garmin account"][1]
     assert row.get_title() == "Face It"
-    (install,) = [w for w in _descendants(row) if isinstance(w, Gtk.Button)]
+    (install,) = [w for w in descendants(row) if isinstance(w, Gtk.Button)]
     install.emit("clicked")
     assert [[a.name for a in apps] for apps in win.installed] == [["Face It"]]
     assert "Built-in activities and apps" not in groups  # none known without the list
@@ -255,9 +256,3 @@ def test_the_words_of_an_app_only_queued_in_polish():
                     "telefon może zainstalować ją wcześniej.")
 
 
-def _descendants(widget):
-    child = widget.get_first_child()
-    while child is not None:
-        yield child
-        yield from _descendants(child)
-        child = child.get_next_sibling()

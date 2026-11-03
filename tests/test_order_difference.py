@@ -7,6 +7,7 @@ import types
 import uuid
 
 import pytest
+from fakes import descendants
 from fakes import window as stand_in
 from test_ciq_music import (  # noqa: F401 - fixtures
     STORE_ID,
@@ -157,7 +158,7 @@ def test_the_list_of_copies_opens_at_its_top_with_none_chosen(iq_device, device_
         assert _turn(dialog.get_mapped)
         _turn(lambda: False, 0.5)
         scroller = dialog.get_extra_child()
-        box = next(w for w in _descendants(scroller) if isinstance(w, Gtk.ListBox))
+        box = next(w for w in descendants(scroller) if isinstance(w, Gtk.ListBox))
         adjustment = scroller.get_vadjustment()
         assert adjustment.get_upper() > adjustment.get_page_size()  # it does scroll
         assert adjustment.get_value() == adjustment.get_lower()
@@ -173,14 +174,6 @@ def test_the_list_of_copies_opens_at_its_top_with_none_chosen(iq_device, device_
         for d in shown:
             d.force_close()
         host.destroy()
-
-
-def _descendants(widget):
-    child = widget.get_first_child()
-    while child is not None:
-        yield child
-        yield from _descendants(child)
-        child = child.get_next_sibling()
 
 
 # --- the question and `apps order --from` say the same measure first --------------------------

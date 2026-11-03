@@ -4,25 +4,12 @@ the scale from blue (low) to red-orange (high; pace: fast), the activity's own e
 Numbers only, no screen; made-up series."""
 
 import pytest
-
-from openexpress.gui.activity_chart import Series
+from fakes import contrast
 
 
 def colours():
     from openexpress.gui import activity_colours
     return activity_colours
-
-
-def luminance(hex_colour: str) -> float:
-    def linear(c):
-        return c / 12.92 if c <= 0.04045 else ((c + 0.055) / 1.055) ** 2.4
-    r, g, b = (linear(int(hex_colour[i:i + 2], 16) / 255) for i in (1, 3, 5))
-    return 0.2126 * r + 0.7152 * g + 0.0722 * b
-
-
-def contrast(a: str, b: str) -> float:
-    high, low = sorted((luminance(a), luminance(b)), reverse=True)
-    return (high + 0.05) / (low + 0.05)
 
 
 def test_the_scale_runs_from_blue_to_red_orange():
@@ -40,6 +27,8 @@ def test_every_colour_of_the_scale_stands_out_on_the_plain_map(background, least
 
 
 def series(kind, values):
+    from openexpress.gui.activity_chart import Series
+
     return Series(kind, tuple(float(t) for t in range(len(values))), tuple(values))
 
 

@@ -10,7 +10,7 @@ import types
 import uuid
 
 import pytest
-from fakes import program_style, record_sync, start_section
+from fakes import descendants, program_style, record_sync, start_section
 
 NARROWEST = 360  # the width of gui_settings.MIN_WINDOW
 FONT = "Adwaita Sans 11"  # GNOME's: the widths are measured in it
@@ -339,15 +339,6 @@ def _min_width(widget) -> int:
     return widget.measure(Gtk.Orientation.HORIZONTAL, -1)[0]
 
 
-def _all(widget):
-    """The widgets under `widget`, at any depth."""
-    child = widget.get_first_child()
-    while child is not None:
-        yield child
-        yield from _all(child)
-        child = child.get_next_sibling()
-
-
 DEVICE_PAGES = ["device", "device-update-copied", "device-off-account", "device-drive",
                 "device-refused-drive", "updates-beta",
                 "updates-beta-drive",
@@ -411,7 +402,7 @@ def test_the_row_of_the_primary_wearable_fits_the_narrowest_window(narrow_window
     win.select_section("watch")
     _iterate(0.3)
     title = {"en": "Primary wearable", "pl": "Podstawowe urządzenie typu wearable"}[language]
-    assert title in [w.get_title() for w in _descendants(win.device_view)
+    assert title in [w.get_title() for w in descendants(win.device_view)
                      if isinstance(w, Adw.ActionRow)]
     assert _min_width(win.device_view) <= NARROWEST
 
@@ -519,33 +510,33 @@ def test_the_page_of_an_activity_fits_the_narrowest_window(narrow_window, monkey
     _iterate(0.3)
     page = win.navigation.get_visible_page()
     assert page.get_tag() == "activity"
-    shown = [w.get_label() for w in _all(page) if isinstance(w, Gtk.Label)]
+    shown = [w.get_label() for w in descendants(page) if isinstance(w, Gtk.Label)]
     assert {"99:59:59", "9999 m"} <= set(shown) and len(
-        [w for w in _all(page) if isinstance(w, Gtk.FlowBoxChild)
+        [w for w in descendants(page) if isinstance(w, Gtk.FlowBoxChild)
          and w.get_child().has_css_class("card")]) == 5
-    assert len([w for w in _all(page) if isinstance(w, Gtk.ToggleButton)]) == 3
+    assert len([w for w in descendants(page) if isinstance(w, Gtk.ToggleButton)]) == 3
     from openexpress.gui.activity_chart import ActivityChart
 
-    (chart,) = [w for w in _all(page) if isinstance(w, ActivityChart)]
+    (chart,) = [w for w in descendants(page) if isinstance(w, ActivityChart)]
     chart.area.place(180_000)
     assert chart.value_label.get_label()
     _iterate(0.1)
     value = chart.value_label.compute_bounds(chart)[1]
-    switch = next(w for w in _all(chart) if isinstance(w, Gtk.ToggleButton)).compute_bounds(
+    switch = next(w for w in descendants(chart) if isinstance(w, Gtk.ToggleButton)).compute_bounds(
         chart)[1]
     assert value.get_y() >= switch.get_y() + switch.get_height()  # under the switch, narrow
-    (shown,) = [w for w in _all(page) if isinstance(w, activity_map.ActivityMap)]
+    (shown,) = [w for w in descendants(page) if isinstance(w, activity_map.ActivityMap)]
     assert shown.legend.get_visible() and shown.legend.scale.get_visible()  # the track's colours
     assert shown.attribution.get_visible() is tiles
     assert shown.note.get_visible() is not tiles
     from openexpress.gui.activity_laps import LapList
 
-    assert [w for w in _all(page) if isinstance(w, LapList)]  # its kilometres: no laps kept
+    assert [w for w in descendants(page) if isinstance(w, LapList)]  # its kilometres: no laps kept
     from openexpress.gui.activity_zones import ZoneList
 
-    (zones,) = [w for w in _all(page) if isinstance(w, ZoneList)]  # the longest words
+    (zones,) = [w for w in descendants(page) if isinstance(w, ZoneList)]  # the longest words
     for row in zones.rows:  # a zone's bounds broken between words only, never in "ud./min"
-        (span,) = [w for w in _all(row) if isinstance(w, Gtk.Label) and w.get_label() == row.span]
+        (span,) = [w for w in descendants(row) if isinstance(w, Gtk.Label) and w.get_label() == row.span]
         spaces = {i + 1 for i, c in enumerate(row.span) if c == " "}
         dashes = {i + 1 for i, c in enumerate(row.span) if c == "–"}
         assert _starts(span) <= spaces, row.span  # a range on one line
@@ -553,16 +544,16 @@ def test_the_page_of_an_activity_fits_the_narrowest_window(narrow_window, monkey
         assert _starts(span, anywhere=True) <= spaces | dashes, row.span
     from openexpress.gui.activity_effect import EffectList
 
-    assert [w for w in _all(page) if isinstance(w, EffectList)]  # its longest words of the scale
+    assert [w for w in descendants(page) if isinstance(w, EffectList)]  # its longest words of the scale
     from openexpress.gui.activity_details import DetailsList
 
-    (details,) = [w for w in _all(page) if isinstance(w, DetailsList)]  # open, every row
+    (details,) = [w for w in descendants(page) if isinstance(w, DetailsList)]  # open, every row
     details.expander.set_expanded(True)
     assert len(details.rows) == (15 if sport == 17 else 14)  # a ride: no steps
     _iterate(0.2)
-    (dot,) = [w for w in _all(page) if w.has_css_class("oe-sport-dot")]
+    (dot,) = [w for w in descendants(page) if w.has_css_class("oe-sport-dot")]
     assert not dot.get_visible()  # not in a narrow window: the start under the title stays whole
-    (start,) = [w for w in _all(page) if isinstance(w, Gtk.Label) and w.get_mapped()
+    (start,) = [w for w in descendants(page) if isinstance(w, Gtk.Label) and w.get_mapped()
                 and w.get_ancestor(Adw.WindowTitle) and w.get_label() == read_start(read)]
     assert not start.get_layout().is_ellipsized()
     assert _min_width(page) <= NARROWEST
@@ -624,13 +615,13 @@ def test_the_menu_of_the_start_page_fits_the_narrowest_window(narrow_window, lan
 
     win = narrow_window(language)
     win.set_default_size(NARROWEST, 800)
-    button = next(w for w in _all(win.start.header) if isinstance(w, Gtk.MenuButton))
+    button = next(w for w in descendants(win.start.header) if isinstance(w, Gtk.MenuButton))
     popover = button.get_popover()
     button.popup()
     _iterate(0.1)
     try:
         assert popover.measure(Gtk.Orientation.HORIZONTAL, -1)[1] <= NARROWEST
-        buttons = [w for w in _all(popover) if isinstance(w, Gtk.ToggleButton)]
+        buttons = [w for w in descendants(popover) if isinstance(w, Gtk.ToggleButton)]
         assert len(buttons) == 3
         assert len({b.compute_bounds(popover)[1].get_y() for b in buttons}) == 1
     finally:
@@ -760,21 +751,13 @@ def test_the_preferences_with_the_storage_group_fit_the_narrowest_window(narrow_
     assert isinstance(dialog, Adw.PreferencesDialog)
     # The dialog itself measures nothing (it lays out a sheet): its page is what must fit.
     everything, _button = win._storage.everything
-    (page,) = [w for w in _descendants(dialog) if isinstance(w, Adw.PreferencesPage)
+    (page,) = [w for w in descendants(dialog) if isinstance(w, Adw.PreferencesPage)
                and everything.is_ancestor(w)]
     texts = list(_texts(page))
     assert any(t.startswith(("6.7\u00a0GB", "6,7\u00a0GB")) for t in texts)
     assert ("Clear All…" if language == "en" else "Wyczyść wszystko…") in texts
     assert _min_width(page) <= NARROWEST
     dialog.close()
-
-
-def _descendants(widget):
-    child = widget.get_first_child()
-    while child is not None:
-        yield child
-        yield from _descendants(child)
-        child = child.get_next_sibling()
 
 
 def _tiles_with_chips():
@@ -878,7 +861,7 @@ def _chip_labels(widget) -> list:
     from gi.repository import Gtk
 
     found = []
-    for child in _descendants(widget):
+    for child in descendants(widget):
         if isinstance(child, Gtk.Label) and child.has_css_class("oe-chip") and child.get_label():
             found.append(child)
     return found

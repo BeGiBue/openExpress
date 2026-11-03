@@ -7,7 +7,7 @@ import dataclasses
 import time
 
 import pytest
-from fakes import row_words, start_section
+from fakes import descendants, row_words, start_section
 
 NOW = time.time()
 
@@ -35,14 +35,6 @@ def _entries():
             (_tile("Watch 6", primary=True), "Software 1.06")]
 
 
-def _descendants(widget):
-    child = widget.get_first_child()
-    while child is not None:
-        yield child
-        yield from _descendants(child)
-        child = child.get_next_sibling()
-
-
 def _shown(widget) -> bool:
     """Shown with its row or tile (the page of these tests is never on a screen)."""
     from gi.repository import Gtk
@@ -59,7 +51,7 @@ def _chips(widget):
     from gi.repository import Gtk
 
     return [(w.get_label(), set(w.get_css_classes()), w.get_tooltip_text())
-            for w in _descendants(widget) if isinstance(w, Gtk.Label)
+            for w in descendants(widget) if isinstance(w, Gtk.Label)
             and w.has_css_class("oe-chip") and w.get_label() and _shown(w)]
 
 

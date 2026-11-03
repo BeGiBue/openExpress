@@ -3,6 +3,7 @@ sport of the FIT profile, the group's colour read on the cards of both styles (a
 contrast of 3:1), and the program's style for each group."""
 
 import pytest
+from fakes import contrast
 
 LIGHT_CARD = "#ffffff"
 DARK_CARD = "#343437"  # libadwaita's dark card: white at 8 % over its window, #222226
@@ -22,17 +23,6 @@ def sports():
     (0, "others"), (18, "others"), (25, "others"), (254, "others"), (None, "others")])
 def test_the_group_of_a_sport(sport, group):
     assert sports().sport_group(sport) == group
-
-
-def luminance(color: str) -> float:
-    channels = [int(color[i:i + 2], 16) / 255 for i in (1, 3, 5)]
-    linear = [c / 12.92 if c <= 0.04045 else ((c + 0.055) / 1.055) ** 2.4 for c in channels]
-    return 0.2126 * linear[0] + 0.7152 * linear[1] + 0.0722 * linear[2]
-
-
-def contrast(a: str, b: str) -> float:
-    high, low = sorted((luminance(a), luminance(b)), reverse=True)
-    return (high + 0.05) / (low + 0.05)
 
 
 def test_each_colour_reads_on_the_cards_of_both_styles():
