@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: openexpress 0.8.1\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-11-03 09:52+0100\n"
+"POT-Creation-Date: 2026-11-03 10:05+0100\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -5895,7 +5895,7 @@ msgstr[1] ""
 
 #. TRANSLATORS: a distance or an ascent in whole metres on the page of an activity
 #: openexpress/gui/words.py:347 openexpress/gui/words.py:390
-#: openexpress/gui/words.py:483 openexpress/gui/words.py:812
+#: openexpress/gui/words.py:483 openexpress/gui/words.py:821
 #, python-brace-format
 msgid "{metres} m"
 msgstr ""
@@ -5907,19 +5907,19 @@ msgid "{distance} km"
 msgstr ""
 
 #. TRANSLATORS: a pace, the time a kilometre takes ("5:10 /km")
-#: openexpress/gui/words.py:362 openexpress/gui/words.py:814
+#: openexpress/gui/words.py:362 openexpress/gui/words.py:823
 #, python-brace-format
 msgid "{pace} /km"
 msgstr ""
 
 #. TRANSLATORS: a pace of a swim, the time a hundred metres take ("2:05 /100 m")
-#: openexpress/gui/words.py:365 openexpress/gui/words.py:816
+#: openexpress/gui/words.py:365 openexpress/gui/words.py:825
 #, python-brace-format
 msgid "{pace} /100 m"
 msgstr ""
 
 #. TRANSLATORS: a speed in kilometres an hour ("24.3 km/h")
-#: openexpress/gui/words.py:367 openexpress/gui/words.py:817
+#: openexpress/gui/words.py:367 openexpress/gui/words.py:826
 #, python-brace-format
 msgid "{speed} km/h"
 msgstr ""
@@ -6094,250 +6094,250 @@ msgstr ""
 msgid "{average} rpm (max {max})"
 msgstr ""
 
-#. TRANSLATORS: a temperature ("27 °C")
-#: openexpress/gui/words.py:516
+#. TRANSLATORS: a temperature ("21.4 °C")
+#: openexpress/gui/words.py:525
 #, python-brace-format
 msgid "{temperature} °C"
 msgstr ""
 
-#. TRANSLATORS: the average temperature and its range ("27 °C (25–29 °C)")
-#: openexpress/gui/words.py:518
+#. TRANSLATORS: the average temperature and its range ("21.4 °C (18.0–26.0 °C)")
+#: openexpress/gui/words.py:527
 #, python-brace-format
 msgid "{average} °C ({low}–{high} °C)"
 msgstr ""
 
 #. TRANSLATORS: a respiration rate, breaths a minute ("24 brpm")
-#: openexpress/gui/words.py:529
+#: openexpress/gui/words.py:538
 #, python-brace-format
 msgid "{rate} brpm"
 msgstr ""
 
 #. TRANSLATORS: the average respiration rate and its range ("24 brpm (15–38)")
-#: openexpress/gui/words.py:531
+#: openexpress/gui/words.py:540
 #, python-brace-format
 msgid "{average} brpm ({low}–{high})"
 msgstr ""
 
 #. TRANSLATORS: the heart rates of a zone ("118–140 bpm")
-#: openexpress/gui/words.py:562 openexpress/gui/words.py:643
+#: openexpress/gui/words.py:571 openexpress/gui/words.py:652
 #, python-brace-format
 msgid "{low}–{high} bpm"
 msgstr ""
 
 #. TRANSLATORS: the title of the row of a lap on the page of an activity
-#: openexpress/gui/words.py:581
+#: openexpress/gui/words.py:590
 #, python-brace-format
 msgid "Lap {number}"
 msgstr ""
 
 #. TRANSLATORS: the title of the row of a kilometre on the page of an activity whose device
 #. kept no laps
-#: openexpress/gui/words.py:588
+#: openexpress/gui/words.py:597
 #, python-brace-format
 msgid "Kilometre {number}"
 msgstr ""
 
 #. TRANSLATORS: the title of the section of the heart-rate zones on the page of an activity
-#: openexpress/gui/words.py:620
+#: openexpress/gui/words.py:629
 msgid "Heart-rate zones"
 msgstr ""
 
 #. TRANSLATORS: the row of the time below zone 1 of the heart rate
-#: openexpress/gui/words.py:627
+#: openexpress/gui/words.py:636
 msgid "Below zone 1"
 msgstr ""
 
 #. TRANSLATORS: a heart-rate zone ("Zone 3")
-#: openexpress/gui/words.py:629
+#: openexpress/gui/words.py:638
 #, python-brace-format
 msgid "Zone {number}"
 msgstr ""
 
 #. TRANSLATORS: the heart rates below zone 1 ("below 118 bpm")
-#: openexpress/gui/words.py:638
+#: openexpress/gui/words.py:647
 #, python-brace-format
 msgid "below {rate} bpm"
 msgstr ""
 
 #. TRANSLATORS: the heart rates of the top zone, which has no top ("above 182 bpm")
-#: openexpress/gui/words.py:641
+#: openexpress/gui/words.py:650
 #, python-brace-format
 msgid "above {rate} bpm"
 msgstr ""
 
 #. TRANSLATORS: the time in a heart-rate zone and its share ("36:30 · 88%")
-#: openexpress/gui/words.py:650
+#: openexpress/gui/words.py:659
 #, python-brace-format
 msgid "{time} · {percent}%"
 msgstr ""
 
 #. TRANSLATORS: under the title of the heart-rate zones ("… (190 bpm)")
-#: openexpress/gui/words.py:659
+#: openexpress/gui/words.py:668
 #, python-brace-format
 msgid "Bounds from the device: % of maximum heart rate ({bpm})"
 msgstr ""
 
 #. TRANSLATORS: under the title of the heart-rate zones ("… (165 bpm)")
-#: openexpress/gui/words.py:663
+#: openexpress/gui/words.py:672
 #, python-brace-format
 msgid "Bounds from the device: % of lactate threshold ({bpm})"
 msgstr ""
 
 #. TRANSLATORS: under the title of the heart-rate zones
-#: openexpress/gui/words.py:667
+#: openexpress/gui/words.py:676
 msgid "Bounds from the device: % of heart rate reserve"
 msgstr ""
 
 #. TRANSLATORS: under the title of the heart-rate zones: set by the user
-#: openexpress/gui/words.py:670
+#: openexpress/gui/words.py:679
 msgid "Bounds from the device: your own"
 msgstr ""
 
 #. TRANSLATORS: the title of the section of the training effect on the page of an activity
-#: openexpress/gui/words.py:676
+#: openexpress/gui/words.py:685
 msgid "Training effect"
 msgstr ""
 
 #. TRANSLATORS: the aerobic training effect of an activity
-#: openexpress/gui/words.py:683
+#: openexpress/gui/words.py:692
 msgid "Aerobic"
 msgstr ""
 
 #. TRANSLATORS: the anaerobic training effect of an activity
-#: openexpress/gui/words.py:685
+#: openexpress/gui/words.py:694
 msgid "Anaerobic"
 msgstr ""
 
 #. TRANSLATORS: a training effect below 1.0
-#: openexpress/gui/words.py:695
+#: openexpress/gui/words.py:704
 msgid "No benefit"
 msgstr ""
 
 #. TRANSLATORS: a training effect from 1.0 to 1.9
-#: openexpress/gui/words.py:697
+#: openexpress/gui/words.py:706
 msgid "Minor benefit"
 msgstr ""
 
 #. TRANSLATORS: a training effect from 2.0 to 2.9
-#: openexpress/gui/words.py:699
+#: openexpress/gui/words.py:708
 msgid "Maintaining"
 msgstr ""
 
 #. TRANSLATORS: a training effect from 3.0 to 3.9
-#: openexpress/gui/words.py:701
+#: openexpress/gui/words.py:710
 msgid "Improving"
 msgstr ""
 
 #. TRANSLATORS: a training effect from 4.0 to 4.9
-#: openexpress/gui/words.py:703
+#: openexpress/gui/words.py:712
 msgid "Highly improving"
 msgstr ""
 
 #. TRANSLATORS: a training effect of 5.0
-#: openexpress/gui/words.py:705
+#: openexpress/gui/words.py:714
 msgid "Overreaching"
 msgstr ""
 
 #. TRANSLATORS: the training load of an activity (a number)
-#: openexpress/gui/words.py:718
+#: openexpress/gui/words.py:727
 msgid "Training load"
 msgstr ""
 
 #. TRANSLATORS: a series after "Track colour:", as a sentence goes on there (in Polish
 #. in lower case: "tętno")
-#: openexpress/gui/words.py:731
+#: openexpress/gui/words.py:740
 msgctxt "track colour"
 msgid "heart rate"
 msgstr ""
 
 #. TRANSLATORS: a series after "Track colour:" (in Polish "wysokość")
-#: openexpress/gui/words.py:733
+#: openexpress/gui/words.py:742
 msgctxt "track colour"
 msgid "elevation"
 msgstr ""
 
 #. TRANSLATORS: a series after "Track colour:" (in Polish "tempo")
-#: openexpress/gui/words.py:735
+#: openexpress/gui/words.py:744
 msgctxt "track colour"
 msgid "pace"
 msgstr ""
 
 #. TRANSLATORS: a series after "Track colour:" (in Polish "prędkość")
-#: openexpress/gui/words.py:737
+#: openexpress/gui/words.py:746
 msgctxt "track colour"
 msgid "speed"
 msgstr ""
 
 #. TRANSLATORS: under the map of an activity: which series of the chart colours the track
-#: openexpress/gui/words.py:740
+#: openexpress/gui/words.py:749
 #, python-brace-format
 msgid "Track colour: {series}"
 msgstr ""
 
 #. TRANSLATORS: beside the switch under the map of an activity that colours its track
-#: openexpress/gui/words.py:746
+#: openexpress/gui/words.py:755
 msgid "Colours"
 msgstr ""
 
 #. TRANSLATORS: the switch above the chart of an activity
-#: openexpress/gui/words.py:756
+#: openexpress/gui/words.py:765
 msgctxt "activity chart"
 msgid "Heart rate"
 msgstr ""
 
-#: openexpress/gui/words.py:757
+#: openexpress/gui/words.py:766
 msgctxt "activity chart"
 msgid "Elevation"
 msgstr ""
 
-#: openexpress/gui/words.py:758 openexpress/gui/words.py:759
+#: openexpress/gui/words.py:767 openexpress/gui/words.py:768
 msgctxt "activity chart"
 msgid "Pace"
 msgstr ""
 
-#: openexpress/gui/words.py:760
+#: openexpress/gui/words.py:769
 msgctxt "activity chart"
 msgid "Speed"
 msgstr ""
 
 #. TRANSLATORS: the unit on top of the axis of the chart of an activity
-#: openexpress/gui/words.py:769
+#: openexpress/gui/words.py:778
 msgctxt "chart unit"
 msgid "bpm"
 msgstr ""
 
-#: openexpress/gui/words.py:770
+#: openexpress/gui/words.py:779
 msgctxt "chart unit"
 msgid "m"
 msgstr ""
 
-#: openexpress/gui/words.py:771
+#: openexpress/gui/words.py:780
 msgctxt "chart unit"
 msgid "min/km"
 msgstr ""
 
-#: openexpress/gui/words.py:772
+#: openexpress/gui/words.py:781
 msgctxt "chart unit"
 msgid "min/100 m"
 msgstr ""
 
-#: openexpress/gui/words.py:773
+#: openexpress/gui/words.py:782
 msgctxt "chart unit"
 msgid "km/h"
 msgstr ""
 
 #. TRANSLATORS: the name of the chart for a screen reader; {series}: e.g. "Heart rate"
-#: openexpress/gui/words.py:781
+#: openexpress/gui/words.py:790
 #, python-brace-format
 msgid "{series} over time"
 msgstr ""
 
-#: openexpress/gui/words.py:786
+#: openexpress/gui/words.py:795
 msgid "No heart rate, elevation or speed in this activity"
 msgstr ""
 
 #. TRANSLATORS: beside the chart of an activity, where its cursor is on a gap or a pause
-#: openexpress/gui/words.py:824
+#: openexpress/gui/words.py:833
 msgid "no reading"
 msgstr ""
 

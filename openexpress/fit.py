@@ -533,6 +533,7 @@ def points(data: bytes) -> Iterator[Point]:
 _RECORD_HEART_RATE = 3  # beats a minute
 _RECORD_DISTANCE = 5  # centimetres from the start
 _RECORD_SPEED, _RECORD_ENHANCED_SPEED = 6, 73  # millimetres a second
+_RECORD_TEMPERATURE = 13  # °C, whole degrees
 _MESG_LAP = 19
 _LAP_START_TIME = 2
 _LAP_ELAPSED_TIME, _LAP_TIMER_TIME = 7, 8  # milliseconds, with and without the pauses
@@ -594,6 +595,7 @@ class Sample:
     altitude: float | None = None  # metres
     latitude: float | None = None  # degrees
     longitude: float | None = None
+    temperature: int | None = None  # °C
 
 
 @dataclass(frozen=True)
@@ -696,7 +698,8 @@ def _sample(values: dict[int, Value]) -> Sample | None:
     return Sample(time, _scaled(values.get(_RECORD_DISTANCE), 100),
                   _speed(values, _RECORD_ENHANCED_SPEED, _RECORD_SPEED),
                   _whole_number(values.get(_RECORD_HEART_RATE)), altitude,
-                  _degrees(lat) if placed else None, _degrees(long) if placed else None)
+                  _degrees(lat) if placed else None, _degrees(long) if placed else None,
+                  _whole_number(values.get(_RECORD_TEMPERATURE)))
 
 
 def _lap(values: dict[int, Value]) -> Lap:
@@ -789,6 +792,17 @@ def _details_together(sessions: list[dict[int, Value]]) -> dict:
     }
 
 
+def _temperatures(samples: list[Sample]) -> dict:
+    """The average temperature of the records and their lowest and highest, as Garmin Connect
+    gives them (the session keeps its average in whole degrees); none without a record that
+    gives one, the session's standing."""
+    found = [s.temperature for s in samples if s.temperature is not None]
+    if not found:
+        return {}
+    return {"avg_temperature": sum(found) / len(found), "min_temperature": min(found),
+            "max_temperature": max(found)}
+
+
 def _rest_time(sets: list[dict[int, Value]]) -> float | None:
     """The time of the rest sets added up (seconds); None without one that gives its
     duration."""
@@ -871,9 +885,10 @@ def _zones(found: list[dict[int, Value]]) -> HeartRateZones | None:
 
 def activity_data(data: bytes) -> ActivityData:
     """What the activity file `data` holds for its page: its records with a time, its laps,
-    what its sessions say together, its heart-rate zones and the time of its rest sets. Of a
-    file cut short (the device was still writing it) or damaged, what reads up to where it
-    breaks off, with its state. FitError for what is no FIT file, as summary."""
+    what its sessions say together (its temperature that of the records), its heart-rate
+    zones and the time of its rest sets. Of a file cut short (the device was still writing it)
+    or damaged, what reads up to where it breaks off, with its state. FitError for what is no
+    FIT file, as summary."""
     _check_header(data)
     found = not_whole(data)
     state = (FileState.WHOLE if found is None else FileState.STILL_BEING_WRITTEN if found[0]
@@ -902,8 +917,9 @@ def activity_data(data: bytes) -> ActivityData:
     except FitError:
         if state is FileState.WHOLE:
             state = FileState.DAMAGED
+    together = {**_sessions_together(sessions), **_temperatures(samples)}
     return ActivityData(state, samples=tuple(samples), laps=tuple(laps), zones=_zones(zones),
-                        rest_time=_rest_time(sets), **_sessions_together(sessions))
+                        rest_time=_rest_time(sets), **together)
 
 
 # FIT profile: workout (sport, num_valid_steps, wkt_name), course (sport, name) and schedule

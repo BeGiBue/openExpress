@@ -287,12 +287,13 @@ def test_a_minute_of_walking_in_a_run_is_no_stop():
 # --- moving time -------------------------------------------------------------------------------
 
 
-def test_the_moving_time_leaves_out_the_stops_as_the_pace_does():
-    """The walk with fourteen stops (485 s of 3569): its moving time is the rest, give or take
-    the few seconds of slowing down around each stop."""
+def test_the_moving_time_is_the_time_of_the_records_that_move():
+    """The walk with fourteen stops (485 s of 3569): each second from a record of 0.2 m/s or
+    more, the slowing down around each stop too; not the chart's stops, which a window of
+    seconds smooths. The last record begins no second."""
     data = a_walk_with_stops()
     assert len(data.samples) == 3569
-    assert chart().moving_time(data) == pytest.approx(3569 - 485, abs=14 * 4)
+    assert chart().moving_time(data) == 3569 - 485 - 1
 
 
 def test_the_moving_time_leaves_out_a_pause():
@@ -302,10 +303,12 @@ def test_the_moving_time_leaves_out_a_pause():
     assert chart().moving_time(activity(samples)) == 118
 
 
-def test_the_moving_time_of_a_slow_climb_counts_it():
-    data = records([(600, 1.3, 0.0), (1800, 0.4, 0.15), (90, 0.0, 0.0), (600, 0.12, 0.1)],
+def test_a_slow_steep_climb_at_no_speed_is_no_moving():
+    """As Garmin Connect counts it: a climb the device records at 0.4 m/s forward is moving; a
+    very steep one it records at 0 m/s, however fast the altitude rises, is not."""
+    data = records([(600, 1.3, 0.0), (1800, 0.4, 0.15), (90, 0.0, 0.0), (600, 0.0, 0.1)],
                    sport=17)
-    assert chart().moving_time(data) == pytest.approx(600 + 1800 + 600, abs=20)
+    assert chart().moving_time(data) == 600 + 1800
 
 
 def test_no_moving_time_without_a_distance_or_speeds():

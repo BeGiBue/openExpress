@@ -382,3 +382,27 @@ def test_the_details_of_several_sessions():
     assert (data.min_altitude, data.max_altitude) == (pytest.approx(5.0), pytest.approx(31.0))
     assert (data.min_temperature, data.avg_temperature) == (20, pytest.approx(25.0))
     assert data.max_speed == pytest.approx(2.5) and data.min_heart_rate == 86
+
+
+# timestamp, heart rate and temperature (°C)
+TEMPERATURE_RECORD = FitDefinition(1, 20, ((253, 0x86), (3, 0x02), (13, 0x01)))
+
+
+def with_temperatures(*temperatures) -> bytes:
+    records = [FitData(1, (START + i, 120, t)) for i, t in enumerate(temperatures)]
+    return fit_file(*FILE_ID, TEMPERATURE_RECORD, *records, DETAIL_SESSION,
+                    FitData(2, (START, 11, 3_600_000, *DETAILS.values())))
+
+
+def test_the_temperature_is_that_of_the_records():
+    """The session keeps whole degrees (here 27, 25 and 29); the activity's average is that of
+    its records' temperatures, its range their lowest and highest. A record without one is
+    left out."""
+    data = fit.activity_data(with_temperatures(19, 20, 20, None, 21, 17, 30))
+    assert [s.temperature for s in data.samples] == [19, 20, 20, None, 21, 17, 30]
+    assert data.avg_temperature == pytest.approx(127 / 6)
+    assert (data.min_temperature, data.max_temperature) == (17, 30)
+    data = fit.activity_data(with_temperatures(-3, -5, -1))
+    assert (data.avg_temperature, data.min_temperature, data.max_temperature) == (-3, -5, -1)
+    data = fit.activity_data(with_temperatures(None, None))  # the session's then
+    assert (data.avg_temperature, data.min_temperature, data.max_temperature) == (27, 25, 29)

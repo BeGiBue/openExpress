@@ -507,17 +507,26 @@ def _cadence_text(data) -> str | None:
     return None
 
 
+def _degrees(value: float) -> str:
+    """A temperature with one decimal, as Garmin Connect shows it ("21.4"); a minus sign below
+    zero."""
+    from openexpress.i18n import decimal
+
+    shown = round(value, 1)
+    return ("\u2212" if shown < 0 else "") + decimal(f"{abs(shown):.1f}")
+
+
 def _temperature_text(data) -> str | None:
     if data.avg_temperature is None:
         return None
-    average = whole(round(data.avg_temperature))
+    average = _degrees(data.avg_temperature)
     if data.min_temperature is None or data.max_temperature is None:
-        # TRANSLATORS: a temperature ("27 °C")
+        # TRANSLATORS: a temperature ("21.4 °C")
         return _("{temperature} °C").format(temperature=average)
-    # TRANSLATORS: the average temperature and its range ("27 °C (25–29 °C)")
+    # TRANSLATORS: the average temperature and its range ("21.4 °C (18.0–26.0 °C)")
     return _("{average} °C ({low}–{high} °C)").format(
-        average=average, low=whole(round(data.min_temperature)),
-        high=whole(round(data.max_temperature)))
+        average=average, low=_degrees(data.min_temperature),
+        high=_degrees(data.max_temperature))
 
 
 def _respiration_text(data) -> str | None:

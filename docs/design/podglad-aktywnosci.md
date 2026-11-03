@@ -469,7 +469,10 @@ in the repository.
 Looked at on the activity files of the backups of one fēnix 8 (its latest 40: strength
 workouts, walks and hikes), and of an Edge 1050 and an older watch for comparison; only which
 messages and fields are there, never a value that names a person or a place. From the public
-FIT profile (FIT SDK 21.218); a field it does not describe is not used.
+FIT profile (FIT SDK 21.218); a field it does not describe is not used. Checked again in step 11
+on four files of the fēnix 8 itself (two walks, a mountain hike, a strength workout): the
+fields are there as the table says (the backups first looked at were most likely of another
+watch).
 
 | Candidate | Where in the file | In the fēnix 8's files |
 |---|---|---|
@@ -640,7 +643,9 @@ empty.
   breathing (average, min–max). What a tile shows already is not repeated.
   - Moving time, sub-choice: **(1) worked out from the records with the chart's rule of a stop
     (recommended; chosen):** the same stops as the gaps of the pace; it may differ from Garmin Connect's;
-    **(2) only from the file:** none on the fēnix 8.
+    **(2) only from the file:** none on the fēnix 8. Corrected when step 11 was tried on a
+    watch: worked out from the records, but by a rule of its own, as Garmin Connect counts it
+    (below).
   - Steps: two a stride; checked against Garmin Connect on one walk in the step's test on a
     device.
 - As implemented in step 11 (`gui/activity_details.py`, the words in `gui/words.py`): an
@@ -660,9 +665,24 @@ empty.
   - What a tile shows is not repeated: an elapsed, moving or work time the same as the tile's
     time, a moving pace the same as the tile's pace, calories when they are a tile (a workout).
     A value of 0 (descent, steps, cadence) is left out, as the ascent's tile is.
-  - Moving time and its pace only for an activity with a distance; the rule of a stop is the
-    chart's (D17, (1)), and the time between records more than a minute apart (a pause) is no
-    moving.
+  - Moving time and its pace only for an activity with a distance. Corrected when step 11 was
+    tried on a watch (the chart's rule gave a walk over a minute more than Garmin Connect): the
+    file has no moving time (`total_moving_time` empty in every file of the fēnix 8 looked at),
+    so it is worked out as Garmin Connect does: the time from each record whose own speed is
+    0.2 m/s or more to the next one, but between records more than a minute apart (a pause).
+    The fēnix 8 writes a speed of exactly 0 when it finds you stopped (no value between 0 and
+    0.2 m/s in its files), and so does it on a slow steep climb: such a climb is no moving, as
+    in Garmin Connect, which leaves it out too (keeping such a climb as moving parted far from Connect on a mountain hike).
+    The chart keeps its own rule of a stop (a window of 10 s, a climb no stop): its gaps of the
+    pace are for the eye, a few seconds wider or narrower around a stop.
+    Checked against Garmin Connect on three activities of the fēnix 8 (two walks, one with a
+    pause of its timer, and a mountain hike): within 1%. The tests that compare them read the
+    activities and Connect's values from a list in `testdata/`, which is not in the
+    repository.
+  - Temperature, corrected when step 11 was tried on a watch: the session keeps whole degrees
+    (Garmin Connect shows them with a decimal); the average and the range are those of the
+    records' temperatures, with one decimal as Garmin Connect shows them ("21.4 °C
+    (18.0–26.0 °C)"), checked against Connect on a walk and a strength workout.
   - Work time is the session's `active_time` (78); rest time the rest sets (`set`, 225, set
     type 0) added up, as the session has no field of it.
   - Cadence and steps on foot (running, walking, mountaineering, hiking, snowshoeing) in steps:

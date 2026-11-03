@@ -358,9 +358,9 @@ DETAILS_OF = {
                     ("Maximum elevation", "31 m"), ("Average moving pace", "12:21 /km"),
                     ("Best pace", "8:52 /km"), ("Average cadence", "104 spm (max 118)"),
                     ("Steps", "4380"), ("Heart rate", "86–125 bpm"), ("Calories", "180 kcal"),
-                    ("Temperature", "27 °C (25–29 °C)")],
+                    ("Temperature", "27.4 °C (25.0–29.0 °C)")],
            "workout": [("Work time", "24:30"), ("Rest time", "25:00"),
-                       ("Heart rate", "92–171 bpm"), ("Temperature", "29 °C (27–31 °C)"),
+                       ("Heart rate", "92–171 bpm"), ("Temperature", "29.0 °C (27.0–31.0 °C)"),
                        ("Respiration rate", "24 brpm (15–38)")],
            "title": "Details"},
     "pl": {"walk": [("Upływ czasu", "1:05:00"), ("Czas ruchu", "52:30"),
@@ -369,9 +369,9 @@ DETAILS_OF = {
                     ("Najlepsze tempo", "8:52 /km"),
                     ("Średnia kadencja", "104 kr./min (maks. 118)"), ("Kroki", "4380"),
                     ("Tętno", "86–125 ud./min"), ("Kalorie", "180 kcal"),
-                    ("Temperatura", "27 °C (25–29 °C)")],
+                    ("Temperatura", "27,4 °C (25,0–29,0 °C)")],
            "workout": [("Czas ćwiczeń", "24:30"), ("Czas odpoczynku", "25:00"),
-                       ("Tętno", "92–171 ud./min"), ("Temperatura", "29 °C (27–31 °C)"),
+                       ("Tętno", "92–171 ud./min"), ("Temperatura", "29,0 °C (27,0–31,0 °C)"),
                        ("Częstotliwość oddechu", "24 odd./min (15–38)")],
            "title": "Szczegóły"},
 }
@@ -421,13 +421,15 @@ def test_cadence_and_steps_by_sport(sport, cadence, steps):
 
 def test_whole_numbers_from_ten_thousand_have_a_separator(language):
     """Polish typography: up to 9999 none, from 10 000 a hard space between the thousands; in
-    English a comma. A minus sign before a value below zero."""
+    English a comma. A minus sign before a value below zero; a temperature with one decimal, as
+    Garmin Connect shows it."""
     w = words()
     data = activity(sport=HIKING, timer_time=36_000.0, cycles=6172.5, avg_temperature=-3.0,
                     min_temperature=-5.0, max_temperature=-1.0, avg_cadence=52.0)
     said = dict(w.activity_detail_kinds(data))
     assert said["steps"] == {"en": "12,345", "pl": f"12{NB}345"}[language]
-    assert said["temperature"] == f"{MINUS}3 °C ({MINUS}5–{MINUS}1 °C)"
+    assert said["temperature"] == {"en": f"{MINUS}3.0 °C ({MINUS}5.0–{MINUS}1.0 °C)",
+                                   "pl": f"{MINUS}3,0 °C ({MINUS}5,0–{MINUS}1,0 °C)"}[language]
     assert said["cadence"] == {"en": "104 spm", "pl": "104 kr./min"}[language]  # no maximum
     assert dict(w.activity_detail_kinds(activity(sport=HIKING, cycles=4999.5)))["steps"] == "9999"
     assert w.calories_text(12_000) == {"en": "12,000 kcal", "pl": f"12{NB}000 kcal"}[language]
@@ -437,7 +439,7 @@ def test_a_value_alone_without_its_range():
     w = words()
     data = activity(sport=TRAINING, timer_time=600.0, avg_temperature=27.0, avg_respiration=24.0,
                     max_temperature=30.0)  # no minimum
-    assert dict(w.activity_detail_kinds(data)) == {"temperature": "27 °C",
+    assert dict(w.activity_detail_kinds(data)) == {"temperature": "27.0 °C",
                                                    "respiration": "24 brpm"}
 
 

@@ -297,7 +297,11 @@ over MTP or as a USB drive, and of its backups (`Garmin/Backups` in your Documen
 read: the device, or the backup of a date for one the device no longer has. The page reads the
 files when you open it, never when a device connects. A file the device was still writing
 when it was connected says so (disconnect and reconnect the device, then open the page again),
-as do a damaged file and a file that is no FIT file.
+as do a damaged file and a file that is no FIT file. The moving time, the average moving pace,
+the average temperature with its decimal and the kilometres of an activity without the watch's
+own laps are worked out by openExpress from the watch's records, so they may differ slightly
+from Garmin Connect's; every other value on the page of an activity is read as it is from its
+file.
 
 The export button of an activity, or `openexpress activities export NAME… --apply`, writes it
 as a GPX 1.1 file named `YYYY-MM-DD HH.MM Sport.gpx`: each point with its position, elevation
