@@ -133,7 +133,7 @@ def show(win) -> None:
 @contextmanager
 def telling(win, error: BaseException):
     """While a task's failure is told (its on_error, the error dialog): for a stall no error
-    dialog, then the banner (note)."""
+    dialog, then the banner (note), also when the telling fails."""
     if not isinstance(error, DeviceNotResponding):
         yield
         return
@@ -142,4 +142,4 @@ def telling(win, error: BaseException):
         yield
     finally:
         win._telling_stall = False
-    note(win, error)
+        note(win, error)

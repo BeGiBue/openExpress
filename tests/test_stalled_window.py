@@ -87,6 +87,21 @@ def test_a_task_that_meets_a_stall_says_it_in_the_banner_and_closes_the_device(m
     assert win.session is None and told.no_device == 1
 
 
+def test_a_stall_is_in_the_banner_also_when_the_page_fails_to_tell_it(monkeypatch):
+    """A page whose own telling of the failure breaks: the banner says the stall still."""
+    from openexpress.gui.app import MainWindow
+
+    tasks_at_once(monkeypatch)
+    win, told = a_window(monkeypatch, session_of(FENIX, "fēnix 8"))
+
+    def failed(e):
+        raise RuntimeError("a made-up failure of the page")
+
+    with pytest.raises(RuntimeError):
+        MainWindow.run_task(win, "Installing…", fails_with(stall()), on_error=failed)
+    assert told.start[-1:] == [FENIX_TEXT]
+
+
 @pytest.mark.parametrize("error", [
     DeviceError("Cannot read GARMIN/x.fit: made-up refusal"),
     gio_storage.GioTimedOut("Cannot mount the device: the device did not answer in time")])
