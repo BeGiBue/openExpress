@@ -1762,9 +1762,10 @@ class DeviceSummary:
 
 def probe(found: FoundDevice) -> DeviceSummary:
     """Read only GarminDevice.xml of a device from find_all_devices: no session, no account,
-    no server, no PTP, nothing mounted. Never raises: without details, the summary says
-    why. One log line, without the address or the unit ID. An MTP device read keeps what
-    was opened (`device`, `storage`), for the window to count its activities later."""
+    no server, no PTP, nothing mounted. Raises only DeviceNotResponding (nothing more is
+    asked of such a device); else without details the summary says why. One log line,
+    without the address or the unit ID. An MTP device read keeps what was opened (`device`,
+    `storage`), for the window to count its activities later."""
     from openexpress import applog
     from openexpress.device.xmldevice import parse
 
@@ -1911,11 +1912,12 @@ def _ms(seconds: float) -> int:
 def _wait(start, timeout_s: float, what: str, name: str = "operation", context=None,
           quiet: bool = False) -> None:
     """Run one asynchronous Gio operation to its end: in a worker thread on a main context of
-    its own (or `context`, shared by the steps of one listing: _steps_context), in the main
-    thread on the global default one. `start(done, cancellable)` begins it; `done(finish)`
-    gets a function that raises GLib.Error on failure. Raises DeviceError when it fails,
-    GioTimedOut when cancelled at `timeout_s` and not done within CANCEL_WAIT_S. `quiet`: no
-    DEBUG line for an answer in time (the many steps of reads)."""
+    its own (or `context`, shared by the steps of one listing or of one file read:
+    _steps_context), in the main thread on the global default one. `start(done,
+    cancellable)` begins it; `done(finish)` gets a function that raises GLib.Error on failure.
+    Raises DeviceError when it fails, GioTimedOut when cancelled at `timeout_s` and not done
+    within CANCEL_WAIT_S. `quiet`: no DEBUG line for an answer in time (the many steps of
+    reads)."""
     # Gio gives the answer in the main context that was the default of the thread when the
     # operation began. A worker thread's own context, pushed for the wait, needs nothing of
     # the main thread for the answer and the time limit (the window holds the global default
