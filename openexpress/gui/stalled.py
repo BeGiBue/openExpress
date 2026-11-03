@@ -86,7 +86,9 @@ def note(win, error: DeviceNotResponding) -> None:
     closed if it is the one open."""
     usb = getattr(error, "usb", None)
     place = _place(usb)
-    if place is None or all(_place(s.usb) != place for s in win._stalled):
+    # A device whose place is not known is one entry, however often it is met.
+    if all((s.usb is not None) if place is None else (_place(s.usb) != place)
+           for s in win._stalled):
         win._stalled = [*win._stalled, Stalled(
             usb if place is not None else None, _name_of(win, usb),
             () if place is not None else tuple(gio_storage.garmin_products_on_usb()))]

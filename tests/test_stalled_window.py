@@ -179,6 +179,20 @@ def test_a_stall_whose_place_is_not_known_is_told_and_goes_when_the_devices_on_u
     assert told.start[-1] is None
 
 
+def test_a_stall_whose_place_is_not_known_told_again_is_one_device(monkeypatch, tmp_path):
+    """The same device met again (a detection that asks it once more): one device on the
+    banner, still with its name, not two without one."""
+    from openexpress.gui import stalled
+
+    put = usb_devices(monkeypatch, tmp_path / "usb")
+    put({"3-1": ("51b4", 3, 14)})
+    win, told = a_window(monkeypatch, session_of(None, "fēnix 8", stalled=True))
+    stalled.note(win, stall(usb=None))
+    stalled.note(win, stall(usb=None))  # the device closed meanwhile: its name not known now
+    assert len(win._stalled) == 1
+    assert told.start[-1] == FENIX_TEXT
+
+
 # --- several devices -------------------------------------------------------------------------
 
 
