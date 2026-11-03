@@ -19,8 +19,7 @@ from gi.repository import Adw, GObject, Gtk  # noqa: E402 - imports must follow 
 
 from openexpress import fit  # noqa: E402
 from openexpress.gui.activity_chart import GAP_S  # noqa: E402
-from openexpress.gui.words import kilometre_title, lap_caption, lap_title  # noqa: E402
-from openexpress.i18n import _  # noqa: E402
+from openexpress.gui.words import kilometre_title, lap_caption, lap_title, laps_title  # noqa: E402
 
 KILOMETRES_FROM = 2000  # metres: a shorter activity without laps has no kilometres either
 KILOMETRE = 1000
@@ -96,7 +95,7 @@ class LapList(Gtk.Box):
 
     def __init__(self, laps, kilometres: bool, sport: int | None, origin: float):
         super().__init__(orientation=Gtk.Orientation.VERTICAL)
-        group = Adw.PreferencesGroup(title=_("Kilometres") if kilometres else _("Laps"))
+        group = Adw.PreferencesGroup(title=laps_title(kilometres))
         listed = Gtk.ListBox(selection_mode=Gtk.SelectionMode.NONE)
         listed.add_css_class("boxed-list")
         self.rows, self.checks, self.spans = [], [], []

@@ -24,6 +24,7 @@ from openexpress.errors import UserFacingError  # noqa: E402
 from openexpress.gui.words import (  # noqa: E402
     activities_count_text,
     activity_caption,
+    activity_file_error,
     activity_title,
 )
 from openexpress.i18n import _, ngettext  # noqa: E402
@@ -128,7 +129,7 @@ def _write_gpx(found, read, name: str, target) -> tuple[str, int]:
 
     data = found.read_file(read.activity)
     if data is None:
-        raise ExportFailed(_("The file of this activity could not be read."))
+        raise ExportFailed(activity_file_error())
     try:
         track = gpx.track(data, name=name)
     except fit.FitError as e:

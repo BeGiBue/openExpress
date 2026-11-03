@@ -34,10 +34,16 @@ from openexpress.gui.activity_zones import ZoneList  # noqa: E402
 from openexpress.gui.sports import sport_group  # noqa: E402
 from openexpress.gui.words import (  # noqa: E402
     activity_details,
+    activity_file_error,
+    activity_not_read_title,
     activity_start,
     activity_tile_kinds,
     activity_title,
+    damaged_file_text,
     no_chart_text,
+    no_summary_title,
+    reading_activity_text,
+    still_being_written_text,
     tile_name,
 )
 from openexpress.i18n import _  # noqa: E402
@@ -70,12 +76,12 @@ def _data(found, activity):
 
     data = found.read_file(activity)
     if data is None:
-        raise ReadFailed(_("The file of this activity could not be read."))
+        raise ReadFailed(activity_file_error())
     try:
         return fit.activity_data(data)
     except fit.FitError as e:
         log.info("activity page: no FIT file (%s)", type(e).__name__)
-        raise ReadFailed(_("The file of this activity could not be read.")) from e
+        raise ReadFailed(activity_file_error()) from e
 
 
 def _prepared(data):
@@ -142,10 +148,10 @@ def open_activity(win, read) -> None:
     def failed(_error) -> bool:
         # Said on the page, no error dialog (a stall: the banner, and the page goes with the
         # device); the log has why.
-        view.say(_("The file of this activity could not be read."))
+        view.say(activity_not_read_title())
         return True
 
-    win.run_task(_("Reading the activity…"), lambda: _prepared(_data(found, read.activity)),
+    win.run_task(reading_activity_text(), lambda: _prepared(_data(found, read.activity)),
                  done, failed, device=read.activity.source is Source.DEVICE, in_page=True)
 
 
@@ -192,7 +198,7 @@ class ActivityView:
         button = export_button(win, read)
         if button is not None:
             header.pack_end(button)
-        self.loading = Adw.StatusPage(title=_("Reading the activity…"))
+        self.loading = Adw.StatusPage(title=reading_activity_text())
         if hasattr(Adw, "SpinnerPaintable"):
             self.loading.set_paintable(Adw.SpinnerPaintable.new(self.loading))
         self.message = Adw.StatusPage()
@@ -231,11 +237,11 @@ class ActivityView:
         from openexpress import fit
 
         if data.state is fit.FileState.STILL_BEING_WRITTEN:
-            self.say(_("Still being written: disconnect and reconnect the device"))
+            self.say(still_being_written_text())
             return
         tiles = activity_tile_kinds(data)
         if not tiles:
-            self.say(_("This activity has no summary."), PAGE_ICON)
+            self.say(no_summary_title(), PAGE_ICON)
             return
         # All of them in one line on a wide window, sharing its width; two by two on a narrow one.
         flow = Gtk.FlowBox(homogeneous=True, selection_mode=Gtk.SelectionMode.NONE,
@@ -246,7 +252,7 @@ class ActivityView:
             flow.append(Gtk.FlowBoxChild(child=_tile(kind, value, group), focusable=False))
         self.content.append(flow)
         if data.state is fit.FileState.DAMAGED:
-            damaged = Gtk.Label(label=_("Damaged file"), wrap=True, xalign=0)
+            damaged = Gtk.Label(label=damaged_file_text(), wrap=True, xalign=0)
             damaged.add_css_class("warning")
             self.content.append(damaged)
         if track is not None and activity_map.available():

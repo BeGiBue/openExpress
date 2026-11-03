@@ -270,7 +270,7 @@ def activity_caption(read) -> str:
         return source
     parts = [activity_start(read)]
     if found.state is fit.FileState.STILL_BEING_WRITTEN:
-        return caption(*parts, _("Still being written: disconnect and reconnect the device"))
+        return caption(*parts, still_being_written_text())
     if found.timer_time is not None:
         parts.append(activity_time_text(found.timer_time))
     if found.distance:
@@ -279,8 +279,40 @@ def activity_caption(read) -> str:
         parts.append(f"↑ {found.ascent} m")
     parts.append(source)
     if found.state is fit.FileState.DAMAGED:
-        parts.append(_("Damaged file"))
+        parts.append(damaged_file_text())
     return caption(*parts)
+
+
+def still_being_written_text() -> str:
+    """An activity whose file its device was still writing when it was connected: in its row
+    and as the title of its page."""
+    return _("Still being written: disconnect and reconnect the device")
+
+
+def damaged_file_text() -> str:
+    """An activity whose file is damaged: in its row and under the tiles of its page."""
+    return _("Damaged file")
+
+
+def activity_file_error() -> str:
+    """The error of an activity whose file could not be read again (a copy in a backup that
+    could not be read, or no FIT file)."""
+    return _("The file of this activity could not be read.")
+
+
+def activity_not_read_title() -> str:
+    """The title of the page of an activity whose file could not be read again."""
+    return _("The file of this activity could not be read")
+
+
+def no_summary_title() -> str:
+    """The title of the page of an activity whose file has no summary (no session)."""
+    return _("This activity has no summary")
+
+
+def reading_activity_text() -> str:
+    """The page of an activity while its file is read again: its title, and the task's."""
+    return _("Reading the activity…")
 
 
 def activities_count_text(count: int, only_in_backups: int) -> str:
@@ -586,6 +618,12 @@ def lap_title(number: int) -> str:
     """The title of a lap's row: "Lap 1"."""
     # TRANSLATORS: the title of the row of a lap on the page of an activity
     return _("Lap {number}").format(number=number)
+
+
+def laps_title(kilometres: bool) -> str:
+    """The title of the laps of an activity's page: its device's laps, or the kilometres
+    worked out from its records when the device kept none."""
+    return _("Kilometres") if kilometres else _("Laps")
 
 
 def kilometre_title(number: int) -> str:

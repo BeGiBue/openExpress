@@ -30,7 +30,7 @@ SESSION = FitDefinition(2, 18, ((2, 0x86), (5, 0x00), (6, 0x00), (7, 0x86), (8, 
                                 (17, 0x02), (22, 0x84)))
 PLACED = FitDefinition(1, 20, ((253, 0x86), (0, 0x85), (1, 0x85), (3, 0x02)))
 HEART = FitDefinition(1, 20, ((253, 0x86), (3, 0x02)))
-NOTHING_READ = "The file of this activity could not be read."
+NOTHING_READ = "The file of this activity could not be read"  # a title: no period
 
 
 def hike(cut=None, bad_crc=False) -> bytes:
@@ -210,7 +210,7 @@ def test_what_a_file_still_being_written_a_damaged_one_and_one_without_a_summary
     assert "Damaged file" in labels(page) and "12.40 km" in labels(page)
     win, _the_list = a_window(fit_file(HEART, FitData(1, (START, 110))))  # no session
     page = open_page(win, read_of())
-    assert "This activity has no summary." in status_texts(page)
+    assert "This activity has no summary" in status_texts(page)
 
 
 def test_while_another_task_runs_no_page_opens():
