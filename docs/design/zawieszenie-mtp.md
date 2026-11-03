@@ -18,7 +18,7 @@ before):
 
 In none of them did the log show a step that reached the limit. D3 waits for the log lines of
 step 4 to show a stall after a long time without a request. D13 (where the error sits among the
-program's errors) is proposed and waits for a decision; nothing of it is implemented.
+program's errors): 13b for now, the code as it is; 13a is planned for a later version.
 
 ## 1. Scope
 
@@ -292,7 +292,7 @@ list (`gio_storage._probe`, for `status` and the start page).
     being unplugged (the incident of section 2: the mount went when `gvfsd-mtp` was killed,
     and the device still had to be unplugged).
 
-### D13: where `DeviceNotResponding` sits among the errors — proposed, not decided
+### D13: where `DeviceNotResponding` sits among the errors — 13b for now, 13a later
 
 Today `DeviceNotResponding` is a `DeviceError` (D5), so every handler of `DeviceError` that a
 device over MTP can reach has a clause before it that raises the stall on (D6, D8). Counted in
@@ -307,7 +307,8 @@ Some of the first kind cannot be reached at all: the handlers inside a PTP sessi
 see only `PtpError` and `CiqError`, and `_remount` asks the device only through calls that
 already let the stall through.
 
-- **13a. `DeviceNotResponding(UserFacingError)`, no longer a `DeviceError` (recommended).** It
+- **13a. `DeviceNotResponding(UserFacingError)`, no longer a `DeviceError` (recommended; planned
+  for a later version).** It
   keeps `says_replug`, `usb` and `during()`; the command line (`_run` catches
   `UserFacingError`: its words, exit code 1) and the window (`run_task`: one line of the log,
   `stalled.telling`) say it as today.
@@ -329,7 +330,7 @@ already let the stall through.
   - − A change of type that every `except DeviceError` of the device's way depends on: one
     commit, the tests as the net, and the stall's path on the command line and in the window
     tried again in the tests (a sync, a backup, maps, apps, the opening of a device).
-- **13b. As it is.**
+- **13b. As it is (chosen for now).**
   - \+ Nothing to change; the guard of the syntax tree keeps the clauses complete.
   - − 54 clauses, some dead, and one more for every new handler.
 
