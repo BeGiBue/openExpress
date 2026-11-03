@@ -48,6 +48,18 @@ NAME = re.compile(r"(?:^|_)as_before(?:$|_(?!(?:it|its|the|an?|this|that)_))")
 VERSION = re.compile(r"(?<![\w.-])v?0\.\d{1,2}\.\d{1,2}(?![\w.])")
 
 
+# The design documents say what is decided and why, not the story of the work: no conversation
+# it came from, no "a yes" that let a step begin, nothing someone read, chose or compared, no
+# clock of a log, no commits and no dates. Their blocks of code are examples of what a command
+# prints: data. "The user" saving a file or told something is the program's user, and stays.
+DESIGN = ROOT / "docs" / "design"
+STORY = re.compile("|".join((
+    r"\b(?:in )?the chat\b", r"\ba yes\b",
+    (r"\bthe user(?:'s)? (?:rule|read|reads|compares|chose|chooses|changed|accepted|asked"
+     r"|decided|corrects)\b"),
+    r"\b\d{2}:\d{2}:\d{2}\b")))
+
+
 def _docstrings(tree) -> set[int]:
     """The ids of the string constants that are docstrings."""
     found = set()
@@ -85,6 +97,17 @@ def references(path: Path) -> list[str]:
         if isinstance(node, ast.Constant) and isinstance(node.value, str):
             patterns = (NOTES, *WHEN, VERSION) if id(node) in docs else (NOTES,)
             said += _said(node.lineno, node.value, patterns)
+    return said
+
+
+def design_references(path: Path) -> list[str]:
+    """What a design document tells of the work, outside its blocks of code: "line: words"."""
+    said, in_code = [], False
+    for n, line in enumerate(path.read_text(encoding="utf-8").splitlines(), 1):
+        if line.lstrip().startswith("```"):
+            in_code = not in_code
+        elif not in_code:
+            said += _said(n, line, (STORY, DATE, WHEN[1], WHEN[4]))
     return said
 
 
@@ -174,3 +197,23 @@ def test_what_is_not_history(tmp_path):
     assert _words(tmp_path, '"synthetic": "made up: no real sync has made it yet",\n'
                             '"file": "format-0.6.21-received-files.json"\n',
                   name="format-0.7.5-made-up.json") == []
+
+
+def test_the_design_documents_tell_no_story_of_the_work():
+    found = {path.name: refs for path in sorted(DESIGN.glob("*.md"))
+             if (refs := design_references(path))}
+    assert found == {}, "a design says what and why, not how the work went: " + json.dumps(
+        found, indent=1)
+
+
+def test_what_a_design_document_does_not_tell(tmp_path):
+    """The story of the work, but not the program's user, its consent, nor an example."""
+    made_up = tmp_path / "made-up.md"
+    made_up.write_text("The mockup shown in the chat waits for a yes; as the user read them,\n"
+                       "the user's rule. At 00:41:25 on 2 November 2026 (a9ce7b1), 21.10.2026.\n"
+                       "The user saves the GPX where the user is told; the User-Agent;\n"
+                       "tiles only after the yes of D3; the colour #e5420e.\n"
+                       "```\nCreated: 2026-10-30 07:12:33\n```\n", encoding="utf-8")
+    assert [r.split(": ", 1)[1] for r in design_references(made_up)] == [
+        "in the chat", "a yes", "the user read", "the user's rule", "00:41:25",
+        "2 November 2026", "a9ce7b1", "21.10.2026"]

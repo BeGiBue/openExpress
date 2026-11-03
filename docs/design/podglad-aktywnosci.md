@@ -6,7 +6,7 @@ that applies, up to five). Steps 1 to 5 of section 8 are implemented (the data o
 `fit.activity_data`; the words of its page, `gui/words.py`; the page with its tiles,
 `gui/activity_page.py`; the chart, `gui/activity_chart.py`; the map, `gui/activity_map.py`);
 steps 6–7 are not. The work goes step
-by step (section 8), each step after a yes. The scope in section 1 is set once: what it does not
+by step (section 8), each step once accepted. The scope in section 1 is set once: what it does not
 list is not added while it is implemented. After step 5 the page was found correct but plain:
 section 10 adds to the scope (items 6–10 of section 1), designed together with the laps. Its
 decisions are made: 13a, 14a, 15a, 16b, 17a with moving time from the records, 18a, 19b, 20a,
@@ -117,7 +117,7 @@ is in, often where the user lives. Today the program sends nothing about activit
 
 ## 4. The look and the flow
 
-The mockup accepted in the chat, weighed:
+The accepted mockup, weighed:
 
 - *A click on a row opens the activity in the same window, a back arrow and a GPX icon in the
   header bar*: kept. The row becomes activatable (a chevron), its export button stays.
@@ -211,7 +211,7 @@ its height and narrows; the lap rows wrap.
   "The map loads its tiles from OpenStreetMap, which then learns the area of the activity" with
   "Show the map"; the choice kept (Preferences, Privacy, can be changed); meanwhile the track on a
   plain background, zoom and pan working.
-  - \+ Nothing about an activity leaves the computer without a yes, as the diagnostics.
+  - \+ Nothing about an activity leaves the computer without consent, as the diagnostics.
   - − One click before the first map.
   - As chosen: the yes is given once for the whole program, kept in its settings, and can be
     taken back at any time (Preferences); until then every map shows the track on a plain
@@ -219,7 +219,7 @@ its height and narrows; the lap rows wrap.
     OpenStreetMap server learns the area of the activity) with a button that turns them on.
     `docs/privacy.md` says it in the step that brings the tiles (step 5); the exact texts of the
     note, the button, the preference and the privacy page, in English and Polish, are shown for
-    a yes before that step.
+    acceptance before that step.
 - **3b. On, said in `docs/privacy.md`.**
   - − The area of every activity opened goes to the tile server without a question.
 - **3c. Never: the track alone.**
@@ -394,7 +394,7 @@ closed, this page with it), a device unplugged meanwhile as an activity that can
 2. **The tile server.** It may block an application without notice; the User-Agent and the
    cache are what it asks for; the URL in one place.
 3. **Privacy.** The area of an activity goes to the tile server when tiles are on; D3 decides
-   whether that needs a yes. Tests must ask no tile (the tests' network guard fails any): the
+   whether that needs consent. Tests must ask no tile (the tests' network guard fails any): the
    map gets no tile source in the tests.
 4. **Long activities.** 28,800 records to read and to draw: the reading measured in step 1, the
    chart drawn from the points brought down to the width; the path layer of libshumate with
@@ -411,7 +411,7 @@ closed, this page with it), a device unplugged meanwhile as an activity that can
 Each step starts with a test that fails on the code before it, keeps its texts and their Polish
 in the same commit, and passes the usual gate before its commit: ruff without findings, the
 tests with and without a display, and the program's folders unchanged by the tests. Each step
-waits for a yes.
+waits for acceptance.
 
 1. **The data of an activity (`fit.activity_data`).** Failing tests on made-up FIT files: the
    series of a run (time, distance, speed, heart rate, altitude, position); a workout without
@@ -432,7 +432,7 @@ waits for a yes.
    place; the cursor by click, drag and arrow keys; pace smoothed; a gap where a value is
    missing; the narrow window.
 5. **The map.** Before it, the exact texts of D3 (the note, the button, the preference, the
-   privacy page; English and Polish) for a yes. Failing tests: no map without positions; the
+   privacy page; English and Polish) for acceptance. Failing tests: no map without positions; the
    track and its bounds; the marker follows the chart's cursor; tiles only after the yes of D3,
    kept for the program and taken back in Preferences, the note and the button meanwhile; the
    User-Agent and the cache folder of D4, the attribution shown; without libshumate a line
@@ -459,20 +459,16 @@ more (10.5).
 
 The page of step 5 is right but plain: tiles, a map, a chart. This section weighs what more the
 files of a watch hold, designs it together with the laps of step 6, so that the page is built
-step by step without being patched later, and leaves each choice open (D13–D22) until a yes.
+step by step without being patched later, and leaves each choice open (D13–D22) until accepted.
 Mockups of whole pages (a walk with GPS and a strength workout without, wide and at 360 px, in
-Polish) were drawn on the hidden display with made-up data and shown in the chat; they are not
-in the repository.
+Polish) were drawn on the hidden display with made-up data for review; they are not in the
+repository.
 
 ### 10.1 What the files hold
 
-Looked at on the activity files of the backups of one fēnix 8 (its latest 40: strength
-workouts, walks and hikes), and of an Edge 1050 and an older watch for comparison; only which
+Looked at on the activity files of a fēnix 8 (walks, hikes and strength workouts); only which
 messages and fields are there, never a value that names a person or a place. From the public
-FIT profile (FIT SDK 21.218); a field it does not describe is not used. Checked again in step 11
-on four files of the fēnix 8 itself (two walks, a mountain hike, a strength workout): the
-fields are there as the table says (the backups first looked at were most likely of another
-watch).
+FIT profile (FIT SDK 21.218); a field it does not describe is not used.
 
 | Candidate | Where in the file | In the fēnix 8's files |
 |---|---|---|
@@ -573,7 +569,7 @@ empty.
   the top bound counted in zone 5); under the title how the bounds are worked out and from what
   ("% of lactate threshold (… bpm)", "% of maximum heart rate (… bpm)", "% of heart rate reserve",
   "custom"). No section when the file has none.
-  - \+ The zones the watch showed during the activity, even if the user changed them later.
+  - \+ The zones the watch showed during the activity, even if they were changed later.
 - Corrected when step 8 began (the colours drawn on the cards of both styles): the yellow had
   less than the contrast of 3:1 that a bar needs on the light cards (`#f6d32d`, 1.5), and so
   had the orange (`#ffa348`, 2.0); a red of the GNOME palette had it on the light cards only
@@ -612,7 +608,7 @@ empty.
   compares them with Garmin Connect. "Efekt treningu", "Aerobowy", "Beztlenowy", "Obciążenie
   wysiłkowe", "Brak korzyści", "Umiarkowana korzyść" and "Utrzymanie" as Garmin Connect in
   Polish says them (the Polish manual of the fēnix 8 says "Niewielka korzyść", which was the first
-  choice, but the user compares with Connect); "Wzrost", "Znaczna poprawa" and "Przeciążenie" as Garmin's Polish page on the
+  choice, but the page is compared with Connect); "Wzrost", "Znaczna poprawa" and "Przeciążenie" as Garmin's Polish page on the
   aerobic training effect (garmin.com/pl-PL, running science, its note on the scale: "0 — Brak,
   1 — Nieznaczna korzyść, 2 — Utrzymanie, 3 — Wzrost, 4 — Znaczna poprawa, 5 — Przeciążenie").
   The manual describes the scale in sentences ("Utrzymanie sprawności aerobowej", "Wpływ na
@@ -651,7 +647,7 @@ empty.
 - As implemented in step 11 (`gui/activity_details.py`, the words in `gui/words.py`): an
   `Adw.ExpanderRow` "Details" after the training effect, closed each time the page opens; each
   detail a row, its name (wrapping in a narrow window) and its value on one line. The names are
-  Garmin Connect's, as the user read them in Polish on a walk and a strength workout: "Upływ czasu", "Czas ruchu", "Średnie tempo ruchu" (Connect shows it: the
+  Garmin Connect's, as Garmin Connect in Polish shows them: "Upływ czasu", "Czas ruchu", "Średnie tempo ruchu" (Connect shows it: the
   distance over the moving time; "Średnia prędkość ruchu" for a speed by analogy, not seen in
   Connect yet), "Czas ćwiczeń" and "Czas odpoczynku" (strength), "Całkowity spadek",
   "Minimalna wysokość" and "Maksymalna wysokość" (two rows as in Connect rather than one
@@ -689,7 +685,7 @@ empty.
     two a stride, the fractional fields added; on a bike (cycling, e-biking) cadence in
     revolutions a minute; in other sports neither.
   - Numbers up to 9999 as they are, from 10 000 with the thousands apart: a hard space in
-    Polish (Polish typography, the user's rule), a comma in English; also on the tiles
+    Polish (Polish typography), a comma in English; also on the tiles
     (calories, ascent, a swim's metres). A minus sign (U+2212) below zero.
   - Several sessions: descent, strides and active time added up, the lowest minimum and the
     highest maximum, averages weighted by the timer time (as the average heart rate).
@@ -735,7 +731,7 @@ empty.
   without repetitions by its time, "1:00"); the rests left out. The names of the 53 categories of
   the profile in English and Polish, not the 1,846 names of its exercises. About half the
   activities looked at are strength workouts, now a page of a chart only.
-  - Put off: the watch often names an exercise wrongly and the user corrects it in Garmin
+  - Put off: the watch often names an exercise wrongly and it is corrected in Garmin
     Connect; the file on the watch keeps the wrong names. An idea for later: the sets as Garmin
     Connect keeps them, corrected. Until then nothing stands in their place on the page.
 - **19b. The bounds of the heart-rate zones as faint bands behind the heart-rate chart
@@ -828,7 +824,7 @@ px (measured in the mockups).
 
 Each starts with a test that fails on the code before it, keeps its texts and their Polish in
 the same commit, passes the gate (ruff, the tests with and without a display, the program's
-folders unchanged) and waits for a yes; each ends with what to try on the watch. Sizes are
+folders unchanged) and waits for acceptance; each ends with what to try on the watch. Sizes are
 lines of code and of tests.
 
 6. **The laps (D20, D16, D21).** The track drawn by a layer of openExpress (`#e5420e`, its edge,
@@ -857,7 +853,7 @@ lines of code and of tests.
     strides, cadence by sport, the narrow window. About 150 and 160; 18 texts.
 12. **Documentation:** `docs/guide.md`, `README.md`, the status of this design.
 
-On a device: the same walk and a strength workout after each step; a ride from the Edge 1050
+On a device: the same walk and a strength workout after each step; a ride
 for the speed, cadence in rpm and the colours of speed; steps against Garmin Connect (D17).
 In all about 860 lines of code, 920 of tests, 50 texts, 7 commits, one a step.
 

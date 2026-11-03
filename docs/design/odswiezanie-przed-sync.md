@@ -92,7 +92,7 @@ It exists already, for the PTP sessions that reach files gvfs does not show
   do not take them for a device unplugged and plugged in; only within the process that did them.
 - The address stays the same, so the `GioStorage` goes on working afterwards.
 
-Measured (the developer's program log, 13 October to 1 November 2026, fēnix 8):
+Measured (three weeks of the developer's program log, fēnix 8):
 
 - 60 PTP sessions, each an unmount, the session and the mount until `GarminDevice.xml` was seen:
   0.2–0.5 s in all, mostly 0.2 s; 5 of them in the Flatpak, 0.2–0.4 s. The unmount itself took
@@ -214,7 +214,7 @@ there for its MD5, so its count may include a cut-short file, as today.
 Each step starts with a test that fails on the code before it, keeps its texts and their Polish
 in the same commit, and passes the usual gate before its commit: ruff without findings, the tests
 with and without a display, and the program's folders unchanged by the tests. Each step waits for
-a yes.
+acceptance.
 
 1. **The shared part of `_exclusive` taken out**, with no change of behaviour: the tests of PTP
    sessions and of the unmount race unchanged, the syntax trees compared before and after.

@@ -3,18 +3,18 @@
 Status: implemented. The decisions of section 4 are made (D1 1a, D2 2a, D3 3a, D4 4a; D5 5a,
 D6 6a, D7 7a when step 1 began; D8 8a when step 3 began; D9 9a, D10 10a, D11 11a, D12 12a when
 step 5 began; marked "chosen"). Sections 2 and 3 describe the program before this work. The
-steps of section 7, one commit each, and how they went on a fēnix 8 over MTP (2 November 2026,
-the code from source; a stall cannot be made on purpose, so the device showed the usual work
-going on as before):
+steps of section 7, one commit each, and how they went on a fēnix 8 over MTP (the code from
+source; a stall cannot be made on purpose, so the device showed the usual work going on as
+before):
 
-| Step | Commit | On the device |
-|---|---|---|
-| 1. Listings and queries under the limit, the error | `a9ce7b1` | 30 activities read in 7.9 s (7.6–8.0 s before); the window as usual |
-| 2. Reads in chunks | `c7c6d71` | all 147 activities in 31.4 s (32.6 s before); a dry sync of 9 files in 1.8 s |
-| 3. Fast failure, the sync and the backup, the handlers (D8) | `cd580ce` | a dry sync in 1.7 s; `status`, `backup`, `maps`, `apps`, `updates` as before |
-| 4. Log lines | `1341421` | 30 activities in 7.4 s, all 147 in 31.5 s; no step over 5 s logged |
-| 5. The window (D4, D9–D12) | `d096814` | the banner seen in pictures of the tests' hidden display; unplugged and plugged in again, the device detected as before |
-| 6. Documentation | the commit that sets this status | – |
+| Step | On the device |
+|---|---|
+| 1. Listings and queries under the limit, the error | the newest 30 activities read in 7.9 s (7.6–8.0 s before); the window as usual |
+| 2. Reads in chunks | every activity of the device in 31.4 s (32.6 s before); a dry sync of 9 files in 1.8 s |
+| 3. Fast failure, the sync and the backup, the handlers (D8) | a dry sync in 1.7 s; `status`, `backup`, `maps`, `apps`, `updates` as before |
+| 4. Log lines | the newest 30 activities in 7.4 s, every one in 31.5 s; no step over 5 s logged |
+| 5. The window (D4, D9–D12) | the banner seen in pictures of the tests' hidden display; unplugged and plugged in again, the device detected as before |
+| 6. Documentation | – |
 
 In none of them did the log show a step that reached the limit. D3 waits for the log lines of
 step 4 to show a stall after a long time without a request.
@@ -45,21 +45,20 @@ Not in scope:
 
 ## 2. The problem
 
-Seen once, on 2 November 2026, on a fēnix 8 (software 23.39) over MTP through gvfs, Fedora 44,
-in the Flatpak of 0.8.1 (from the program's log):
+Seen once on a fēnix 8 (software 23.39) over MTP through gvfs, Fedora 44, in the Flatpak (from
+the program's log):
 
-- 00:41:25–00:41:39: 30 activities read (10.1 MB in 8.0 s) and the music listed; the device
-  answered as usual.
-- 00:41:50: a sync starts. Its plan reads `GARMIN/Backup/Backups/settings_backup.bak`, a file
+- 30 activities read (10.1 MB in 8.0 s) and the music listed; the device answered as usual.
+- Eleven seconds later a sync starts. Its plan reads `GARMIN/Backup/Backups/settings_backup.bak`, a file
   of a single-file type, for its MD5 (`sync.plan_uploads`); the read never answers. The bar
   stands on "Looking for new files on the device…".
 - `gio list` and `gio mount` on the device's address hang too; `lsusb` shows the device on USB;
   `dmesg` shows no error and no disconnect: not USB nor the driver, but the MTP session in the
   device.
-- 00:49:50, after `gvfsd-mtp` was killed: the sync stops after 480.7 s with "Error in stream
-  protocol: End of stream" for that file.
-- 00:50:23–00:53: the window tries to mount the device every 32 s or so; each mount gives up at
-  its limit of 30 s. Only unplugging the device and plugging it in again helps; the syncs
+- Eight minutes later, after `gvfsd-mtp` was killed: the sync stops after 480.7 s with "Error in
+  stream protocol: End of stream" for that file.
+- For three minutes after, the window tries to mount the device every 32 s or so; each mount
+  gives up at its limit of 30 s. Only unplugging the device and plugging it in again helps; the syncs
   after it run as usual.
 
 Why everything hung, not only that file (gvfs-mtp 1.60.3, `daemon/gvfsbackendmtp.c`):
@@ -109,11 +108,11 @@ in a worker thread on a main context of its own, in the main thread on the defau
 
 ### Measured
 
-From the program's log, 13 October to 2 November 2026:
+From three weeks of the program's log:
 
-- Reads of activities: 13, at 1.26–1.37 MB/s each; none slower.
-- Syncs: 78; the long ones (up to 40 s) mostly wait for TrueUp. No "End of stream" and no time
-  limit reached outside a stress test, but on 2 November.
+- Reads of activities at 1.26–1.37 MB/s each; none slower.
+- The long syncs (up to 40 s) mostly wait for TrueUp. No "End of stream" and no time limit
+  reached outside a stress test, but the stall above.
 - The time of a single read is not logged, so a stall of a few seconds would not show.
 
 ## 4. Decisions
@@ -376,7 +375,7 @@ its next sync comes with the next mount of the device.
 Each step starts with a test that fails on the code before it, keeps its texts and their Polish
 in the same commit, and passes the usual gate before its commit: ruff without findings, the tests
 with and without a display, and the program's folders unchanged by the tests. Each step waits for
-a yes. The fake of Gio (`tests/gio_fake.py`: `GioOp`, `answer_as_gio`) gets asynchronous
+acceptance. The fake of Gio (`tests/gio_fake.py`: `GioOp`, `answer_as_gio`) gets asynchronous
 listings in portions, streams read in chunks, queries and filesystem queries, each able to
 answer late or never.
 

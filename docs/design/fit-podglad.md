@@ -76,7 +76,7 @@ The request behind part 1 and 2: users want to see their runs and rides on the c
            page / table of `activities`
                                │ Export: that one file read again
                                ▼
-                 gpx.track(bytes) → GPX written where the user chose
+                 gpx.track(bytes) → GPX written to the file picked in the dialog
 
  Garmin Connect queue → (sync dry run) each file downloaded into memory → fit.describe
                       → lines on the screen; never written, never acknowledged
@@ -146,7 +146,7 @@ for a name the device no longer has; of several backups, the newest that has it.
     base type, both byte orders, compressed timestamps, developer fields, cut and damaged).
   - − Only the messages and fields of Appendix A have names; `fit inspect` names other
     messages by number.
-- **1b. fitdecode** (MIT, pure Python, 110 kB, no dependencies; 0.11.0 of August 2025 after
+- **1b. fitdecode** (MIT, pure Python, 110 kB, no dependencies; 0.11.0 of 2025 after
   four years without a release).
   - \+ The whole profile: every message and field named.
   - − A new dependency to pin in the Flatpak manifest and to ask of distributions; its profile
