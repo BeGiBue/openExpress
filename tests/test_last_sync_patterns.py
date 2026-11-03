@@ -9,8 +9,8 @@ from datetime import datetime, timedelta
 from pathlib import Path
 
 import pytest
+from fakes import descendants, window_methods
 from fakes import window as stand_in
-from fakes import window_methods
 
 from openexpress import i18n, service, sync
 
@@ -309,17 +309,8 @@ def _shown(row):
     """(the subtitle of the row, [(a line of its details, whether it is a warning)])."""
     from gi.repository import Gtk
 
-    lines = []
-
-    def walk(widget):
-        child = widget.get_first_child()
-        while child is not None:
-            if isinstance(child, Gtk.Label) and child.has_css_class("caption"):
-                lines.append((child.get_label(), child.has_css_class("warning")))
-            walk(child)
-            child = child.get_next_sibling()
-
-    walk(row)
+    lines = [(w.get_label(), w.has_css_class("warning")) for w in descendants(row)
+             if isinstance(w, Gtk.Label) and w.has_css_class("caption")]
     return row.get_subtitle(), lines
 
 

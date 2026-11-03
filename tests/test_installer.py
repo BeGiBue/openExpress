@@ -8,6 +8,7 @@ import subprocess
 from pathlib import Path
 
 import pytest
+from fakes import descendants
 from fakes import window as stand_in
 
 from openexpress import installer
@@ -348,17 +349,8 @@ def test_the_preferences_say_which_installer(monkeypatch):
         setattr(win, name, types.MethodType(getattr(MainWindow, name), win))
     MainWindow.show_preferences(win)
     (setup,) = [g for g in groups if g.get_title() == "Setup"]
-    rows = []
-
-    def walk(widget):
-        if isinstance(widget, Adw.ActionRow):
-            rows.append((widget.get_title(), widget.get_subtitle()))
-        child = widget.get_first_child()
-        while child is not None:
-            walk(child)
-            child = child.get_next_sibling()
-
-    walk(setup)
+    rows = [(w.get_title(), w.get_subtitle()) for w in descendants(setup)
+            if isinstance(w, Adw.ActionRow)]
     assert rows == [("Garmin Express installer for Windows",
                      ("GarminExpress.exe from garmin.com: the application key is read from it "
                       "again, nothing is installed"))]

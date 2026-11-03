@@ -12,7 +12,7 @@ from datetime import UTC, datetime
 
 import pytest
 from conftest import DEVICE_XML
-from fakes import fit_activity, page_window, window, window_methods
+from fakes import descendants, fit_activity, page_window, window, window_methods
 
 pytestmark = pytest.mark.needs_display
 
@@ -77,15 +77,7 @@ def the_page():
 def rows_of(section):
     from gi.repository import Adw
 
-    return [w for g in section.groups for w in _children(g) if isinstance(w, Adw.ActionRow)]
-
-
-def _children(widget):
-    child = widget.get_first_child()
-    while child is not None:
-        yield child
-        yield from _children(child)
-        child = child.get_next_sibling()
+    return [w for g in section.groups for w in descendants(g) if isinstance(w, Adw.ActionRow)]
 
 
 def texts(row) -> tuple[str, str]:
@@ -95,7 +87,7 @@ def texts(row) -> tuple[str, str]:
 def export_button(row):
     from gi.repository import Gtk
 
-    found = [w for w in _children(row) if isinstance(w, Gtk.Button)
+    found = [w for w in descendants(row) if isinstance(w, Gtk.Button)
              and w.get_icon_name() == "document-save-as-symbolic"]
     return found[0] if found else None
 
@@ -165,12 +157,12 @@ def test_thirty_then_show_more(tmp_path):
     win.progress = lambda _step: None
     win.load_activities()
     assert len(rows_of(section)) == 30
-    more = [w for w in _children(section.page) if isinstance(w, Gtk.Button)
+    more = [w for w in descendants(section.page) if isinstance(w, Gtk.Button)
             and w.get_label() == "Show 2 More"]
     assert len(more) == 1
     more[0].emit("clicked")
     assert len(rows_of(section)) == 32
-    assert not [w for w in _children(section.page) if isinstance(w, Gtk.Button)
+    assert not [w for w in descendants(section.page) if isinstance(w, Gtk.Button)
                 and (w.get_label() or "").startswith("Show")]
     assert win.run_task.titles == ["Reading activities…", "Reading activities…"]
 
@@ -191,7 +183,7 @@ def test_no_activity_yet(tmp_path):
     win.progress = lambda _step: None
     win.load_activities()
     assert rows_of(section) == []
-    words = [w.get_label() for w in _children(section.page) if hasattr(w, "get_label")]
+    words = [w.get_label() for w in descendants(section.page) if hasattr(w, "get_label")]
     assert "There are no activities on the device or in its backups." in words
 
 

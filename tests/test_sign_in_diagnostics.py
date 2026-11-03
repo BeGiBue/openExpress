@@ -8,6 +8,7 @@ import logging
 import types
 
 import pytest
+from fakes import descendants
 
 from openexpress import applog, paths, report
 from openexpress.auth import sso
@@ -141,17 +142,9 @@ def test_a_page_whose_web_process_ended_offers_to_try_again(sign_in_window, monk
         r.getMessage() for r in caplog.records]
     stopped = win.get_child()
     assert stopped is not view
-
-    def widgets(widget):
-        child = widget.get_first_child()
-        while child is not None:
-            yield child
-            yield from widgets(child)
-            child = child.get_next_sibling()
-
-    labels = [w.get_label() for w in widgets(stopped) if isinstance(w, Gtk.Label)]
+    labels = [w.get_label() for w in descendants(stopped) if isinstance(w, Gtk.Label)]
     assert "The sign-in page stopped working" in labels and command in labels
-    (again,) = [w for w in widgets(stopped) if isinstance(w, Gtk.Button)]
+    (again,) = [w for w in descendants(stopped) if isinstance(w, Gtk.Button)]
     assert again.get_label() == "Try Again"
     loaded = list(view.loaded)
     again.emit("clicked")

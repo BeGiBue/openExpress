@@ -7,7 +7,7 @@ import time
 import types
 
 import pytest
-from fakes import page_window
+from fakes import descendants, page_window
 from test_update_chips import _tile
 from test_updates_system import beta_answer
 
@@ -64,12 +64,6 @@ def _children(widget):
         child = child.get_next_sibling()
 
 
-def _descendants(widget):
-    for child in _children(widget):
-        yield child
-        yield from _descendants(child)
-
-
 def _visible(widget) -> bool:
     """Shown when its window is (the window of these tests never is)."""
     from gi.repository import Gtk
@@ -84,14 +78,14 @@ def _visible(widget) -> bool:
 def _chips(widget):
     from gi.repository import Gtk
 
-    return [w for w in _descendants(widget) if isinstance(w, Gtk.Label)
+    return [w for w in descendants(widget) if isinstance(w, Gtk.Label)
             and w.has_css_class("oe-chip") and _visible(w)]
 
 
 def _subtitle(row):
     from gi.repository import Gtk
 
-    (label,) = [w for w in _descendants(row) if isinstance(w, Gtk.Label)
+    (label,) = [w for w in descendants(row) if isinstance(w, Gtk.Label)
                 and w.has_css_class("subtitle")]
     return label
 
@@ -100,7 +94,7 @@ def _suffixes(row):
     """The visible widgets at the end of the row, in their order: (kind, text, classes)."""
     from gi.repository import Gtk
 
-    (box,) = [w for w in _descendants(row) if w.has_css_class("suffixes")]
+    (box,) = [w for w in descendants(row) if w.has_css_class("suffixes")]
     found = []
     for w in _children(box):
         if not w.get_visible():

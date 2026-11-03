@@ -7,7 +7,7 @@ import json
 import types
 
 import pytest
-from fakes import start_section
+from fakes import descendants, start_section
 from fakes import window as stand_in
 
 FENIX, EDGE = 3000000001, 3000000002
@@ -98,18 +98,10 @@ def checks(dialog):
     from gi.repository import Gtk
 
     found = {}
-
-    def walk(widget):
-        if isinstance(widget, Gtk.CheckButton):
-            found[widget.get_label()] = widget
-        child = widget.get_first_child()
-        while child is not None:
-            walk(child)
-            child = child.get_next_sibling()
-
     extra = dialog.get_extra_child()
     if extra is not None:
-        walk(extra)
+        found = {w.get_label(): w for w in (extra, *descendants(extra))
+                 if isinstance(w, Gtk.CheckButton)}
     return found
 
 

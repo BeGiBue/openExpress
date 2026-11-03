@@ -9,6 +9,7 @@ import logging
 import types
 
 import pytest
+from fakes import descendants
 from test_country_names import countries  # noqa: F401 - a fixture of these tests
 from test_updates_maps import _maps_window, maps_response
 
@@ -184,7 +185,7 @@ def _page_rows(device_root, country):
     for g in win.sections["maps"].groups:
         for row in g.rows:
             for r in _rows(row):
-                buttons = [b.get_label() for b in _all(r) if hasattr(b, "get_label")
+                buttons = [b.get_label() for b in descendants(r) if hasattr(b, "get_label")
                            and type(b).__name__ == "Button" and b.get_label()]
                 out[html.unescape(r.get_title())] = (html.unescape(r.get_subtitle()), buttons)
     return out
@@ -195,15 +196,7 @@ def _rows(widget):
 
     if isinstance(widget, Adw.ActionRow):
         return [widget]
-    return [w for w in _all(widget) if isinstance(w, Adw.ActionRow)]
-
-
-def _all(widget):
-    child = widget.get_first_child() if hasattr(widget, "get_first_child") else None
-    while child is not None:
-        yield child
-        yield from _all(child)
-        child = child.get_next_sibling()
+    return [w for w in descendants(widget) if isinstance(w, Adw.ActionRow)]
 
 
 @pytest.mark.needs_display
