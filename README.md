@@ -81,6 +81,7 @@ devices that connect over USB (MTP) should work too – reports are welcome.
 | fēnix 8 (51 mm, AMOLED) | MTP | [#14](https://github.com/TomaszBojanowski/openExpress/issues/14) |
 | fēnix 7 (Sapphire Dual Power) | MTP | [#6](https://github.com/TomaszBojanowski/openExpress/issues/6) |
 | fēnix 7X (Sapphire Solar), fēnix 7S (Sapphire) | MTP | users on Reddit |
+| fēnix 5X | MTP | [#27](https://github.com/TomaszBojanowski/openExpress/issues/27) |
 | Instinct 3 – 45mm Tactical | MTP | [#21](https://github.com/TomaszBojanowski/openExpress/issues/21) |
 | Edge 1040 | MTP | [#8](https://github.com/TomaszBojanowski/openExpress/issues/8), [#10](https://github.com/TomaszBojanowski/openExpress/issues/10) |
 | Edge 540 | MTP | [#18](https://github.com/TomaszBojanowski/openExpress/issues/18) |
