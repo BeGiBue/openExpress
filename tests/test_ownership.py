@@ -89,20 +89,38 @@ def test_other_watch_is_refused(devices):
     assert client.verified_unit_id is None
 
 
-@pytest.mark.parametrize(("devices", "said"), [
+@pytest.mark.parametrize(("devices", "environment", "said"), [
     ([{"unitid": OTHER, "partnumber": "006-B4536-00", "devicestatus": "active"},
       {"unitid": OTHER + 1, "partnumber": "006-B2604-00", "devicestatus": "retired"}],
+     "production",
      ("account: the device (006-B2604-00) is not among the 2 devices of the account "
-      "(006-B4536-00 active, 006-B2604-00 retired); one of them of its part number")),
+      "(006-B4536-00 active, 006-B2604-00 retired); one of them of its part number, its unit "
+      "ID of 10 digits against the device's 10; environment production")),
     ([{"unitid": OTHER, "partnumber": "006-B4536-00", "activeind": True}, {"unitid": None}],
+     "production",
      ("account: the device (006-B2604-00) is not among the 2 devices of the account "
-      "(006-B4536-00 active, ? ?); none of its part number")),
-    ([], "account: the account lists no device, so not this one (006-B2604-00)"),
-], ids=["same model", "another model", "empty list"])
-def test_a_device_not_on_the_account_says_what_the_account_lists(devices, said, caplog):
-    """The log tells what the account's list holds, its part numbers and states, and whether
-    one of them is of the device's part number: never a unit ID nor an e-mail address."""
+      "(006-B4536-00 active, ? ? with no unit ID); none of its part number; environment "
+      "production")),
+    ([{"unitid": -OTHER, "partnumber": "006-B2604-00", "devicestatus": "active"},
+      {"unitid": "12345", "partnumber": "006-B2604-00", "devicestatus": "active"},
+      {"partnumber": "006-B4536-00", "devicestatus": "active", "deviceid": UNIT}],
+     "china",
+     ("account: the device (006-B2604-00) is not among the 3 devices of the account "
+      "(006-B2604-00 active with a unit ID not read, 006-B2604-00 active, 006-B4536-00 active "
+      "with no unit ID); 2 of them of its part number, their unit IDs of 5 digits against the "
+      "device's 10; its unit ID is the device ID of one of them; environment china")),
+    ([], "production",
+     ("account: the account lists no device, so not this one (006-B2604-00); environment "
+      "production")),
+], ids=["same model", "another model", "unit IDs not read", "empty list"])
+def test_a_device_not_on_the_account_says_what_the_account_lists(devices, environment, said,
+                                                                  caplog):
+    """The log tells what the account's list holds, its part numbers and states, whether one
+    of them is of the device's part number and how its unit ID compares (its length only),
+    the unit IDs it could not read, and the Garmin environment asked: never a unit ID nor an
+    e-mail address."""
     client = make_client(devices)
+    client.settings.environment = environment
     with caplog.at_level("INFO", logger="openexpress.service"), \
             pytest.raises(NotAccountDevice) as refused:
         service.require_account_device(client, UNIT, part_number="006-B2604-00")

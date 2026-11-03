@@ -413,20 +413,37 @@ def _part_and_state(entry: dict) -> str:
         state = {True: "active", False: "inactive"}.get(active, "?") \
             if isinstance(active, bool) else "?"
     part = part if isinstance(part, str) and _PART.fullmatch(part) else "?"
-    return f"{part} {state.lower()}"
+    said = f"{part} {state.lower()}"
+    if unit_id_of(entry.get("unitid")) is None:
+        said += " with no unit ID" if entry.get("unitid") is None else " with a unit ID not read"
+    return said
 
 
-def _not_listed(devices: list[dict], part_number: str | None) -> str:
+def _not_listed(devices: list[dict], part_number: str | None, unit_id: int,
+                environment: str) -> str:
     """The log's line of a device the account does not list: what the list holds (part
-    numbers and states) and whether one of them is of the device's part number; never a unit
-    ID nor anything of the account's owner."""
+    numbers, states, unit IDs it cannot read), whether some of it is of the device's part
+    number and how long their unit IDs are against the device's, whether the device's unit ID
+    is one's device ID, and the Garmin environment asked; never a unit ID nor anything of the
+    account's owner."""
     part = part_number if part_number and _PART.fullmatch(part_number) else "?"
+    where = f"environment {environment if _STATE.fullmatch(environment or '') else '?'}"
     if not devices:
-        return f"account: the account lists no device, so not this one ({part})"
-    same = any(d.get("partnumber") == part_number for d in devices) if part_number else False
-    return (f"account: the device ({part}) is not among the {len(devices)} devices of the "
-            f"account ({', '.join(_part_and_state(d) for d in devices)}); "
-            f"{'one of them' if same else 'none'} of its part number")
+        return f"account: the account lists no device, so not this one ({part}); {where}"
+    same = [d for d in devices if part_number and d.get("partnumber") == part_number]
+    said = (f"account: the device ({part}) is not among the {len(devices)} devices of the "
+            f"account ({', '.join(_part_and_state(d) for d in devices)}); ")
+    if not same:
+        said += "none of its part number"
+    else:
+        said += f"{'one' if len(same) == 1 else len(same)} of them of its part number"
+        lengths = [str(len(str(i))) for d in same if (i := unit_id_of(d.get("unitid")))]
+        if lengths:
+            said += (f", {'its unit ID' if len(same) == 1 else 'their unit IDs'} of "
+                     f"{', '.join(lengths)} digits against the device's {len(str(unit_id))}")
+    if any(unit_id_of(d.get("deviceid")) == unit_id for d in devices):
+        said += "; its unit ID is the device ID of one of them"
+    return f"{said}; {where}"
 
 
 def require_account_device(client: GarminClient, unit_id: int,
@@ -453,7 +470,8 @@ def require_account_device(client: GarminClient, unit_id: int,
                 _("Could not check whether this device belongs to your Garmin account "
                   "({error}). Nothing was synced.").format(error=e)) from e
         if unit_id not in {unit_id_of(d.get("unitid")) for d in devices}:
-            log.info(_not_listed(devices, part_number))
+            log.info(_not_listed(devices, part_number, unit_id,
+                                 client.settings.environment))
             refused = NotAccountDevice(
                 _("This device is not registered to your Garmin account. To use it with "
                   "Garmin Connect here, sign in to the account it belongs to or add the "
