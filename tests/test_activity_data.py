@@ -62,7 +62,7 @@ def run(*, records=None, laps=None, sessions=None, cut=None, bad_crc=False) -> b
 
 def test_the_series_of_a_run():
     data = fit.activity_data(run())
-    assert data.state is fit.FileState.WHOLE and data.has_positions
+    assert data.state is fit.FileState.WHOLE
     first, last = data.samples[0], data.samples[-1]
     assert [s.time for s in data.samples] == [UNIX, UNIX + 1, UNIX + 2, UNIX + 3]
     assert last.distance == pytest.approx(7.5) and last.speed == pytest.approx(2.5)
@@ -74,7 +74,7 @@ def test_the_series_of_a_run():
 
 def test_what_its_session_says():
     data = fit.activity_data(run())
-    assert (data.start, data.sport, data.sub_sport) == (UNIX, 1, 0)
+    assert (data.start, data.sport) == (UNIX, 1)
     assert data.elapsed_time == pytest.approx(4.0) and data.timer_time == pytest.approx(4.0)
     assert data.distance == pytest.approx(10.0) and data.ascent == 1
     assert data.avg_speed == pytest.approx(2.5) and data.calories == 2
@@ -114,10 +114,10 @@ def test_a_workout_without_positions_or_distance():
         *FILE_ID, HEART_RECORD, *(FitData(1, (START + s, 100 + s)) for s in range(3)),
         SESSION, FitData(2, (START, 10, 20, 1800_000, 1800_000, None, 250, None, None, 101,
                              102, None))))
-    assert not data.has_positions and data.laps == ()
+    assert {s.latitude for s in data.samples} == {None} and data.laps == ()
     assert [s.heart_rate for s in data.samples] == [100, 101, 102]
     assert {s.distance for s in data.samples} == {None}
-    assert (data.sport, data.sub_sport, data.calories) == (10, 20, 250)
+    assert (data.sport, data.calories) == (10, 250)
     assert (data.distance, data.avg_speed, data.ascent) == (None, None, None)
     assert data.timer_time == pytest.approx(1800.0)
 
@@ -159,7 +159,7 @@ def test_several_sessions_together():
                 FitData(2, (START + 3600, 1, 0, 1_800_000, 1_800_000, 600_000, 400, None,
                             3333, 150, 175, 50))]
     data = fit.activity_data(run(sessions=sessions))
-    assert data.sport == fit.SPORT_MULTISPORT and data.sub_sport is None
+    assert data.sport == fit.SPORT_MULTISPORT
     assert data.timer_time == pytest.approx(5400.0) and data.distance == pytest.approx(36000.0)
     assert (data.ascent, data.calories, data.max_heart_rate) == (250, 1000, 175)
     assert data.avg_speed == pytest.approx(36000 / 5400)
@@ -228,8 +228,7 @@ def test_the_heart_rate_zones_of_the_session():
     assert zones.times == (600, 300, 200, 100, 50, 50)
     assert zones.bounds == BOUNDS
     assert zones.method == "threshold"
-    assert (zones.max_heart_rate, zones.resting_heart_rate, zones.threshold_heart_rate) == (
-        190, 55, 165)
+    assert (zones.max_heart_rate, zones.threshold_heart_rate) == (190, 165)
 
 
 @pytest.mark.parametrize(("calc", "method"), [(0, "custom"), (1, "max"), (2, "reserve"),

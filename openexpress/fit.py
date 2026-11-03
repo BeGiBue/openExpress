@@ -542,7 +542,6 @@ _LAP_CALORIES = 11
 _LAP_AVG_SPEED, _LAP_ENHANCED_AVG_SPEED = 13, 110  # millimetres a second
 _LAP_AVG_HEART_RATE, _LAP_MAX_HEART_RATE = 15, 16
 _LAP_ASCENT = 21  # metres
-_SESSION_SUB_SPORT = 6
 _SESSION_ELAPSED_TIME = 7  # milliseconds, pauses included
 _SESSION_CALORIES = 11
 _SESSION_AVG_SPEED, _SESSION_ENHANCED_AVG_SPEED = 14, 124  # millimetres a second
@@ -572,13 +571,13 @@ _SESSION_AVG_RESPIRATION, _SESSION_MAX_RESPIRATION, _SESSION_MIN_RESPIRATION = 1
 _MESG_SET, _SET_DURATION, _SET_TYPE, _SET_REST = 225, 0, 5, 0
 # FIT profile: time_in_zone, of the session (its reference_mesg 18): the time in each zone
 # (seconds, scale 1000; an array: below zone 1, zones 1-5, above the top bound), the zones'
-# bounds (hr_zone_high_boundary, an array), how they are worked out, the max, resting and
-# threshold heart rate. A device keeps as the bound of a zone the first beat of the zone above
-# it, as Garmin Connect shows the zones: made-up bounds 118, 141, … are below zone 1 under 118,
-# zone 1 118–140; the last is the top of zone 5, which Garmin Connect does not show.
+# bounds (hr_zone_high_boundary, an array), how they are worked out, the max and threshold
+# heart rate. A device keeps as the bound of a zone the first beat of the zone above it, as
+# Garmin Connect shows the zones: made-up bounds 118, 141, … are below zone 1 under 118, zone 1
+# 118–140; the last is the top of zone 5, which Garmin Connect does not show.
 _MESG_TIME_IN_ZONE = 216
 _ZONE_REFERENCE, _ZONE_TIMES, _ZONE_BOUNDS, _ZONE_CALC = 0, 2, 6, 10
-_ZONE_MAX, _ZONE_RESTING, _ZONE_THRESHOLD = 11, 12, 13
+_ZONE_MAX, _ZONE_THRESHOLD = 11, 13
 _ZONE_METHODS = {0: "custom", 1: "max", 2: "reserve", 3: "threshold"}  # hr_zone_calc
 ZONES = 6  # below zone 1 and zones 1-5
 
@@ -625,7 +624,6 @@ class HeartRateZones:
     bounds: tuple[int, ...]
     method: str | None = None
     max_heart_rate: int | None = None
-    resting_heart_rate: int | None = None
     threshold_heart_rate: int | None = None
 
 
@@ -637,7 +635,6 @@ class ActivityData:
     state: FileState
     start: int | None = None  # the start of its first session (a Unix time)
     sport: int | None = None  # several sports: SPORT_MULTISPORT
-    sub_sport: int | None = None  # of one session only
     elapsed_time: float | None = None  # seconds, pauses included
     timer_time: float | None = None  # seconds, pauses left out
     distance: float | None = None  # metres
@@ -668,10 +665,6 @@ class ActivityData:
     max_respiration: float | None = None
     active_time: float | None = None  # seconds
     rest_time: float | None = None  # seconds: the rest sets of a strength workout
-
-    @property
-    def has_positions(self) -> bool:
-        return any(s.latitude is not None for s in self.samples)
 
 
 def _scaled(value: Value, scale: int) -> float | None:
@@ -835,8 +828,6 @@ def _sessions_together(sessions: list[dict[int, Value]]) -> dict:
     return {
         "start": _unix_time(sessions[0].get(_SESSION_START_TIME)),
         "sport": sport,
-        "sub_sport": (_whole_number(sessions[0].get(_SESSION_SUB_SPORT))
-                      if len(sessions) == 1 else None),
         "elapsed_time": _total(sessions, _SESSION_ELAPSED_TIME, 1000),
         "timer_time": timer_time,
         "distance": distance,
@@ -879,7 +870,6 @@ def _zones(found: list[dict[int, Value]]) -> HeartRateZones | None:
     first = whole[0][2]
     method = _ZONE_METHODS.get(_whole_number(first.get(_ZONE_CALC)))
     return HeartRateZones(times, whole[0][1], method, _whole_number(first.get(_ZONE_MAX)),
-                          _whole_number(first.get(_ZONE_RESTING)),
                           _whole_number(first.get(_ZONE_THRESHOLD)))
 
 

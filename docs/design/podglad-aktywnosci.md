@@ -879,8 +879,7 @@ gives them.
 | | avg_speed, enhanced_avg_speed | 13, 110 | m/s (scale 1000) |
 | | avg_heart_rate, max_heart_rate | 15, 16 | bpm |
 | | total_ascent | 21 | m |
-| session (18) | sub_sport | 6 | enum |
-| | total_elapsed_time | 7 | s (scale 1000) |
+| session (18) | total_elapsed_time | 7 | s (scale 1000) |
 | | total_calories | 11 | kcal |
 | | avg_speed, enhanced_avg_speed | 14, 124 | m/s (scale 1000) |
 | | avg_heart_rate, max_heart_rate | 16, 17 | bpm |
@@ -909,7 +908,7 @@ With the additions of section 10 (their steps):
 | | time_in_hr_zone | 2 | s (scale 1000), an array: below zone 1, zones 1–5, above |
 | | hr_zone_high_boundary | 6 | bpm, an array |
 | | hr_calc_type | 10 | enum: custom 0, % of max 1, % of reserve 2, % of threshold 3 |
-| | max_heart_rate, resting_heart_rate, threshold_heart_rate | 11, 12, 13 | bpm |
+| | max_heart_rate, threshold_heart_rate | 11, 13 | bpm |
 | set (225): duration and set_type for the rest time (step 11); the rest put off with D19a | duration | 0 | s (scale 1000) |
 | | repetitions | 3 | |
 | | weight | 4 | kg (scale 16) |

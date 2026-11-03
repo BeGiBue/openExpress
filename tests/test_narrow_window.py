@@ -466,7 +466,7 @@ def _long_hike(sport=17):
                                altitude=4000 + s, latitude=51.5 + s * 1e-7,
                                longitude=-0.17 + s * 1e-7) for s in range(0, 359_999, 60))
     zones = fit.HeartRateZones(times=(359_999,) * 6, bounds=(219, 229, 239, 249, 254, 255),
-                               method="threshold", max_heart_rate=255, resting_heart_rate=99,
+                               method="threshold", max_heart_rate=255,
                                threshold_heart_rate=249)
     data = fit.ActivityData(fit.FileState.DAMAGED, start=start, sport=sport,
                             timer_time=359_999.0, distance=123_456.0, avg_speed=0.2,

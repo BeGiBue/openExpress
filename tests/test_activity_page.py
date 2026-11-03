@@ -1453,7 +1453,7 @@ def zoned(data, times=(2190, 300, 0, 0, 0, 0)):
 
     return dataclasses.replace(data, zones=fit.HeartRateZones(
         times=times, bounds=ZONE_BOUNDS, method="threshold", max_heart_rate=190,
-        resting_heart_rate=55, threshold_heart_rate=165))
+        threshold_heart_rate=165))
 
 
 def zone_section(page):

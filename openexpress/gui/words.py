@@ -462,12 +462,6 @@ def activity_tile_kinds(data) -> list[tuple[str, str]]:
     return [(kind, value) for kind, value in tiles if value]
 
 
-def activity_tiles(data) -> list[tuple[str, str]]:
-    """The tiles of activity_tile_kinds, each (value, name)."""
-    return [(value, tile_name(kind)) for kind, value in activity_tile_kinds(data)]
-
-
-
 # FIT sports on foot (two steps a stride, cadence in steps a minute), and on a bike (cadence in
 # revolutions a minute): cycling and e-biking.
 _ON_FOOT = _PACE_SPORTS

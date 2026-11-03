@@ -23,6 +23,11 @@ def words():
     return words
 
 
+def tiles(w, data) -> list[tuple[str, str]]:
+    """The tiles of an activity's page as it shows them, each (value, name)."""
+    return [(value, w.tile_name(kind)) for kind, value in w.activity_tile_kinds(data)]
+
+
 @pytest.mark.parametrize(("seconds", "said"), [(41, "0:41"), (302, "5:02"), (3161, "52:41"),
                                                (3761, "1:02:41"), (3761.6, "1:02:42")])
 def test_a_time_with_its_seconds(seconds, said):
@@ -138,8 +143,8 @@ def test_the_tiles_of_a_hike_and_of_a_workout(language):
     """With a distance: distance, time, pace, average heart rate and ascent, five at most; a
     workout with a distance of 0 m: time, average and maximum heart rate, calories."""
     w = words()
-    assert w.activity_tiles(HIKE) == TILES_OF[language]["hike"]
-    assert w.activity_tiles(WORKOUT) == TILES_OF[language]["workout"]
+    assert tiles(w, HIKE) == TILES_OF[language]["hike"]
+    assert tiles(w, WORKOUT) == TILES_OF[language]["workout"]
 
 
 def test_the_tiles_by_their_kind_for_their_icons():
@@ -170,7 +175,7 @@ ZONES = {
 
 def zones(method="threshold", threshold=165):
     return fit.HeartRateZones(times=(2190, 300, 0, 0, 0, 0), bounds=(120, 140, 155, 165, 178, 190),
-                              method=method, max_heart_rate=190, resting_heart_rate=55,
+                              method=method, max_heart_rate=190,
                               threshold_heart_rate=threshold)
 
 
@@ -278,15 +283,15 @@ def test_a_lap_whose_pace_is_its_time_leaves_it_out(sport, metres, pace):
 
 def test_a_ride_has_its_speed_worked_out_when_its_session_does_not_say_it():
     ride = activity(sport=CYCLING, timer_time=3600.0, distance=30_000.0)
-    assert words().activity_tiles(ride) == [("30.00 km", "Distance"), ("1:00:00", "Time"),
+    assert tiles(words(), ride) == [("30.00 km", "Distance"), ("1:00:00", "Time"),
                                            ("30.0 km/h", "Average speed")]
 
 
 def test_a_value_not_given_leaves_its_tile_out():
     w = words()
-    assert w.activity_tiles(activity(sport=RUNNING, timer_time=600.0)) == [("10:00", "Time")]
-    assert w.activity_tiles(activity(sport=TRAINING, calories=0)) == [("0 kcal", "Calories")]
-    assert w.activity_tiles(activity()) == []  # no session: no tile
+    assert tiles(w, activity(sport=RUNNING, timer_time=600.0)) == [("10:00", "Time")]
+    assert tiles(w, activity(sport=TRAINING, calories=0)) == [("0 kcal", "Calories")]
+    assert tiles(w, activity()) == []  # no session: no tile
 
 
 # --- the chart -----------------------------------------------------------------------------------
@@ -340,14 +345,14 @@ def test_the_value_at_the_cursor(language):
 
 # --- the details ---------------------------------------------------------------------------------
 
-WALKING, STRENGTH = 11, 20
+WALKING = 11
 WALK = activity(sport=WALKING, timer_time=3540.0, elapsed_time=3900.0, distance=4250.0,
                 avg_speed=1.2006, avg_heart_rate=108, max_heart_rate=125, calories=180, ascent=12,
                 descent=12, min_altitude=19.4, max_altitude=31.0, max_speed=1000 / 532,
                 avg_cadence=52.2, max_cadence=59.0, cycles=2190.0, min_heart_rate=86,
                 avg_temperature=27.4, min_temperature=25.0, max_temperature=29.0)
 MOVING = 3150.0  # 52:30, worked out from the records
-WORKOUT_DETAILS = activity(sport=TRAINING, sub_sport=STRENGTH, timer_time=3130.0,
+WORKOUT_DETAILS = activity(sport=TRAINING, timer_time=3130.0,
                            elapsed_time=3130.0, distance=0.0, avg_heart_rate=112,
                            max_heart_rate=171, min_heart_rate=92, calories=320,
                            active_time=1470.0, rest_time=1500.0, avg_temperature=29.0,
