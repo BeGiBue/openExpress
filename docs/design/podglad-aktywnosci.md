@@ -4,15 +4,15 @@ Status: the decisions of section 5 are made (each took its option a, marked "cho
 section 5 adds to it; 10b kept as an idea for later; D11 with the tile of the ascent and every tile
 that applies, up to five). Steps 1 to 5 of section 8 are implemented (the data of an activity,
 `fit.activity_data`; the words of its page, `gui/words.py`; the page with its tiles,
-`gui/activity_page.py`; the chart, `gui/activity_chart.py`; the map, `gui/activity_map.py`);
-steps 6–7 are not. The work goes step
-by step (section 8), each step once accepted. The scope in section 1 is set once: what it does not
-list is not added while it is implemented. After step 5 the page was found correct but plain:
-section 10 adds to the scope (items 6–10 of section 1), designed together with the laps. Its
-decisions are made: 13a, 14a, 15a, 16b, 17a with moving time from the records, 18a, 19b, 20a,
-21a, 22a; 19a (the sets of a strength workout) is put off, an idea for later. Its steps (10.5)
-replace steps 6–7 of section 8; steps 6 (the laps) and 7 (the look) are implemented, steps
-8–12 are not.
+`gui/activity_page.py`; the chart, `gui/activity_chart.py`; the map, `gui/activity_map.py`).
+The work goes step by step, each step once accepted. The scope in section 1 is set once: what it
+does not list is not added while it is implemented. After step 5 the page was found correct but
+plain: section 10 adds to the scope (items 6–10 of section 1), designed together with the laps.
+Its decisions are made: 13a, 14a, 15a, 16b, 17a with moving time from the records, 18a, 19b,
+20a, 21a, 22a; 19a (the sets of a strength workout) is put off, an idea for later. Its steps
+(10.5) replace steps 6–7 of section 8; steps 6 to 11 are implemented (the laps, the look, the
+heart-rate zones, the training effect, the colours of the track, the details), step 12 (the
+documentation) is not.
 
 ## 1. Scope
 
