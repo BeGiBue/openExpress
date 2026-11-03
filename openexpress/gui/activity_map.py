@@ -68,6 +68,7 @@ SETTING = "map_tiles"  # in gui.json: the yes to OpenStreetMap's tiles
 TRACK_COLOUR = "#e5420e"  # orange-red: apart from the water, the green and the streets of the tiles
 TRACK_EDGE = "#6b1d05"  # its dark edge, seen on the light streets
 TRACK_WIDTH = 4  # pixels of the track's colour
+JOIN_PX = 1.0  # how far a piece of a coloured track starts back along the stretch before
 EDGE_WIDTH = 1.5  # pixels of its dark edge on each side
 START_COLOUR = GREEN
 END_SIZE = 18  # pixels: the marker of the start and the one of the finish
@@ -612,6 +613,17 @@ def _trace(cr, points, run) -> None:
         cr.line_to(*points[i])
 
 
+def _just_before(before, at) -> tuple[float, float]:
+    """The point JOIN_PX before `at` on the stretch from `before` (`at` itself on a stretch of
+    no length; `before` on a shorter one)."""
+    dx, dy = at[0] - before[0], at[1] - before[1]
+    length = math.hypot(dx, dy)
+    if length == 0:
+        return at
+    back = min(JOIN_PX, length) / length
+    return at[0] - dx * back, at[1] - dy * back
+
+
 def _by_colour(runs, colours) -> dict[str | None, list[list[int]]]:
     """The runs cut into pieces of one colour, each piece in the colour of the point it
     starts at and reaching the next piece's first point; without colours, the runs as they
@@ -710,8 +722,10 @@ if Shumate is not None:
             """The runs (of the points' indices, each in order) as lines `width` wide over
             their edge, at this strength; in their colours, one stroke for each. A piece of one
             colour ends flat where the next one begins (a round end would stick out over its
-            neighbours, a short piece a dot), drawn from the point before its own first so that
-            no gap opens on a bend; only the runs' own ends are round."""
+            neighbours, a short piece a dot); it starts JOIN_PX back along the stretch before,
+            so that its round join fills the bend and no gap opens there. The colours are drawn
+            whole and laid on at this strength together, so that where two pieces meet none is
+            blended twice; only the runs' own ends are round."""
             edge = self.edge
             cr.set_line_width(width + 2 * self.edge_width)
             cr.set_source_rgba(edge.red, edge.green, edge.blue, strength)
@@ -720,23 +734,35 @@ if Shumate is not None:
             cr.stroke()
             cr.set_line_width(width)
             coloured = self.colours is not None
-            if coloured:
-                cr.set_line_cap(cairo.LINE_CAP_BUTT)
+            if not coloured:
+                shade = self.track_colour
+                cr.set_source_rgba(shade.red, shade.green, shade.blue, strength)
+                for run in runs:
+                    _trace(cr, points, run)
+                cr.stroke()
+                return
+            cr.push_group()
+            cr.set_line_cap(cairo.LINE_CAP_BUTT)
             firsts = {run[0] for run in runs}
             for colour, pieces in _by_colour(runs, self.colours).items():
-                shade = self.track_colour if colour is None else rgba(colour)
-                cr.set_source_rgba(shade.red, shade.green, shade.blue, strength)
+                shade = rgba(colour)
+                cr.set_source_rgba(shade.red, shade.green, shade.blue, 1)
                 for piece in pieces:
-                    _trace(cr, points, piece if not coloured or piece[0] in firsts
-                           else [piece[0] - 1, *piece])
+                    if piece[0] in firsts:
+                        _trace(cr, points, piece)
+                    else:
+                        cr.move_to(*_just_before(points[piece[0] - 1], points[piece[0]]))
+                        for i in piece:
+                            cr.line_to(*points[i])
                 cr.stroke()
-            if coloured:
-                cr.set_line_cap(cairo.LINE_CAP_ROUND)
-                for i in {i for run in runs for i in (run[0], run[-1])}:
-                    shade = rgba(self.colours[i])
-                    cr.set_source_rgba(shade.red, shade.green, shade.blue, strength)
-                    _trace(cr, points, [i])
-                    cr.stroke()
+            cr.set_line_cap(cairo.LINE_CAP_ROUND)
+            for i in {i for run in runs for i in (run[0], run[-1])}:
+                shade = rgba(self.colours[i])
+                cr.set_source_rgba(shade.red, shade.green, shade.blue, 1)
+                _trace(cr, points, [i])
+                cr.stroke()
+            cr.pop_group_to_source()
+            cr.paint_with_alpha(strength)
 
     class NoTiles(Shumate.DataSource):
         """A source that is never asked: the reference of the map's view (its projection, its

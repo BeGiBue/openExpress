@@ -572,9 +572,11 @@ empty.
   - − A walk mostly below zone 1 is one colour (10.1).
 - **13c. One colour always.**
 - Corrected after the pictures of step 12: each piece of one colour ends flat where the next one
-  begins, drawn from the point before its own first so that no gap opens on a bend; a round end
-  stuck out over the pieces next to it, and a short piece (a heart rate a moment higher) showed
-  as a dot of its colour. Only the track's own ends are round.
+  begins, and starts a pixel back along the stretch before, so that its round join fills a bend
+  and no gap opens there; a round end stuck out over the pieces next to it, and a short piece (a
+  heart rate a moment higher) showed as a dot of its colour. Only the track's own ends are round.
+  Each stretch between two points is in the colour of the point it starts at, and a faded track
+  (the rest of a lap chosen) has its colours laid on together, blended once.
 
 #### D14: heart-rate zones — chosen: 14a
 

@@ -307,3 +307,68 @@ def test_a_short_piece_of_another_colour_is_no_dot_on_the_track():
     assert rgb(31, 20) == (0, 0, 255)  # the piece itself
     assert rgb(28, 20) == (255, 0, 0) and rgb(35, 20) == (255, 0, 0)  # no dot around it
     assert rgb(7, 20) == (255, 0, 0) and rgb(62, 20) == (255, 0, 0)  # the round ends
+
+
+@pytest.mark.parametrize("strength", [1.0, 0.5], ids=["full", "faded"])
+def test_each_stretch_of_a_coloured_track_is_in_its_own_colour_once(strength):
+    """Each stretch between two points in the colour of the point it starts at, whichever
+    colour is drawn first, and a faded track (the rest of a lap chosen) blended once: no
+    colour of two pieces where they meet."""
+    import types
+
+    import cairo
+
+    from openexpress.gui.palette import rgba
+
+    m = amap()
+    if not hasattr(m, "TrackLayer"):
+        pytest.skip("no libshumate")
+    red, blue = "#ff0000", "#0000ff"
+    layer = types.SimpleNamespace(edge=rgba("#000000"), edge_width=1.0, track_colour=rgba(red),
+                                  colours=[red, red, blue, blue, red, red])
+    points = [(10.0 + 10 * i, 20.0) for i in range(6)]
+    surface = cairo.ImageSurface(cairo.FORMAT_RGB24, 80, 40)
+    cr = cairo.Context(surface)
+    cr.set_source_rgb(1, 1, 1)
+    cr.paint()
+    cr.set_line_join(cairo.LINE_JOIN_ROUND)
+    cr.set_line_cap(cairo.LINE_CAP_ROUND)
+    m.TrackLayer._stroke(layer, cr, points, [list(range(len(points)))], 8, strength)
+    surface.flush()
+    data, stride = surface.get_data(), surface.get_stride()
+
+    def rgb(x):
+        blue_, green, red_ = data[20 * stride + 4 * x:20 * stride + 4 * x + 3]
+        return red_, green, blue_
+
+    stretches = [rgb(x) for x in (15, 25, 35, 45, 55)]  # one in each stretch
+    assert stretches == [stretches[0]] * 2 + [stretches[2]] * 2 + [stretches[0]]
+    assert stretches[0][0] > stretches[0][2] and stretches[2][2] > stretches[2][0]
+
+
+def test_a_bend_where_two_colours_meet_has_no_gap():
+    """Two pieces ending flat at a bend: the second one's round join fills its outer side."""
+    import types
+
+    import cairo
+
+    from openexpress.gui.palette import rgba
+
+    m = amap()
+    if not hasattr(m, "TrackLayer"):
+        pytest.skip("no libshumate")
+    red, blue = "#ff0000", "#0000ff"
+    layer = types.SimpleNamespace(edge=rgba("#000000"), edge_width=0.0, track_colour=rgba(red),
+                                  colours=[red, blue, blue])
+    points = [(10.0, 30.0), (30.0, 30.0), (30.0, 10.0)]  # right, then up
+    surface = cairo.ImageSurface(cairo.FORMAT_RGB24, 50, 50)
+    cr = cairo.Context(surface)
+    cr.set_source_rgb(1, 1, 1)
+    cr.paint()
+    cr.set_line_join(cairo.LINE_JOIN_ROUND)
+    cr.set_line_cap(cairo.LINE_CAP_ROUND)
+    m.TrackLayer._stroke(layer, cr, points, [[0, 1, 2]], 8, 1.0)
+    surface.flush()
+    data, stride = surface.get_data(), surface.get_stride()
+    blue_, green, red_ = data[31 * stride + 4 * 31:31 * stride + 4 * 31 + 3]  # the outer corner
+    assert (red_, green, blue_) == (0, 0, 255)
