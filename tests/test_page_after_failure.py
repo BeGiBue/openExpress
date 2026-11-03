@@ -156,7 +156,7 @@ class Switch:
     handler_unblock = handler_block
 
 
-SESSION = dict(device=types.SimpleNamespace(raw=b"xml", unit_id=3000000001), storage=None,
+SESSION = dict(device=types.SimpleNamespace(part_number="006-B0000-00", raw=b"xml", unit_id=3000000001), storage=None,
                client=types.SimpleNamespace(http=None,
                                             consumer=types.SimpleNamespace(url_salt="salt")))
 
@@ -200,7 +200,7 @@ APP = types.SimpleNamespace(name="Face It", app_id=FACE, app_type=4, has_files=T
 
 
 def _account(monkeypatch, store=None):
-    monkeypatch.setattr(service, "require_account_device", lambda client, unit_id, fresh=False: [])
+    monkeypatch.setattr(service, "require_account_device", lambda client, unit_id, fresh=False, **_kw: [])
     monkeypatch.setattr(ciq, "StoreApi", lambda client: store)
 
 

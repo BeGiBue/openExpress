@@ -7,6 +7,7 @@ import contextlib
 import fcntl
 import json
 import logging
+import re
 import threading
 import time
 from collections.abc import Callable
@@ -399,14 +400,43 @@ def unit_id_of(value) -> int | None:
     return value if type(value) is int and value > 0 else None
 
 
+# What the log says of the account's devices: a part number and a state, of a few letters.
+_PART = re.compile(r"[0-9A-Za-z-]{1,24}")
+_STATE = re.compile(r"[A-Za-z_]{1,16}")
+
+
+def _part_and_state(entry: dict) -> str:
+    part = entry.get("partnumber")
+    state = entry.get("devicestatus")
+    if not (isinstance(state, str) and _STATE.fullmatch(state)):
+        active = entry.get("activeind")
+        state = {True: "active", False: "inactive"}.get(active, "?") \
+            if isinstance(active, bool) else "?"
+    part = part if isinstance(part, str) and _PART.fullmatch(part) else "?"
+    return f"{part} {state.lower()}"
+
+
+def _not_listed(devices: list[dict], part_number: str | None) -> str:
+    """The log's line of a device the account does not list: what the list holds (part
+    numbers and states) and whether one of them is of the device's part number; never a unit
+    ID nor anything of the account's owner."""
+    part = part_number if part_number and _PART.fullmatch(part_number) else "?"
+    if not devices:
+        return f"account: the account lists no device, so not this one ({part})"
+    same = any(d.get("partnumber") == part_number for d in devices) if part_number else False
+    return (f"account: the device ({part}) is not among the {len(devices)} devices of the "
+            f"account ({', '.join(_part_and_state(d) for d in devices)}); "
+            f"{'one of them' if same else 'none'} of its part number")
+
+
 def require_account_device(client: GarminClient, unit_id: int,
-                           fresh: bool = False) -> list[dict]:
+                           fresh: bool = False, part_number: str | None = None) -> list[dict]:
     """Allow account operations on this watch only if the account lists it: returns the
     account's device list fetched for the check (kept for a while, answers.LIFETIMES; `fresh`:
     asked anew, which every write to the account and every upload asks for; no override).
-    Raises NotAccountDevice when the watch is not on it, OwnershipUnknown when it cannot be
-    fetched, Unauthorized and ClockSkew as they are. Leaves `client.verified_unit_id` set on
-    success, None otherwise."""
+    Raises NotAccountDevice when the watch is not on it (the log tells what the list holds,
+    `part_number` the watch's), OwnershipUnknown when it cannot be fetched, Unauthorized and
+    ClockSkew as they are. Leaves `client.verified_unit_id` set on success, None otherwise."""
     if client.verified_unit_id != unit_id:
         client.verified_unit_id = None
     # While the same watch is checked again, tasks sharing the client (pictures, icons)
@@ -423,10 +453,13 @@ def require_account_device(client: GarminClient, unit_id: int,
                 _("Could not check whether this device belongs to your Garmin account "
                   "({error}). Nothing was synced.").format(error=e)) from e
         if unit_id not in {unit_id_of(d.get("unitid")) for d in devices}:
+            log.info(_not_listed(devices, part_number))
             refused = NotAccountDevice(
                 _("This device is not registered to your Garmin account. To use it with "
                   "Garmin Connect here, sign in to the account it belongs to or add the "
-                  "device to your account in Garmin Connect."))
+                  "device to your account in Garmin Connect. If it is added already, check "
+                  "that the Garmin Connect app on your phone and openExpress are signed in "
+                  "to the same account."))
             refused.devices = devices  # the account's list all the same (the start page)
             raise refused
         verified = unit_id
@@ -576,7 +609,8 @@ def primary_training_status(client: GarminClient, device: GarminDevice,
     made) the ownership check is run here. `fresh`: what the account says now, nothing kept.
     """
     if devices is None:
-        devices = require_account_device(client, device.unit_id, fresh=fresh)
+        devices = require_account_device(client, device.unit_id, fresh=fresh,
+                                         part_number=device.part_number)
     raw = client.primary_training_device(fresh=fresh).get("deviceid")
     unit_id = unit_id_of(raw)
     if unit_id is None and raw not in (None, 0, "0", ""):
@@ -640,7 +674,8 @@ def primary_wearable_status(client: GarminClient, device: GarminDevice,
     check is run here without `devices`; `fresh`: the list asked anew). Changes nothing on
     the account."""
     if devices is None:
-        devices = require_account_device(client, device.unit_id, fresh=fresh)
+        devices = require_account_device(client, device.unit_id, fresh=fresh,
+                                         part_number=device.part_number)
     this, primary = wearable_entries(devices, device.unit_id)
     capable = this.get("primaryactivitytrackersettingcapable") if this is not None else None
     return WearableStatus(primary is not None, model_name(primary) if primary else "",
@@ -656,7 +691,8 @@ def set_primary_wearable(client: GarminClient, device: GarminDevice,
     nothing is reported as an error."""
     def read_back(_devices):
         # It is a field of the account's list: the list read anew, with its check.
-        devices = require_account_device(client, device.unit_id, fresh=True)
+        devices = require_account_device(client, device.unit_id, fresh=True,
+                                         part_number=device.part_number)
         return primary_wearable_status(client, device, devices), devices
 
     return WearableChange(*_change_primary(
@@ -680,7 +716,8 @@ def _change_primary(client: GarminClient, device: GarminDevice, apply: bool, *, 
     `not_changed` when an accepted request changed nothing. Gives the status before and
     the account's list as it is now."""
     # A change is decided on what the account says now: nothing kept is used (answers).
-    devices = require_account_device(client, device.unit_id, fresh=True)
+    devices = require_account_device(client, device.unit_id, fresh=True,
+                                     part_number=device.part_number)
     before = status(client, device, devices, fresh=True)
     if before.is_this_device:
         return before, devices
@@ -740,7 +777,8 @@ def check_session(s: DeviceSession) -> DeviceSession:
             return s
     if s.logged_in:
         try:
-            s.account_devices = require_account_device(s.client, s.device.unit_id)
+            s.account_devices = require_account_device(s.client, s.device.unit_id,
+                                                       part_number=s.device.part_number)
         except Unauthorized:
             s.client.auth = None
         except (OwnershipError, ClockSkew) as e:
@@ -1265,7 +1303,8 @@ def plan_sync(s: DeviceSession, options: SyncOptions | None = None,
         raise store.NotLoggedIn(_("Not logged in to Garmin Connect."))
     if s.logged_in:
         # Before uploads: the account's list asked anew (a plan only shown: as kept).
-        require_account_device(s.client, s.device.unit_id, fresh=not options.preview)
+        require_account_device(s.client, s.device.unit_id, fresh=not options.preview,
+                               part_number=s.device.part_number)
     plan = SyncPlan(options, s.state)
     if options.uploads:
         progress(Waiting(_("Fetching configuration from the Garmin server…")))

@@ -88,7 +88,8 @@ def _fields(value: Any, keep: frozenset[str]) -> Any:
 # What goes to disk of the account's list: what the start page, the ownership check and the
 # primary devices read; never a name the user gave a device ("displayname").
 ACCOUNT_FIELDS = frozenset({
-    "unitid", "deviceid", "productdisplayname", "partnumber", "currentfirmwareversion",
+    "unitid", "deviceid", "productdisplayname", "partnumber", "devicestatus", "activeind",
+    "currentfirmwareversion",
     "primaryactivitytrackerindicator", "primaryactivitytrackersettingcapable",
     "primarytrainingcapable", "imageurl", "devicecategories", "hasopticalheartrate"})
 PRIMARY_FIELDS = frozenset({"deviceid"})

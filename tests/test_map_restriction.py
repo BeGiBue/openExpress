@@ -281,7 +281,7 @@ def test_cli_asks_the_account_only_with_a_login_and_for_a_device_of_it(monkeypat
     from openexpress.auth import store
     from openexpress.connect import NotAccountDevice
 
-    dev = types.SimpleNamespace(unit_id=3000000003)
+    dev = types.SimpleNamespace(unit_id=3000000003, part_number="006-B0000-00")
     calls = []
     saved = types.SimpleNamespace(login=False)
 
@@ -295,12 +295,12 @@ def test_cli_asks_the_account_only_with_a_login_and_for_a_device_of_it(monkeypat
 
     monkeypatch.setattr(cli, "make_client", make_client)
     monkeypatch.setattr(service, "require_account_device",
-                        lambda c, unit_id, fresh=False: calls.append("owner") or [])
+                        lambda c, unit_id, fresh=False, **_kw: calls.append("owner") or [])
     assert cli._account_country(dev) is None and calls == []  # no login: nothing asked
     saved.login = True
     assert cli._account_country(dev) == "KR" and calls == ["owner", "country"]
 
-    def refuse(c, unit_id, fresh=False):
+    def refuse(c, unit_id, fresh=False, **_kw):
         raise NotAccountDevice("This device is not registered to your Garmin account.")
 
     calls.clear()

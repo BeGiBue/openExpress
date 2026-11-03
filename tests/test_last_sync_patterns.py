@@ -298,7 +298,7 @@ def _window(unit_id):
     # The device synced here (its state.json: the one source of "never synced").
     sync.SyncState(unit_id).save()
     win = stand_in(
-        session=types.SimpleNamespace(device=types.SimpleNamespace(unit_id=unit_id),
+        session=types.SimpleNamespace(device=types.SimpleNamespace(part_number="006-B0000-00", unit_id=unit_id),
                                       ownership_error=None),
         last_sync_row=Adw.ExpanderRow(title="Last sync"), _last_sync_children=[])
     window_methods(win, ["_show_last_sync"])
@@ -357,9 +357,9 @@ def test_the_notification_of_the_background_sync_says_what_the_row_says(monkeypa
     shown = []
     session = types.SimpleNamespace(
         mass_storage=False, logged_in=True, first_sync=False, client=None,
-        device=types.SimpleNamespace(unit_id=record["unit_id"], description="Test watch"))
+        device=types.SimpleNamespace(part_number="006-B0000-00", unit_id=record["unit_id"], description="Test watch"))
     monkeypatch.setattr(watch.service, "open_session", lambda: session)
-    monkeypatch.setattr(watch.service, "require_account_device", lambda client, unit, fresh=False: None)
+    monkeypatch.setattr(watch.service, "require_account_device", lambda client, unit, fresh=False, **_kw: None)
     monkeypatch.setattr(watch.service, "run_sync", lambda s, progress=None, **kw: summary)
     monkeypatch.setattr(watch.GLib, "idle_add", lambda fn, *args: shown.append(args))
     watch.Watcher()._sync()

@@ -62,7 +62,7 @@ class Tasks:
 
 def _window(**kw):
     values = {"session": types.SimpleNamespace(
-        device=types.SimpleNamespace(unit_id=3000000001, description="Test watch",
+        device=types.SimpleNamespace(part_number="006-B0000-00", unit_id=3000000001, description="Test watch",
                                      software_version_str="23.39"),
         storage=object(), client=object(), mass_storage=False, unit_info_answer=None),
         "run_task": Tasks(), "toasts": [], "load_section": lambda key, force=False: None}
@@ -80,7 +80,7 @@ def app_calls(monkeypatch):
     calls = []
     monkeypatch.setattr(ciq, "remove", lambda device, storage, app: calls.append("remove"))
     monkeypatch.setattr(service, "require_account_device",
-                        lambda client, unit_id, fresh=False: calls.append("owner") or [])
+                        lambda client, unit_id, fresh=False, **_kw: calls.append("owner") or [])
     monkeypatch.setattr(ciq, "StoreApi", lambda client: types.SimpleNamespace(
         forget=lambda device, ids: calls.append("forget")))
     return calls

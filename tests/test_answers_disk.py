@@ -133,8 +133,8 @@ def test_of_the_account_only_the_fields_read_go_to_disk(tmp_path):
     kept = _on_disk(tmp_path / "answers")
     assert kept[answers.ACCOUNT_DEVICES] == [{
         "unitid": 3000000001, "deviceid": 4000000001, "partnumber": "006-X",
-        "productdisplayname": "Made-up 1", "devicecategories": ["FITNESS"],
-        "primaryactivitytrackerindicator": True}]
+        "productdisplayname": "Made-up 1", "devicestatus": "active",
+        "devicecategories": ["FITNESS"], "primaryactivitytrackerindicator": True}]
     assert kept[answers.PRIMARY_TRAINING] == {"deviceid": 4000000001}
 
 

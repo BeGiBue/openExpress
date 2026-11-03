@@ -1140,7 +1140,7 @@ def cmd_baseline(args) -> int:
     if st.mass_storage:
         # As its sync: a drive that Garmin's word does not let sync is not marked either.
         service.refuse_drive_sync(service.DeviceSession(st, dev, settings, client))
-    service.require_account_device(client, dev.unit_id)
+    service.require_account_device(client, dev.unit_id, part_number=dev.part_number)
     cfg = client.upload_settings(dev.unit_id)
     if not args.apply:
         n = len(sync.plan_baseline(dev, st, cfg, sync.SyncState(dev.unit_id)))
@@ -1503,7 +1503,8 @@ def _account_country(dev) -> str | None:
             client = make_client(Settings.load(), need_auth=True)
         except store.NotLoggedIn:
             return None  # no login saved: the account is not asked
-        service.require_account_device(client, dev.unit_id)  # on each run
+        service.require_account_device(client, dev.unit_id,
+                                       part_number=dev.part_number)  # on each run
         return client.profile_country()
 
     return service.read_account_country(ask)
@@ -1923,7 +1924,8 @@ def cmd_apps(args) -> int:
     from openexpress import service
 
     # Before a change (--apply), the account's list asked anew.
-    service.require_account_device(client, dev.unit_id, fresh=bool(getattr(args, "apply", False)))
+    service.require_account_device(client, dev.unit_id, fresh=bool(getattr(args, "apply", False)),
+                                   part_number=dev.part_number)
     api = ciq.StoreApi(client)
     locale = language_tag(settings.locale)
     state = ciq.read_installed(dev, st)

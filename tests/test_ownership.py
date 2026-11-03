@@ -89,6 +89,31 @@ def test_other_watch_is_refused(devices):
     assert client.verified_unit_id is None
 
 
+@pytest.mark.parametrize(("devices", "said"), [
+    ([{"unitid": OTHER, "partnumber": "006-B4536-00", "devicestatus": "active"},
+      {"unitid": OTHER + 1, "partnumber": "006-B2604-00", "devicestatus": "retired"}],
+     ("account: the device (006-B2604-00) is not among the 2 devices of the account "
+      "(006-B4536-00 active, 006-B2604-00 retired); one of them of its part number")),
+    ([{"unitid": OTHER, "partnumber": "006-B4536-00", "activeind": True}, {"unitid": None}],
+     ("account: the device (006-B2604-00) is not among the 2 devices of the account "
+      "(006-B4536-00 active, ? ?); none of its part number")),
+    ([], "account: the account lists no device, so not this one (006-B2604-00)"),
+], ids=["same model", "another model", "empty list"])
+def test_a_device_not_on_the_account_says_what_the_account_lists(devices, said, caplog):
+    """The log tells what the account's list holds, its part numbers and states, and whether
+    one of them is of the device's part number: never a unit ID nor an e-mail address."""
+    client = make_client(devices)
+    with caplog.at_level("INFO", logger="openexpress.service"), \
+            pytest.raises(NotAccountDevice) as refused:
+        service.require_account_device(client, UNIT, part_number="006-B2604-00")
+    lines = [r.getMessage() for r in caplog.records if r.name == "openexpress.service"]
+    assert lines == [said]
+    assert str(UNIT) not in caplog.text and str(OTHER) not in caplog.text
+    advice = ("check that the Garmin Connect app on your phone and openExpress are signed in to "
+              "the same account")
+    assert advice in str(refused.value)
+
+
 def test_bool_never_matches_a_unit_id():
     client = make_client([{"unitid": True}])
     with pytest.raises(NotAccountDevice):

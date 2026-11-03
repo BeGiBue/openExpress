@@ -453,7 +453,8 @@ class AppsPage:
         s = self.session
 
         def work():
-            service.require_account_device(s.client, s.device.unit_id, fresh=True)
+            service.require_account_device(s.client, s.device.unit_id, fresh=True,
+                                           part_number=s.device.part_number)
             return ciq.install_apps(s.device, s.storage, s.client, ciq.StoreApi(s.client),
                                     apps, progress=self.progress, allowed=allowed)
 
@@ -528,7 +529,8 @@ class AppsPage:
         s = self.session
 
         def work():
-            service.require_account_device(s.client, s.device.unit_id, fresh=True)
+            service.require_account_device(s.client, s.device.unit_id, fresh=True,
+                                           part_number=s.device.part_number)
             ciq.StoreApi(s.client).forget(s.device, [app.app_id])
 
         def forget():
@@ -557,7 +559,8 @@ class AppsPage:
         def remove(forget: bool):
             def work():
                 if forget:
-                    service.require_account_device(s.client, s.device.unit_id, fresh=True)
+                    service.require_account_device(s.client, s.device.unit_id, fresh=True,
+                                                   part_number=s.device.part_number)
                 removed = ciq.remove(s.device, s.storage, app)
                 if forget:
                     ciq.StoreApi(s.client).forget(s.device, [app.app_id])

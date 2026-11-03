@@ -14,7 +14,7 @@ from openexpress import service
 
 def _session(stopped: bool):
     s = types.SimpleNamespace(
-        device=types.SimpleNamespace(unit_id=1234, description="Test watch"),
+        device=types.SimpleNamespace(part_number="006-B0000-00", unit_id=1234, description="Test watch"),
         storage=None, client=None, mass_storage=False, logged_in=True, ownership_error=None,
         first_sync=False, stop_waiting=threading.Event())
     if stopped:
@@ -58,7 +58,7 @@ def test_a_quit_asked_before_the_background_service_kept_its_session(monkeypatch
         return service.SyncSummary()
 
     monkeypatch.setattr(w, "_open_session", open_session)
-    monkeypatch.setattr(watch.service, "require_account_device", lambda client, unit_id, fresh=False: [])
+    monkeypatch.setattr(watch.service, "require_account_device", lambda client, unit_id, fresh=False, **_kw: [])
     monkeypatch.setattr(watch.service, "run_sync", run_sync)
     monkeypatch.setattr(watch.GLib, "idle_add", lambda fn, *args: None)
     w._sync()

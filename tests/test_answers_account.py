@@ -74,7 +74,7 @@ def test_a_change_of_the_apps_on_the_account_checks_the_owner_anew(task, monkeyp
     class Checked(Exception):
         pass
 
-    def require(client, unit_id, fresh=False):
+    def require(client, unit_id, fresh=False, **_kw):
         asked.append(fresh)
         raise Checked  # nothing further: only the check is looked at
 
@@ -86,7 +86,7 @@ def test_a_change_of_the_apps_on_the_account_checks_the_owner_anew(task, monkeyp
     runner = RunNow(error="record")
     win = window_methods(stand_in(
         session=types.SimpleNamespace(client=object(), storage=None,
-                                      device=types.SimpleNamespace(unit_id=UNIT)),
+                                      device=types.SimpleNamespace(part_number="006-B0000-00", unit_id=UNIT)),
         run_task=runner, progress=None, load_section=lambda key, force=False: None),
         ["_install_apps", "confirm_forget_app", "confirm_remove_app", "_forget_text"])
     {"install": lambda: win._install_apps([app]),

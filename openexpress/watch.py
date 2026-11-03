@@ -148,7 +148,8 @@ class Watcher(Gio.Application):
                 log.info("Not logged in: skipping sync")
                 return
             # First, so a watch of another account gets one notification and nothing else.
-            service.require_account_device(s.client, s.device.unit_id)
+            service.require_account_device(s.client, s.device.unit_id,
+                                           part_number=s.device.part_number)
             if s.first_sync:
                 GLib.idle_add(self.notify, _("Garmin: first sync required"),
                               _("Open openExpress and choose how to sync the device."))

@@ -1684,7 +1684,7 @@ def _watcher_syncs(monkeypatch):
                                      first_sync=False)
 
     monkeypatch.setattr(watch.service, "open_session", opened)
-    monkeypatch.setattr(watch.service, "require_account_device", lambda client, unit, fresh=False: None)
+    monkeypatch.setattr(watch.service, "require_account_device", lambda client, unit, fresh=False, **_kw: None)
     monkeypatch.setattr(watch.service, "run_sync", lambda s, progress=None, **kw: (
         synced.append(s.device.description), service.SyncSummary())[1])
     monkeypatch.setattr(watch.GLib, "idle_add", lambda fn, *args: shown.append(args))
