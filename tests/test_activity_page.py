@@ -733,11 +733,9 @@ def test_the_track_is_thick_in_its_own_colour_with_a_dark_edge():
     accent colour of the desktop: 4 pixels of colour and 1.5 of a dark edge on each side."""
     shown, toplevel = a_map()
     try:
-        path = shown.path.props  # copies: libshumate's getters of colours give its own
-        assert path.stroke_color.equal(rgba("#e5420e"))
-        assert path.outline_color.equal(rgba("#6b1d05"))
-        assert path.outline_width == 1.5
-        assert path.stroke_width - 2 * path.outline_width == 4
+        path = shown.path
+        assert path.color.equal(rgba("#e5420e")) and path.edge.equal(rgba("#6b1d05"))
+        assert (path.width, path.edge_width) == (4, 1.5)
     finally:
         toplevel.destroy()
 
@@ -813,8 +811,10 @@ def only_tiles(shown) -> None:
     """The track and every marker hidden: only the tiles drawn."""
     from gi.repository import Shumate
 
+    from openexpress.gui.activity_map import TrackLayer
+
     for layer in _all(shown.map):
-        if isinstance(layer, (Shumate.PathLayer, Shumate.MarkerLayer)):
+        if isinstance(layer, (TrackLayer, Shumate.PathLayer, Shumate.MarkerLayer)):
             layer.set_visible(False)
 
 
@@ -1014,3 +1014,273 @@ def never_answered(self, x, y, zoom, cancellable):
     from gi.repository import Shumate
 
     return Shumate.DataSourceRequest.new(x, y, zoom)
+
+
+# --- the laps --------------------------------------------------------------------------------
+
+
+def lapped_walk(device_laps=True, metres=3250):
+    """A walk of `metres` around a loop, a record each 2 s at 1.25 m/s; the device's laps of
+    1 km (the last one shorter), or one lap of the whole of it."""
+    import math
+
+    from openexpress import fit
+
+    begin = START + FIT_EPOCH
+    samples, distance, t = [], 0.0, 0
+    while distance < metres:
+        distance = min(metres, distance + 2.5)
+        angle = 2 * math.pi * distance / metres
+        samples.append(fit.Sample(begin + t, distance=distance, speed=1.25,
+                                  heart_rate=100 + int(distance // 1000) * 5,
+                                  altitude=100 + 5 * math.sin(angle),
+                                  latitude=51.5 + 0.004 * math.sin(angle),
+                                  longitude=-0.16 + 0.008 * math.cos(angle)))
+        t += 2
+    laps, first = [], 0
+    for i, sample in enumerate(samples):
+        if sample.distance >= (len(laps) + 1) * 1000 or i == len(samples) - 1:
+            time = sample.time - samples[first].time
+            laps.append(fit.Lap(samples[first].time, float(time), float(time),
+                                sample.distance - len(laps) * 1000, 1.25, 100 + len(laps) * 5,
+                                110 + len(laps) * 5))
+            first = i
+    if not device_laps:
+        laps = [fit.Lap(begin, float(t), float(t), metres)]
+    return fit.ActivityData(fit.FileState.WHOLE, start=begin, sport=WALKING,
+                            timer_time=float(t), elapsed_time=float(t), distance=metres,
+                            avg_speed=1.25, avg_heart_rate=105, max_heart_rate=120,
+                            samples=tuple(samples), laps=tuple(laps))
+
+
+def page_of(monkeypatch, data, sport=WALKING):
+    """The page of an activity whose file holds `data` (fit.ActivityData)."""
+    from openexpress.gui import activity_page
+
+    monkeypatch.setattr(activity_page, "_data", lambda found, activity: data)
+    win, _the_list = a_window(b"")
+    return win, open_page(win, read_of(sport=sport))
+
+
+def lap_list(page):
+    from openexpress.gui.activity_laps import LapList
+
+    found = [w for w in _all(page) if isinstance(w, LapList)]
+    return found[0] if found else None
+
+
+def lap_rows(page):
+    from gi.repository import Adw
+
+    return [w for w in _all(lap_list(page)) if isinstance(w, Adw.ActionRow)]
+
+
+def test_the_laps_are_rows_under_the_chart(monkeypatch):
+    """Each lap of the device a row, its line as the words say it; under the chart."""
+    from openexpress.gui.words import lap_caption
+
+    data = lapped_walk()
+    _win, page = page_of(monkeypatch, data)
+    laps = lap_list(page)
+    assert laps is not None and "Laps" in labels(page)
+    rows = lap_rows(page)
+    assert [r.get_title() for r in rows] == ["Lap 1", "Lap 2", "Lap 3", "Lap 4"]
+    assert [r.get_subtitle() for r in rows] == [lap_caption(lap, WALKING) for lap in data.laps]
+    assert order_of(laps) > order_of(chart_of(page))
+
+
+def chosen_rows(page) -> list[int]:
+    return [i for i, row in enumerate(lap_rows(page)) if row.has_css_class("oe-lap-chosen")]
+
+
+def test_a_lap_chosen_is_shown_on_the_chart_and_the_map_and_chosen_again_it_is_not(monkeypatch):
+    from openexpress.gui.activity_laps import lap_span
+
+    data = lapped_walk()
+    _win, page = page_of(monkeypatch, data)
+    chart, shown = chart_of(page), map_of(page)
+    origin = data.samples[0].time
+    rows = lap_rows(page)
+    assert chart.area.lap is None and shown.path.chosen is None and chosen_rows(page) == []
+    rows[1].emit("activated")
+    span = lap_span(data.laps[1], origin)
+    assert chart.area.lap == span and shown.path.chosen == span and chosen_rows(page) == [1]
+    rows[2].emit("activated")  # another: moved
+    assert chart.area.lap == lap_span(data.laps[2], origin) and chosen_rows(page) == [2]
+    rows[2].emit("activated")  # again: taken off
+    assert chart.area.lap is None and shown.path.chosen is None and chosen_rows(page) == []
+
+
+def test_a_lap_is_chosen_with_the_keyboard(monkeypatch):
+    """A row takes the focus; Enter or Space activates it as a click."""
+    _win, page = page_of(monkeypatch, lapped_walk())
+    row = lap_rows(page)[0]
+    assert row.get_activatable() and row.get_focusable()
+    row.activate()
+    assert chosen_rows(page) == [0]
+
+
+def test_kilometres_in_place_of_laps_where_the_device_kept_none(monkeypatch):
+    _win, page = page_of(monkeypatch, lapped_walk(device_laps=False))
+    assert "Kilometres" in labels(page) and "Laps" not in labels(page)
+    assert [r.get_title() for r in lap_rows(page)] == [
+        "Kilometre 1", "Kilometre 2", "Kilometre 3", "Kilometre 4"]
+
+
+@pytest.mark.parametrize("data", ["short", "workout"])
+def test_no_laps_for_a_short_activity_without_laps_or_a_workout(monkeypatch, data):
+    _win, page = page_of(monkeypatch, lapped_walk(device_laps=False, metres=1500)
+                         if data == "short" else fit_of(heart_only()))
+    assert lap_list(page) is None
+    assert "Laps" not in labels(page) and "Kilometres" not in labels(page)
+
+
+def fit_of(data: bytes):
+    from openexpress import fit
+
+    return fit.activity_data(data)
+
+
+def colours_of(widget, background="black"):
+    """The widget drawn at scale 1 on a background: (red, green, blue) of each pixel, by
+    rows."""
+    from gi.repository import Gdk, Graphene, Gtk
+
+    width, height = widget.get_width(), widget.get_height()
+    snapshot = Gtk.Snapshot()
+    snapshot.append_color(rgba(background), Graphene.Rect().init(0, 0, width, height))
+    Gtk.WidgetPaintable.new(widget).snapshot(snapshot, width, height)
+    texture = widget.get_native().get_renderer().render_texture(
+        snapshot.to_node(), Graphene.Rect().init(0, 0, width, height))
+    downloader = Gdk.TextureDownloader.new(texture)
+    downloader.set_format(Gdk.MemoryFormat.R8G8B8A8)
+    data, stride = downloader.download_bytes()
+    data = data.get_data()
+    return [[tuple(data[y * stride + x * 4:y * stride + x * 4 + 3]) for x in range(width)]
+            for y in range(height)]
+
+
+def test_the_chosen_lap_is_a_band_behind_the_chart(monkeypatch):
+    """A column of the chart within the lap's time is tinted, one outside is not."""
+    from openexpress.gui import activity_chart
+
+    data = lapped_walk()
+    win, page = page_of(monkeypatch, data)
+    present(win)
+    try:
+        chart = chart_of(page)
+        lap_rows(page)[1].emit("activated")
+        until(lambda: False, 0.2)
+        area = chart.area
+        plot = activity_chart._plot(area, area.get_width(), area.get_height())
+        start, end = area.lap
+        pixels = colours_of(area, "white")
+        rows = range(round(plot.top) + 2, round(plot.bottom) - 2)
+
+        def median_red(at):
+            x = round(plot.x(at))
+            return sorted(pixels[y][x][0] for y in rows)[len(rows) // 2]
+
+        assert median_red((start + end) / 2) < 245
+        assert median_red(start / 2) == 255
+    finally:
+        win.toplevel.destroy()
+
+
+def test_the_track_is_drawn_where_the_map_places_it_and_a_chosen_lap_stands_out(monkeypatch):
+    """The track's colour at the place of a record, as libshumate places it; a lap chosen at
+    full strength, the rest of the track half as strong."""
+    data = lapped_walk()
+    win, page = page_of(monkeypatch, data)
+    present(win)
+    try:
+        shown = map_of(page)
+        for marker in shown.ends.values():
+            marker.set_visible(False)
+        viewport = shown.map.get_viewport()
+
+        def red_at(sample):
+            x, y = viewport.location_to_widget_coords(shown.map, sample.latitude,
+                                                      sample.longitude)
+            return colours_of(shown.map)[round(y)][round(x)][0]
+
+        in_first, in_second = data.samples[200], data.samples[600]  # in laps 1 and 2
+        until(lambda: red_at(in_first) > 200)
+        assert red_at(in_first) == pytest.approx(0xe5, abs=12)
+        assert red_at(in_second) == pytest.approx(0xe5, abs=12)
+        lap_rows(page)[1].emit("activated")
+        until(lambda: 60 < red_at(in_first) < 170)  # drawn anew once the window's loop turns
+        assert 60 < red_at(in_first) < 170  # faded
+        assert red_at(in_second) == pytest.approx(0xe5, abs=12)
+    finally:
+        win.toplevel.destroy()
+
+
+def scrolled_of(widget):
+    """The scrolled window of the page around the widget (a status page has one too)."""
+    from gi.repository import Gtk
+
+    return widget.get_ancestor(Gtk.ScrolledWindow)
+
+
+@pytest.mark.parametrize("ctrl", [False, True])
+def test_the_mouse_wheel_over_the_map_scrolls_the_page_ctrl_with_it_zooms(monkeypatch, ctrl):
+    """Without Ctrl the page scrolls and the map says how to zoom it; with Ctrl the map
+    (libshumate) takes the wheel and the page stays."""
+    from openexpress.gui import activity_map
+
+    monkeypatch.setattr(activity_map, "_with_ctrl", lambda controller: ctrl)
+    win, page = page_of(monkeypatch, lapped_walk())
+    present(win)
+    try:
+        shown = map_of(page)
+        page_scroll = scrolled_of(shown).get_vadjustment()
+        zoom = shown.map.get_viewport().get_zoom_level()
+        assert page_scroll.get_upper() > page_scroll.get_page_size()  # the page scrolls
+        taken = shown.wheel.emit("scroll", 0.0, 1.0)
+        assert taken is not ctrl
+        assert (page_scroll.get_value() > 0) is not ctrl
+        assert shown.map.get_viewport().get_zoom_level() == zoom
+        assert shown.hint.get_visible() is not ctrl
+        if not ctrl:
+            assert shown.hint.get_label() == "Ctrl + scroll to zoom"
+    finally:
+        win.toplevel.destroy()
+
+
+def test_the_hint_of_ctrl_goes_away(monkeypatch):
+    from openexpress.gui import activity_map
+
+    monkeypatch.setattr(activity_map, "_with_ctrl", lambda controller: False)
+    monkeypatch.setattr(activity_map, "HINT_S", 0.05)
+    win, page = page_of(monkeypatch, lapped_walk())
+    present(win)
+    try:
+        shown = map_of(page)
+        shown.wheel.emit("scroll", 0.0, 1.0)
+        assert shown.hint.get_visible()
+        until(lambda: not shown.hint.get_visible(), 2)
+        assert not shown.hint.get_visible()
+    finally:
+        win.toplevel.destroy()
+
+
+def test_the_buttons_of_the_map_zoom_it_by_a_whole_level():
+    from gi.repository import Gtk
+
+    shown, toplevel = a_map()
+    try:
+        viewport = shown.map.get_viewport()
+        buttons = [w for w in _all(shown) if isinstance(w, Gtk.Button)
+                   and w.get_tooltip_text() in ("Zoom in", "Zoom out")]
+        zoom_in, zoom_out = sorted(buttons, key=lambda b: b.get_tooltip_text() != "Zoom in")
+        viewport.set_zoom_level(14.4)
+        zoom = 14
+        zoom_in.emit("clicked")
+        until(lambda: viewport.get_zoom_level() == pytest.approx(zoom + 1), 2)
+        assert viewport.get_zoom_level() == pytest.approx(zoom + 1)  # to the next whole level
+        zoom_out.emit("clicked")
+        until(lambda: viewport.get_zoom_level() == pytest.approx(zoom), 2)
+        assert viewport.get_zoom_level() == pytest.approx(zoom)
+    finally:
+        toplevel.destroy()

@@ -1,7 +1,8 @@
 """The page of one activity, opened from its row on the Activities page: its sport and start in
 its header bar with the back arrow and the GPX export, the tiles of what its sessions say (the
 words in gui/words.py), the map of its track (gui/activity_map.py) with the place of the
-chart's cursor, the chart of its records (gui/activity_chart.py), and what a file that could
+chart's cursor, the chart of its records (gui/activity_chart.py), its laps or kilometres
+(gui/activity_laps.py; one chosen shown on the chart and the map), and what a file that could
 not be read, one still being written and one without a summary say. Its file is read
 again each time it opens, in a task (fit.activity_data), from the device or from a copy in a
 backup; nothing is kept and nothing is written. The page is pushed onto the window's
@@ -24,6 +25,7 @@ from openexpress.errors import UserFacingError  # noqa: E402
 from openexpress.gui import activity_map  # noqa: E402
 from openexpress.gui.activities_page import PAGE_ICON, export_button  # noqa: E402
 from openexpress.gui.activity_chart import ActivityChart, chart_series  # noqa: E402
+from openexpress.gui.activity_laps import LapList, laps_of  # noqa: E402
 from openexpress.gui.words import (  # noqa: E402
     activity_start,
     activity_tiles,
@@ -61,6 +63,16 @@ def _data(found, activity):
 def _prepared(data):
     """In the task's thread: what the file holds, the series of its chart and its track."""
     return data, chart_series(data), activity_map.track_of(data)
+
+
+def _lap_chosen(laps, chosen: bool, start: float, end: float) -> None:
+    """A lap chosen under the chart, or none: the chart and the map beside it show it."""
+    span = (start, end) if chosen else None
+    child = laps.get_parent().get_first_child()
+    while child is not None:
+        if isinstance(child, (ActivityChart, activity_map.ActivityMap)):
+            child.show_lap(span)
+        child = child.get_next_sibling()
 
 
 def _cursor_moved(chart, at: float) -> None:
@@ -164,8 +176,8 @@ class ActivityView:
         """What the file holds (fit.ActivityData): the tiles, a damaged file said under them,
         the map of `track` (activity_map.Track; none without positions, a line without
         libshumate), the chart of `series` (activity_chart.Series), or a line in its place
-        when there is none; of a file still being written and of one without a summary, only
-        that."""
+        when there is none, then its laps or kilometres (none for a workout); of a file still
+        being written and of one without a summary, only that."""
         from openexpress import fit
 
         if data.state is fit.FileState.STILL_BEING_WRITTEN:
@@ -204,7 +216,15 @@ class ActivityView:
             line = Gtk.Label(label=no_chart_text(), wrap=True, xalign=0, margin_top=12)
             line.add_css_class("dim-label")
             self.content.append(line)
+        laps, kilometres = laps_of(data)
+        if laps:
+            listed = LapList(laps, kilometres, data.sport,
+                             data.samples[0].time if data.samples else data.start or 0)
+            listed.set_margin_top(12)
+            listed.connect("lap-chosen", _lap_chosen)
+            self.content.append(listed)
         self.stack.set_visible_child_name("content")
-        log.info("activity page: %d tiles, %s, chart of %s, %s", len(tiles), data.state.value,
-                 ", ".join(s.kind for s in series) or "nothing",
-                 "a map" if track is not None else "no map")
+        log.info("activity page: %d tiles, %s, chart of %s, %s, %d %s", len(tiles),
+                 data.state.value, ", ".join(s.kind for s in series) or "nothing",
+                 "a map" if track is not None else "no map", len(laps),
+                 "kilometres" if kilometres else "laps")

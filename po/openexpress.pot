@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: openexpress 0.8.1\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-11-02 21:09+0100\n"
+"POT-Creation-Date: 2026-11-03 00:45+0100\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -1317,7 +1317,7 @@ msgstr[0] ""
 msgstr[1] ""
 
 #: openexpress/cli.py:716 openexpress/gui/forget_device.py:46
-#: openexpress/gui/start.py:710 openexpress/gui/start.py:831
+#: openexpress/gui/start.py:718 openexpress/gui/start.py:839
 msgid "Garmin device"
 msgstr ""
 
@@ -3682,7 +3682,7 @@ msgstr ""
 msgid "No GPS positions in this activity"
 msgstr ""
 
-#: openexpress/gui/activities_page.py:101 openexpress/gui/activity_page.py:90
+#: openexpress/gui/activities_page.py:101 openexpress/gui/activity_page.py:102
 #: openexpress/gui/app.py:429 openexpress/gui/apps_page.py:596
 #: openexpress/gui/detection.py:717 openexpress/gui/device_page.py:797
 #: openexpress/gui/window_tasks.py:498
@@ -3697,8 +3697,8 @@ msgstr ""
 msgid "Exporting as GPX…"
 msgstr ""
 
-#: openexpress/gui/activities_page.py:131 openexpress/gui/activity_page.py:53
-#: openexpress/gui/activity_page.py:58 openexpress/gui/activity_page.py:105
+#: openexpress/gui/activities_page.py:131 openexpress/gui/activity_page.py:55
+#: openexpress/gui/activity_page.py:60 openexpress/gui/activity_page.py:117
 msgid "The file of this activity could not be read."
 msgstr ""
 
@@ -3738,51 +3738,71 @@ msgid_plural "Show {count} More"
 msgstr[0] ""
 msgstr[1] ""
 
-#: openexpress/gui/activity_map.py:353 openexpress/gui/activity_map.py:443
+#: openexpress/gui/activity_laps.py:99
+msgid "Kilometres"
+msgstr ""
+
+#: openexpress/gui/activity_laps.py:99
+msgid "Laps"
+msgstr ""
+
+#: openexpress/gui/activity_map.py:694 openexpress/gui/activity_map.py:889
 msgid "© OpenStreetMap contributors"
 msgstr ""
 
-#: openexpress/gui/activity_map.py:413
+#: openexpress/gui/activity_map.py:852
 msgid "Map of the track"
 msgstr ""
 
-#: openexpress/gui/activity_map.py:455
+#: openexpress/gui/activity_map.py:893
+msgid "Ctrl + scroll to zoom"
+msgstr ""
+
+#: openexpress/gui/activity_map.py:901
+msgid "Zoom in"
+msgstr ""
+
+#: openexpress/gui/activity_map.py:902
+msgid "Zoom out"
+msgstr ""
+
+#: openexpress/gui/activity_map.py:917
 msgid ""
 "The map can show streets and terrain under the track, from OpenStreetMap. "
 "The OpenStreetMap server then learns the area of each activity you open. You "
 "can turn this off again in Preferences."
 msgstr ""
 
-#: openexpress/gui/activity_map.py:458
+#: openexpress/gui/activity_map.py:920
 msgid "Show the Map"
 msgstr ""
 
-#: openexpress/gui/activity_map.py:463
+#: openexpress/gui/activity_map.py:925
 msgid "The map needs a newer libshumate library to show streets and terrain"
 msgstr ""
 
-#: openexpress/gui/activity_map.py:466
+#: openexpress/gui/activity_map.py:928
 msgid ""
 "No internet connection: only the parts of the map downloaded before are shown"
 msgstr ""
 
-#: openexpress/gui/activity_page.py:108 openexpress/gui/activity_page.py:140
+#: openexpress/gui/activity_page.py:120 openexpress/gui/activity_page.py:152
 msgid "Reading the activity…"
 msgstr ""
 
-#: openexpress/gui/activity_page.py:172 openexpress/gui/words.py:265
+#: openexpress/gui/activity_page.py:184 openexpress/gui/words.py:265
 msgid "Still being written: disconnect and reconnect the device"
 msgstr ""
 
-#: openexpress/gui/activity_page.py:176
+#: openexpress/gui/activity_page.py:188
 msgid "This activity has no summary."
 msgstr ""
 
-#: openexpress/gui/activity_page.py:186 openexpress/gui/words.py:274
+#: openexpress/gui/activity_page.py:198 openexpress/gui/words.py:274
 msgid "Damaged file"
 msgstr ""
 
-#: openexpress/gui/activity_page.py:194
+#: openexpress/gui/activity_page.py:206
 msgid "The map needs the libshumate library, which is not installed"
 msgstr ""
 
@@ -3792,13 +3812,13 @@ msgid "Device"
 msgstr ""
 
 #: openexpress/gui/app.py:79 openexpress/gui/detection.py:709
-#: openexpress/gui/start.py:459
+#: openexpress/gui/start.py:467
 msgid "Detecting the device…"
 msgstr ""
 
 #. TRANSLATORS: tab title
 #: openexpress/gui/app.py:81 openexpress/gui/device_page.py:961
-#: openexpress/gui/start.py:675
+#: openexpress/gui/start.py:683
 msgctxt "tab"
 msgid "Updates"
 msgstr ""
@@ -3809,7 +3829,7 @@ msgstr ""
 
 #. TRANSLATORS: tab title
 #: openexpress/gui/app.py:84 openexpress/gui/device_page.py:973
-#: openexpress/gui/start.py:679
+#: openexpress/gui/start.py:687
 msgctxt "tab"
 msgid "Maps"
 msgstr ""
@@ -3874,7 +3894,7 @@ msgstr ""
 #. TRANSLATORS: button that starts syncing
 #: openexpress/gui/app.py:317 openexpress/gui/app.py:321
 #: openexpress/gui/app.py:437 openexpress/gui/preferences.py:259
-#: openexpress/gui/start.py:637
+#: openexpress/gui/start.py:645
 msgid "Sync"
 msgstr ""
 
@@ -4498,7 +4518,7 @@ msgstr ""
 #. TRANSLATORS: under "Sync with Garmin Connect" on the page of a device connected
 #. as a USB drive, which has no row of the background sync
 #: openexpress/gui/device_page.py:944 openexpress/gui/preferences.py:332
-#: openexpress/gui/start.py:662
+#: openexpress/gui/start.py:670
 msgid "Sync with Garmin Connect"
 msgstr ""
 
@@ -4510,7 +4530,7 @@ msgstr ""
 
 #. TRANSLATORS: subtitle of "Last sync" of a device that cannot be synced
 #: openexpress/gui/device_page.py:950 openexpress/gui/device_page.py:953
-#: openexpress/gui/start.py:664
+#: openexpress/gui/start.py:672
 msgid "Last sync"
 msgstr ""
 
@@ -4519,7 +4539,7 @@ msgctxt "sync"
 msgid "Not available"
 msgstr ""
 
-#: openexpress/gui/device_page.py:962 openexpress/gui/start.py:677
+#: openexpress/gui/device_page.py:962 openexpress/gui/start.py:685
 msgid "Device software"
 msgstr ""
 
@@ -4529,7 +4549,7 @@ msgid "Apps and music"
 msgstr ""
 
 #: openexpress/gui/device_page.py:1002 openexpress/gui/preferences.py:398
-#: openexpress/gui/start.py:670
+#: openexpress/gui/start.py:678
 msgid "Garmin Connect account"
 msgstr ""
 
@@ -4537,7 +4557,7 @@ msgstr ""
 msgid "Log out"
 msgstr ""
 
-#: openexpress/gui/device_page.py:1022 openexpress/gui/start.py:685
+#: openexpress/gui/device_page.py:1022 openexpress/gui/start.py:693
 msgid "Tools"
 msgstr ""
 
@@ -4550,7 +4570,7 @@ msgstr ""
 msgid "Create"
 msgstr ""
 
-#: openexpress/gui/device_page.py:1030 openexpress/gui/start.py:686
+#: openexpress/gui/device_page.py:1030 openexpress/gui/start.py:694
 msgid "Part number"
 msgstr ""
 
@@ -5360,45 +5380,45 @@ msgstr ""
 
 #. TRANSLATORS: a chip on the tile of a device on the start page (its tooltip says when
 #. the check found it), and under the software version on the device page
-#: openexpress/gui/start.py:317
+#: openexpress/gui/start.py:325
 msgid "Update available"
 msgstr ""
 
 #. TRANSLATORS: a chip under the software version on the device page: an update is copied
 #. to the device, which installs it once disconnected
-#: openexpress/gui/start.py:325
+#: openexpress/gui/start.py:333
 msgid "Update ready"
 msgstr ""
 
 #. TRANSLATORS: a chip on the tile of a USB drive: an update is copied to it, the
 #. device installs it once ejected
-#: openexpress/gui/start.py:340
+#: openexpress/gui/start.py:348
 msgctxt "chip"
 msgid "Eject to install"
 msgstr ""
 
 #. TRANSLATORS: a chip on the tile of a connected device: an update is copied to
 #. it, the device installs it once unplugged
-#: openexpress/gui/start.py:344
+#: openexpress/gui/start.py:352
 msgctxt "chip"
 msgid "Unplug to install"
 msgstr ""
 
-#: openexpress/gui/start.py:346 openexpress/gui/start.py:349
+#: openexpress/gui/start.py:354 openexpress/gui/start.py:357
 #, python-brace-format
 msgid "Checked {when}"
 msgstr ""
 
 #. TRANSLATORS: the tooltip of the chip "To sync": activities on the device that
 #. openExpress has not uploaded yet, since its last sync (a date and an hour)
-#: openexpress/gui/start.py:355
+#: openexpress/gui/start.py:363
 #, python-brace-format
 msgid "{count} new activity since {when}"
 msgid_plural "{count} new activities since {when}"
 msgstr[0] ""
 msgstr[1] ""
 
-#: openexpress/gui/start.py:359
+#: openexpress/gui/start.py:367
 #, python-brace-format
 msgid "{count} new activity"
 msgid_plural "{count} new activities"
@@ -5407,68 +5427,68 @@ msgstr[1] ""
 
 #. TRANSLATORS: a chip on the tile of a connected device: it has activities that
 #. openExpress has not uploaded yet
-#: openexpress/gui/start.py:363
+#: openexpress/gui/start.py:371
 msgctxt "chip"
 msgid "To sync"
 msgstr ""
 
 #. TRANSLATORS: a chip on the tile of a device in mass storage mode
-#: openexpress/gui/start.py:368
+#: openexpress/gui/start.py:376
 msgctxt "chip"
 msgid "USB drive"
 msgstr ""
 
 #. TRANSLATORS: a chip on the tile of the primary wearable of the Garmin account (its
 #. tooltip says what it is)
-#: openexpress/gui/start.py:372
+#: openexpress/gui/start.py:380
 msgid "Primary"
 msgstr ""
 
 #. TRANSLATORS: a chip on the tile of a device that is not on the Garmin account
-#: openexpress/gui/start.py:375
+#: openexpress/gui/start.py:383
 msgid "Not on your account"
 msgstr ""
 
 #. TRANSLATORS: a chip on the tile of a connected device that openExpress has synced
 #. before and that has no activities to upload now
-#: openexpress/gui/start.py:382
+#: openexpress/gui/start.py:390
 msgctxt "chip"
 msgid "Synced"
 msgstr ""
 
 #. TRANSLATORS: heading above the tiles of the devices connected now
-#: openexpress/gui/start.py:484
+#: openexpress/gui/start.py:492
 msgid "Connected"
 msgstr ""
 
 #. TRANSLATORS: heading above the tiles of the devices seen before, not connected now
-#: openexpress/gui/start.py:486
+#: openexpress/gui/start.py:494
 msgid "Remembered"
 msgstr ""
 
 #. TRANSLATORS: heading above the tiles of the devices of the Garmin account that
 #. were never connected to this computer
-#: openexpress/gui/start.py:489
+#: openexpress/gui/start.py:497
 msgid "On the account"
 msgstr ""
 
 #. TRANSLATORS: title of the start page, which lists the Garmin devices
-#: openexpress/gui/start.py:515 openexpress/gui/start.py:702
+#: openexpress/gui/start.py:523 openexpress/gui/start.py:710
 msgid "Devices"
 msgstr ""
 
-#: openexpress/gui/start.py:640
+#: openexpress/gui/start.py:648
 msgid "Device not connected — connect it to sync or update"
 msgstr ""
 
-#: openexpress/gui/start.py:676 openexpress/gui/start.py:723
+#: openexpress/gui/start.py:684 openexpress/gui/start.py:731
 #: openexpress/gui/words.py:92
 msgid "Connect the device to check"
 msgstr ""
 
 #. TRANSLATORS: button at the bottom of the page of a device not connected: this
 #. computer forgets what it keeps of the device (it asks first)
-#: openexpress/gui/start.py:694
+#: openexpress/gui/start.py:702
 msgid "Forget Device…"
 msgstr ""
 
@@ -5875,7 +5895,7 @@ msgstr[1] ""
 
 #. TRANSLATORS: a distance or an ascent in whole metres on the page of an activity
 #: openexpress/gui/words.py:337 openexpress/gui/words.py:380
-#: openexpress/gui/words.py:509
+#: openexpress/gui/words.py:516
 #, python-brace-format
 msgid "{metres} m"
 msgstr ""
@@ -5887,19 +5907,19 @@ msgid "{distance} km"
 msgstr ""
 
 #. TRANSLATORS: a pace, the time a kilometre takes ("5:10 /km")
-#: openexpress/gui/words.py:352 openexpress/gui/words.py:511
+#: openexpress/gui/words.py:352 openexpress/gui/words.py:518
 #, python-brace-format
 msgid "{pace} /km"
 msgstr ""
 
 #. TRANSLATORS: a pace of a swim, the time a hundred metres take ("2:05 /100 m")
-#: openexpress/gui/words.py:355 openexpress/gui/words.py:513
+#: openexpress/gui/words.py:355 openexpress/gui/words.py:520
 #, python-brace-format
 msgid "{pace} /100 m"
 msgstr ""
 
 #. TRANSLATORS: a speed in kilometres an hour ("24.3 km/h")
-#: openexpress/gui/words.py:357 openexpress/gui/words.py:514
+#: openexpress/gui/words.py:357 openexpress/gui/words.py:521
 #, python-brace-format
 msgid "{speed} km/h"
 msgstr ""
@@ -5963,65 +5983,72 @@ msgstr ""
 msgid "Lap {number}"
 msgstr ""
 
+#. TRANSLATORS: the title of the row of a kilometre on the page of an activity whose device
+#. kept no laps
+#: openexpress/gui/words.py:435
+#, python-brace-format
+msgid "Kilometre {number}"
+msgstr ""
+
 #. TRANSLATORS: the switch above the chart of an activity
-#: openexpress/gui/words.py:453
+#: openexpress/gui/words.py:460
 msgctxt "activity chart"
 msgid "Heart rate"
 msgstr ""
 
-#: openexpress/gui/words.py:454
+#: openexpress/gui/words.py:461
 msgctxt "activity chart"
 msgid "Elevation"
 msgstr ""
 
-#: openexpress/gui/words.py:455 openexpress/gui/words.py:456
+#: openexpress/gui/words.py:462 openexpress/gui/words.py:463
 msgctxt "activity chart"
 msgid "Pace"
 msgstr ""
 
-#: openexpress/gui/words.py:457
+#: openexpress/gui/words.py:464
 msgctxt "activity chart"
 msgid "Speed"
 msgstr ""
 
 #. TRANSLATORS: the unit on top of the axis of the chart of an activity
-#: openexpress/gui/words.py:466
+#: openexpress/gui/words.py:473
 msgctxt "chart unit"
 msgid "bpm"
 msgstr ""
 
-#: openexpress/gui/words.py:467
+#: openexpress/gui/words.py:474
 msgctxt "chart unit"
 msgid "m"
 msgstr ""
 
-#: openexpress/gui/words.py:468
+#: openexpress/gui/words.py:475
 msgctxt "chart unit"
 msgid "min/km"
 msgstr ""
 
-#: openexpress/gui/words.py:469
+#: openexpress/gui/words.py:476
 msgctxt "chart unit"
 msgid "min/100 m"
 msgstr ""
 
-#: openexpress/gui/words.py:470
+#: openexpress/gui/words.py:477
 msgctxt "chart unit"
 msgid "km/h"
 msgstr ""
 
 #. TRANSLATORS: the name of the chart for a screen reader; {series}: e.g. "Heart rate"
-#: openexpress/gui/words.py:478
+#: openexpress/gui/words.py:485
 #, python-brace-format
 msgid "{series} over time"
 msgstr ""
 
-#: openexpress/gui/words.py:483
+#: openexpress/gui/words.py:490
 msgid "No heart rate, elevation or speed in this activity"
 msgstr ""
 
 #. TRANSLATORS: beside the chart of an activity, where its cursor is on a gap or a pause
-#: openexpress/gui/words.py:521
+#: openexpress/gui/words.py:528
 msgid "no reading"
 msgstr ""
 

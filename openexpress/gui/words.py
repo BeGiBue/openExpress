@@ -428,6 +428,13 @@ def lap_title(number: int) -> str:
     return _("Lap {number}").format(number=number)
 
 
+def kilometre_title(number: int) -> str:
+    """The title of the row of a kilometre worked out from the records: "Kilometre 1"."""
+    # TRANSLATORS: the title of the row of a kilometre on the page of an activity whose device
+    # kept no laps
+    return _("Kilometre {number}").format(number=number)
+
+
 def lap_caption(lap, sport: int | None) -> str:
     """The line of a lap (fit.Lap): its distance, its time (the timer's, the elapsed standing
     in), how fast (its average speed, else worked out) and its average heart rate; only what it

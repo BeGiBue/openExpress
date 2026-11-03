@@ -79,7 +79,8 @@ SUBTITLE_LINES = 2
 # layout changes. A row that wraps with a libadwaita older than 1.7 (window_tasks.wrapping_row): no
 # room around each of its widgets, as in a box. Every chip of the window (the tiles, the rows
 # of the list view, the update on the device page) has the class oe-chip and its one shape:
-# font, padding, rounding; its style (accent, warning, dimmed) gives only its colours.
+# font, padding, rounding; its style (accent, warning, dimmed) gives only its colours. The lap
+# chosen on an activity's page is tinted with the accent; the map's hint is a rounded label.
 CSS = """
 flowboxchild.oe-tile.connected {
   outline: 1px solid alpha(currentColor, 0.15);
@@ -116,6 +117,13 @@ label.oe-chip.dimmed {
 }
 image.oe-placeholder {
   color: alpha(currentColor, 0.5);
+}
+row.oe-lap-chosen {
+  background-color: alpha(@accent_bg_color, 0.15);
+}
+label.oe-map-hint {
+  padding: 6px 12px;
+  border-radius: 999px;
 }
 """
 

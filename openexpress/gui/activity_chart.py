@@ -47,6 +47,7 @@ AXIS_SHARES = (0.05, 0.95)  # pace: its axis from the pace of these shares of th
 AXIS_MARGIN = 0.1  # …and this share of that span more on each side
 KEY_STEP = 100  # a key moves the cursor by a hundredth of the activity
 CHART_HEIGHT = 200
+LAP_SHADE = 0.14  # the strength of the accent colour behind the lap chosen
 PACES = ("pace", "swim pace")
 WHOLE = ("heart rate", "elevation")  # their axes have whole steps
 LEAST_SPAN = {"heart rate": 10, "elevation": 10, "speed": 1, "pace": 60, "swim pace": 10}
@@ -420,12 +421,17 @@ def _text(area, cr, text: str, x: float, y: float, align: float, color) -> None:
 
 
 def _draw(area, cr, width: int, height: int) -> None:
-    """The draw function of the chart (Gtk.DrawingArea): grid, values, times, the line, the
-    cursor and, with the keyboard's focus, a frame."""
+    """The draw function of the chart (Gtk.DrawingArea): the band of a lap chosen, grid, values,
+    times, the line, the cursor and, with the keyboard's focus, a frame."""
     series, kind = area.series, area.series.kind
     plot = _plot(area, width, height)
     fg, accent = area.get_color(), accent_color()
     text_height = _layout(area, "0").get_pixel_size()[1]
+    if area.lap is not None:  # the lap chosen under the page: a band behind the line
+        start, end = (min(max(plot.x(at), plot.left), plot.right) for at in area.lap)
+        cr.set_source_rgba(accent.red, accent.green, accent.blue, LAP_SHADE)
+        cr.rectangle(start, plot.top, end - start, plot.bottom - plot.top)
+        cr.fill()
     cr.set_line_width(1)
     for value in plot.values.ticks:
         y = round(plot.y(value)) + 0.5
@@ -540,6 +546,7 @@ class ChartArea(Gtk.DrawingArea):
         super().__init__(content_height=CHART_HEIGHT, hexpand=True, focusable=True)
         self.series = series
         self.cursor: float | None = None
+        self.lap: tuple[float, float] | None = None  # the lap chosen, on the chart's time
         self.drag_from = 0.0
         self.drawn = None  # the line brought down to the width last drawn
         self.set_draw_func(_draw)
@@ -635,3 +642,9 @@ class ActivityChart(Gtk.Box):
     def show(self, kind: str) -> None:
         self.area.show_series(self.series[kind])
         self.value_label.set_label(self.area.cursor_text())
+
+    def show_lap(self, span: tuple[float, float] | None) -> None:
+        """The lap chosen (its start and end on the chart's time) as a band behind the line;
+        None: none."""
+        self.area.lap = span
+        self.area.queue_draw()

@@ -11,7 +11,7 @@ list is not added while it is implemented. After step 5 the page was found corre
 section 10 adds to the scope (items 6–10 of section 1), designed together with the laps. Its
 decisions are made: 13a, 14a, 15a, 16b, 17a with moving time from the records, 18a, 19b, 20a,
 21a, 22a; 19a (the sets of a strength workout) is put off, an idea for later. Its steps (10.5)
-replace steps 6–7 of section 8.
+replace steps 6–7 of section 8; step 6 (the laps) is implemented, steps 7–12 are not.
 
 ## 1. Scope
 
@@ -628,6 +628,11 @@ empty.
   thin and half transparent; the map's view stays (no new tiles); the chart's cursor stays where
   it was. One lap (the whole activity): no section, or kilometres (D16b); no laps (a strength
   workout): no section; the last lap, shorter, as it is.
+- As implemented in step 6 (`gui/activity_laps.py`): the track is drawn by a layer of
+  openExpress in place of libshumate's path layer, placed as libshumate places its markers;
+  the rest of the track at half strength; a kilometre worked out from the records runs from the
+  record that ends the one before to the record that reaches it, its timer time without the
+  gaps of more than 60 s, a last part under 10 m left out.
 - **20b. 20a with the map's view fitted to the chosen lap.**
   - − New tiles at each click; the place of the lap in the whole is lost.
 
@@ -637,6 +642,9 @@ empty.
   − on the map (its top right), double click and pinch zoom too, dragging moves it; a wheel
   without Ctrl over the map shows "Ctrl + scroll to zoom" on it for a moment.
   - \+ Scrolling the page never stops at the map (today it zooms the map instead).
+- As implemented in step 6: a wheel's notch scrolls the page as GTK does (the page's height to
+  the power of two thirds), a touchpad by its pixels; the buttons go to the next whole zoom
+  (libshumate's own step is a fifth of a level, a notch of the wheel); the hint stays 1.5 s.
 - **21b. As today:** the wheel zooms the map.
 - **21c. The map takes the wheel only after a click on it,** until the pointer leaves.
   - − A state the user does not see.

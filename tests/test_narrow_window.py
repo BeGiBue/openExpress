@@ -483,7 +483,7 @@ def test_the_page_of_an_activity_fits_the_narrowest_window(narrow_window, monkey
                                                            sport, tiles):
     """Its tiles two by two, the damaged file said under them, the map with its note and
     button (or its attribution), the chart with its switch and the value at its cursor, its
-    sport and start in the header bar with the GPX button."""
+    kilometres, its sport and start in the header bar with the GPX button."""
     from fakes import RunNow
     from gi.repository import Gtk
 
@@ -525,6 +525,9 @@ def test_the_page_of_an_activity_fits_the_narrowest_window(narrow_window, monkey
     (shown,) = [w for w in _all(page) if isinstance(w, activity_map.ActivityMap)]
     assert shown.attribution.get_visible() is tiles
     assert shown.note.get_visible() is not tiles
+    from openexpress.gui.activity_laps import LapList
+
+    assert [w for w in _all(page) if isinstance(w, LapList)]  # its kilometres: no laps kept
     assert _min_width(page) <= NARROWEST
     assert page.get_width() <= NARROWEST
 

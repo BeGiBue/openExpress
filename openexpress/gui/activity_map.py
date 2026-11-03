@@ -1,6 +1,8 @@
-"""The map of an activity's page: its track (the records with positions) drawn with libshumate,
-GNOME's map widget, thick in a colour of its own with a dark edge, its start and finish marked,
-and a marker where the chart's cursor is. Streets and terrain under it come from
+"""The map of an activity's page: its track (the records with positions) on libshumate, GNOME's
+map widget, drawn by openExpress thick in a colour of its own with a dark edge (a lap chosen
+under the chart at full strength, the rest faded), its start and finish marked, and a marker
+where the chart's cursor is. The mouse wheel scrolls the page over it; Ctrl and the wheel, its
+buttons, a double click or a pinch zoom it. Streets and terrain under it come from
 OpenStreetMap's tile server only after a yes given once for the program (gui.json "map_tiles":
 on the page or in Preferences, taken back there); until then the track is on a plain
 background, with a note of what the server would learn and a button. The tiles are asked by
@@ -23,6 +25,7 @@ import weakref
 from collections import OrderedDict
 from dataclasses import dataclass
 
+import cairo
 import gi
 import requests
 
@@ -73,6 +76,10 @@ LOOP_M = 50  # a finish closer to the start: a loop, one marker for both
 BLEED = 1  # pixels each tile is drawn past its right and bottom edge, under the next one
 KEEP_TILES = 64  # tiles kept drawn in memory, the less used let go first
 FALLBACK_ZOOMS = 3  # while a tile loads, those of up to so many zooms below or above
+CHOSEN_WIDTH = 6  # pixels of the track's colour where a lap is chosen
+FADED = 0.5  # the strength of the rest of the track then
+HINT_S = 1.5  # how long the map says that Ctrl and the wheel zoom it
+ZOOM_MS = 200  # the flight of the zoom buttons, as libshumate's own zoom
 
 
 def available() -> bool:
@@ -600,7 +607,80 @@ def _screen_scale(widget) -> float:
     return surface.get_scale() if surface is not None else widget.get_scale_factor()
 
 
+def _runs(points, inside, wanted: bool) -> list[list]:
+    """The runs of `points` whose `inside` is `wanted`; a run outside the lap reaches one point
+    into it on each side, so that no gap shows where they meet."""
+    runs, run = [], []
+    for i, point in enumerate(points):
+        if inside[i] == wanted:
+            if not run and not wanted and i > 0:
+                run.append(points[i - 1])
+            run.append(point)
+        elif run:
+            if not wanted:
+                run.append(point)
+            runs.append(run)
+            run = []
+    if run:
+        runs.append(run)
+    return runs
+
+
 if Shumate is not None:
+    class TrackLayer(Shumate.Layer):
+        """The track, drawn by openExpress: its colour over a dark edge; a lap chosen (its
+        start and end on the chart's time) thicker at full strength, the rest at FADED. Its
+        points are kept on the whole map at zoom 0 and placed at each drawing."""
+
+        __gtype_name__ = "OpenExpressTrackLayer"
+
+        def __init__(self, viewport, track: Track):
+            super().__init__(viewport=viewport)
+            points = thinned(list(zip(track.times, track.points, strict=True)))
+            self.times = [t for t, _point in points]
+            self.world = [world_xy(lat, lon, 0) for _t, (lat, lon) in points]
+            self.color, self.edge = _rgba(TRACK_COLOR), _rgba(TRACK_EDGE)
+            self.width, self.edge_width = TRACK_WIDTH, EDGE_WIDTH
+            self.chosen: tuple[float, float] | None = None
+            viewport.connect("notify", _view_changed, weakref.ref(self))
+
+        def do_snapshot(self, snapshot) -> None:
+            width, height = self.get_width(), self.get_height()
+            if width <= 0 or height <= 0 or not self.world:
+                return
+            viewport = self.get_viewport()
+            zoom = viewport.get_zoom_level()
+            scale = 2 ** zoom
+            cx, cy = world_xy(viewport.get_latitude(), viewport.get_longitude(), zoom)
+            dx, dy = width / 2 - cx, height / 2 - cy
+            points = [(x * scale + dx, y * scale + dy) for x, y in self.world]
+            cr = snapshot.append_cairo(Graphene.Rect().init(0, 0, width, height))
+            rotation = viewport.get_rotation()
+            if rotation:
+                cr.translate(width / 2, height / 2)
+                cr.rotate(rotation)
+                cr.translate(-width / 2, -height / 2)
+            cr.set_line_join(cairo.LINE_JOIN_ROUND)
+            cr.set_line_cap(cairo.LINE_CAP_ROUND)
+            if self.chosen is None:
+                self._stroke(cr, [points], self.width, 1.0)
+                return
+            start, end = self.chosen
+            inside = [start <= t <= end for t in self.times]
+            self._stroke(cr, _runs(points, inside, False), self.width, FADED)
+            self._stroke(cr, _runs(points, inside, True), CHOSEN_WIDTH, 1.0)
+
+        def _stroke(self, cr, runs, width: float, strength: float) -> None:
+            """The runs as lines `width` wide over their edge, at this strength."""
+            for color, line in ((self.edge, width + 2 * self.edge_width), (self.color, width)):
+                cr.set_line_width(line)
+                cr.set_source_rgba(color.red, color.green, color.blue, strength)
+                for run in runs:
+                    cr.move_to(*run[0])
+                    for point in run[1:] or run[:1]:  # one point alone: a dot
+                        cr.line_to(*point)
+                cr.stroke()
+
     class NoTiles(Shumate.DataSource):
         """A source that is never asked: the reference of the map's view (its projection, its
         tile size and zooms); the tiles are drawn by TileLayer. libshumate's own sources would
@@ -690,6 +770,59 @@ def _marker(size: int, draw, *data) -> Shumate.Marker:
     return Shumate.Marker(child=dot)
 
 
+def _with_ctrl(controller) -> bool:
+    return bool(controller.get_current_event_state() & Gdk.ModifierType.CONTROL_MASK)
+
+
+def _wheel(controller, _dx: float, dy: float) -> bool:
+    """The mouse wheel over the map: with Ctrl, libshumate zooms it; without, the page scrolls
+    (never stopped by the map) and the map says how to zoom it."""
+    if _with_ctrl(controller):
+        return False
+    widget = controller.get_widget()
+    shown = widget.get_ancestor(ActivityMap)
+    if shown is not None:
+        shown.say_ctrl()
+    scrolled = widget.get_ancestor(Gtk.ScrolledWindow)
+    if scrolled is not None:
+        adjustment = scrolled.get_vadjustment()
+        # As GTK scrolls a page by a notch of the wheel; a touchpad gives pixels.
+        step = (adjustment.get_page_size() ** (2 / 3)
+                if controller.get_unit() == Gdk.ScrollUnit.WHEEL else 1)
+        adjustment.set_value(adjustment.get_value() + dy * step)
+    return True
+
+
+def _hide_hint(shown_ref) -> bool:
+    shown = shown_ref()
+    if shown is not None:
+        shown.hint.set_visible(False)
+        shown.hint_timer = None
+    return GLib.SOURCE_REMOVE
+
+
+def _zoom_by_button(button, step: int) -> None:
+    """To the next whole zoom in or out, flown to (libshumate's own steps are a fifth of a
+    level, a notch of the wheel)."""
+    shown = button.get_ancestor(ActivityMap)
+    if shown is None:
+        return
+    viewport = shown.map.get_viewport()
+    zoom = viewport.get_zoom_level()
+    whole = math.floor(zoom + 1e-6) + 1 if step > 0 else math.ceil(zoom - 1e-6) - 1
+    whole = max(viewport.get_min_zoom_level(), min(viewport.get_max_zoom_level(), whole))
+    shown.map.go_to_full_with_duration(viewport.get_latitude(), viewport.get_longitude(), whole,
+                                       ZOOM_MS)
+
+
+def _zoom_in(button) -> None:
+    _zoom_by_button(button, 1)
+
+
+def _zoom_out(button) -> None:
+    _zoom_by_button(button, -1)
+
+
 def _turn_on(button) -> None:
     """Show the Map: the yes for the program, the tiles on this map."""
     shown = button.get_ancestor(ActivityMap)
@@ -715,10 +848,11 @@ def _dim(text: str) -> Gtk.Label:
 
 
 class ActivityMap(Gtk.Box):
-    """The map of a track: the tiles (after the yes) under the track, the markers of its ends
-    and of the chart's cursor above them, and the attribution; under it the note and its button
-    before the yes, or what is missing. Its handlers reach it through the widget of their
-    signal."""
+    """The map of a track: the tiles (after the yes) under the track (a lap chosen at full
+    strength), the markers of its ends and of the chart's cursor above them, the attribution,
+    the buttons that zoom it; the mouse wheel scrolls the page, Ctrl and the wheel zoom the map.
+    Under it the note and its button before the yes, or what is missing. Its handlers reach it
+    through the widget of their signal."""
 
     __gtype_name__ = "OpenExpressActivityMap"
 
@@ -733,14 +867,7 @@ class ActivityMap(Gtk.Box):
         viewport.set_reference_map_source(self.source)
         viewport.set_min_zoom_level(1)
         viewport.set_max_zoom_level(MAX_ZOOM)
-        self.path = Shumate.PathLayer.new(viewport)
-        self.path.set_stroke_color(_rgba(TRACK_COLOR))
-        self.path.set_outline_color(_rgba(TRACK_EDGE))
-        self.path.set_outline_width(EDGE_WIDTH)
-        # libshumate draws the edge inside the stroke's width, on both sides
-        self.path.set_stroke_width(TRACK_WIDTH + 2 * EDGE_WIDTH)
-        for lat, lon in thinned(track.points):
-            self.path.add_node(Shumate.Coordinate.new_full(lat, lon))
+        self.path = TrackLayer(viewport, track)
         self.map.add_layer(self.path)
         ends = Shumate.MarkerLayer.new(viewport)
         self.ends = {}  # "start", "finish" or "start-and-finish": its marker
@@ -759,6 +886,12 @@ class ActivityMap(Gtk.Box):
         self.tiles = None  # the tile layer, while the tiles are on
         self.online = None  # whether the network was there when last told
         self.fit(600, MAP_HEIGHT)  # near already; _fit sets it for the map's own size
+        # Before libshumate's own handler, which would zoom at every turn of the wheel.
+        self.wheel = Gtk.EventControllerScroll.new(Gtk.EventControllerScrollFlags.VERTICAL)
+        self.wheel.set_propagation_phase(Gtk.PropagationPhase.CAPTURE)
+        self.wheel.connect("scroll", _wheel)
+        self.map.add_controller(self.wheel)
+        self.hint_timer = None
 
         self.attribution = Gtk.Label(use_markup=True, halign=Gtk.Align.END,
                                      valign=Gtk.Align.END, margin_end=6, margin_bottom=6,
@@ -768,8 +901,24 @@ class ActivityMap(Gtk.Box):
                                     "</a>")
         self.attribution.add_css_class("osd")
         self.attribution.add_css_class("caption")
+        self.hint = Gtk.Label(label=_("Ctrl + scroll to zoom"), wrap=True,
+                              justify=Gtk.Justification.CENTER, halign=Gtk.Align.CENTER,
+                              valign=Gtk.Align.CENTER, visible=False, can_target=False)
+        self.hint.add_css_class("osd")
+        self.hint.add_css_class("oe-map-hint")
+        zoom = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, halign=Gtk.Align.END,
+                       valign=Gtk.Align.START, margin_top=6, margin_end=6)
+        zoom.add_css_class("linked")
+        for icon, tooltip, handler in (("zoom-in-symbolic", _("Zoom in"), _zoom_in),
+                                       ("zoom-out-symbolic", _("Zoom out"), _zoom_out)):
+            button = Gtk.Button(icon_name=icon, tooltip_text=tooltip)
+            button.add_css_class("osd")
+            button.connect("clicked", handler)
+            zoom.append(button)
         overlay = Gtk.Overlay(child=self.map)
         overlay.add_overlay(self.attribution)
+        overlay.add_overlay(self.hint)
+        overlay.add_overlay(zoom)
         frame = Gtk.Frame(child=overlay)
         frame.set_overflow(Gtk.Overflow.HIDDEN)
         self.append(frame)
@@ -816,6 +965,19 @@ class ActivityMap(Gtk.Box):
         self.attribution.set_visible(on)
         self._show_network()
 
+    def show_lap(self, span: tuple[float, float] | None) -> None:
+        """The lap chosen (its start and end on the chart's time) at full strength, the rest of
+        the track faded; None: the whole track as it is. The view stays."""
+        self.path.chosen = span
+        self.path.queue_draw()
+
+    def say_ctrl(self) -> None:
+        """For a moment, over the map: Ctrl and the wheel zoom it."""
+        self.hint.set_visible(True)
+        if self.hint_timer is not None:
+            GLib.source_remove(self.hint_timer)
+        self.hint_timer = GLib.timeout_add(round(HINT_S * 1000), _hide_hint, weakref.ref(self))
+
     def show_cursor(self, at: float) -> None:
         """The marker where the chart's cursor is; hidden where the track has no record."""
         point = position_at(self.track, at)
@@ -846,6 +1008,10 @@ class ActivityMap(Gtk.Box):
             self.monitor = self.monitor_handler = None
         if self.tiles is not None:
             self.tiles.let_go()
+        if self.hint_timer is not None:
+            GLib.source_remove(self.hint_timer)
+            self.hint_timer = None
+            self.hint.set_visible(False)
         Gtk.Box.do_unmap(self)
 
 
