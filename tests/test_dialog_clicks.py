@@ -12,6 +12,7 @@ from fakes import window as stand_in
 from test_forget_window import _button_labelled, _turn_until
 
 from openexpress import ciq, service
+from openexpress.connect import OtherOwner
 
 pytestmark = pytest.mark.needs_display
 
@@ -313,7 +314,8 @@ def test_closing_while_a_task_runs_asks_to_wait(click):
 # noted in `effects`: tasks, syncs, removals, the next question. A new dialog without a case
 # here fails test_every_dialog_has_an_escape_case.
 
-INFORMS = {"close-busy", "order-none-differs", "ejected", "error", "backup-incomplete"}
+INFORMS = {"close-busy", "order-none-differs", "ejected", "error", "backup-incomplete",
+           "add-to-account-refused", "added-not-listed", "added-not-checked"}
 AFTER_ESCAPE = {"ejected": [("error", "Finish the update")]}  # a bike accessory's last step
 
 
@@ -402,6 +404,37 @@ def _primary_training(ctx):
     win = _escape_window(ctx, _primary_training_text=MainWindow._primary_training_text,
                          set_primary_training=_note(ctx, "set_primary_training"))
     MainWindow.confirm_primary_training(win, types.SimpleNamespace(unit_id=None))
+
+
+def _off_account_window(ctx):
+    """A device off the account, logged in: Add to Account… offered."""
+    from openexpress.connect import NotAccountDevice
+
+    win = _escape_window(ctx, refresh_device=_note(ctx, "refresh_device"))
+    win.session.logged_in = True
+    win.session.ownership_error = NotAccountDevice("not on the account")
+    win.session.client = types.SimpleNamespace(auth=types.SimpleNamespace(display="tomek_b"))
+    return win
+
+
+def _add_to_account(ctx):
+    from openexpress.gui.add_to_account import confirm_add_to_account
+
+    confirm_add_to_account(_off_account_window(ctx))
+
+
+def _added(ctx, listed=True, refusal=None):
+    """Add to Account as Garmin answered it: the list after it (`listed`), or a refusal."""
+    from openexpress.connect import Registration
+    from openexpress.gui.add_to_account import add_to_account
+
+    def add_device(client, device, apply=False):
+        if refusal is not None:
+            raise refusal
+        return service.DeviceAddition(False, Registration(True, "active"), False, listed)
+
+    ctx.monkeypatch.setattr(service, "add_device", add_device)
+    add_to_account(_off_account_window(ctx))
 
 
 def _first_sync(ctx):
@@ -586,6 +619,10 @@ OPENERS = {
     "order-choose": lambda ctx: _order(ctx, True), "order-restore": _order_restore,
     "app-permissions": _app_permissions, "app-forget": _app_forget, "app-remove": _app_remove,
     "primary-wearable": _primary_wearable, "primary-training": _primary_training,
+    "add-to-account": _add_to_account,
+    "add-to-account-refused": lambda ctx: _added(ctx, refusal=OtherOwner("made up", False)),
+    "added-not-listed": lambda ctx: _added(ctx, listed=False),
+    "added-not-checked": lambda ctx: _added(ctx, listed=None),
     "first-sync": _first_sync, "forget-device": _forget_device, "own-map-add": _own_map_add,
     "own-map-remove": _own_map_remove, "map-install": _map_install, "map-remove": _map_remove,
     "music-copy": _music_copy, "playlist-add": _playlist_add, "cache-clear": _cache_clear,

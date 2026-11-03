@@ -141,6 +141,8 @@ def test_the_refusal_says_that_registering_the_product_is_not_enough():
     said = str(refused.value)
     assert "in Garmin Connect (the phone app, or connect.garmin.com)" in said
     assert "registering the product on garmin.com is not enough" in said
+    # and that openExpress can add it itself
+    assert "here (Add to Account… in the window, openexpress register on the command line" in said
 
 
 def test_bool_never_matches_a_unit_id():
@@ -746,7 +748,7 @@ def test_window_banner_for_each_outcome(device_root, device):
 
     s = checked(**{DEVICES_PATH: response(body=[{"unitid": OTHER}])})
     assert banner_for(s) == {"title": "This device is not registered to your Garmin account",
-                             "button": None, "revealed": True, "kind": "recheck"}
+                             "button": "Add to Account…", "revealed": True, "kind": "add"}
 
     s = checked(**{DEVICES_PATH: requests.ConnectionError("offline")})
     seen = banner_for(s)

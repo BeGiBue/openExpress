@@ -475,11 +475,12 @@ def require_account_device(client: GarminClient, unit_id: int,
                                  client.settings.environment))
             refused = NotAccountDevice(
                 _("This device is not registered to your Garmin account. To use it with "
-                  "Garmin Connect here, sign in to the account it belongs to or add the "
-                  "device to your account in Garmin Connect (the phone app, or "
-                  "connect.garmin.com): registering the product on garmin.com is not "
-                  "enough. If it is added already, check that the Garmin Connect app on "
-                  "your phone and openExpress are signed in to the same account."))
+                  "Garmin Connect here, sign in to the account it belongs to, or add the "
+                  "device to your account: here (Add to Account… in the window, openexpress "
+                  "register on the command line; experimental) or in Garmin Connect (the "
+                  "phone app, or connect.garmin.com); registering the product on garmin.com "
+                  "is not enough. If it is added already, check that the Garmin Connect app "
+                  "on your phone and openExpress are signed in to the same account."))
             refused.devices = devices  # the account's list all the same (the start page)
             raise refused
         verified = unit_id

@@ -36,6 +36,11 @@ from openexpress import (  # noqa: E402
 from openexpress.connect import ApiError, NotAccountDevice, OwnershipError  # noqa: E402
 from openexpress.device.gio_storage import DeviceSummary, FoundDevice, mass_storage_text  # noqa: E402
 from openexpress.gui import activity_page, pictures, start  # noqa: E402
+from openexpress.gui.add_to_account import (  # noqa: E402
+    add_to_account_row,
+    confirm_add_to_account,
+    offers_adding,
+)
 from openexpress.gui.apps_page import note_apps_count  # noqa: E402
 from openexpress.gui.music_page import note_music_count  # noqa: E402
 from openexpress.gui.navigation import Cause  # noqa: E402
@@ -784,10 +789,14 @@ class DevicePage:
             self._banner_kind = "login"
             self.banner.set_revealed(True)
         elif s is not None and s.ownership_error is not None:
-            unknown = not isinstance(s.ownership_error, NotAccountDevice)
             self.banner.set_title(self._ownership_title(s.ownership_error))
-            self.banner.set_button_label(_("Try Again") if unknown else None)
-            self._banner_kind = "recheck"
+            if offers_adding(s):
+                self.banner.set_button_label(_("Add to Account…"))
+                self._banner_kind = "add"
+            else:
+                unknown = not isinstance(s.ownership_error, NotAccountDevice)
+                self.banner.set_button_label(_("Try Again") if unknown else None)
+                self._banner_kind = "recheck"
             self.banner.set_revealed(True)
         else:
             self.banner.set_revealed(False)
@@ -799,6 +808,8 @@ class DevicePage:
         kind = self._banner_kind
         if kind == "setup":
             self.choose_dll()
+        elif kind == "add":
+            confirm_add_to_account(self)
         elif kind == "recheck":
             forget_on_refresh(self.session)
             self.refresh_device(cause=Cause.REFRESH_IN_VIEW)
@@ -1004,6 +1015,8 @@ class DevicePage:
             row = Adw.ActionRow(title=GLib.markup_escape_text(s.client.auth.display))
             row.add_suffix(self._button(_("Log out"), self.logout))
             g.add(row)
+        if offers_adding(s):
+            g.add(add_to_account_row(self, s))
         if not mass_storage:
             # The row stays when it cannot be read: why, in short.
             self.primary_row = Adw.ActionRow(title=_("Primary training device"),
