@@ -4,12 +4,12 @@ gui/sports.py, but in a narrow window), the tiles of what its sessions say (the 
 gui/words.py, an icon of their kind in the same colour), the map of its track
 (gui/activity_map.py) with the place of the chart's cursor, the chart of its records
 (gui/activity_chart.py), its laps or kilometres (gui/activity_laps.py; one chosen shown on the
-chart and the map), its heart-rate zones (gui/activity_zones.py) and training effect
-(gui/activity_effect.py), and what a file that could not be read, one still being written and
-one without a summary say. Its file is read again each time it opens, in a task
-(fit.activity_data), from the device or from a copy in a backup; nothing is kept and nothing is
-written. The page is pushed onto the window's navigation above the device view and goes with
-the pages of that view (the device gone, or drawn anew).
+chart and the map), its heart-rate zones (gui/activity_zones.py), training effect
+(gui/activity_effect.py) and details (gui/activity_details.py, closed), and what a file that
+could not be read, one still being written and one without a summary say. Its file is read
+again each time it opens, in a task (fit.activity_data), from the device or from a copy in a
+backup; nothing is kept and nothing is written. The page is pushed onto the window's navigation
+above the device view and goes with the pages of that view (the device gone, or drawn anew).
 Has: no attribute of the window; the page keeps what it needs in its closures."""
 from __future__ import annotations
 
@@ -26,12 +26,14 @@ from openexpress.activities import Source  # noqa: E402
 from openexpress.errors import UserFacingError  # noqa: E402
 from openexpress.gui import activity_map  # noqa: E402
 from openexpress.gui.activities_page import PAGE_ICON, export_button  # noqa: E402
-from openexpress.gui.activity_chart import ActivityChart, chart_series  # noqa: E402
+from openexpress.gui.activity_chart import ActivityChart, chart_series, moving_time  # noqa: E402
+from openexpress.gui.activity_details import DetailsList  # noqa: E402
 from openexpress.gui.activity_effect import EffectList, has_effect  # noqa: E402
 from openexpress.gui.activity_laps import LapList, laps_of  # noqa: E402
 from openexpress.gui.activity_zones import ZoneList  # noqa: E402
 from openexpress.gui.sports import sport_group  # noqa: E402
 from openexpress.gui.words import (  # noqa: E402
+    activity_details,
     activity_start,
     activity_tile_kinds,
     activity_title,
@@ -77,8 +79,9 @@ def _data(found, activity):
 
 
 def _prepared(data):
-    """In the task's thread: what the file holds, the series of its chart and its track."""
-    return data, chart_series(data), activity_map.track_of(data)
+    """In the task's thread: what the file holds, the series of its chart, its track and its
+    moving time."""
+    return data, chart_series(data), activity_map.track_of(data), moving_time(data)
 
 
 def _lap_chosen(laps, chosen: bool, start: float, end: float) -> None:
@@ -218,12 +221,13 @@ class ActivityView:
         self.message.set_title(text)
         self.stack.set_visible_child_name("message")
 
-    def show(self, data, series, track=None) -> None:
+    def show(self, data, series, track=None, moving=None) -> None:
         """What the file holds (fit.ActivityData): the tiles, a damaged file said under them,
         the map of `track` (activity_map.Track; none without positions, a line without
         libshumate), the chart of `series` (activity_chart.Series), or a line in its place
-        when there is none, then its laps or kilometres (none for a workout); of a file still
-        being written and of one without a summary, only that."""
+        when there is none, then its laps or kilometres (none for a workout), zones, training
+        effect and details (`moving`: the moving time worked out from its records); of a file
+        still being written and of one without a summary, only that."""
         from openexpress import fit
 
         if data.state is fit.FileState.STILL_BEING_WRITTEN:
@@ -280,6 +284,11 @@ class ActivityView:
             effect = EffectList(data)
             effect.set_margin_top(12)
             self.content.append(effect)
+        details = activity_details(data, moving)
+        if details:
+            listed = DetailsList(details)
+            listed.set_margin_top(12)
+            self.content.append(listed)
         self.stack.set_visible_child_name("content")
         log.info("activity page: %d tiles, %s, chart of %s, %s, %d %s", len(tiles),
                  data.state.value, ", ".join(s.kind for s in series) or "nothing",

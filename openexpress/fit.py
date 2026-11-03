@@ -549,6 +549,26 @@ _SESSION_AVG_HEART_RATE, _SESSION_MAX_HEART_RATE = 16, 17
 # total_training_effect, total_anaerobic_training_effect (tenths, 0.0-5.0), training_load_peak
 # (scale 65536)
 _SESSION_AEROBIC_EFFECT, _SESSION_ANAEROBIC_EFFECT, _SESSION_TRAINING_LOAD = 24, 137, 168
+# The details of an activity's page. total_cycles (strides on foot) and total_fractional_cycles
+# (scale 128); max_speed and its enhanced field (millimetres a second); avg_ and max_cadence (a
+# minute) and their fractional fields (scale 128); total_descent (metres); avg_, max_ and
+# min_temperature (°C); min_heart_rate; active_time (milliseconds); min_ and max_altitude and
+# their enhanced fields (scale 5, offset 500); enhanced_avg_, _max_ and _min_respiration_rate
+# (breaths a minute, scale 100).
+_SESSION_CYCLES, _SESSION_FRACTIONAL_CYCLES = 10, 94
+_SESSION_MAX_SPEED, _SESSION_ENHANCED_MAX_SPEED = 15, 125
+_SESSION_AVG_CADENCE, _SESSION_MAX_CADENCE = 18, 19
+_SESSION_AVG_FRACTIONAL_CADENCE, _SESSION_MAX_FRACTIONAL_CADENCE = 92, 93
+_SESSION_DESCENT = 23
+_SESSION_AVG_TEMPERATURE, _SESSION_MAX_TEMPERATURE, _SESSION_MIN_TEMPERATURE = 57, 58, 150
+_SESSION_MIN_HEART_RATE = 64
+_SESSION_ACTIVE_TIME = 78
+_SESSION_MIN_ALTITUDE, _SESSION_MAX_ALTITUDE = 71, 50
+_SESSION_ENHANCED_MIN_ALTITUDE, _SESSION_ENHANCED_MAX_ALTITUDE = 127, 128
+_SESSION_AVG_RESPIRATION, _SESSION_MAX_RESPIRATION, _SESSION_MIN_RESPIRATION = 169, 170, 180
+# FIT profile: set, a set of a strength workout: its duration (milliseconds) and set_type (rest
+# 0, active 1).
+_MESG_SET, _SET_DURATION, _SET_TYPE, _SET_REST = 225, 0, 5, 0
 # FIT profile: time_in_zone, of the session (its reference_mesg 18): the time in each zone
 # (seconds, scale 1000; an array: below zone 1, zones 1-5, above the top bound), the zones'
 # bounds (hr_zone_high_boundary, an array), how they are worked out, the max, resting and
@@ -630,6 +650,22 @@ class ActivityData:
     aerobic_effect: float | None = None  # the training effect, 0.0-5.0
     anaerobic_effect: float | None = None
     training_load: float | None = None
+    descent: int | None = None  # metres
+    min_altitude: float | None = None  # metres
+    max_altitude: float | None = None
+    max_speed: float | None = None  # metres a second
+    avg_cadence: float | None = None  # a minute: strides on foot, revolutions on a bike
+    max_cadence: float | None = None
+    cycles: float | None = None  # strides on foot
+    min_heart_rate: int | None = None
+    avg_temperature: float | None = None  # °C
+    min_temperature: float | None = None
+    max_temperature: float | None = None
+    avg_respiration: float | None = None  # breaths a minute
+    min_respiration: float | None = None
+    max_respiration: float | None = None
+    active_time: float | None = None  # seconds
+    rest_time: float | None = None  # seconds: the rest sets of a strength workout
 
     @property
     def has_positions(self) -> bool:
@@ -675,12 +711,98 @@ def _lap(values: dict[int, Value]) -> Lap:
                _whole_number(values.get(_LAP_CALORIES)))
 
 
+def _with_fraction(values: dict[int, Value], whole: int, fraction: int) -> float | None:
+    """A field with its fractional field (scale 128) added, when it gives one."""
+    number = _whole_number(values.get(whole))
+    if number is None:
+        return None
+    part = _whole_number(values.get(fraction))
+    return number + (part or 0) / 128
+
+
+def _altitude(values: dict[int, Value], enhanced: int, plain: int) -> float | None:
+    """An altitude in metres: the enhanced field first, the plain one standing in."""
+    altitude = _metres(values.get(enhanced))
+    return _metres(values.get(plain)) if altitude is None else altitude
+
+
+def _each(sessions: list[dict[int, Value]], read) -> list[float]:
+    """The values `read` gives of the sessions, but those not given."""
+    return [v for v in map(read, sessions) if v is not None]
+
+
+def _lowest(sessions: list[dict[int, Value]], read) -> float | None:
+    return min(_each(sessions, read), default=None)
+
+
+def _greatest(sessions: list[dict[int, Value]], read) -> float | None:
+    return max(_each(sessions, read), default=None)
+
+
+def _added(sessions: list[dict[int, Value]], read) -> float | None:
+    found = _each(sessions, read)
+    return sum(found) if found else None
+
+
+def _field(number: int, scale: int = 1):
+    """What reads a field of a session, scaled."""
+    return lambda values: _scaled(values.get(number), scale)
+
+
+def _weighted(sessions: list[dict[int, Value]], read) -> float | None:
+    """An average of the sessions: of one session as it gives it; of several, weighted by each
+    one's timer time."""
+    if len(sessions) == 1:
+        return read(sessions[0])
+    found = [(v, t) for v, t in ((read(s), _whole_number(s.get(_SESSION_TIMER_TIME)))
+                                 for s in sessions) if v is not None and t]
+    return sum(v * t for v, t in found) / sum(t for _v, t in found) if found else None
+
+
+def _details_together(sessions: list[dict[int, Value]]) -> dict:
+    """The details of an activity's page from its sessions: the descent, strides and active
+    time added up, the lowest of the minimums and the highest of the maximums, the averages
+    weighted by the timer time."""
+    return {
+        "descent": _total(sessions, _SESSION_DESCENT),
+        "min_altitude": _lowest(sessions, lambda s: _altitude(
+            s, _SESSION_ENHANCED_MIN_ALTITUDE, _SESSION_MIN_ALTITUDE)),
+        "max_altitude": _greatest(sessions, lambda s: _altitude(
+            s, _SESSION_ENHANCED_MAX_ALTITUDE, _SESSION_MAX_ALTITUDE)),
+        "max_speed": _greatest(sessions, lambda s: _speed(s, _SESSION_ENHANCED_MAX_SPEED,
+                                                          _SESSION_MAX_SPEED)),
+        "avg_cadence": _weighted(sessions, lambda s: _with_fraction(
+            s, _SESSION_AVG_CADENCE, _SESSION_AVG_FRACTIONAL_CADENCE)),
+        "max_cadence": _greatest(sessions, lambda s: _with_fraction(
+            s, _SESSION_MAX_CADENCE, _SESSION_MAX_FRACTIONAL_CADENCE)),
+        "cycles": _added(sessions, lambda s: _with_fraction(s, _SESSION_CYCLES,
+                                                            _SESSION_FRACTIONAL_CYCLES)),
+        "min_heart_rate": _lowest(sessions, lambda s: _whole_number(
+            s.get(_SESSION_MIN_HEART_RATE))),
+        "avg_temperature": _weighted(sessions, _field(_SESSION_AVG_TEMPERATURE)),
+        "min_temperature": _lowest(sessions, _field(_SESSION_MIN_TEMPERATURE)),
+        "max_temperature": _greatest(sessions, _field(_SESSION_MAX_TEMPERATURE)),
+        "avg_respiration": _weighted(sessions, _field(_SESSION_AVG_RESPIRATION, 100)),
+        "min_respiration": _lowest(sessions, _field(_SESSION_MIN_RESPIRATION, 100)),
+        "max_respiration": _greatest(sessions, _field(_SESSION_MAX_RESPIRATION, 100)),
+        "active_time": _total(sessions, _SESSION_ACTIVE_TIME, 1000),
+    }
+
+
+def _rest_time(sets: list[dict[int, Value]]) -> float | None:
+    """The time of the rest sets added up (seconds); None without one that gives its
+    duration."""
+    rests = [d for d in (_scaled(s.get(_SET_DURATION), 1000) for s in sets
+                         if _whole_number(s.get(_SET_TYPE)) == _SET_REST) if d is not None]
+    return sum(rests) if rests else None
+
+
 def _sessions_together(sessions: list[dict[int, Value]]) -> dict:
     """What the sessions say together: the times, distance, ascent and calories added up, the
     average speed over all of them (from one session as it gives it), the average heart rate
     weighted by each one's timer time, the maximum the highest; the training effects and load
     the highest too (several sessions, a multisport activity: an assumption, no such file
-    looked at)."""
+    looked at); the details (_details_together)."""
     if not sessions:
         return {}
     sports = {_whole_number(s.get(_SESSION_SPORT)) for s in sessions} - {None}
@@ -713,6 +835,7 @@ def _sessions_together(sessions: list[dict[int, Value]]) -> dict:
         "aerobic_effect": _highest(sessions, _SESSION_AEROBIC_EFFECT, 10),
         "anaerobic_effect": _highest(sessions, _SESSION_ANAEROBIC_EFFECT, 10),
         "training_load": _highest(sessions, _SESSION_TRAINING_LOAD, 65536),
+        **_details_together(sessions),
     }
 
 
@@ -748,9 +871,9 @@ def _zones(found: list[dict[int, Value]]) -> HeartRateZones | None:
 
 def activity_data(data: bytes) -> ActivityData:
     """What the activity file `data` holds for its page: its records with a time, its laps,
-    what its sessions say together and its heart-rate zones. Of a file cut short (the device
-    was still writing it) or damaged, what reads up to where it breaks off, with its state.
-    FitError for what is no FIT file, as summary."""
+    what its sessions say together, its heart-rate zones and the time of its rest sets. Of a
+    file cut short (the device was still writing it) or damaged, what reads up to where it
+    breaks off, with its state. FitError for what is no FIT file, as summary."""
     _check_header(data)
     found = not_whole(data)
     state = (FileState.WHOLE if found is None else FileState.STILL_BEING_WRITTEN if found[0]
@@ -759,9 +882,10 @@ def activity_data(data: bytes) -> ActivityData:
     laps: list[Lap] = []
     sessions: list[dict[int, Value]] = []
     zones: list[dict[int, Value]] = []
+    sets: list[dict[int, Value]] = []
     try:
         for num, values in iter_messages(data, wanted=(_MESG_RECORD, _MESG_LAP, _MESG_SESSION,
-                                                       _MESG_TIME_IN_ZONE),
+                                                       _MESG_TIME_IN_ZONE, _MESG_SET),
                                          arrays=(_MESG_TIME_IN_ZONE,)):
             if num == _MESG_RECORD:
                 sample = _sample(values)
@@ -771,13 +895,15 @@ def activity_data(data: bytes) -> ActivityData:
                 laps.append(_lap(values))
             elif num == _MESG_SESSION:
                 sessions.append(values)
+            elif num == _MESG_SET:
+                sets.append(values)
             elif values.get(_ZONE_REFERENCE) == _MESG_SESSION:
                 zones.append(values)
     except FitError:
         if state is FileState.WHOLE:
             state = FileState.DAMAGED
     return ActivityData(state, samples=tuple(samples), laps=tuple(laps), zones=_zones(zones),
-                        **_sessions_together(sessions))
+                        rest_time=_rest_time(sets), **_sessions_together(sessions))
 
 
 # FIT profile: workout (sport, num_valid_steps, wkt_name), course (sport, name) and schedule

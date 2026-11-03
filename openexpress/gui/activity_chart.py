@@ -216,6 +216,24 @@ def chart_series(data) -> list[Series]:
     return found
 
 
+def moving_time(data) -> float | None:
+    """The time an activity (fit.ActivityData) with a distance was moving, from its records by
+    the rule of a stop of its pace (_stops): the time from each record that is no stop to the
+    next one, but between records more than GAP_S apart (a pause). None without a distance or
+    speeds."""
+    samples = data.samples
+    if len(samples) < 2 or not (data.distance or any((s.distance or 0) > 0 for s in samples)):
+        return None
+    speeds = _speeds(samples)
+    if all(v is None for v in speeds):
+        return None
+    times = [s.time for s in samples]
+    stopped, _counted = _stops(times, speeds, [s.altitude for s in samples])
+    return float(sum(after - at for at, after, stop
+                     in zip(times[:-1], times[1:], stopped[:-1], strict=True)
+                     if not stop and after - at <= GAP_S))
+
+
 def runs(series: Series) -> list[list[tuple[float, float]]]:
     """The pieces of a series' line, each a list of (time, value)."""
     return [list(zip(series.times[first:last], series.values[first:last], strict=True))

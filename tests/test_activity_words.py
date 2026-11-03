@@ -7,6 +7,7 @@ import pytest
 from openexpress import fit, i18n
 
 NB = "\u00a0"
+MINUS = "\u2212"
 RUNNING, CYCLING, SWIMMING, TRAINING, HIKING = 1, 2, 5, 10, 17
 
 
@@ -334,3 +335,116 @@ def test_the_value_at_the_cursor(language):
                                         "pl": f"31:20{NB}· 24,3 km/h"}[language]
     assert at(1880, "heart rate", None) == {"en": f"31:20{NB}· no reading",
                                             "pl": f"31:20{NB}· brak odczytu"}[language]
+
+
+# --- the details ---------------------------------------------------------------------------------
+
+WALKING, STRENGTH = 11, 20
+WALK = activity(sport=WALKING, timer_time=3540.0, elapsed_time=3900.0, distance=4250.0,
+                avg_speed=1.2006, avg_heart_rate=108, max_heart_rate=125, calories=180, ascent=12,
+                descent=12, min_altitude=19.4, max_altitude=31.0, max_speed=1000 / 532,
+                avg_cadence=52.2, max_cadence=59.0, cycles=2190.0, min_heart_rate=86,
+                avg_temperature=27.4, min_temperature=25.0, max_temperature=29.0)
+MOVING = 3150.0  # 52:30, worked out from the records
+WORKOUT_DETAILS = activity(sport=TRAINING, sub_sport=STRENGTH, timer_time=3130.0,
+                           elapsed_time=3130.0, distance=0.0, avg_heart_rate=112,
+                           max_heart_rate=171, min_heart_rate=92, calories=320,
+                           active_time=1470.0, rest_time=1500.0, avg_temperature=29.0,
+                           min_temperature=27.0, max_temperature=31.0, avg_respiration=24.4,
+                           min_respiration=15.2, max_respiration=38.0)
+DETAILS_OF = {
+    "en": {"walk": [("Elapsed time", "1:05:00"), ("Moving time", "52:30"),
+                    ("Total descent", "12 m"), ("Minimum elevation", "19 m"),
+                    ("Maximum elevation", "31 m"), ("Average moving pace", "12:21 /km"),
+                    ("Best pace", "8:52 /km"), ("Average cadence", "104 spm (max 118)"),
+                    ("Steps", "4380"), ("Heart rate", "86–125 bpm"), ("Calories", "180 kcal"),
+                    ("Temperature", "27 °C (25–29 °C)")],
+           "workout": [("Work time", "24:30"), ("Rest time", "25:00"),
+                       ("Heart rate", "92–171 bpm"), ("Temperature", "29 °C (27–31 °C)"),
+                       ("Respiration rate", "24 brpm (15–38)")],
+           "title": "Details"},
+    "pl": {"walk": [("Upływ czasu", "1:05:00"), ("Czas ruchu", "52:30"),
+                    ("Całkowity spadek", "12 m"), ("Minimalna wysokość", "19 m"),
+                    ("Maksymalna wysokość", "31 m"), ("Średnie tempo ruchu", "12:21 /km"),
+                    ("Najlepsze tempo", "8:52 /km"),
+                    ("Średnia kadencja", "104 kr./min (maks. 118)"), ("Kroki", "4380"),
+                    ("Tętno", "86–125 ud./min"), ("Kalorie", "180 kcal"),
+                    ("Temperatura", "27 °C (25–29 °C)")],
+           "workout": [("Czas ćwiczeń", "24:30"), ("Czas odpoczynku", "25:00"),
+                       ("Tętno", "92–171 ud./min"), ("Temperatura", "29 °C (27–31 °C)"),
+                       ("Częstotliwość oddechu", "24 odd./min (15–38)")],
+           "title": "Szczegóły"},
+}
+
+
+def test_the_details_of_a_walk_and_of_a_strength_workout(language):
+    """In their order, only what the file gives, nothing a tile shows already: no elapsed time
+    the same as the tile's, no calories of a workout (a tile); steps and a cadence in steps a
+    minute from strides; the moving time and its pace from the records."""
+    w = words()
+    assert w.details_title() == DETAILS_OF[language]["title"]
+    assert w.activity_details(WALK, MOVING) == DETAILS_OF[language]["walk"]
+    assert w.activity_details(WORKOUT_DETAILS) == DETAILS_OF[language]["workout"]
+
+
+def test_no_details_but_those_the_file_gives():
+    w = words()
+    assert w.activity_details(activity(sport=WALKING, distance=1000.0, timer_time=600.0)) == []
+    assert w.activity_details(activity(sport=WALKING, distance=1000.0, timer_time=600.0,
+                                       elapsed_time=600.4)) == []  # the tile's time
+    kinds = [k for k, _v in w.activity_detail_kinds(WALK)]  # no moving time worked out
+    assert "moving time" not in kinds and "moving pace" not in kinds
+    no_zeros = activity(sport=WALKING, distance=1000.0, timer_time=600.0, descent=0, cycles=0.0,
+                        avg_cadence=0.0, min_heart_rate=80)  # and no maximum heart rate
+    assert w.activity_detail_kinds(no_zeros) == []
+
+
+def test_a_moving_time_the_same_as_the_tile_s_is_left_out():
+    """Never stopped: the moving time and its pace are the tile's time and pace."""
+    w = words()
+    assert [k for k, _v in w.activity_detail_kinds(WALK, 3540.0)] == [
+        "elapsed time", "descent", "minimum elevation", "maximum elevation", "best pace",
+        "cadence", "steps", "heart rate", "calories", "temperature"]
+
+
+@pytest.mark.parametrize(("sport", "cadence", "steps"), [
+    (RUNNING, "170 spm (max 186)", "8760"), (HIKING, "170 spm (max 186)", "8760"),
+    (CYCLING, "85 rpm (max 93)", None), (21, "85 rpm (max 93)", None),  # an e-bike
+    (TRAINING, None, None), (SWIMMING, None, None)])
+def test_cadence_and_steps_by_sport(sport, cadence, steps):
+    """On foot two steps a stride; on a bike revolutions a minute; in other sports neither."""
+    data = activity(sport=sport, timer_time=600.0, avg_cadence=85.2, max_cadence=93.0,
+                    cycles=4380.0)
+    said = dict(words().activity_detail_kinds(data))
+    assert (said.get("cadence"), said.get("steps")) == (cadence, steps)
+
+
+def test_whole_numbers_from_ten_thousand_have_a_separator(language):
+    """Polish typography: up to 9999 none, from 10 000 a hard space between the thousands; in
+    English a comma. A minus sign before a value below zero."""
+    w = words()
+    data = activity(sport=HIKING, timer_time=36_000.0, cycles=6172.5, avg_temperature=-3.0,
+                    min_temperature=-5.0, max_temperature=-1.0, avg_cadence=52.0)
+    said = dict(w.activity_detail_kinds(data))
+    assert said["steps"] == {"en": "12,345", "pl": f"12{NB}345"}[language]
+    assert said["temperature"] == f"{MINUS}3 °C ({MINUS}5–{MINUS}1 °C)"
+    assert said["cadence"] == {"en": "104 spm", "pl": "104 kr./min"}[language]  # no maximum
+    assert dict(w.activity_detail_kinds(activity(sport=HIKING, cycles=4999.5)))["steps"] == "9999"
+    assert w.calories_text(12_000) == {"en": "12,000 kcal", "pl": f"12{NB}000 kcal"}[language]
+
+
+def test_a_value_alone_without_its_range():
+    w = words()
+    data = activity(sport=TRAINING, timer_time=600.0, avg_temperature=27.0, avg_respiration=24.0,
+                    max_temperature=30.0)  # no minimum
+    assert dict(w.activity_detail_kinds(data)) == {"temperature": "27 °C",
+                                                   "respiration": "24 brpm"}
+
+
+def test_a_ride_s_details_by_its_speed():
+    w = words()
+    ride = activity(sport=CYCLING, timer_time=3600.0, distance=30_000.0, avg_speed=30_000 / 3600,
+                    max_speed=15.0)
+    assert w.activity_details(ride, 3000.0) == [
+        ("Moving time", "50:00"), ("Average moving speed", "36.0 km/h"),
+        ("Maximum speed", "54.0 km/h")]

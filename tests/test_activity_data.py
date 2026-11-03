@@ -295,3 +295,90 @@ def test_of_several_sessions_the_highest():
     assert data.aerobic_effect == pytest.approx(2.1)
     assert data.anaerobic_effect == pytest.approx(0.4)
     assert data.training_load == pytest.approx(35)
+
+
+# --- the details -------------------------------------------------------------------------------
+
+# start, sport, timer time, strides and their fraction (scale 128), maximum speed and its
+# enhanced field, average and maximum cadence and their fractions (scale 128), descent, average,
+# maximum and minimum temperature, minimum heart rate, active time, minimum and maximum altitude
+# and their enhanced fields, average, maximum and minimum respiration rate (scale 100)
+DETAIL_SESSION = FitDefinition(2, 18, (
+    (2, 0x86), (5, 0x00), (8, 0x86), (10, 0x86), (94, 0x02), (15, 0x84), (125, 0x86),
+    (18, 0x02), (19, 0x02), (92, 0x02), (93, 0x02), (23, 0x84), (57, 0x01), (58, 0x01),
+    (150, 0x01), (64, 0x02), (78, 0x86), (71, 0x84), (50, 0x84), (127, 0x86), (128, 0x86),
+    (169, 0x84), (170, 0x84), (180, 0x84)))
+# duration, set type (rest 0, active 1)
+SET = FitDefinition(5, 225, ((0, 0x86), (5, 0x00)))
+DETAILS = {"cycles": 2190, "cycles part": 64, "max speed": 1500, "enhanced max speed": 1880,
+           "cadence": 52, "max cadence": 59, "cadence part": 32, "max cadence part": 96,
+           "descent": 12, "temperature": 27, "max temperature": 29, "min temperature": 25,
+           "min heart rate": 86, "active time": 1_470_000, "min altitude": altitude(10),
+           "max altitude": altitude(40), "enhanced min altitude": altitude(19.4),
+           "enhanced max altitude": altitude(31), "respiration": 2437, "max respiration": 3800,
+           "min respiration": 1520}
+
+
+def with_details(*sessions, sets=()) -> bytes:
+    """A file of sessions with the details' fields (DETAILS, each session's changes over them)
+    and these sets (duration in milliseconds, set type)."""
+    found = [FitData(2, (START, 11, 3_600_000, *{**DETAILS, **changes}.values()))
+             for changes in sessions]
+    return fit_file(*FILE_ID, HEART_RECORD, FitData(1, (START, 120)), DETAIL_SESSION, *found,
+                    SET, *(FitData(5, s) for s in sets))
+
+
+def test_the_details_of_the_session():
+    """Strides (on foot) with their fraction, the enhanced maximum speed and altitudes first,
+    cadence with its fraction, the temperatures, the minimum heart rate, the active time, the
+    respiration rate."""
+    data = fit.activity_data(with_details({}))
+    assert data.cycles == pytest.approx(2190.5)
+    assert data.max_speed == pytest.approx(1.88)
+    assert (data.avg_cadence, data.max_cadence) == (pytest.approx(52.25), pytest.approx(59.75))
+    assert data.descent == 12 and data.min_heart_rate == 86
+    assert (data.avg_temperature, data.min_temperature, data.max_temperature) == (27, 25, 29)
+    assert data.active_time == pytest.approx(1470.0)
+    assert (data.min_altitude, data.max_altitude) == (pytest.approx(19.4), pytest.approx(31.0))
+    assert (data.avg_respiration, data.min_respiration, data.max_respiration) == (
+        pytest.approx(24.37), pytest.approx(15.2), pytest.approx(38.0))
+    assert data.rest_time is None  # no sets
+
+
+def test_the_plain_fields_stand_in_and_a_value_not_given_is_none():
+    data = fit.activity_data(with_details({
+        "enhanced max speed": None, "enhanced min altitude": None, "enhanced max altitude": None,
+        "cadence part": None, "cycles part": None, "temperature": -3, "min temperature": -5,
+        "max temperature": -1, "min heart rate": None, "respiration": None}))
+    assert data.max_speed == pytest.approx(1.5)
+    assert (data.min_altitude, data.max_altitude) == (pytest.approx(10.0), pytest.approx(40.0))
+    assert data.avg_cadence == 52 and data.cycles == 2190
+    assert (data.avg_temperature, data.min_temperature, data.max_temperature) == (-3, -5, -1)
+    assert data.min_heart_rate is None and data.avg_respiration is None
+    data = fit.activity_data(run())  # no such fields at all
+    assert (data.descent, data.max_speed, data.avg_cadence, data.cycles, data.active_time,
+            data.avg_temperature, data.avg_respiration, data.rest_time) == (None,) * 8
+
+
+def test_the_rest_time_is_that_of_the_rest_sets():
+    """A strength workout: its sets, active and resting; the rests added up."""
+    data = fit.activity_data(with_details({}, sets=[(40_000, 1), (90_000, 0), (35_000, 1),
+                                                    (None, 0), (60_500, 0)]))
+    assert data.rest_time == pytest.approx(150.5)
+    data = fit.activity_data(with_details({}, sets=[(40_000, 1), (35_000, 1)]))
+    assert data.rest_time is None
+
+
+def test_the_details_of_several_sessions():
+    """The descent, strides and active time added up; the lowest of the minimums and the
+    highest of the maximums; the averages weighted by each session's timer time (here all of
+    an hour)."""
+    data = fit.activity_data(with_details(
+        {}, {"descent": 30, "cycles": 1000, "cycles part": 0, "enhanced min altitude": altitude(5),
+             "enhanced max altitude": altitude(20), "min temperature": 20, "temperature": 23,
+             "enhanced max speed": 2500, "min heart rate": 90, "active time": 30_000}))
+    assert data.descent == 42 and data.cycles == pytest.approx(3190.5)
+    assert data.active_time == pytest.approx(1500.0)
+    assert (data.min_altitude, data.max_altitude) == (pytest.approx(5.0), pytest.approx(31.0))
+    assert (data.min_temperature, data.avg_temperature) == (20, pytest.approx(25.0))
+    assert data.max_speed == pytest.approx(2.5) and data.min_heart_rate == 86

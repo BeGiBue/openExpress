@@ -7,7 +7,16 @@ import math
 from datetime import datetime
 
 from openexpress import known_devices
-from openexpress.i18n import _, caption, full_time, human_size, ngettext, pgettext, relative_time
+from openexpress.i18n import (
+    _,
+    caption,
+    full_time,
+    human_size,
+    ngettext,
+    pgettext,
+    relative_time,
+    whole,
+)
 
 
 def updates_available(count: int, only=None) -> str:
@@ -335,7 +344,7 @@ def activity_distance(metres: float | None, sport: int | None) -> str | None:
         return None
     if sport == _SWIMMING:
         # TRANSLATORS: a distance or an ascent in whole metres on the page of an activity
-        return _("{metres} m").format(metres=round(metres))
+        return _("{metres} m").format(metres=whole(round(metres)))
     # TRANSLATORS: a distance in kilometres on the page of an activity ("10.24 km")
     return _("{distance} km").format(distance=decimal(f"{metres / 1000:.2f}"))
 
@@ -371,14 +380,14 @@ def calories_text(kcal: int | None) -> str | None:
     if kcal is None:
         return None
     # TRANSLATORS: the calories of an activity ("520 kcal")
-    return _("{calories} kcal").format(calories=kcal)
+    return _("{calories} kcal").format(calories=whole(kcal))
 
 
 def ascent_text(metres: int | None) -> str | None:
     """A total ascent in whole metres: "740 m"; None for none or 0, as the list leaves it out."""
     if not metres or metres <= 0:
         return None
-    return _("{metres} m").format(metres=round(metres))
+    return _("{metres} m").format(metres=whole(round(metres)))
 
 
 def tile_name(kind: str) -> str:
@@ -426,6 +435,144 @@ def activity_tile_kinds(data) -> list[tuple[str, str]]:
 def activity_tiles(data) -> list[tuple[str, str]]:
     """The tiles of activity_tile_kinds, each (value, name)."""
     return [(value, tile_name(kind)) for kind, value in activity_tile_kinds(data)]
+
+
+
+# FIT sports on foot (two steps a stride, cadence in steps a minute), and on a bike (cadence in
+# revolutions a minute): cycling and e-biking.
+_ON_FOOT = _PACE_SPORTS
+_ON_A_BIKE = {2, 21}
+
+
+def details_title() -> str:
+    # TRANSLATORS: the closed row of the details at the end of the page of an activity
+    return pgettext("activity", "Details")
+
+
+def detail_name(kind: str) -> str:
+    """The name of a detail of an activity's page, as Garmin Connect says it."""
+    names = {
+        # TRANSLATORS: the details of the page of an activity, as Garmin Connect names them in
+        # your language: the time with the pauses
+        "elapsed time": pgettext("activity detail", "Elapsed time"),
+        "moving time": pgettext("activity detail", "Moving time"),
+        "work time": pgettext("activity detail", "Work time"),
+        "rest time": pgettext("activity detail", "Rest time"),
+        "descent": pgettext("activity detail", "Total descent"),
+        "minimum elevation": pgettext("activity detail", "Minimum elevation"),
+        "maximum elevation": pgettext("activity detail", "Maximum elevation"),
+        "moving pace": pgettext("activity detail", "Average moving pace"),
+        "moving speed": pgettext("activity detail", "Average moving speed"),
+        "best pace": pgettext("activity detail", "Best pace"),
+        "maximum speed": pgettext("activity detail", "Maximum speed"),
+        "cadence": pgettext("activity detail", "Average cadence"),
+        "steps": pgettext("activity detail", "Steps"),
+        "heart rate": pgettext("activity detail", "Heart rate"),
+        "calories": pgettext("activity detail", "Calories"),
+        "temperature": pgettext("activity detail", "Temperature"),
+        "respiration": pgettext("activity detail", "Respiration rate"),
+    }
+    return names[kind]
+
+
+def _clock(seconds: float | None) -> str | None:
+    return activity_clock(seconds) if seconds else None
+
+
+def _metres_text(metres: float) -> str:
+    return _("{metres} m").format(metres=whole(round(metres)))
+
+
+def _cadence_text(data) -> str | None:
+    """The average cadence and its maximum: steps a minute on foot (two a stride), revolutions
+    a minute on a bike; None in another sport."""
+    if not data.avg_cadence:
+        return None
+    if data.sport in _ON_FOOT:
+        average = round(2 * data.avg_cadence)
+        top = round(2 * data.max_cadence) if data.max_cadence else None
+        if top is None:
+            # TRANSLATORS: a cadence on foot, steps a minute ("104 spm")
+            return _("{cadence} spm").format(cadence=average)
+        # TRANSLATORS: the average and the maximum cadence on foot ("104 spm (max 118)")
+        return _("{average} spm (max {max})").format(average=average, max=top)
+    if data.sport in _ON_A_BIKE:
+        average = round(data.avg_cadence)
+        top = round(data.max_cadence) if data.max_cadence else None
+        if top is None:
+            # TRANSLATORS: a cadence on a bike, revolutions a minute ("85 rpm")
+            return _("{cadence} rpm").format(cadence=average)
+        # TRANSLATORS: the average and the maximum cadence on a bike ("85 rpm (max 110)")
+        return _("{average} rpm (max {max})").format(average=average, max=top)
+    return None
+
+
+def _temperature_text(data) -> str | None:
+    if data.avg_temperature is None:
+        return None
+    average = whole(round(data.avg_temperature))
+    if data.min_temperature is None or data.max_temperature is None:
+        # TRANSLATORS: a temperature ("27 °C")
+        return _("{temperature} °C").format(temperature=average)
+    # TRANSLATORS: the average temperature and its range ("27 °C (25–29 °C)")
+    return _("{average} °C ({low}–{high} °C)").format(
+        average=average, low=whole(round(data.min_temperature)),
+        high=whole(round(data.max_temperature)))
+
+
+def _respiration_text(data) -> str | None:
+    if data.avg_respiration is None:
+        return None
+    average = round(data.avg_respiration)
+    if data.min_respiration is None or data.max_respiration is None:
+        # TRANSLATORS: a respiration rate, breaths a minute ("24 brpm")
+        return _("{rate} brpm").format(rate=average)
+    # TRANSLATORS: the average respiration rate and its range ("24 brpm (15–38)")
+    return _("{average} brpm ({low}–{high})").format(
+        average=average, low=round(data.min_respiration), high=round(data.max_respiration))
+
+
+def activity_detail_kinds(data, moving: float | None = None) -> list[tuple[str, str]]:
+    """The details of an activity's page (fit.ActivityData), each (kind, value), in their
+    order: elapsed time, moving time, work and rest time, descent, minimum and maximum
+    elevation, average moving pace (or speed), best pace (or maximum speed), cadence, steps,
+    heart rate (minimum–maximum), calories, temperature, respiration rate. Only what the file
+    gives: `moving` is the moving time worked out from its records (None: none); no value of
+    0; nothing a tile shows already (a time, a pace or calories the same as a tile's)."""
+    sport, kind = data.sport, speed_kind(data.sport)
+    tiles = dict(activity_tile_kinds(data))
+    moving_speed = data.distance / moving if moving and data.distance else None
+    found = [
+        ("elapsed time", _clock(data.elapsed_time), "time"),
+        ("moving time", _clock(moving) if "distance" in tiles else None, "time"),
+        ("work time", _clock(data.active_time), "time"),
+        ("rest time", _clock(data.rest_time), None),
+        ("descent", _metres_text(data.descent) if data.descent else None, None),
+        ("minimum elevation",
+         _metres_text(data.min_altitude) if data.min_altitude is not None else None, None),
+        ("maximum elevation",
+         _metres_text(data.max_altitude) if data.max_altitude is not None else None, None),
+        ("moving speed" if kind == "speed" else "moving pace",
+         activity_pace(moving_speed, sport) if "distance" in tiles else None, kind),
+        ("maximum speed" if kind == "speed" else "best pace",
+         activity_pace(data.max_speed, sport), None),
+        ("cadence", _cadence_text(data), None),
+        ("steps", whole(round(2 * data.cycles))
+         if data.cycles and sport in _ON_FOOT else None, None),
+        ("heart rate", _("{low}–{high} bpm").format(low=data.min_heart_rate,
+                                                     high=data.max_heart_rate)
+         if data.min_heart_rate is not None and data.max_heart_rate is not None else None, None),
+        ("calories", calories_text(data.calories), "calories"),
+        ("temperature", _temperature_text(data), None),
+        ("respiration", _respiration_text(data), None),
+    ]
+    return [(detail, value) for detail, value, tile in found
+            if value and (tile is None or tiles.get(tile) != value)]
+
+
+def activity_details(data, moving: float | None = None) -> list[tuple[str, str]]:
+    """The details of activity_detail_kinds, each (name, value)."""
+    return [(detail_name(kind), value) for kind, value in activity_detail_kinds(data, moving)]
 
 
 def lap_title(number: int) -> str:

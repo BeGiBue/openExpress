@@ -1588,3 +1588,48 @@ def test_the_bar_of_the_chart_s_switch_has_no_background_under_the_pointer(monke
         assert beside == above
     finally:
         win.toplevel.destroy()
+
+
+# --- the details -----------------------------------------------------------------------------
+
+
+def detail_section(page):
+    from openexpress.gui.activity_details import DetailsList
+
+    found = [w for w in _all(page) if isinstance(w, DetailsList)]
+    return found[0] if found else None
+
+
+def with_details(data):
+    """The activity with details as a device keeps them (made-up): its elapsed time with a
+    pause of five minutes, its descent, minimum heart rate and strides."""
+    import dataclasses
+
+    return dataclasses.replace(data, elapsed_time=data.timer_time + 300, descent=12,
+                               min_heart_rate=86, cycles=1300.0)
+
+
+def test_the_details_closed_at_the_end_of_the_page(monkeypatch):
+    """The last section, under the training effect, closed; when opened its rows in their
+    order, each its name and its value. The moving time is worked out from the records: the
+    walk's last record is two seconds before the end of its timer time."""
+    data = with_details(with_effect(zoned(lapped_walk())))
+    _win, page = page_of(monkeypatch, data)
+    shown = detail_section(page)
+    assert shown is not None and order_of(shown) > order_of(effect_section(page))
+    assert shown.get_next_sibling() is None
+    assert shown.expander.get_title() == "Details" and not shown.expander.get_expanded()
+    assert [(r.name, r.value_text) for r in shown.rows] == [
+        ("Elapsed time", "48:20"), ("Moving time", "43:18"), ("Total descent", "12 m"),
+        ("Average moving pace", "13:19 /km"), ("Steps", "2600"), ("Heart rate", "86–120 bpm")]
+    assert not any(seen(r, page) for r in shown.rows)
+    shown.expander.set_expanded(True)
+    assert all(seen(r, page) for r in shown.rows)
+    assert [r.get_title() for r in shown.rows] == [r.name for r in shown.rows]
+    assert [r.value.get_label() for r in shown.rows[:2]] == ["48:20", "43:18"]
+
+
+def test_no_details_without_them_in_the_file(monkeypatch):
+    """A workout whose file gives only what its tiles show."""
+    _win, page = page_of(monkeypatch, plateaus(), sport=TRAINING)
+    assert detail_section(page) is None and "Details" not in labels(page)

@@ -372,6 +372,7 @@ its height and narrows; the lap rows wrap.
 | `gui/activity_zones.py` (new, step 8 of 10.5) | The section of the heart-rate zones (D14): its rows and bars, the zones' colours. |
 | `gui/activity_effect.py` (new, step 9 of 10.5) | The section of the training effect and load (D15): its rows, the effects' bars. |
 | `gui/activity_colours.py` (new, step 10 of 10.5) | The track's colours by the chart's series (D13): the scale, its ends, each point's colour, the legend and its switch. |
+| `gui/activity_details.py` (new, step 11 of 10.5) | The closed row of the details (D17) and its rows. |
 | `gui/activities_page.py` | Rows of FIT files activatable (an arrow at their end); a click opens the page; the export button shared with the page. |
 | `gui/device_page.py`, `gui/app.py` | The page closed when the pages of the device are drawn anew, and before Refresh and Sync from the keyboard. |
 | `gui/words.py` | Durations, distances, pace and speed by sport, heart rate, the tiles' names, the laps' lines; English and Polish. |
@@ -642,6 +643,36 @@ empty.
     **(2) only from the file:** none on the fēnix 8.
   - Steps: two a stride; checked against Garmin Connect on one walk in the step's test on a
     device.
+- As implemented in step 11 (`gui/activity_details.py`, the words in `gui/words.py`): an
+  `Adw.ExpanderRow` "Details" after the training effect, closed each time the page opens; each
+  detail a row, its name (wrapping in a narrow window) and its value on one line. The names are
+  Garmin Connect's, as the user read them in Polish on a walk and a strength workout: "Upływ czasu", "Czas ruchu", "Średnie tempo ruchu" (Connect shows it: the
+  distance over the moving time; "Średnia prędkość ruchu" for a speed by analogy, not seen in
+  Connect yet), "Czas ćwiczeń" and "Czas odpoczynku" (strength), "Całkowity spadek",
+  "Minimalna wysokość" and "Maksymalna wysokość" (two rows as in Connect rather than one
+  range), "Najlepsze tempo", "Średnia kadencja" (with its maximum), "Kroki"; "Tętno",
+  "Kalorie", "Temperatura" and "Częstotliwość oddechu" as before. In English Connect's own
+  words; "Work time" and "Rest time" as Garmin's forums quote Connect's strength workouts.
+  The order: elapsed time, moving time, work time, rest time, descent, minimum and maximum
+  elevation, average moving pace (speed), best pace (maximum speed), cadence, steps, heart rate
+  (minimum–maximum), calories, temperature (average, minimum–maximum), respiration rate (the
+  same).
+  - What a tile shows is not repeated: an elapsed, moving or work time the same as the tile's
+    time, a moving pace the same as the tile's pace, calories when they are a tile (a workout).
+    A value of 0 (descent, steps, cadence) is left out, as the ascent's tile is.
+  - Moving time and its pace only for an activity with a distance; the rule of a stop is the
+    chart's (D17, (1)), and the time between records more than a minute apart (a pause) is no
+    moving.
+  - Work time is the session's `active_time` (78); rest time the rest sets (`set`, 225, set
+    type 0) added up, as the session has no field of it.
+  - Cadence and steps on foot (running, walking, mountaineering, hiking, snowshoeing) in steps:
+    two a stride, the fractional fields added; on a bike (cycling, e-biking) cadence in
+    revolutions a minute; in other sports neither.
+  - Numbers up to 9999 as they are, from 10 000 with the thousands apart: a hard space in
+    Polish (Polish typography, the user's rule), a comma in English; also on the tiles
+    (calories, ascent, a swim's metres). A minus sign (U+2212) below zero.
+  - Several sessions: descent, strides and active time added up, the lowest minimum and the
+    highest maximum, averages weighted by the timer time (as the average heart rate).
 - **17b. Always open, as a group.**
   - − Long on a narrow window.
 - **17c. More tiles.**
@@ -754,13 +785,14 @@ Accepted, but for those of the sets (D19a put off), which are not added.
 | Training effect / Aerobic / Anaerobic / Training load | Efekt treningu / Aerobowy / Beztlenowy / Obciążenie wysiłkowe (corrected in step 9: Garmin's words, D15) |
 | No benefit / Minor benefit / Maintaining / Improving / Highly improving / Overreaching | Brak korzyści / Umiarkowana korzyść / Utrzymanie / Wzrost / Znaczna poprawa / Przeciążenie (corrected in step 9, D15) |
 | Details | Szczegóły |
-| Total time / Moving time / Active time | Czas całkowity / Czas w ruchu / Czas aktywny |
-| Descent / Elevation / Maximum pace / Maximum speed | Zejście / Wysokość / Tempo maks. / Prędkość maks. |
-| Cadence / Steps / Heart rate / Calories / Temperature / Breathing | Kadencja / Kroki / Tętno / Kalorie / Temperatura / Oddech |
-| {average} spm (max {max}) / {average} rpm (max {max}) | {average} kr./min (maks. {max}) / {average} obr./min (maks. {max}) |
-| {average} °C ({low}–{high} °C) | {average} °C ({low}–{high} °C) |
-| {average} brpm ({low}–{high}) | {average} odd./min ({low}–{high}) |
-| {low}–{high} m | {low}–{high} m |
+| Elapsed time / Moving time / Work time / Rest time (corrected in step 11: Garmin Connect's words, D17) | Upływ czasu / Czas ruchu / Czas ćwiczeń / Czas odpoczynku |
+| Total descent / Minimum elevation / Maximum elevation (step 11: two rows, not a range) | Całkowity spadek / Minimalna wysokość / Maksymalna wysokość |
+| Average moving pace / Average moving speed / Best pace / Maximum speed (step 11) | Średnie tempo ruchu / Średnia prędkość ruchu / Najlepsze tempo / Maksymalna prędkość |
+| Average cadence / Steps / Heart rate / Calories / Temperature / Respiration rate (step 11) | Średnia kadencja / Kroki / Tętno / Kalorie / Temperatura / Częstotliwość oddechu |
+| {average} spm (max {max}) / {average} rpm (max {max}); without a maximum {cadence} spm / {cadence} rpm | {average} kr./min (maks. {max}) / {average} obr./min (maks. {max}); {cadence} kr./min / {cadence} obr./min |
+| {average} °C ({low}–{high} °C); without a range {temperature} °C | {average} °C ({low}–{high} °C); {temperature} °C |
+| {average} brpm ({low}–{high}); without a range {rate} brpm | {average} odd./min ({low}–{high}); {rate} odd./min |
+| (step 11) the separator of the thousands from 10 000: "," | a hard space (U+00A0) |
 | Track colour: {series} | Kolor trasy: {series} |
 | (step 10) heart rate / elevation / pace / speed, after "Track colour:" (lower case) | tętno / wysokość / tempo / prędkość |
 | Colours | Kolory |
@@ -845,6 +877,8 @@ With the additions of section 10 (their steps):
 | session (18) | total_cycles (strides on foot) | 10 | cycles |
 | | max_speed, enhanced_max_speed | 15, 125 | m/s (scale 1000) |
 | | avg_cadence, max_cadence; avg_, max_fractional_cadence | 18, 19; 92, 93 | rpm; rpm (scale 128) |
+| | total_fractional_cycles | 94 | cycles (scale 128) |
+| | max_altitude, min_altitude (where the enhanced fields are not given) | 50, 71 | m (scale 5, offset 500) |
 | | total_descent | 23 | m |
 | | total_training_effect, total_anaerobic_training_effect | 24, 137 | scale 10 (0.0–5.0) |
 | | avg_temperature, max_temperature, min_temperature | 57, 58, 150 | °C |
@@ -859,7 +893,7 @@ With the additions of section 10 (their steps):
 | | hr_zone_high_boundary | 6 | bpm, an array |
 | | hr_calc_type | 10 | enum: custom 0, % of max 1, % of reserve 2, % of threshold 3 |
 | | max_heart_rate, resting_heart_rate, threshold_heart_rate | 11, 12, 13 | bpm |
-| set (225), put off with D19a | duration | 0 | s (scale 1000) |
+| set (225): duration and set_type for the rest time (step 11); the rest put off with D19a | duration | 0 | s (scale 1000) |
 | | repetitions | 3 | |
 | | weight | 4 | kg (scale 16) |
 | | set_type | 5 | enum: rest 0, active 1 |

@@ -472,7 +472,13 @@ def _long_hike(sport=17):
                             timer_time=359_999.0, distance=123_456.0, avg_speed=0.2,
                             avg_heart_rate=200, max_heart_rate=220, calories=9_999,
                             ascent=9_999, samples=samples, zones=zones, aerobic_effect=4.9,
-                            anaerobic_effect=1.9, training_load=9_999.0)
+                            anaerobic_effect=1.9, training_load=9_999.0,
+                            elapsed_time=999_999.0, descent=9_999, min_altitude=-400.0,
+                            max_altitude=8_848.0, max_speed=0.2, avg_cadence=255.0,
+                            max_cadence=255.0, cycles=61_728.0, min_heart_rate=30,
+                            avg_temperature=-40.0, min_temperature=-40.0,
+                            max_temperature=-40.0, avg_respiration=60.0, min_respiration=10.0,
+                            max_respiration=60.0, active_time=359_000.0, rest_time=999.0)
     read = activities.Read(
         activities.Activity(activities.Source.BACKUP, "/backup/hike.fit", "hike.fit", 1, 1.0,
                             datetime(2026, 12, 31, 23, 59)),
@@ -487,8 +493,8 @@ def test_the_page_of_an_activity_fits_the_narrowest_window(narrow_window, monkey
                                                            sport, tiles):
     """Its tiles two by two, the damaged file said under them, the map with its note and
     button (or its attribution), the chart with its switch and the value at its cursor, its
-    kilometres, its heart-rate zones and training effect, its sport and start in the header bar
-    with the GPX button."""
+    kilometres, its heart-rate zones and training effect, its details open (their longest
+    values), its sport and start in the header bar with the GPX button."""
     from fakes import RunNow
     from gi.repository import Adw, Gtk
 
@@ -548,6 +554,11 @@ def test_the_page_of_an_activity_fits_the_narrowest_window(narrow_window, monkey
     from openexpress.gui.activity_effect import EffectList
 
     assert [w for w in _all(page) if isinstance(w, EffectList)]  # its longest words of the scale
+    from openexpress.gui.activity_details import DetailsList
+
+    (details,) = [w for w in _all(page) if isinstance(w, DetailsList)]  # open, every row
+    details.expander.set_expanded(True)
+    assert len(details.rows) == (15 if sport == 17 else 14)  # a ride: no steps
     _iterate(0.2)
     (dot,) = [w for w in _all(page) if w.has_css_class("oe-sport-dot")]
     assert not dot.get_visible()  # not in a narrow window: the start under the title stays whole

@@ -338,6 +338,20 @@ def decimal(number: str) -> str:
     return number.replace(".", separator)
 
 
+def whole(number: int) -> str:
+    """A whole number as the language of the program writes it: up to 9999 as it is, from
+    10 000 with its thousands apart ("12,345"; in Polish "12 345", a hard space between), and
+    a minus sign (U+2212) below zero ("−5"). Only for what the user reads, as decimal."""
+    # TRANSLATORS: what sets the thousands of a number from 10 000 on apart in your language,
+    # one character: "," in English; in Polish a hard space (U+00A0)
+    separator = pgettext("thousands separator", ",")
+    if len(separator) != 1 or separator.isalnum():
+        separator = ","
+    size = abs(number)
+    digits = f"{size:,}".replace(",", separator) if size >= 10_000 else str(size)
+    return ("\u2212" if number < 0 else "") + digits
+
+
 # The ISO 3166 list of countries of the system's iso-codes (also in the Flatpak's GNOME
 # runtime), with its translations in the "iso_3166-1" domain.
 ISO_3166_1 = Path("/usr/share/iso-codes/json/iso_3166-1.json")

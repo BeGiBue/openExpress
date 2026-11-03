@@ -282,3 +282,36 @@ def test_a_minute_of_walking_in_a_run_is_no_stop():
     assert at[450] == pytest.approx(1000 / 1.4, rel=0.15)
     assert at[915] is None
     assert chart().value_axis(pace, 3).low > 0
+
+
+# --- moving time -------------------------------------------------------------------------------
+
+
+def test_the_moving_time_leaves_out_the_stops_as_the_pace_does():
+    """The walk with fourteen stops (485 s of 3569): its moving time is the rest, give or take
+    the few seconds of slowing down around each stop."""
+    data = a_walk_with_stops()
+    assert len(data.samples) == 3569
+    assert chart().moving_time(data) == pytest.approx(3569 - 485, abs=14 * 4)
+
+
+def test_the_moving_time_leaves_out_a_pause():
+    """Records more than a minute apart: the time between them is no moving."""
+    samples = [sample(s, distance=s * 1.2, speed=1.2) for s in range(60)]
+    samples += [sample(s, distance=72 + (s - 200) * 1.2, speed=1.2) for s in range(200, 260)]
+    assert chart().moving_time(activity(samples)) == 118
+
+
+def test_the_moving_time_of_a_slow_climb_counts_it():
+    data = records([(600, 1.3, 0.0), (1800, 0.4, 0.15), (90, 0.0, 0.0), (600, 0.12, 0.1)],
+                   sport=17)
+    assert chart().moving_time(data) == pytest.approx(600 + 1800 + 600, abs=20)
+
+
+def test_no_moving_time_without_a_distance_or_speeds():
+    workout = activity([sample(s, heart_rate=100) for s in range(60)], sport=TRAINING,
+                       distance=0.0)
+    assert chart().moving_time(workout) is None
+    no_speed = activity([sample(s, heart_rate=100) for s in range(60)], distance=1000.0)
+    assert chart().moving_time(no_speed) is None
+    assert chart().moving_time(activity([], distance=1000.0)) is None
