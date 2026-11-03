@@ -4,8 +4,10 @@ record. A value not given and records that stop for a while (a pause) leave a ga
 so does a stop in the pace, never a slow climb. Pace is smoothed over about 30 s of moving and
 drawn with the faster on top, its axis from the pace of most of the moving records (a value
 beyond it drawn at its edge); the points are brought down to two a pixel column without losing a
-peak; the axes have round values. A click, a drag or the keys place a cursor, its value said
-beside the switch. The numbers need no screen; the drawing is Cairo in a Gtk.DrawingArea.
+peak; the axes have round values. Heart rate has the bands of the heart-rate zones 1-5 behind
+it, in their colours (gui/activity_zones.py). A click, a drag or the keys place a cursor, its
+value said beside the switch. The numbers need no screen; the drawing is Cairo in a
+Gtk.DrawingArea.
 Has: no attribute of the window; the chart's widgets keep their series and cursor themselves."""
 from __future__ import annotations
 
@@ -23,6 +25,7 @@ gi.require_version("PangoCairo", "1.0")
 
 from gi.repository import Adw, Gdk, GObject, Gtk, Pango, PangoCairo  # noqa: E402 - imports must follow gi.require_version
 
+from openexpress.gui.activity_zones import ZONE_COLORS  # noqa: E402
 from openexpress.gui.words import (  # noqa: E402
     activity_clock,
     chart_accessible_name,
@@ -48,6 +51,7 @@ AXIS_MARGIN = 0.1  # …and this share of that span more on each side
 KEY_STEP = 100  # a key moves the cursor by a hundredth of the activity
 CHART_HEIGHT = 200
 LAP_SHADE = 0.14  # the strength of the accent colour behind the lap chosen
+ZONE_SHADE = 0.13  # the strength of the zones' colours behind the line of heart rate
 PACES = ("pace", "swim pace")
 WHOLE = ("heart rate", "elevation")  # their axes have whole steps
 LEAST_SPAN = {"heart rate": 10, "elevation": 10, "speed": 1, "pace": 60, "swim pace": 10}
@@ -427,6 +431,8 @@ def _draw(area, cr, width: int, height: int) -> None:
     plot = _plot(area, width, height)
     fg, accent = area.get_color(), accent_color()
     text_height = _layout(area, "0").get_pixel_size()[1]
+    if area.zones is not None and kind == "heart rate":
+        _draw_zones(cr, plot, area.zones)
     if area.lap is not None:  # the lap chosen under the page: a band behind the line
         start, end = (min(max(plot.x(at), plot.left), plot.right) for at in area.lap)
         cr.set_source_rgba(accent.red, accent.green, accent.blue, LAP_SHADE)
@@ -480,6 +486,28 @@ def _draw(area, cr, width: int, height: int) -> None:
         cr.set_line_width(2)
         cr.rectangle(1, 1, width - 2, height - 2)
         cr.stroke()
+
+
+def _zone_bands(bounds, low: float, high: float) -> list[tuple[int, float, float]]:
+    """The bands of zones 1-5 within the heart rates from `low` to `high`, each (zone, from,
+    to), from the zones' high bounds (below zone 1, zones 1-5); above the top bound in zone 5.
+    None below zone 1: it is no zone."""
+    tops = list(bounds[1:-1]) + [max(high, bounds[-1])]
+    bands = []
+    for zone, (bottom, top) in enumerate(zip(bounds[:-1], tops, strict=True), start=1):
+        bottom, top = max(bottom, low), min(top, high)
+        if top > bottom:
+            bands.append((zone, bottom, top))
+    return bands
+
+
+def _draw_zones(cr, plot: Plot, bounds) -> None:
+    for zone, bottom, top in _zone_bands(bounds, plot.values.low, plot.values.high):
+        color = Gdk.RGBA()
+        color.parse(ZONE_COLORS[zone])
+        cr.set_source_rgba(color.red, color.green, color.blue, ZONE_SHADE)
+        cr.rectangle(plot.left, plot.y(top), plot.right - plot.left, plot.y(bottom) - plot.y(top))
+        cr.fill()
 
 
 def _within(plot: Plot, value: float) -> float:
@@ -547,6 +575,7 @@ class ChartArea(Gtk.DrawingArea):
         self.series = series
         self.cursor: float | None = None
         self.lap: tuple[float, float] | None = None  # the lap chosen, on the chart's time
+        self.zones = None  # the high bounds of the heart-rate zones, their bands
         self.drag_from = 0.0
         self.drawn = None  # the line brought down to the width last drawn
         self.set_draw_func(_draw)
@@ -608,12 +637,13 @@ class ActivityChart(Gtk.Box):
     __gsignals__: ClassVar[dict] = {
         "cursor-moved": (GObject.SignalFlags.RUN_FIRST, None, (float,))}
 
-    def __init__(self, series: list[Series]):
+    def __init__(self, series: list[Series], zones=None):
         super().__init__(orientation=Gtk.Orientation.VERTICAL, spacing=8)
         self.series = {s.kind: s for s in series}
         # The value beside the switch, under it in a narrow window.
         top = Gtk.FlowBox(selection_mode=Gtk.SelectionMode.NONE, min_children_per_line=1,
                           max_children_per_line=2, column_spacing=12, row_spacing=4)
+        top.add_css_class("oe-plain")  # no background under the pointer: only the buttons
         if len(series) > 1:
             switch = Gtk.Box(valign=Gtk.Align.CENTER)
             switch.add_css_class("linked")
@@ -637,6 +667,7 @@ class ActivityChart(Gtk.Box):
             top.append(Gtk.FlowBoxChild(child=widget, focusable=False, hexpand=expand))
         self.append(top)
         self.area = ChartArea(series[0])
+        self.area.zones = zones
         self.append(self.area)
 
     def show(self, kind: str) -> None:

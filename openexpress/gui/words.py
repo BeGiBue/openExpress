@@ -440,19 +440,83 @@ def kilometre_title(number: int) -> str:
     return _("Kilometre {number}").format(number=number)
 
 
+def _pace_is_time(distance: str | None, sport: int | None) -> bool:
+    """Whether a lap shown with this distance has its time for its pace: shown as 1.00 km at
+    a pace a kilometre, or as 100 m at a pace of 100 m (a swim)."""
+    kind = speed_kind(sport)
+    if kind == "pace":
+        return distance == activity_distance(1000, sport)
+    return kind == "swim pace" and distance == activity_distance(100, sport)
+
+
 def lap_caption(lap, sport: int | None) -> str:
     """The line of a lap (fit.Lap): its distance, its time (the timer's, the elapsed standing
-    in), how fast (its average speed, else worked out) and its average heart rate; only what it
-    gives."""
+    in), how fast (its average speed, else worked out; no pace that is its time) and its
+    average heart rate; only what it gives."""
     time = lap.timer_time if lap.timer_time is not None else lap.elapsed_time
     speed = lap.avg_speed
     if speed is None and lap.distance and time:
         speed = lap.distance / time
     distance = activity_distance(lap.distance, sport)
-    parts = [distance, activity_clock(time) if time is not None else None,
-             activity_pace(speed, sport) if distance else None,
+    fast = activity_pace(speed, sport) if distance and not _pace_is_time(distance, sport) else None
+    parts = [distance, activity_clock(time) if time is not None else None, fast,
              heart_rate_text(lap.avg_heart_rate)]
     return caption(*(part for part in parts if part))
+
+
+# --- the heart-rate zones of an activity ---------------------------------------------------------
+
+
+def zones_title() -> str:
+    # TRANSLATORS: the title of the section of the heart-rate zones on the page of an activity
+    return _("Heart-rate zones")
+
+
+def zone_name(number: int) -> str:
+    """A zone by its number (1-5); 0: the time below zone 1."""
+    if number == 0:
+        # TRANSLATORS: the row of the time below zone 1 of the heart rate
+        return _("Below zone 1")
+    # TRANSLATORS: a heart-rate zone ("Zone 3")
+    return _("Zone {number}").format(number=number)
+
+
+def zone_range(bounds, number: int) -> str:
+    """The heart rates of a zone from its high bounds (below zone 1, zones 1-5): "up to 120
+    bpm", "121–140 bpm"."""
+    if number == 0:
+        # TRANSLATORS: the heart rates below zone 1 ("up to 120 bpm")
+        return _("up to {high} bpm").format(high=bounds[0])
+    # TRANSLATORS: the heart rates of a zone ("121–140 bpm")
+    return _("{low}–{high} bpm").format(low=bounds[number - 1] + 1, high=bounds[number])
+
+
+def zone_share(seconds: float, total: float) -> str:
+    """The time in a zone and its share of the time in all: "36:30 · 88%"."""
+    percent = round(seconds / total * 100) if total else 0
+    # TRANSLATORS: the time in a heart-rate zone and its share ("36:30 · 88%")
+    return _("{time} · {percent}%").format(time=activity_clock(seconds), percent=percent)
+
+
+def zones_method_text(zones) -> str | None:
+    """How the device worked out the bounds of the zones (fit.HeartRateZones), and from what;
+    None when it does not say, or not the heart rate it says they come from."""
+    method = zones.method
+    if method == "max" and zones.max_heart_rate:
+        # TRANSLATORS: under the title of the heart-rate zones ("… (190 bpm)")
+        return _("Bounds from the device: % of maximum heart rate ({bpm})").format(
+            bpm=heart_rate_text(zones.max_heart_rate))
+    if method == "threshold" and zones.threshold_heart_rate:
+        # TRANSLATORS: under the title of the heart-rate zones ("… (165 bpm)")
+        return _("Bounds from the device: % of lactate threshold ({bpm})").format(
+            bpm=heart_rate_text(zones.threshold_heart_rate))
+    if method == "reserve":
+        # TRANSLATORS: under the title of the heart-rate zones
+        return _("Bounds from the device: % of heart rate reserve")
+    if method == "custom":
+        # TRANSLATORS: under the title of the heart-rate zones: set by the user
+        return _("Bounds from the device: your own")
+    return None
 
 
 # --- the chart of an activity ------------------------------------------------------------------

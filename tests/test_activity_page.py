@@ -1150,7 +1150,10 @@ def colours_of(widget, background="black"):
     width, height = widget.get_width(), widget.get_height()
     snapshot = Gtk.Snapshot()
     snapshot.append_color(rgba(background), Graphene.Rect().init(0, 0, width, height))
-    Gtk.WidgetPaintable.new(widget).snapshot(snapshot, width, height)
+    # Drawn within its own bounds, unscaled (a window's hold the border it is resized by).
+    _ok, bounds = widget.compute_bounds(widget)
+    snapshot.translate(Graphene.Point().init(bounds.get_x(), bounds.get_y()))
+    Gtk.WidgetPaintable.new(widget).snapshot(snapshot, bounds.get_width(), bounds.get_height())
     texture = widget.get_native().get_renderer().render_texture(
         snapshot.to_node(), Graphene.Rect().init(0, 0, width, height))
     downloader = Gdk.TextureDownloader.new(texture)
@@ -1351,5 +1354,112 @@ def test_the_tiles_have_the_icons_of_their_kind_in_the_sport_s_colour(monkeypatc
             assert icon.has_css_class(f"oe-sport-{group}")
             assert icon.get_color().equal(rgba(COLORS[group]))
             assert icon.get_accessible_role() == Gtk.AccessibleRole.PRESENTATION
+    finally:
+        win.toplevel.destroy()
+
+
+# --- heart-rate zones ------------------------------------------------------------------------
+
+ZONE_BOUNDS = (120, 140, 155, 165, 178, 190)  # made-up
+
+
+def zoned(data, times=(2190, 300, 0, 0, 0, 0)):
+    """The activity with heart-rate zones as a device keeps them (made-up)."""
+    import dataclasses
+
+    from openexpress import fit
+
+    return dataclasses.replace(data, zones=fit.HeartRateZones(
+        times=times, bounds=ZONE_BOUNDS, method="threshold", max_heart_rate=190,
+        resting_heart_rate=55, threshold_heart_rate=165))
+
+
+def zone_section(page):
+    from openexpress.gui.activity_zones import ZoneList
+
+    found = [w for w in _all(page) if isinstance(w, ZoneList)]
+    return found[0] if found else None
+
+
+def test_the_heart_rate_zones_under_the_laps(monkeypatch):
+    """Zone 5 on top, then 4 to 1 and below zone 1: each with its bounds, its time and share,
+    and a bar of its share in the zone's colour; under the title how the device worked out the
+    bounds."""
+    from openexpress.gui.activity_zones import ZONE_COLORS
+
+    _win, page = page_of(monkeypatch, zoned(lapped_walk()))
+    shown = zone_section(page)
+    assert shown is not None and order_of(shown) > order_of(lap_list(page))
+    texts = labels(page)
+    assert "Heart-rate zones" in texts
+    assert "Bounds from the device: % of lactate threshold (165 bpm)" in texts
+    rows = shown.rows
+    assert [r.name for r in rows] == ["Zone 5", "Zone 4", "Zone 3", "Zone 2", "Zone 1",
+                                      "Below zone 1"]
+    assert [r.span for r in rows] == ["179–190 bpm", "166–178 bpm", "156–165 bpm",
+                                      "141–155 bpm", "121–140 bpm", "up to 120 bpm"]
+    assert rows[4].share_text == "5:00 · 12%" and rows[5].share_text == "36:30 · 88%"
+    assert [round(r.bar.share, 2) for r in rows] == [0, 0, 0, 0, 0.12, 0.88]
+    assert [r.bar.color for r in rows] == list(reversed(ZONE_COLORS))
+    assert ZONE_COLORS == ("#8a898e", "#3584e4", "#26a269", "#c88800", "#e66100", "#f0384a")
+
+
+def test_no_zones_without_them_in_the_file(monkeypatch):
+    _win, page = page_of(monkeypatch, lapped_walk())
+    assert zone_section(page) is None and "Heart-rate zones" not in labels(page)
+
+
+def plateaus():
+    """Ten minutes of heart rate: 110 bpm, then 150 bpm (made-up), a record a second."""
+    from openexpress import fit
+
+    begin = START + FIT_EPOCH
+    samples = tuple(fit.Sample(begin + s, heart_rate=110 if s < 300 else 150) for s in range(600))
+    return fit.ActivityData(fit.FileState.WHOLE, start=begin, sport=TRAINING, timer_time=600.0,
+                            avg_heart_rate=130, max_heart_rate=150, calories=80,
+                            samples=samples)
+
+
+def test_the_bands_of_the_zones_behind_the_chart_of_heart_rate(monkeypatch):
+    """Faint, in the zones' colours, for zones 1 to 5 only: none below zone 1."""
+    from openexpress.gui import activity_chart
+
+    win, page = page_of(monkeypatch, zoned(plateaus()), sport=TRAINING)
+    present(win)
+    try:
+        area = chart_of(page).area
+        assert area.zones == ZONE_BOUNDS
+        until(lambda: False, 0.2)
+        plot = activity_chart._plot(area, area.get_width(), area.get_height())
+        pixels = colours_of(area, "white")
+        x = round(plot.x(150))  # the line at 110 bpm there
+        zone1, zone2, below = (pixels[round(plot.y(v))][x] for v in (130, 147, 115))
+        assert zone1[2] > zone1[0] + 8  # blue
+        assert zone2[1] > zone2[0] + 8  # green
+        assert below == (255, 255, 255)
+    finally:
+        win.toplevel.destroy()
+
+
+def test_the_bar_of_the_chart_s_switch_has_no_background_under_the_pointer(monkeypatch):
+    """Only the buttons have one: beside them, under the pointer, the page as above the bar."""
+    from gi.repository import Gtk
+
+    program_style()
+    win, page = page_of(monkeypatch, lapped_walk())
+    present(win)
+    try:
+        top = chart_of(page).get_first_child()
+        child = top.get_first_child()
+        child.set_state_flags(Gtk.StateFlags.PRELIGHT, False)
+        until(lambda: False, 0.2)
+        last = child.get_child().get_last_child()  # the last of the switch's buttons
+        _ok, place = last.compute_bounds(win.toplevel)
+        _ok, bar = top.compute_bounds(win.toplevel)
+        x = round(place.get_x() + place.get_width() + 40)
+        pixels = colours_of(win.toplevel)
+        beside = pixels[round(place.get_y() + place.get_height() / 2)][x]
+        above = pixels[round(bar.get_y()) - 3][x]
+        assert beside == above
     finally:
         win.toplevel.destroy()

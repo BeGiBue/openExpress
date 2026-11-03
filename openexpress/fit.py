@@ -59,7 +59,7 @@ _BASE_TYPES = {
 }
 _BASE_TYPE_NUMBER = 0x1F
 
-Value = int | float | str | None
+Value = int | float | str | tuple | None  # a tuple: an array, when asked
 
 
 class FitError(Exception):
@@ -90,10 +90,12 @@ def _read_uint(raw: bytes, big_endian: bool) -> int | None:
     return None if value == invalid else value
 
 
-def _value(raw: bytes, size: int, base_type: int, big_endian: bool) -> Value:
-    """The value of a field by its base type; None when it is the type's invalid value, an
-    array, of a size that does not fit its type, or cut off by the end of the file. A base
-    type the protocol does not define is read as an unsigned integer of its size."""
+def _value(raw: bytes, size: int, base_type: int, big_endian: bool,
+           array: bool = False) -> Value:
+    """The value of a field by its base type; None when it is the type's invalid value, of a
+    size that does not fit its type, or cut off by the end of the file; an array is None too,
+    or with `array` a tuple of its values (each invalid one None). A base type the protocol
+    does not define is read as an unsigned integer of its size."""
     if len(raw) < size:
         return None
     kind = _BASE_TYPES.get(base_type & _BASE_TYPE_NUMBER)
@@ -102,7 +104,12 @@ def _value(raw: bytes, size: int, base_type: int, big_endian: bool) -> Value:
     fmt, invalid = kind
     if fmt == "s":
         return raw.split(b"\0", 1)[0].decode("utf-8", "replace") or None
-    if struct.calcsize(fmt) != size:
+    one = struct.calcsize(fmt)
+    if array and size > one and size % one == 0:
+        values = struct.unpack((">" if big_endian else "<") + fmt * (size // one), raw[:size])
+        return tuple(None if v == invalid or (fmt in ("f", "d") and math.isnan(v)) else v
+                     for v in values)
+    if one != size:
         return None
     value = struct.unpack((">" if big_endian else "<") + fmt, raw)[0]
     if fmt in ("f", "d"):
@@ -110,17 +117,19 @@ def _value(raw: bytes, size: int, base_type: int, big_endian: bool) -> Value:
     return None if value == invalid else value
 
 
-def iter_messages(data: bytes, wanted: Collection[int] | None = None):
+def iter_messages(data: bytes, wanted: Collection[int] | None = None,
+                  arrays: Collection[int] = ()):
     """Yields (global message number, {field number: value}) for each data message, each value
-    by its base type (_value). A message after a compressed-timestamp header has the time that
-    header gives it as its timestamp field (FIELD_TIMESTAMP), once a time came before it.
+    by its base type (_value; the arrays of the messages in `arrays` as tuples). A message after
+    a compressed-timestamp header has the time that header gives it as its timestamp field
+    (FIELD_TIMESTAMP), once a time came before it.
     `wanted`: only the messages of these global numbers; the others are stepped over without
     reading them, but for their time, which a compressed-timestamp header counts from.
 
     Malformed or truncated input raises FitError (never IndexError/struct.error).
     """
     try:
-        yield from _iter_messages(data, wanted)
+        yield from _iter_messages(data, wanted, arrays)
     except (IndexError, struct.error) as e:
         raise FitError(_("Damaged FIT file ({error})").format(error=e)) from e
 
@@ -135,7 +144,7 @@ def _check_header(data: bytes) -> int:
     return header_size
 
 
-def _iter_messages(data: bytes, wanted: Collection[int] | None):
+def _iter_messages(data: bytes, wanted: Collection[int] | None, arrays: Collection[int] = ()):
     header_size = _check_header(data)
     data_size = struct.unpack_from("<I", data, 4)[0]
     end = min(len(data), header_size + data_size)
@@ -206,8 +215,10 @@ def _iter_messages(data: bytes, wanted: Collection[int] | None):
             continue
         values: dict[int, Value] = {}
         p = pos
+        array = d.global_num in arrays
         for num, field_size, base_type in d.fields:
-            values[num] = _value(data[p : p + field_size], field_size, base_type, d.big_endian)
+            values[num] = _value(data[p : p + field_size], field_size, base_type, d.big_endian,
+                                 array)
             p += field_size
         if offset is not None and last_time is not None:
             values[FIELD_TIMESTAMP] = last_time
@@ -535,6 +546,14 @@ _SESSION_ELAPSED_TIME = 7  # milliseconds, pauses included
 _SESSION_CALORIES = 11
 _SESSION_AVG_SPEED, _SESSION_ENHANCED_AVG_SPEED = 14, 124  # millimetres a second
 _SESSION_AVG_HEART_RATE, _SESSION_MAX_HEART_RATE = 16, 17
+# FIT profile: time_in_zone, of the session (its reference_mesg 18): the time in each zone
+# (seconds, scale 1000; an array: below zone 1, zones 1-5, above the top bound), the zones'
+# high bounds (an array), how they are worked out, the max, resting and threshold heart rate.
+_MESG_TIME_IN_ZONE = 216
+_ZONE_REFERENCE, _ZONE_TIMES, _ZONE_BOUNDS, _ZONE_CALC = 0, 2, 6, 10
+_ZONE_MAX, _ZONE_RESTING, _ZONE_THRESHOLD = 11, 12, 13
+_ZONE_METHODS = {0: "custom", 1: "max", 2: "reserve", 3: "threshold"}  # hr_zone_calc
+ZONES = 6  # below zone 1 and zones 1-5
 
 
 @dataclass(frozen=True)
@@ -567,6 +586,21 @@ class Lap:
 
 
 @dataclass(frozen=True)
+class HeartRateZones:
+    """The heart-rate zones of an activity as its device worked them out: the time in each
+    (seconds: below zone 1, zones 1-5, the time above the top bound in zone 5), their high
+    bounds (beats a minute, the same six), how they were worked out ("max", "reserve",
+    "threshold", "custom"; None: not said) and from what."""
+
+    times: tuple[float, ...]
+    bounds: tuple[int, ...]
+    method: str | None = None
+    max_heart_rate: int | None = None
+    resting_heart_rate: int | None = None
+    threshold_heart_rate: int | None = None
+
+
+@dataclass(frozen=True)
 class ActivityData:
     """What an activity file holds for its page (activity_data): how the file is, what its
     sessions say together, its records and its laps. None: not said."""
@@ -585,6 +619,7 @@ class ActivityData:
     calories: int | None = None
     samples: tuple[Sample, ...] = ()
     laps: tuple[Lap, ...] = ()
+    zones: HeartRateZones | None = None
 
     @property
     def has_positions(self) -> bool:
@@ -666,11 +701,35 @@ def _sessions_together(sessions: list[dict[int, Value]]) -> dict:
     }
 
 
+def _zones(found: list[dict[int, Value]]) -> HeartRateZones | None:
+    """The zones of the time_in_zone messages of the sessions: their times added up (several
+    sessions), the bounds and the rest of the first; None without six bounds and times."""
+    whole = []
+    for values in found:
+        times, bounds = values.get(_ZONE_TIMES), values.get(_ZONE_BOUNDS)
+        if not isinstance(times, tuple) or not isinstance(bounds, tuple):
+            continue
+        if len(times) < ZONES or len(bounds) < ZONES or None in bounds[:ZONES] \
+                or all(t is None for t in times):
+            continue
+        seconds = [(t or 0) / 1000 for t in times]
+        whole.append((tuple(seconds[:ZONES - 1]) + (sum(seconds[ZONES - 1:]),),
+                      tuple(bounds[:ZONES]), values))
+    if not whole:
+        return None
+    times = tuple(sum(z[0][i] for z in whole) for i in range(ZONES))
+    first = whole[0][2]
+    method = _ZONE_METHODS.get(_whole_number(first.get(_ZONE_CALC)))
+    return HeartRateZones(times, whole[0][1], method, _whole_number(first.get(_ZONE_MAX)),
+                          _whole_number(first.get(_ZONE_RESTING)),
+                          _whole_number(first.get(_ZONE_THRESHOLD)))
+
+
 def activity_data(data: bytes) -> ActivityData:
-    """What the activity file `data` holds for its page: its records with a time, its laps
-    and what its sessions say together. Of a file cut short (the device was still writing it)
-    or damaged, what reads up to where it breaks off, with its state. FitError for what is no
-    FIT file, as summary."""
+    """What the activity file `data` holds for its page: its records with a time, its laps,
+    what its sessions say together and its heart-rate zones. Of a file cut short (the device
+    was still writing it) or damaged, what reads up to where it breaks off, with its state.
+    FitError for what is no FIT file, as summary."""
     _check_header(data)
     found = not_whole(data)
     state = (FileState.WHOLE if found is None else FileState.STILL_BEING_WRITTEN if found[0]
@@ -678,20 +737,25 @@ def activity_data(data: bytes) -> ActivityData:
     samples: list[Sample] = []
     laps: list[Lap] = []
     sessions: list[dict[int, Value]] = []
+    zones: list[dict[int, Value]] = []
     try:
-        for num, values in iter_messages(data, wanted=(_MESG_RECORD, _MESG_LAP, _MESG_SESSION)):
+        for num, values in iter_messages(data, wanted=(_MESG_RECORD, _MESG_LAP, _MESG_SESSION,
+                                                       _MESG_TIME_IN_ZONE),
+                                         arrays=(_MESG_TIME_IN_ZONE,)):
             if num == _MESG_RECORD:
                 sample = _sample(values)
                 if sample is not None:
                     samples.append(sample)
             elif num == _MESG_LAP:
                 laps.append(_lap(values))
-            else:
+            elif num == _MESG_SESSION:
                 sessions.append(values)
+            elif values.get(_ZONE_REFERENCE) == _MESG_SESSION:
+                zones.append(values)
     except FitError:
         if state is FileState.WHOLE:
             state = FileState.DAMAGED
-    return ActivityData(state, samples=tuple(samples), laps=tuple(laps),
+    return ActivityData(state, samples=tuple(samples), laps=tuple(laps), zones=_zones(zones),
                         **_sessions_together(sessions))
 
 

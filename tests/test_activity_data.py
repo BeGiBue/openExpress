@@ -194,3 +194,66 @@ def test_a_long_activity_is_read_in_a_few_seconds():
     took = time.monotonic() - started
     assert len(read.samples) == 8 * 3600
     assert took < 5.0, f"{took:.2f} s"
+
+
+# --- heart-rate zones ------------------------------------------------------------------------
+
+# time_in_zone: timestamp, the message it refers to and its index, the time in each zone (an
+# array of 7: below zone 1, zones 1-5, above the top bound), the zones' high bounds (6), how
+# they are worked out, the maximum, resting and threshold heart rate
+TIME_IN_ZONE = FitDefinition(4, 216, ((253, 0x86), (0, 0x84), (1, 0x84), (2, 0x86, 28),
+                                      (6, 0x02, 6), (10, 0x00), (11, 0x02), (12, 0x02),
+                                      (13, 0x02)))
+BOUNDS = (120, 140, 155, 165, 178, 190)  # made-up
+
+
+def zones_of(*, times=(600, 300, 200, 100, 50, 30, 20), refers=18, index=0, bounds=BOUNDS,
+             calc=3) -> FitData:
+    return FitData(4, (START + 4, refers, index,
+                       tuple(None if t is None else t * 1000 for t in times), bounds, calc,
+                       190, 55, 165))
+
+
+def with_zones(*zones, sessions=None) -> bytes:
+    sessions = [FitData(2, (START, 1, 0, 4000, 4000, 1000, 2, 2500, 2500, 141, 145, 1))
+                ] if sessions is None else sessions
+    return fit_file(*FILE_ID, RECORD, *[record(s, s * 2.5) for s in range(4)], SESSION,
+                    *sessions, TIME_IN_ZONE, *zones)
+
+
+def test_the_heart_rate_zones_of_the_session():
+    """As the device worked them out: the time in each zone, the time above the top bound
+    counted in zone 5, the bounds, how they are worked out and from what."""
+    zones = fit.activity_data(with_zones(zones_of())).zones
+    assert zones.times == (600, 300, 200, 100, 50, 50)
+    assert zones.bounds == BOUNDS
+    assert zones.method == "threshold"
+    assert (zones.max_heart_rate, zones.resting_heart_rate, zones.threshold_heart_rate) == (
+        190, 55, 165)
+
+
+@pytest.mark.parametrize(("calc", "method"), [(0, "custom"), (1, "max"), (2, "reserve"),
+                                              (3, "threshold"), (None, None)])
+def test_how_the_zones_are_worked_out(calc, method):
+    assert fit.activity_data(with_zones(zones_of(calc=calc))).zones.method == method
+
+
+def test_the_zones_of_a_lap_are_not_the_activity_s():
+    assert fit.activity_data(with_zones(zones_of(refers=19))).zones is None
+    assert fit.activity_data(run()).zones is None  # no time_in_zone at all
+
+
+def test_the_zones_of_several_sessions_add_up():
+    sessions = [FitData(2, (START, 1, 0, 2000, 2000, 500, 1, 2500, 2500, 141, 145, 1)),
+                FitData(2, (START + 2, 2, 0, 2000, 2000, 500, 1, 2500, 2500, 141, 145, 1))]
+    zones = fit.activity_data(with_zones(zones_of(index=0), zones_of(index=1),
+                                         sessions=sessions)).zones
+    assert zones.times == (1200, 600, 400, 200, 100, 100)
+
+
+@pytest.mark.parametrize("change", [{"bounds": (120, 140, 155, 165, 178, None)},
+                                    {"times": (None,) * 7}])
+def test_zones_the_file_does_not_give_whole_are_none(change):
+    data = fit.activity_data(with_zones(zones_of(**change)))
+    assert data.zones is None
+    assert data.state is fit.FileState.WHOLE

@@ -449,10 +449,13 @@ def _long_hike(sport=17):
     samples = tuple(fit.Sample(start + s, distance=s * 0.2, speed=0.2, heart_rate=200,
                                altitude=4000 + s, latitude=51.5 + s * 1e-7,
                                longitude=-0.17 + s * 1e-7) for s in range(0, 359_999, 60))
+    zones = fit.HeartRateZones(times=(359_999,) * 6, bounds=(219, 229, 239, 249, 254, 255),
+                               method="threshold", max_heart_rate=255, resting_heart_rate=99,
+                               threshold_heart_rate=249)
     data = fit.ActivityData(fit.FileState.DAMAGED, start=start, sport=sport,
                             timer_time=359_999.0, distance=123_456.0, avg_speed=0.2,
                             avg_heart_rate=200, max_heart_rate=220, calories=9_999,
-                            ascent=9_999, samples=samples)
+                            ascent=9_999, samples=samples, zones=zones)
     read = activities.Read(
         activities.Activity(activities.Source.BACKUP, "/backup/hike.fit", "hike.fit", 1, 1.0,
                             datetime(2026, 12, 31, 23, 59)),
@@ -467,7 +470,8 @@ def test_the_page_of_an_activity_fits_the_narrowest_window(narrow_window, monkey
                                                            sport, tiles):
     """Its tiles two by two, the damaged file said under them, the map with its note and
     button (or its attribution), the chart with its switch and the value at its cursor, its
-    kilometres, its sport and start in the header bar with the GPX button."""
+    kilometres and its heart-rate zones, its sport and start in the header bar with the GPX
+    button."""
     from fakes import RunNow
     from gi.repository import Adw, Gtk
 
@@ -513,6 +517,9 @@ def test_the_page_of_an_activity_fits_the_narrowest_window(narrow_window, monkey
     from openexpress.gui.activity_laps import LapList
 
     assert [w for w in _all(page) if isinstance(w, LapList)]  # its kilometres: no laps kept
+    from openexpress.gui.activity_zones import ZoneList
+
+    assert [w for w in _all(page) if isinstance(w, ZoneList)]  # its zones, the longest words
     _iterate(0.2)
     (dot,) = [w for w in _all(page) if w.has_css_class("oe-sport-dot")]
     assert not dot.get_visible()  # not in a narrow window: the start under the title stays whole

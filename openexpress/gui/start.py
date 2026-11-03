@@ -81,7 +81,9 @@ SUBTITLE_LINES = 2
 # room around each of its widgets, as in a box. Every chip of the window (the tiles, the rows
 # of the list view, the update on the device page) has the class oe-chip and its one shape:
 # font, padding, rounding; its style (accent, warning, dimmed) gives only its colours. The lap
-# chosen on an activity's page is tinted with the accent; the map's hint is a rounded label.
+# chosen on an activity's page is tinted with the accent; the map's hint is a rounded label. A
+# flow box of the class oe-plain lays out, nothing more: its children get no background under
+# the pointer (libadwaita gives one to a child that can be activated).
 CSS = """
 flowboxchild.oe-tile.connected {
   outline: 1px solid alpha(currentColor, 0.15);
@@ -125,6 +127,11 @@ row.oe-lap-chosen {
 label.oe-map-hint {
   padding: 6px 12px;
   border-radius: 999px;
+}
+flowbox.oe-plain > flowboxchild,
+flowbox.oe-plain > flowboxchild:hover,
+flowbox.oe-plain > flowboxchild:selected {
+  background: none;
 }
 """
 

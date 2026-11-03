@@ -89,11 +89,11 @@ def lap(**values):
 def test_the_line_of_a_lap(language):
     w = words()
     assert w.lap_title(1) == {"en": "Lap 1", "pl": "Okrążenie 1"}[language]
-    run = lap(distance=1000.0, timer_time=302.0, elapsed_time=310.0, avg_speed=1000 / 302,
+    run = lap(distance=1500.0, timer_time=453.0, elapsed_time=465.0, avg_speed=1500 / 453,
               avg_heart_rate=141)
     assert w.lap_caption(run, RUNNING) == {
-        "en": f"1.00 km{NB}· 5:02{NB}· 5:02 /km{NB}· 141 bpm",
-        "pl": f"1,00 km{NB}· 5:02{NB}· 5:02 /km{NB}· 141 ud./min"}[language]
+        "en": f"1.50 km{NB}· 7:33{NB}· 5:02 /km{NB}· 141 bpm",
+        "pl": f"1,50 km{NB}· 7:33{NB}· 5:02 /km{NB}· 141 ud./min"}[language]
     workout = lap(distance=0.0, timer_time=302.0, avg_heart_rate=141)
     assert w.lap_caption(workout, TRAINING) == {
         "en": f"5:02{NB}· 141 bpm", "pl": f"5:02{NB}· 141 ud./min"}[language]
@@ -149,6 +149,52 @@ def test_the_tiles_by_their_kind_for_their_icons():
         ("average heart rate", "128 bpm"), ("ascent", "740 m")]
     assert [kind for kind, _value in w.activity_tile_kinds(WORKOUT)] == [
         "time", "average heart rate", "maximum heart rate", "calories"]
+
+
+ZONES = {
+    "en": {"title": "Heart-rate zones", "below": "Below zone 1", "zone": "Zone 3",
+           "up to": "up to 120 bpm", "range": "121–140 bpm", "share": "36:30 · 88%",
+           "threshold": "Bounds from the device: % of lactate threshold (165 bpm)",
+           "max": "Bounds from the device: % of maximum heart rate (190 bpm)",
+           "reserve": "Bounds from the device: % of heart rate reserve",
+           "custom": "Bounds from the device: your own"},
+    "pl": {"title": "Strefy tętna", "below": "Poniżej strefy 1", "zone": "Strefa 3",
+           "up to": "do 120 ud./min", "range": "121–140 ud./min", "share": "36:30 · 88%",
+           "threshold": "Granice z\u00a0zegarka, od progu mleczanowego (165 ud./min)",
+           "max": "Granice z\u00a0zegarka, od tętna maksymalnego (190 ud./min)",
+           "reserve": "Granice z\u00a0zegarka, od rezerwy tętna",
+           "custom": "Granice z\u00a0zegarka: własne"},
+}
+
+
+def zones(method="threshold", threshold=165):
+    return fit.HeartRateZones(times=(2190, 300, 0, 0, 0, 0), bounds=(120, 140, 155, 165, 178, 190),
+                              method=method, max_heart_rate=190, resting_heart_rate=55,
+                              threshold_heart_rate=threshold)
+
+
+def test_the_words_of_the_heart_rate_zones(language):
+    w, said = words(), ZONES[language]
+    assert w.zones_title() == said["title"]
+    assert w.zone_name(0) == said["below"] and w.zone_name(3) == said["zone"]
+    bounds = (120, 140, 155, 165, 178, 190)
+    assert w.zone_range(bounds, 0) == said["up to"] and w.zone_range(bounds, 1) == said["range"]
+    assert w.zone_share(2190, 2490) == said["share"]
+    for method in ("threshold", "max", "reserve", "custom"):
+        assert w.zones_method_text(zones(method)) == said[method]
+    assert w.zones_method_text(zones(None)) is None
+    assert w.zones_method_text(zones("threshold", None)) is None  # its number not given
+
+
+@pytest.mark.parametrize(("sport", "metres", "pace"), [
+    (11, 1000.0, False), (11, 1004.0, False), (11, 1010.0, True), (11, 995.0, True),
+    (5, 100.0, False), (5, 105.0, True), (2, 1000.0, True)])
+def test_a_lap_whose_pace_is_its_time_leaves_it_out(sport, metres, pace):
+    """A lap shown as 1.00 km at a pace a kilometre (100 m at a pace of 100 m in a swim): its
+    pace is its time. One shown otherwise (0.99 km, 1.01 km) keeps it; a speed stays."""
+    lap = fit.Lap(1_700_000_000, 600.0, 600.0, metres, metres / 600, 120)
+    shown = words().lap_caption(lap, sport)
+    assert ("/km" in shown or "/100 m" in shown or "km/h" in shown) is pace
 
 
 def test_a_ride_has_its_speed_worked_out_when_its_session_does_not_say_it():

@@ -369,6 +369,7 @@ its height and narrows; the lap rows wrap.
 | `gui/activity_chart.py` (new) | The chart widget (D5, D6): series, axes, cursor, keyboard, highlighted lap. |
 | `gui/activity_map.py` (new) | libshumate around the track (D2–D4): tiles or not, the marker, the highlighted lap, the attribution, the User-Agent, the cache folder. |
 | `gui/activity_laps.py` (new, step 6 of 10.5) | The laps' rows, the kilometres of D16, the lap chosen told to the chart and the map. |
+| `gui/activity_zones.py` (new, step 8 of 10.5) | The section of the heart-rate zones (D14): its rows and bars, the zones' colours. |
 | `gui/activities_page.py` | Rows of FIT files activatable (an arrow at their end); a click opens the page; the export button shared with the page. |
 | `gui/device_page.py`, `gui/app.py` | The page closed when the pages of the device are drawn anew, and before Refresh and Sync from the keyboard. |
 | `gui/words.py` | Durations, distances, pace and speed by sport, heart rate, the tiles' names, the laps' lines; English and Polish. |
@@ -547,6 +548,13 @@ empty.
   ("% of lactate threshold (… bpm)", "% of maximum heart rate (… bpm)", "% of heart rate reserve",
   "custom"). No section when the file has none.
   - \+ The zones the watch showed during the activity, even if the user changed them later.
+- Corrected when step 8 began (the colours drawn on the cards of both styles): the yellow had
+  less than the contrast of 3:1 that a bar needs on the light cards (`#f6d32d`, 1.5), and so
+  had the orange (`#ffa348`, 2.0); a red of the GNOME palette had it on the light cards only
+  (`#e01b24`, 4.8 light, 2.6 dark). One colour each, of at least 3:1 on both: below zone 1
+  `#8a898e` (3.5 light, 3.6 dark), zone 1 `#3584e4` (3.8, 3.3), zone 2 `#26a269` (3.3, 3.8),
+  zone 3 `#c88800` (3.0, 4.1), zone 4 `#e66100` (3.5, 3.6), zone 5 `#f0384a` (3.9, 3.2). The
+  bar's track under it is the text's colour, faint.
 - **14b. 14a, and where the file has no zone times, worked out from the records with the
   bounds of its settings (`zones_target`, 7).**
   - − More code for files that are rare among those looked at.
@@ -633,6 +641,9 @@ empty.
     Connect keeps them, corrected. Until then nothing stands in their place on the page.
 - **19b. The bounds of the heart-rate zones as faint bands behind the heart-rate chart
   (recommended; chosen):** with D14; the zone of each part of the line seen at once.
+- As implemented in step 8: bands of zones 1–5 only, in the zones' colours of D14 at about an
+  eighth of their strength; none below zone 1, which is no zone (a walk's chart stays mostly
+  bare, as its time is); above the top bound in the colour of zone 5, as its time.
 - **19c. The fastest lap marked:** not recommended (one more sign on each row).
 
 #### D20: the laps (the questions of step 6) — chosen: 20a
@@ -649,6 +660,11 @@ empty.
   the rest of the track at half strength; a kilometre worked out from the records runs from the
   record that ends the one before to the record that reaches it, its timer time without the
   gaps of more than 60 s, a last part under 10 m left out.
+- As implemented in step 8: a lap shown as 1.00 km with a pace a kilometre, or as 100 m with a
+  pace of 100 m (a swim), leaves out its pace: it would repeat its time ("1.00 km · 12:20 ·
+  101 bpm"); a ride keeps its speed. The chart's switch of series has no background under the
+  pointer around its buttons (libadwaita gives one to a flow box's child that can be
+  activated); only the buttons show it.
 - **20b. 20a with the map's view fitted to the chosen lap.**
   - − New tiles at each click; the place of the lap in the whole is lost.
 
