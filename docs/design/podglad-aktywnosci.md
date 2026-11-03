@@ -200,6 +200,15 @@ its height and narrows; the lap rows wrap.
   mouse wheel, every tile of the next zoom is new: without them the map was empty for a few
   frames, even with the tiles in the cache), and once the view has all its own tiles those of
   other zooms are let go; those that failed are asked again when the network is back.
+- Corrected after the pictures of step 12: the track fills its map but a tenth of it on each
+  side, at the zoom where it falls between two whole zooms; the whole zoom below left up to
+  half of the map empty (a hike from north to south took half of the map's height). Between two
+  zooms the tiles are those of the nearest whole zoom, scaled from 0.71 to 1.41 of their size,
+  as web maps do, not those of the zoom below, which would be up to twice as large and blurred:
+  the map stays sharp and shows more, its words as small as 71 % of their size when the zoom
+  falls just under a half. Checked on the screen at both styles, wide and narrow: no seam
+  between tiles, the map full a tenth of a second after it opens (from the cache), the buttons
+  and the wheel's steps without an empty frame but the edges of a zoom out for a frame.
 - **2b. The track drawn by openExpress itself** (a `Gtk.DrawingArea`, no tiles).
   - \+ No new library, no network.
   - − A line without streets or terrain; panning and zooming written anew.
@@ -561,6 +570,10 @@ empty.
 - **13b. Heart rate by its zones (the zones' colours).**
   - − A walk mostly below zone 1 is one colour (10.1).
 - **13c. One colour always.**
+- Corrected after the pictures of step 12: each piece of one colour ends flat where the next one
+  begins, drawn from the point before its own first so that no gap opens on a bend; a round end
+  stuck out over the pieces next to it, and a short piece (a heart rate a moment higher) showed
+  as a dot of its colour. Only the track's own ends are round.
 
 #### D14: heart-rate zones — chosen: 14a
 

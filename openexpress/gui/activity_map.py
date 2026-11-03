@@ -61,7 +61,7 @@ TIMEOUT_S = 20
 MAX_ZOOM = 19
 TILE_SIZE = 256
 CLOSEST_FIT = 17  # the zoom of a track of a single point
-FIT_MARGIN = 24  # pixels around the track
+FIT_MARGIN = 0.1  # of the map's width and height on each side of the track
 MAP_HEIGHT = 300
 PATH_POINTS = 5000  # a longer track is thinned for the map
 SETTING = "map_tiles"  # in gui.json: the yes to OpenStreetMap's tiles
@@ -151,15 +151,17 @@ def _mercator(lat: float) -> float:
     return math.log(math.tan(math.pi / 4 + math.radians(lat) / 2))
 
 
-def fitting_zoom(box, width: float, height: float) -> int:
-    """The closest whole zoom at which the bounds fit a map of this size, with a margin."""
+def fitting_zoom(box, width: float, height: float) -> float:
+    """The zoom at which the bounds fill a map of this size but FIT_MARGIN on each side,
+    between two whole zooms as it falls (a whole zoom would leave up to half of the map empty);
+    not closer than CLOSEST_FIT."""
     south, west, north, east = box
     zooms = [CLOSEST_FIT]
     for share, room in (((east - west) / 360, width),
                         ((_mercator(north) - _mercator(south)) / (2 * math.pi), height)):
         if share > 0:
-            zooms.append(math.log2(max(room - 2 * FIT_MARGIN, 1) / (share * TILE_SIZE)))
-    return max(1, min(CLOSEST_FIT, math.floor(min(zooms))))
+            zooms.append(math.log2(max(room * (1 - 2 * FIT_MARGIN), 1) / (share * TILE_SIZE)))
+    return max(1.0, min(float(CLOSEST_FIT), min(zooms)))
 
 
 def center(box) -> tuple[float, float]:
@@ -219,9 +221,10 @@ def tile_places(zoom: float, lat: float, lon: float, width: float, height: float
                 scale: float = 1.0, rotation: float = 0.0) -> list[Place]:
     """The tiles a map of this size shows around this centre, in the order they are drawn
     (rows from the top, each from the left), each edge on a pixel of a screen of this scale;
-    between two zooms, those of the zoom below drawn larger. Turned by `rotation` (radians),
-    those of the circle around the view."""
-    whole = max(0, min(MAX_ZOOM, math.floor(zoom)))
+    between two zooms, those of the nearest whole zoom, scaled from 0.71 to 1.41 of their size
+    (those of the zoom below would be up to twice as large, blurred). Turned by `rotation`
+    (radians), those of the circle around the view."""
+    whole = max(0, min(MAX_ZOOM, math.floor(zoom + 0.5)))
     size = TILE_SIZE * 2 ** (zoom - whole)
     cx, cy = world_xy(lat, lon, zoom)
     left, top = cx - width / 2, cy - height / 2
@@ -704,8 +707,11 @@ if Shumate is not None:
             self._stroke(cr, points, _runs(every, inside, True), CHOSEN_WIDTH, 1.0)
 
         def _stroke(self, cr, points, runs, width: float, strength: float) -> None:
-            """The runs (of the points' indices) as lines `width` wide over their edge, at
-            this strength; in their colours, one stroke for each."""
+            """The runs (of the points' indices, each in order) as lines `width` wide over
+            their edge, at this strength; in their colours, one stroke for each. A piece of one
+            colour ends flat where the next one begins (a round end would stick out over its
+            neighbours, a short piece a dot), drawn from the point before its own first so that
+            no gap opens on a bend; only the runs' own ends are round."""
             edge = self.edge
             cr.set_line_width(width + 2 * self.edge_width)
             cr.set_source_rgba(edge.red, edge.green, edge.blue, strength)
@@ -713,12 +719,24 @@ if Shumate is not None:
                 _trace(cr, points, run)
             cr.stroke()
             cr.set_line_width(width)
+            coloured = self.colours is not None
+            if coloured:
+                cr.set_line_cap(cairo.LINE_CAP_BUTT)
+            firsts = {run[0] for run in runs}
             for colour, pieces in _by_colour(runs, self.colours).items():
                 shade = self.track_colour if colour is None else rgba(colour)
                 cr.set_source_rgba(shade.red, shade.green, shade.blue, strength)
                 for piece in pieces:
-                    _trace(cr, points, piece)
+                    _trace(cr, points, piece if not coloured or piece[0] in firsts
+                           else [piece[0] - 1, *piece])
                 cr.stroke()
+            if coloured:
+                cr.set_line_cap(cairo.LINE_CAP_ROUND)
+                for i in {i for run in runs for i in (run[0], run[-1])}:
+                    shade = rgba(self.colours[i])
+                    cr.set_source_rgba(shade.red, shade.green, shade.blue, strength)
+                    _trace(cr, points, [i])
+                    cr.stroke()
 
     class NoTiles(Shumate.DataSource):
         """A source that is never asked: the reference of the map's view (its projection, its

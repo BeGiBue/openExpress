@@ -51,13 +51,41 @@ def test_a_long_track_is_thinned_for_the_map_but_keeps_its_ends():
     assert amap().thinned(points[:10]) == points[:10]
 
 
-def test_the_zoom_that_shows_the_whole_track():
-    """A track of 0.02° by 0.01° at 51.5°N in a map of 600 by 300 pixels: zoom 14 (15 would
-    be too high for it); one point alone: a close zoom, not the closest."""
+def extent(box, zoom) -> tuple[float, float]:
+    """The width and the height in pixels of the bounds at this zoom."""
+    import math
+
+    south, west, north, east = box
+    mercator = amap()._mercator
+    return ((east - west) / 360 * 256 * 2 ** zoom,
+            (mercator(north) - mercator(south)) / (2 * math.pi) * 256 * 2 ** zoom)
+
+
+@pytest.mark.parametrize(("box", "size", "side"), [
+    ((46.50, 12.10, 46.56, 12.12), (920, 300), 1),  # north to south in a wide map: its height
+    ((46.50, 12.00, 46.51, 12.10), (360, 300), 0),  # east to west in a narrow one: its width
+])
+def test_the_track_fills_its_map_but_a_tenth_on_each_side(box, size, side):
+    """The zoom is the one at which the track is as large as the map but a tenth of it on each
+    side, between two whole zooms as it falls; never larger than the map."""
+    zoom = amap().fitting_zoom(box, *size)
+    assert zoom != round(zoom)
+    shown = extent(box, zoom)
+    assert shown[side] == pytest.approx(0.8 * size[side])
+    assert shown[1 - side] < 0.8 * size[1 - side]
+
+
+def test_the_zoom_of_a_very_short_track_and_of_a_point():
+    """A track of a few metres, and a point with no movement at all: the close zoom, not the
+    closest."""
+    m = amap()
+    assert m.fitting_zoom((51.5, -0.16, 51.50005, -0.15995), 600, 300) == m.CLOSEST_FIT
+    assert m.fitting_zoom((51.5, -0.16, 51.5, -0.16), 600, 300) == m.CLOSEST_FIT
+
+
+def test_the_bounds_and_the_centre_of_a_track():
     bounds = amap().bounds([(51.5, -0.17), (51.51, -0.15), (51.505, -0.16)])
     assert bounds == (51.5, -0.17, 51.51, -0.15)
-    assert amap().fitting_zoom(bounds, 600, 300) == 14
-    assert amap().fitting_zoom((51.5, -0.16, 51.5, -0.16), 600, 300) == amap().CLOSEST_FIT
     lat, lon = amap().center(bounds)
     assert lat == pytest.approx(51.505, abs=1e-3) and lon == pytest.approx(-0.16)
 
@@ -116,10 +144,13 @@ def test_the_tiles_land_on_the_pixels_of_the_screen():
                 assert edge * scale == pytest.approx(round(edge * scale))
 
 
-def test_between_two_zooms_the_tiles_of_the_zoom_below_drawn_larger():
-    places = amap().tile_places(15.5, 51.5065, -0.1665, 600, 300)
-    assert {p.key[0] for p in places} == {15}
-    assert all(p.width == pytest.approx(256 * 2 ** 0.5, abs=1) for p in places)
+@pytest.mark.parametrize(("zoom", "whole"), [(15.4, 15), (15.6, 16), (15.5, 16)])
+def test_between_two_zooms_the_tiles_of_the_nearest_one_scaled(zoom, whole):
+    """Scaled from 0.71 to 1.41 of their size: sharper than those of the zoom below, which
+    would be up to twice as large; their words are as small as 71 %."""
+    places = amap().tile_places(zoom, 51.5065, -0.1665, 600, 300)
+    assert {p.key[0] for p in places} == {whole}
+    assert all(p.width == pytest.approx(256 * 2 ** (zoom - whole), abs=1) for p in places)
 
 
 # --- the tiles -------------------------------------------------------------------------------
@@ -242,3 +273,37 @@ def test_tiles_not_downloaded_are_logged_once_and_name_no_place(monkeypatch, cap
     said = [r.getMessage() for r in caplog.records if r.name == "openexpress.gui.activity_map"]
     assert said == [f"activity map: tiles not downloaded ({why})"]
     assert not [part for part in ("4321", "2718", "tile.example") if part in caplog.text]
+
+
+def test_a_short_piece_of_another_colour_is_no_dot_on_the_track():
+    """Each piece of one colour ends flat where the next one begins: a piece a pixel long in
+    another colour (a heart rate a moment higher) shows no more than its length, no dot over
+    its neighbours; the track's own ends stay round."""
+    import types
+
+    import cairo
+
+    from openexpress.gui.palette import rgba
+
+    m = amap()
+    if not hasattr(m, "TrackLayer"):
+        pytest.skip("no libshumate")
+    red, blue = "#ff0000", "#0000ff"
+    layer = types.SimpleNamespace(edge=rgba("#000000"), edge_width=1.0, track_colour=rgba(red),
+                                  colours=[red, red, blue, red, red])
+    points = [(10.0, 20.0), (30.0, 20.0), (31.0, 20.0), (32.0, 20.0), (60.0, 20.0)]
+    surface = cairo.ImageSurface(cairo.FORMAT_RGB24, 80, 40)
+    cr = cairo.Context(surface)
+    cr.set_line_join(cairo.LINE_JOIN_ROUND)
+    cr.set_line_cap(cairo.LINE_CAP_ROUND)
+    m.TrackLayer._stroke(layer, cr, points, [list(range(len(points)))], 8, 1.0)
+    surface.flush()
+    data, stride = surface.get_data(), surface.get_stride()
+
+    def rgb(x, y):
+        blue_, green, red_ = data[y * stride + 4 * x:y * stride + 4 * x + 3]
+        return red_, green, blue_
+
+    assert rgb(31, 20) == (0, 0, 255)  # the piece itself
+    assert rgb(28, 20) == (255, 0, 0) and rgb(35, 20) == (255, 0, 0)  # no dot around it
+    assert rgb(7, 20) == (255, 0, 0) and rgb(62, 20) == (255, 0, 0)  # the round ends
