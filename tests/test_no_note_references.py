@@ -213,7 +213,7 @@ def test_what_a_design_document_does_not_tell(tmp_path):
                        "the user's rule. At 00:41:25 on 2 November 2026 (a9ce7b1), 21.10.2026.\n"
                        "The user saves the GPX where the user is told; the User-Agent;\n"
                        "tiles only after the yes of D3; the colour #e5420e.\n"
-                       "```\nCreated: 2026-10-30 07:12:33\n```\n", encoding="utf-8")
+                       "```\nCreated: 2026-10-30 07:00:00\n```\n", encoding="utf-8")
     assert [r.split(": ", 1)[1] for r in design_references(made_up)] == [
         "in the chat", "a yes", "the user read", "the user's rule", "00:41:25",
         "2 November 2026", "a9ce7b1", "21.10.2026"]

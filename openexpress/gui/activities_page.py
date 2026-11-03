@@ -147,7 +147,7 @@ def _write_gpx(found, read, name: str, target) -> tuple[str, int]:
 
 def _saved(win, file_name: str, size: int) -> None:
     log.info("activities page: a GPX file written (%s)", applog.size(size))
-    # TRANSLATORS: a toast after an activity was exported ("Saved as 2026-10-30 07.12 Running.gpx")
+    # TRANSLATORS: a toast after an activity was exported ("Saved as 2026-10-30 07.00 Running.gpx")
     win.toast(_("Saved as {name}").format(name=file_name))
 
 

@@ -415,19 +415,19 @@ Sync in its header, the shared bar at the bottom of the page's column. Recommend
 │  ⇩  Updates              │   backups. The newest first.                     │
 │  ⌖  Maps                 │  ┌────────────────────────────────────────────┐  │
 │  ▦  Apps                 │  │ Running                              [⤓]   │  │
-│  ♫  Music                │  │ Thu 30 Oct 2026, 07:12 · 1 h 02 min ·      │  │
+│  ♫  Music                │  │ Thu 30 Oct 2026, 07:00 · 1 h 02 min ·      │  │
 │ [▤  Activities        ]  │  │ 12.4 km · ↑ 135 m · Device                 │  │
 │                          │  ├────────────────────────────────────────────┤  │
 │                          │  │ Strength                             [⤓]┄  │  │
-│                          │  │ Wed 29 Oct 2026, 18:30 · 45 min · Device   │  │
+│                          │  │ Wed 29 Oct 2026, 18:00 · 45 min · Device   │  │
 │                          │  ├────────────────────────────────────────────┤  │
 │                          │  │ Activity                                   │  │
-│                          │  │ Tue 28 Oct 2026, 06:55 · Still being       │  │
+│                          │  │ Tue 28 Oct 2026, 06:00 · Still being       │  │
 │                          │  │ written: disconnect and reconnect the      │  │
 │                          │  │ device                                     │  │
 │                          │  ├────────────────────────────────────────────┤  │
 │                          │  │ Cycling                              [⤓]   │  │
-│                          │  │ Sun 14 Sep 2025, 09:03 · 3 h 41 min ·      │  │
+│                          │  │ Sun 14 Sep 2025, 09:00 · 3 h 41 min ·      │  │
 │                          │  │ 88.1 km · ↑ 960 m · Backup of 2 Oct 2025   │  │
 │                          │  └────────────────────────────────────────────┘  │
 │                          │                [ Show 30 More ]                  │
@@ -445,7 +445,7 @@ Sync in its header, the shared bar at the bottom of the page's column. Recommend
 - While the first 30 are read: the page's own "Reading activities…" (as every page loads) and
   the bar with its steps. **Show 30 More** is a task on its button (the bar after half a
   second); the rows stay. Export: the file chooser, then a task on the row's button, then a
-  toast "Saved as 2026-10-30 07.12 Running.gpx".
+  toast "Saved as 2026-10-30 07.00 Running.gpx".
 - Empty: "No activities on the device or in its backups"; a device without `FIT_TYPE_4`:
   "This device keeps no activities". An error: the page's error with Try Again, as every page.
 - Folded (below 620 sp): the sidebar list first, the page after it with the back arrow and the
@@ -457,16 +457,16 @@ Sync in its header, the shared bar at the bottom of the page's column. Recommend
 $ openexpress activities
 fēnix 8 (software 23.39)
 Date              Sport     Time     Distance  Ascent  Source              File
-2026-10-30 07:12  Running   1:02:11  12.40 km  135 m   device              2026-10-30-07-12-33.fit
-2026-10-29 18:30  Strength  0:45:02  –         –       device              2026-10-29-18-30-04.fit
-2026-10-28 06:55  –         –        –         –       device              2026-10-28-06-55-10.fit
+2026-10-30 07:00  Running   1:02:11  12.40 km  135 m   device              2026-10-30-07-00-00.fit
+2026-10-29 18:00  Strength  0:45:02  –         –       device              2026-10-29-18-00-00.fit
+2026-10-28 06:00  –         –        –         –       device              2026-10-28-06-00-00.fit
                   still being written: disconnect and reconnect the device
-2025-09-14 09:03  Cycling   3:41:20  88.10 km  960 m   backup 2025-10-02   2025-09-14-09-03-41.fit
+2025-09-14 09:00  Cycling   3:41:20  88.10 km  960 m   backup 2025-10-02   2025-09-14-09-00-00.fit
 
 The newest 30 of 212 (12 only in backups); --all shows every one.
 
-$ openexpress activities export 2026-10-30-07-12-33.fit
-Would write ~/Documents/Garmin/GPX/2026-10-30 07.12 Running.gpx (4312 points)
+$ openexpress activities export 2026-10-30-07-00-00.fit
+Would write ~/Documents/Garmin/GPX/2026-10-30 07.00 Running.gpx (4312 points)
 Dry run: nothing was written. Add --apply to write it.
 
 $ openexpress fit inspect ~/Documents/Garmin/course.fit
@@ -475,7 +475,7 @@ Check: whole (header 14 B, data 23 380 B, CRC matches)
 Type: courses (FIT_TYPE_6)
 Manufacturer: Garmin (1)
 Product: 65534
-Created: 2026-10-30 07:12:33
+Created: 2026-10-30 07:00:00
 Messages: 6 kinds, 1213 in all
   record (20)            1204
   course_point (32)         4

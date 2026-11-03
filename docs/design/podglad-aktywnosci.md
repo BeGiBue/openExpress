@@ -134,7 +134,7 @@ The accepted mockup, weighed:
   off*: kept, as a list of rows that wrap (D7), with the time of each lap too.
 
 ```
- ← Running · Tue 28 Oct, 07:12                       [GPX]
+ ← Running · Tue 28 Oct, 07:00                       [GPX]
  ┌──────────┐ ┌──────────┐ ┌──────────┐ ┌──────────┐
  │ 10.2 km  │ │ 52:41    │ │ 5:10 /km │ │ 148 bpm  │       wide: four in a row
  │ Distance │ │ Time     │ │ Pace     │ │ Heart r. │       narrow: two by two

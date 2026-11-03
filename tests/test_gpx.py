@@ -10,7 +10,7 @@ from fakes import FitData, FitDefinition, fit_file
 GPX = "{http://www.topografix.com/GPX/1/1}"
 ENUM, UINT16, SINT32, UINT32, UINT32Z = 0x00, 0x84, 0x85, 0x86, 0x8C
 TIMESTAMP = 253
-WHEN = 1_162_275_153  # 2026-10-30 06:12:33 UTC, in seconds of the FIT protocol
+WHEN = 1_162_274_400  # 2026-10-30 06:00:00 UTC, in seconds of the FIT protocol
 SERIAL = 3_987_654_321  # a made-up serial number of a device
 
 # timestamp, position_lat, position_long, altitude, enhanced_altitude, heart_rate
@@ -64,15 +64,15 @@ def test_the_enhanced_altitude_before_the_altitude():
 def test_points_without_a_position_are_left_out():
     found = points(activity(record(0), record(1, lat=None), record(2, lon=None), record(3)))
     assert [p.findtext(f"{GPX}time") for p in found] == [
-        "2026-10-30T06:12:33Z", "2026-10-30T06:12:36Z"]
+        "2026-10-30T06:00:00Z", "2026-10-30T06:00:03Z"]
 
 
 def test_times_are_in_utc_with_z():
     root = ET.fromstring(track(activity(record(0), record(3600))))
-    assert root.findtext(f"{GPX}metadata/{GPX}time") == "2026-10-30T06:12:33Z"
+    assert root.findtext(f"{GPX}metadata/{GPX}time") == "2026-10-30T06:00:00Z"
     assert [p.findtext(f"{GPX}time")
             for p in root.findall(f"{GPX}trk/{GPX}trkseg/{GPX}trkpt")] == [
-        "2026-10-30T06:12:33Z", "2026-10-30T07:12:33Z"]
+        "2026-10-30T06:00:00Z", "2026-10-30T07:00:00Z"]
 
 
 def test_an_activity_without_any_position_is_an_error_not_an_empty_file():

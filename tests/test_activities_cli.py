@@ -60,19 +60,19 @@ def columns(line: str) -> list[str]:
 
 def a_week(root, backups) -> None:
     """A made-up week on the device and a ride only in a backup."""
-    on_device(root, "2026-10-30-07-12-33.fit",
-              fit_activity(fit_time(2026, 10, 30, 7, 12), sport=RUNNING, timer_ms=3_731_000,
+    on_device(root, "2026-10-30-07-00-00.fit",
+              fit_activity(fit_time(2026, 10, 30, 7, 0), sport=RUNNING, timer_ms=3_731_000,
                            distance_cm=1_240_000, ascent=135), 6_000)
-    on_device(root, "2026-10-29-18-30-04.fit",
-              fit_activity(fit_time(2026, 10, 29, 18, 30), sport=TRAINING, timer_ms=2_702_000,
+    on_device(root, "2026-10-29-18-00-00.fit",
+              fit_activity(fit_time(2026, 10, 29, 18, 0), sport=TRAINING, timer_ms=2_702_000,
                            distance_cm=None, ascent=None), 5_000)
-    on_device(root, "2026-10-28-06-55-10.fit",
-              fit_activity(fit_time(2026, 10, 28, 6, 55), records=20)[:-40], 4_000)
+    on_device(root, "2026-10-28-06-00-00.fit",
+              fit_activity(fit_time(2026, 10, 28, 6, 0), records=20)[:-40], 4_000)
     on_device(root, "2026-10-27-07-00-00.fit",
               fit_activity(fit_time(2026, 10, 27, 7, 0), bad_crc=True), 3_000)
     on_device(root, "2026-10-26-07-00-00.fit", b"no FIT file at all", 2_000)
-    in_backup(backups, "2025-10-02 (10.00.00)", "2025-09-14-09-03-41.fit",
-              fit_activity(fit_time(2025, 9, 14, 9, 3), sport=CYCLING, timer_ms=13_280_000,
+    in_backup(backups, "2025-10-02 (10.00.00)", "2025-09-14-09-00-00.fit",
+              fit_activity(fit_time(2025, 9, 14, 9, 0), sport=CYCLING, timer_ms=13_280_000,
                            distance_cm=8_810_000, ascent=960))
 
 
@@ -82,8 +82,8 @@ def test_the_columns(device, backups, capsys, log_file):
     assert code == 0
     assert lines[:2] == ["Test watch (software 23.39)", "  Reading activities"]
     assert columns(lines[2]) == ["Date", "Sport", "Time", "Distance", "Ascent", "Source", "File"]
-    assert columns(lines[3]) == ["2026-10-30 07:12", "Running", "1:02:11", "12.40 km", "135 m",
-                                 "device", "2026-10-30-07-12-33.fit"]
+    assert columns(lines[3]) == ["2026-10-30 07:00", "Running", "1:02:11", "12.40 km", "135 m",
+                                 "device", "2026-10-30-07-00-00.fit"]
     # No file name nor date in the log.
     log = log_file.read_text(encoding="utf-8")
     assert "2026-10-30" not in log and "activities:" in log
@@ -93,10 +93,10 @@ def test_the_sources_and_the_states(device, backups, capsys):
     a_week(device, backups)
     _code, lines = run(capsys, "--path", str(device), "activities")
     rows = table(lines)[1:]
-    assert columns(rows[1]) == ["2026-10-29 18:30", "Training", "0:45:02", "–", "–", "device",
-                                "2026-10-29-18-30-04.fit"]
-    assert columns(rows[2]) == ["2026-10-28 06:55", "–", "–", "–", "–", "device",
-                                "2026-10-28-06-55-10.fit"]
+    assert columns(rows[1]) == ["2026-10-29 18:00", "Training", "0:45:02", "–", "–", "device",
+                                "2026-10-29-18-00-00.fit"]
+    assert columns(rows[2]) == ["2026-10-28 06:00", "–", "–", "–", "–", "device",
+                                "2026-10-28-06-00-00.fit"]
     assert rows[3].strip() == "still being written: disconnect and reconnect the device"
     # Under the sport, where the row's own words start.
     assert rows[3].index("still") == rows[2].index("–")
@@ -104,8 +104,8 @@ def test_the_sources_and_the_states(device, backups, capsys):
     assert rows[5].strip() == "damaged file"
     assert columns(rows[6]) == ["–", "–", "–", "–", "–", "device", "2026-10-26-07-00-00.fit"]
     assert rows[7].strip() == "unreadable file"
-    assert columns(rows[8]) == ["2025-09-14 09:03", "Cycling", "3:41:20", "88.10 km", "960 m",
-                                "backup 2025-10-02", "2025-09-14-09-03-41.fit"]
+    assert columns(rows[8]) == ["2025-09-14 09:00", "Cycling", "3:41:20", "88.10 km", "960 m",
+                                "backup 2025-10-02", "2025-09-14-09-00-00.fit"]
     assert rows[9:] == ["", "6 activities. Only in backups: 1."]
 
 
@@ -169,9 +169,9 @@ def test_a_limit_must_be_a_number_from_one(device, value):
 
 def test_backups_in_another_folder(device, tmp_path, capsys):
     elsewhere = tmp_path / "elsewhere"
-    in_backup(elsewhere, "2025-10-02 (10.00.00)", "2025-09-14-09-03-41.fit",
-              fit_activity(fit_time(2025, 9, 14, 9, 3)))
+    in_backup(elsewhere, "2025-10-02 (10.00.00)", "2025-09-14-09-00-00.fit",
+              fit_activity(fit_time(2025, 9, 14, 9, 0)))
     _code, lines = run(capsys, "--path", str(device), "activities")
     assert lines[1:] == ["No activities on the device or in its backups."]
     _code, lines = run(capsys, "--path", str(device), "activities", "--backups", str(elsewhere))
-    assert columns(table(lines)[1])[-2:] == ["backup 2025-10-02", "2025-09-14-09-03-41.fit"]
+    assert columns(table(lines)[1])[-2:] == ["backup 2025-10-02", "2025-09-14-09-00-00.fit"]

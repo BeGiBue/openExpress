@@ -52,16 +52,16 @@ def made_up_list(*reads, more=0):
 
 
 THE_WEEK = [
-    read("run.fit", summary(start=unix(2026, 10, 30, 7, 12), sport=RUNNING, timer_time=3731.4,
+    read("run.fit", summary(start=unix(2026, 10, 30, 7, 0), sport=RUNNING, timer_time=3731.4,
                             distance=12_400.0, ascent=135, has_positions=True)),
-    read("strength.fit", summary(start=unix(2026, 10, 29, 18, 30), sport=TRAINING,
+    read("strength.fit", summary(start=unix(2026, 10, 29, 18, 0), sport=TRAINING,
                                  timer_time=2702.0)),
-    read("writing.fit", summary("STILL_BEING_WRITTEN", created=unix(2026, 10, 28, 6, 55))),
+    read("writing.fit", summary("STILL_BEING_WRITTEN", created=unix(2026, 10, 28, 6, 0))),
     read("damaged.fit", summary("DAMAGED", start=unix(2026, 10, 27, 7, 0), sport=RUNNING,
                                 timer_time=600.0, distance=2_000.0, ascent=10,
                                 has_positions=True)),
     read("notes.fit", None),
-    read("ride.fit", summary(start=unix(2025, 9, 14, 9, 3), sport=CYCLING, timer_time=13_280.0,
+    read("ride.fit", summary(start=unix(2025, 9, 14, 9, 0), sport=CYCLING, timer_time=13_280.0,
                              distance=88_100.0, ascent=960, has_positions=True),
          source="backup", backup=datetime(2025, 10, 2, 10, 0)),
 ]
@@ -105,10 +105,10 @@ def test_the_rows_and_their_words():
     win.show_activities(made_up_list(*THE_WEEK))
     rows = rows_of(section)
     assert texts(rows[0]) == ("Running", SEP.join([
-        "2026-10-30 07:12", "1 h 02 min", "12.4 km", "↑ 135 m", "Device"]))
-    assert texts(rows[1]) == ("Training", SEP.join(["2026-10-29 18:30", "45 min", "Device"]))
+        "2026-10-30 07:00", "1 h 02 min", "12.4 km", "↑ 135 m", "Device"]))
+    assert texts(rows[1]) == ("Training", SEP.join(["2026-10-29 18:00", "45 min", "Device"]))
     assert texts(rows[5]) == ("Cycling", SEP.join([
-        "2025-09-14 09:03", "3 h 41 min", "88.1 km", "↑ 960 m",
+        "2025-09-14 09:00", "3 h 41 min", "88.1 km", "↑ 960 m",
         "Backup of 2025-10-02"]))
 
 
@@ -117,7 +117,7 @@ def test_what_a_file_still_being_written_a_damaged_and_an_unreadable_one_say():
     win.show_activities(made_up_list(*THE_WEEK))
     rows = rows_of(section)
     assert texts(rows[2]) == ("Activity", SEP.join([
-        "2026-10-28 06:55", "Still being written: disconnect and reconnect the device"]))
+        "2026-10-28 06:00", "Still being written: disconnect and reconnect the device"]))
     assert texts(rows[3])[1].endswith(f"{SEP}Device{SEP}Damaged file")
     assert texts(rows[4]) == ("Unreadable file", "Device")
 

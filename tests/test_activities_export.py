@@ -18,8 +18,8 @@ UNIT = 1234567890  # the unit ID of DEVICE_XML
 RUNNING, CYCLING, TRAINING = 1, 2, 10
 WARSAW = (624_000_000, 250_000_000)  # a made-up position, in semicircles
 GPX = "{http://www.topografix.com/GPX/1/1}"
-RUN = "2026-10-30-07-12-33.fit"
-RUN_GPX = "2026-10-30 07.12 Running.gpx"
+RUN = "2026-10-30-07-00-00.fit"
+RUN_GPX = "2026-10-30 07.00 Running.gpx"
 
 
 def fit_time(*when) -> int:
@@ -36,11 +36,11 @@ def device(tmp_path, backups):
     activities.mkdir(parents=True)
     (root / "GARMIN" / "GarminDevice.xml").write_text(DEVICE_XML)
     files = {
-        RUN: fit_activity(fit_time(2026, 10, 30, 7, 12), sport=RUNNING, records=3,
+        RUN: fit_activity(fit_time(2026, 10, 30, 7, 0), sport=RUNNING, records=3,
                           position=WARSAW),
-        "2026-10-29-18-30-04.fit": fit_activity(fit_time(2026, 10, 29, 18, 30), sport=TRAINING,
+        "2026-10-29-18-00-00.fit": fit_activity(fit_time(2026, 10, 29, 18, 0), sport=TRAINING,
                                                 records=3),
-        "2026-10-28-06-55-10.fit": fit_activity(fit_time(2026, 10, 28, 6, 55), records=20,
+        "2026-10-28-06-00-00.fit": fit_activity(fit_time(2026, 10, 28, 6, 0), records=20,
                                                 position=WARSAW)[:-40],
     }
     for n, (name, data) in enumerate(files.items()):
@@ -48,8 +48,8 @@ def device(tmp_path, backups):
         os.utime(activities / name, (9_000 - n, 9_000 - n))
     copies = backups / str(UNIT) / "2025-10-02 (10.00.00)" / "FIT_TYPE_4"
     copies.mkdir(parents=True)
-    (copies / "2025-09-14-09-03-41.fit").write_bytes(
-        fit_activity(fit_time(2025, 9, 14, 9, 3), sport=CYCLING, records=4, position=WARSAW))
+    (copies / "2025-09-14-09-00-00.fit").write_bytes(
+        fit_activity(fit_time(2025, 9, 14, 9, 0), sport=CYCLING, records=4, position=WARSAW))
     return root
 
 
@@ -78,7 +78,7 @@ def test_apply_writes(device, gpx_folder, capsys, log_file):
     assert code == 0
     assert lines[-1] == f"Wrote {gpx_folder / RUN_GPX} (3 points)."
     root = ET.fromstring((gpx_folder / RUN_GPX).read_bytes())
-    assert root.findtext(f"{GPX}trk/{GPX}name") == "2026-10-30 07.12 Running"
+    assert root.findtext(f"{GPX}trk/{GPX}name") == "2026-10-30 07.00 Running"
     assert len(root.findall(f"{GPX}trk/{GPX}trkseg/{GPX}trkpt")) == 3
     log = log_file.read_text(encoding="utf-8")
     assert "activities export" in log and RUN not in log and "Running.gpx" not in log
@@ -106,18 +106,18 @@ def test_dest_writes_elsewhere(device, gpx_folder, tmp_path, capsys):
 
 
 def test_an_activity_only_in_a_backup(device, gpx_folder, capsys):
-    code, lines, _err = export(capsys, device, "2025-09-14-09-03-41.fit", "--apply")
+    code, lines, _err = export(capsys, device, "2025-09-14-09-00-00.fit", "--apply")
     assert code == 0
-    assert lines[-1] == f"Wrote {gpx_folder / '2025-09-14 09.03 Cycling.gpx'} (4 points)."
+    assert lines[-1] == f"Wrote {gpx_folder / '2025-09-14 09.00 Cycling.gpx'} (4 points)."
 
 
 def test_what_cannot_be_exported_says_why_and_nothing_is_written(device, gpx_folder, capsys):
-    code, _lines, err = export(capsys, device, RUN, "2026-10-29-18-30-04.fit",
-                               "2026-10-28-06-55-10.fit", "gone.fit", "--apply")
+    code, _lines, err = export(capsys, device, RUN, "2026-10-29-18-00-00.fit",
+                               "2026-10-28-06-00-00.fit", "gone.fit", "--apply")
     assert code == 1
-    no_positions = ("Error: 2026-10-29-18-30-04.fit: This activity has no GPS positions, so it "
+    no_positions = ("Error: 2026-10-29-18-00-00.fit: This activity has no GPS positions, so it "
                     "cannot be exported as GPX.")
-    still_written = ("Error: 2026-10-28-06-55-10.fit was still being written by the device when "
+    still_written = ("Error: 2026-10-28-06-00-00.fit was still being written by the device when "
                      "it was read. Disconnect and reconnect the device, then export it again.")
     assert err.splitlines() == [
         no_positions, still_written,
