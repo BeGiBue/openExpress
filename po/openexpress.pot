@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: openexpress 0.8.1\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-11-03 03:37+0100\n"
+"POT-Creation-Date: 2026-11-03 09:52+0100\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -140,7 +140,7 @@ msgstr ""
 msgid "Reading activities"
 msgstr ""
 
-#: openexpress/applog.py:421
+#: openexpress/applog.py:422
 #, python-brace-format
 msgid "No log file: {error}"
 msgstr ""

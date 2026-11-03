@@ -606,9 +606,9 @@ empty.
   shown ("0.0 · No benefit"). The values are the session's fields 24, 137 and 168 (Appendix A).
 - Corrected when step 9 was tried on a watch: the Polish words are Garmin's own, as a user
   compares them with Garmin Connect. "Efekt treningu", "Aerobowy", "Beztlenowy", "Obciążenie
-  wysiłkowe", "Brak korzyści" and "Utrzymanie" as Garmin Connect in Polish says them;
-  "Niewielka korzyść" as the Polish manual of the fēnix 8 ("Informacje o funkcji Training
-  Effect"); "Wzrost", "Znaczna poprawa" and "Przeciążenie" as Garmin's Polish page on the
+  wysiłkowe", "Brak korzyści", "Umiarkowana korzyść" and "Utrzymanie" as Garmin Connect in
+  Polish says them (the Polish manual of the fēnix 8 says "Niewielka korzyść", which was the first
+  choice, but the user compares with Connect); "Wzrost", "Znaczna poprawa" and "Przeciążenie" as Garmin's Polish page on the
   aerobic training effect (garmin.com/pl-PL, running science, its note on the scale: "0 — Brak,
   1 — Nieznaczna korzyść, 2 — Utrzymanie, 3 — Wzrost, 4 — Znaczna poprawa, 5 — Przeciążenie").
   The manual describes the scale in sentences ("Utrzymanie sprawności aerobowej", "Wpływ na
@@ -752,7 +752,7 @@ Accepted, but for those of the sets (D19a put off), which are not added.
 | Bounds from the device: % of lactate threshold ({bpm}) | Granice z zegarka, od progu mleczanowego ({bpm}) |
 | Bounds from the device: your own | Granice z zegarka: własne |
 | Training effect / Aerobic / Anaerobic / Training load | Efekt treningu / Aerobowy / Beztlenowy / Obciążenie wysiłkowe (corrected in step 9: Garmin's words, D15) |
-| No benefit / Minor benefit / Maintaining / Improving / Highly improving / Overreaching | Brak korzyści / Niewielka korzyść / Utrzymanie / Wzrost / Znaczna poprawa / Przeciążenie (corrected in step 9, D15) |
+| No benefit / Minor benefit / Maintaining / Improving / Highly improving / Overreaching | Brak korzyści / Umiarkowana korzyść / Utrzymanie / Wzrost / Znaczna poprawa / Przeciążenie (corrected in step 9, D15) |
 | Details | Szczegóły |
 | Total time / Moving time / Active time | Czas całkowity / Czas w ruchu / Czas aktywny |
 | Descent / Elevation / Maximum pace / Maximum speed | Zejście / Wysokość / Tempo maks. / Prędkość maks. |

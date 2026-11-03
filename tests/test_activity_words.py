@@ -193,10 +193,10 @@ EFFECT = {
     # Garmin's own Polish words, as Garmin Connect and Garmin's pages say them.
     "pl": {"title": "Efekt treningu", "aerobic": "Aerobowy", "anaerobic": "Beztlenowy",
            "load": "Obciążenie wysiłkowe",
-           "words": ["Brak korzyści", "Brak korzyści", "Niewielka korzyść", "Niewielka korzyść",
-                     "Utrzymanie", "Wzrost", "Znaczna poprawa", "Znaczna poprawa",
-                     "Przeciążenie"],
-           "text": f"1,6{NB}· Niewielka korzyść"},
+           "words": ["Brak korzyści", "Brak korzyści", "Umiarkowana korzyść",
+                     "Umiarkowana korzyść", "Utrzymanie", "Wzrost", "Znaczna poprawa",
+                     "Znaczna poprawa", "Przeciążenie"],
+           "text": f"1,6{NB}· Umiarkowana korzyść"},
 }
 
 

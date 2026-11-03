@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: openexpress 0.1.0\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-11-03 03:37+0100\n"
+"POT-Creation-Date: 2026-11-03 09:52+0100\n"
 "PO-Revision-Date: 2026-10-11 02:36+0200\n"
 "Last-Translator: Automatically generated\n"
 "Language-Team: none\n"
@@ -140,7 +140,7 @@ msgstr "Sport {number}"
 msgid "Reading activities"
 msgstr "Odczyt aktywności"
 
-#: openexpress/applog.py:421
+#: openexpress/applog.py:422
 #, python-brace-format
 msgid "No log file: {error}"
 msgstr "Brak pliku logu: {error}"
@@ -6644,7 +6644,7 @@ msgstr "Brak korzyści"
 #. TRANSLATORS: a training effect from 1.0 to 1.9
 #: openexpress/gui/words.py:550
 msgid "Minor benefit"
-msgstr "Niewielka korzyść"
+msgstr "Umiarkowana korzyść"
 
 #. TRANSLATORS: a training effect from 2.0 to 2.9
 #: openexpress/gui/words.py:552
