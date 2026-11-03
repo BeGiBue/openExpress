@@ -43,6 +43,7 @@ from openexpress import __version__, cache, paths, useragent  # noqa: E402
 from openexpress.gui import activity_colours  # noqa: E402
 from openexpress.gui.activity_chart import nearest  # noqa: E402
 from openexpress.gui.gui_settings import load_gui_settings, update_gui_settings  # noqa: E402
+from openexpress.gui.palette import GREEN, rgba  # noqa: E402
 from openexpress.i18n import _  # noqa: E402
 
 log = logging.getLogger(__name__)
@@ -64,11 +65,11 @@ FIT_MARGIN = 24  # pixels around the track
 MAP_HEIGHT = 300
 PATH_POINTS = 5000  # a longer track is thinned for the map
 SETTING = "map_tiles"  # in gui.json: the yes to OpenStreetMap's tiles
-TRACK_COLOR = "#e5420e"  # orange-red: apart from the water, the green and the streets of the tiles
+TRACK_COLOUR = "#e5420e"  # orange-red: apart from the water, the green and the streets of the tiles
 TRACK_EDGE = "#6b1d05"  # its dark edge, seen on the light streets
 TRACK_WIDTH = 4  # pixels of the track's colour
 EDGE_WIDTH = 1.5  # pixels of its dark edge on each side
-START_COLOR = "#26a269"
+START_COLOUR = GREEN
 END_SIZE = 18  # pixels: the marker of the start and the one of the finish
 BOTH_SIZE = 20  # the one marker of a loop's start and finish
 CURSOR_SIZE = 20  # the marker of the chart's cursor, above them
@@ -662,7 +663,7 @@ if Shumate is not None:
             points = thinned(list(zip(track.times, track.points, strict=True)))
             self.times = [t for t, _point in points]
             self.world = [world_xy(lat, lon, 0) for _t, (lat, lon) in points]
-            self.color, self.edge = _rgba(TRACK_COLOR), _rgba(TRACK_EDGE)
+            self.track_colour, self.edge = rgba(TRACK_COLOUR), rgba(TRACK_EDGE)
             self.width, self.edge_width = TRACK_WIDTH, EDGE_WIDTH
             self.chosen: tuple[float, float] | None = None
             self.colours: list[str] | None = None  # of each point; None: the track's colour
@@ -672,7 +673,7 @@ if Shumate is not None:
             """Each point in its colour over the edge of a coloured track; None: the track's
             own colour and edge."""
             self.colours = colours
-            self.edge = _rgba(activity_colours.EDGE if colours is not None else TRACK_EDGE)
+            self.edge = rgba(activity_colours.EDGE if colours is not None else TRACK_EDGE)
             self.queue_draw()
 
         def do_snapshot(self, snapshot) -> None:
@@ -713,8 +714,8 @@ if Shumate is not None:
             cr.stroke()
             cr.set_line_width(width)
             for colour, pieces in _by_colour(runs, self.colours).items():
-                rgba = self.color if colour is None else _rgba(colour)
-                cr.set_source_rgba(rgba.red, rgba.green, rgba.blue, strength)
+                shade = self.track_colour if colour is None else rgba(colour)
+                cr.set_source_rgba(shade.red, shade.green, shade.blue, strength)
                 for piece in pieces:
                     _trace(cr, points, piece)
                 cr.stroke()
@@ -753,12 +754,6 @@ def _colours_switched(switch, _pspec) -> None:
         shown.colour_by(shown.series)
 
 
-def _rgba(text: str) -> Gdk.RGBA:
-    color = Gdk.RGBA()
-    color.parse(text)
-    return color
-
-
 def _disc(cr, width: int, height: int, ring: float) -> tuple[float, float, float]:
     """A marker's disc: a thin dark edge and a white ring `ring` wide; its middle (x, y,
     radius) left to fill."""
@@ -774,7 +769,7 @@ def _disc(cr, width: int, height: int, ring: float) -> tuple[float, float, float
 
 def _draw_cursor(_area, cr, width: int, height: int) -> None:
     x, y, radius = _disc(cr, width, height, 3)
-    color = activity_colours.accent_color()  # as the chart's cursor
+    color = activity_colours.accent_colour()  # as the chart's cursor
     cr.arc(x, y, radius, 0, 2 * math.pi)
     cr.set_source_rgba(color.red, color.green, color.blue, 1)
     cr.fill()
@@ -799,7 +794,7 @@ def _draw_end(_area, cr, width: int, height: int, kind: str) -> None:
         if kind == "start-and-finish":
             cr.rectangle(x - radius, y - radius, radius, 2 * radius)
             cr.clip()
-        color = _rgba(START_COLOR)
+        color = rgba(START_COLOUR)
         cr.set_source_rgba(color.red, color.green, color.blue, 1)
         cr.paint()
     cr.restore()

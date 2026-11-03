@@ -13,7 +13,7 @@ gi.require_version("Adw", "1")
 
 from gi.repository import Adw, Gdk, Gtk  # noqa: E402 - imports must follow gi.require_version
 
-from openexpress.gui.activity_colours import accent_color  # noqa: E402
+from openexpress.gui.activity_colours import accent_colour  # noqa: E402
 from openexpress.gui.activity_zones import ZoneBar  # noqa: E402
 from openexpress.gui.words import (  # noqa: E402
     effect_name,
@@ -35,7 +35,7 @@ class EffectBar(ZoneBar):
         super().__init__(value / TOP, "")
 
     def fill(self) -> Gdk.RGBA:
-        return accent_color()
+        return accent_colour()
 
 
 class EffectRow(Gtk.Box):

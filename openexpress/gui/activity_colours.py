@@ -11,13 +11,14 @@ track does it. It has no green and no yellow; still, with deuteranopia or protan
 and its purple look alike, and its order is seen by its lightness and said by the legend. A
 point where the series has no value is grey. The numbers need no screen.
 The chart's line and cursor, the cursor's marker on the map and the bars of the training effect
-are in one accent colour (accent_color).
+are in one accent colour (accent_colour).
 Has: no attribute of the window; the map keeps its legend (gui/activity_map.py)."""
 from __future__ import annotations
 
 import bisect
 import math
 
+import cairo
 import gi
 
 gi.require_version("Gtk", "4.0")
@@ -25,7 +26,9 @@ gi.require_version("Adw", "1")
 
 from gi.repository import Adw, Gdk, Gtk  # noqa: E402 - imports must follow gi.require_version
 
+from openexpress.gui.activity_zones import rounded_bar  # noqa: E402
 from openexpress.gui.gui_settings import load_gui_settings, update_gui_settings  # noqa: E402
+from openexpress.gui.palette import GREY, rgba  # noqa: E402
 from openexpress.gui.words import (  # noqa: E402
     PACES,
     chart_value_text,
@@ -37,24 +40,22 @@ SETTING = "track_colours"  # in gui.json: the switch under the map (on when not 
 STEPS = 64  # colours of the scale
 PERCENTILES = 0.05, 0.95  # at the ends of the scale
 EDGE = "#241f31"  # the dark edge under a coloured track
-NO_VALUE = "#8a898e"  # where the series has no value
+NO_VALUE = GREY  # where the series has no value
 LEGEND_WIDTH = 96  # pixels of the scale in the legend
 LEGEND_HEIGHT = 8
 # libadwaita's blue for a line on the window (its accent colour in 1.5, which has no other), in
 # the light style and in the dark one
-BLUE = {False: "#1c71d8", True: "#78aeed"}
+LINE_BLUE = {False: "#1c71d8", True: "#78aeed"}
 
 
-def accent_color() -> Gdk.RGBA:
+def accent_colour() -> Gdk.RGBA:
     """The desktop's accent colour in the shade for a line or a mark on the window's background
     (libadwaita's standalone one from 1.6), else libadwaita's blue; each as the window's style
     has it."""
     manager = Adw.StyleManager.get_default()
     if hasattr(Adw, "AccentColor"):
         return Adw.AccentColor.to_standalone_rgba(manager.get_accent_color(), manager.get_dark())
-    color = Gdk.RGBA()
-    color.parse(BLUE[manager.get_dark()])
-    return color
+    return rgba(LINE_BLUE[manager.get_dark()])
 
 
 def _srgb(linear: float) -> float:
@@ -125,21 +126,12 @@ def set_colours(on: bool) -> None:
     update_gui_settings(**{SETTING: bool(on)})
 
 
-def _rgb(hex_colour: str) -> tuple[float, float, float]:
-    return tuple(int(hex_colour[i:i + 2], 16) / 255 for i in (1, 3, 5))
-
-
 def _draw_scale(_area, cr, width: int, height: int) -> None:
-    import cairo
-
     gradient = cairo.LinearGradient(0, 0, width, 0)
     for i, colour in enumerate(SCALE):
-        gradient.add_color_stop_rgb(i / (STEPS - 1), *_rgb(colour))
-    radius = height / 2
-    cr.new_sub_path()
-    cr.arc(width - radius, radius, radius, -math.pi / 2, math.pi / 2)
-    cr.arc(radius, radius, radius, math.pi / 2, 3 * math.pi / 2)
-    cr.close_path()
+        stop = rgba(colour)
+        gradient.add_color_stop_rgb(i / (STEPS - 1), stop.red, stop.green, stop.blue)
+    rounded_bar(cr, width, height)
     cr.set_source(gradient)
     cr.fill()
 

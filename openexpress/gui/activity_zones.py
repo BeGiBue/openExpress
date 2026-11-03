@@ -17,6 +17,7 @@ gi.require_version("Adw", "1")
 
 from gi.repository import Adw, Gdk, Gtk, Pango  # noqa: E402 - imports must follow gi.require_version
 
+from openexpress.gui.palette import BLUE, GREEN, GREY, rgba  # noqa: E402
 from openexpress.gui.words import (  # noqa: E402
     zone_name,
     zone_range,
@@ -26,11 +27,12 @@ from openexpress.gui.words import (  # noqa: E402
 )
 
 # Below zone 1, zones 1-5.
-ZONE_COLORS = ("#8a898e", "#3584e4", "#26a269", "#c88800", "#e66100", "#f0384a")
+ZONE_COLOURS = (GREY, BLUE, GREEN, "#c88800", "#e66100", "#f0384a")
 BAR_HEIGHT = 8
 
 
-def _rounded(cr, width: float, height: float) -> None:
+def rounded_bar(cr, width: float, height: float) -> None:
+    """The path of a bar with round ends, `height` thick."""
     radius = height / 2
     cr.new_sub_path()
     cr.arc(width - radius, radius, radius, -math.pi / 2, math.pi / 2)
@@ -41,12 +43,12 @@ def _rounded(cr, width: float, height: float) -> None:
 def _draw_bar(bar, cr, width: int, height: int) -> None:
     fg = bar.get_color()
     cr.set_source_rgba(fg.red, fg.green, fg.blue, 0.12)
-    _rounded(cr, width, height)
+    rounded_bar(cr, width, height)
     cr.fill()
     if bar.share > 0:
         color = bar.fill()
         cr.set_source_rgba(color.red, color.green, color.blue, 1)
-        _rounded(cr, max(height, width * min(1.0, bar.share)), height)
+        rounded_bar(cr, max(height, width * min(1.0, bar.share)), height)
         cr.fill()
 
 
@@ -68,17 +70,15 @@ class ZoneBar(Gtk.DrawingArea):
 
     __gtype_name__ = "OpenExpressZoneBar"
 
-    def __init__(self, share: float, color: str):
+    def __init__(self, share: float, colour: str):
         super().__init__(content_height=BAR_HEIGHT, hexpand=True,
                          accessible_role=Gtk.AccessibleRole.PRESENTATION)
-        self.share, self.color = share, color
+        self.share, self.colour = share, colour
         self.set_draw_func(_draw_bar)
 
     def fill(self) -> Gdk.RGBA:
         """The colour of the share."""
-        color = Gdk.RGBA()
-        color.parse(self.color)
-        return color
+        return rgba(self.colour)
 
 
 class ZoneRow(Gtk.Box):
@@ -104,7 +104,7 @@ class ZoneRow(Gtk.Box):
         share.add_css_class("numeric")
         line.append(share)
         self.append(line)
-        self.bar = ZoneBar(zones.times[number] / total if total else 0, ZONE_COLORS[number])
+        self.bar = ZoneBar(zones.times[number] / total if total else 0, ZONE_COLOURS[number])
         self.append(self.bar)
 
 

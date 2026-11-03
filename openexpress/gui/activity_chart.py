@@ -25,8 +25,9 @@ gi.require_version("PangoCairo", "1.0")
 
 from gi.repository import Gdk, GObject, Gtk, Pango, PangoCairo  # noqa: E402 - imports must follow gi.require_version
 
-from openexpress.gui.activity_colours import accent_color  # noqa: E402
-from openexpress.gui.activity_zones import ZONE_COLORS  # noqa: E402
+from openexpress.gui.activity_colours import accent_colour  # noqa: E402
+from openexpress.gui.activity_zones import ZONE_COLOURS  # noqa: E402
+from openexpress.gui.palette import rgba  # noqa: E402
 from openexpress.gui.words import (  # noqa: E402
     PACES,
     activity_clock,
@@ -447,7 +448,7 @@ def _draw(area, cr, width: int, height: int) -> None:
     times, the line, the cursor and, with the keyboard's focus, a frame."""
     series, kind = area.series, area.series.kind
     plot = _plot(area, width, height)
-    fg, accent = area.get_color(), accent_color()
+    fg, accent = area.get_color(), accent_colour()
     text_height = _layout(area, "0").get_pixel_size()[1]
     if area.zones is not None and kind == "heart rate":
         _draw_zones(cr, plot, area.zones)
@@ -522,8 +523,7 @@ def _zone_bands(bounds, low: float, high: float) -> list[tuple[int, float, float
 
 def _draw_zones(cr, plot: Plot, bounds) -> None:
     for zone, bottom, top in _zone_bands(bounds, plot.values.low, plot.values.high):
-        color = Gdk.RGBA()
-        color.parse(ZONE_COLORS[zone])
+        color = rgba(ZONE_COLOURS[zone])
         cr.set_source_rgba(color.red, color.green, color.blue, ZONE_SHADE)
         cr.rectangle(plot.left, plot.y(top), plot.right - plot.left, plot.y(bottom) - plot.y(top))
         cr.fill()

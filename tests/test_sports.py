@@ -36,7 +36,7 @@ def contrast(a: str, b: str) -> float:
 
 
 def test_each_colour_reads_on_the_cards_of_both_styles():
-    colors = sports().COLORS
+    colors = sports().COLOURS
     assert colors == {"foot": "#26a269", "cycling": "#3584e4", "water": "#2190a4",
                       "winter": "#6f8396", "training": "#c061cb", "others": "#8a898e"}
     for color in colors.values():
@@ -45,6 +45,6 @@ def test_each_colour_reads_on_the_cards_of_both_styles():
 
 def test_the_program_s_style_has_a_class_for_each_group():
     css = sports().css()
-    for group, color in sports().COLORS.items():
+    for group, color in sports().COLOURS.items():
         assert f".oe-sport-{group} {{ color: {color}; }}" in css
         assert f".oe-sport-dot.oe-sport-{group} {{ background-color: {color}; }}" in css

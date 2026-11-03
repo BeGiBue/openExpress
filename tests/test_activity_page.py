@@ -735,7 +735,7 @@ def test_the_track_is_thick_in_its_own_colour_with_a_dark_edge():
     shown, toplevel = a_map()
     try:
         path = shown.path
-        assert path.color.equal(rgba("#e5420e")) and path.edge.equal(rgba("#6b1d05"))
+        assert path.track_colour.equal(rgba("#e5420e")) and path.edge.equal(rgba("#6b1d05"))
         assert (path.width, path.edge_width) == (4, 1.5)
     finally:
         toplevel.destroy()
@@ -1423,7 +1423,7 @@ def test_the_tiles_have_the_icons_of_their_kind_in_the_sport_s_colour(monkeypatc
     """Over each tile's value; for the eye only (the value and its name say it)."""
     from gi.repository import Gtk
 
-    from openexpress.gui.sports import COLORS
+    from openexpress.gui.sports import COLOURS
 
     program_style()
     data = lapped_walk() if which == "walk" else fit_of(heart_only())
@@ -1434,7 +1434,7 @@ def test_the_tiles_have_the_icons_of_their_kind_in_the_sport_s_colour(monkeypatc
         assert [icon.get_icon_name() for icon in shown] == icons
         for icon in shown:
             assert icon.has_css_class(f"oe-sport-{group}")
-            assert icon.get_color().equal(rgba(COLORS[group]))
+            assert icon.get_color().equal(rgba(COLOURS[group]))
             assert icon.get_accessible_role() == Gtk.AccessibleRole.PRESENTATION
     finally:
         win.toplevel.destroy()
@@ -1467,7 +1467,7 @@ def test_the_heart_rate_zones_under_the_laps(monkeypatch):
     """Zone 5 on top, then 4 to 1 and below zone 1: each with its bounds, its time and share,
     and a bar of its share in the zone's colour; under the title how the device worked out the
     bounds."""
-    from openexpress.gui.activity_zones import ZONE_COLORS
+    from openexpress.gui.activity_zones import ZONE_COLOURS
 
     _win, page = page_of(monkeypatch, zoned(lapped_walk()))
     shown = zone_section(page)
@@ -1482,8 +1482,8 @@ def test_the_heart_rate_zones_under_the_laps(monkeypatch):
                                       "140–154 bpm", "120–139 bpm", "below 120 bpm"]
     assert rows[4].share_text == "5:00 · 12%" and rows[5].share_text == "36:30 · 88%"
     assert [round(r.bar.share, 2) for r in rows] == [0, 0, 0, 0, 0.12, 0.88]
-    assert [r.bar.color for r in rows] == list(reversed(ZONE_COLORS))
-    assert ZONE_COLORS == ("#8a898e", "#3584e4", "#26a269", "#c88800", "#e66100", "#f0384a")
+    assert [r.bar.colour for r in rows] == list(reversed(ZONE_COLOURS))
+    assert ZONE_COLOURS == ("#8a898e", "#3584e4", "#26a269", "#c88800", "#e66100", "#f0384a")
 
 
 def test_no_zones_without_them_in_the_file(monkeypatch):
@@ -1509,7 +1509,7 @@ def effect_section(page):
 def test_the_training_effect_under_the_zones(monkeypatch):
     """Aerobic and anaerobic, each its value with its word and a bar over 0-5 in the accent
     colour; the training load as a whole number, no bar."""
-    from openexpress.gui.activity_colours import accent_color
+    from openexpress.gui.activity_colours import accent_colour
 
     _win, page = page_of(monkeypatch, with_effect(zoned(lapped_walk()), aerobic=2.4,
                                                   anaerobic=1.2))
@@ -1521,7 +1521,7 @@ def test_the_training_effect_under_the_zones(monkeypatch):
     assert [r.value_text for r in rows] == ["2.4\u00a0· Maintaining", "1.2\u00a0· Minor benefit",
                                             "28"]
     assert [round(r.bar.share, 2) for r in rows[:2]] == [0.48, 0.24] and rows[2].bar is None
-    assert rows[0].bar.fill().to_string() == accent_color().to_string()
+    assert rows[0].bar.fill().to_string() == accent_colour().to_string()
 
 
 def test_a_row_of_the_training_effect_not_in_the_file_is_left_out(monkeypatch):
@@ -1652,7 +1652,7 @@ def test_the_cursor_on_the_map_is_the_colour_of_the_chart_s(dark):
         surface.flush()
         data, stride = surface.get_data(), surface.get_stride()
         blue, green, red = data[10 * stride + 40:10 * stride + 43]
-        accent = activity_chart.accent_color()  # the chart's own
+        accent = activity_chart.accent_colour()  # the chart's own
         off = max(abs(drawn - c * 255)
                   for drawn, c in zip((red, green, blue), (accent.red, accent.green, accent.blue)))
         assert off <= 1  # cairo rounds a colour its own way
@@ -1675,8 +1675,8 @@ def test_without_the_accent_colours_a_line_is_in_the_blue_of_the_style(dark, mon
     style.set_color_scheme(Adw.ColorScheme.FORCE_DARK if dark else Adw.ColorScheme.FORCE_LIGHT)
     try:
         monkeypatch.setattr(activity_colours, "Adw", SimpleNamespace(StyleManager=Adw.StyleManager))
-        line = activity_colours.accent_color()
-        other = activity_colours.BLUE[not dark]
+        line = activity_colours.accent_colour()
+        other = activity_colours.LINE_BLUE[not dark]
     finally:
         style.set_color_scheme(Adw.ColorScheme.DEFAULT)
 
