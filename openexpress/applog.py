@@ -74,8 +74,9 @@ _PATTERNS = [
     (re.compile(r"(?<![A-Za-z0-9+/])(?=[A-Za-z0-9+/]*\d)(?=[A-Za-z0-9+/]*[a-z])"
                 r"(?=[A-Za-z0-9+/]*[A-Z])[A-Za-z0-9+/]{40,}={0,2}"), "<hidden>"),
     # Unit IDs, serial numbers, profile numbers, activity IDs… But a PID, which Linux gives
-    # up to seven digits (the start line's "pid 1234567") and which says nothing of the user.
-    (re.compile(r"(?<!\d)(?<!\bpid )\d{7,}"), "<number>"),
+    # up to seven digits (the start line's "pid 1234567") and which says nothing of the user;
+    # a longer number after "pid " is no PID.
+    (re.compile(r"(?<!\d)(?<!\bpid )\d{7,}|(?<=\bpid )\d{8,}"), "<number>"),
 ]
 
 

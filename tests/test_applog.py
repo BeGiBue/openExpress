@@ -731,7 +731,11 @@ def test_a_pid_of_seven_digits_survives_the_filter(monkeypatch):
     assert line.endswith(", pid 4194303")
     assert applog.redact(line) == line
     assert applog.redact("unit 3987654321, pid 1234567") == "unit <number>, pid 1234567"
-    assert applog.redact("pid 12345678 of 3987654321") == "pid 12345678 of <number>"
+    # More than a PID can be, after "pid ": hidden as any other long number.
+    assert applog.redact("pid 12345678 of 3987654321") == "pid <number> of <number>"
+    assert applog.redact("pid 3987654321012") == "pid <number>"
+    for text in ("pid 1234567", "pid 12345678", "pid <number>"):
+        assert applog.redact(applog.redact(text)) == applog.redact(text)  # the same again
     assert applog.redact("rapid 1234567, apid 7654321") == "rapid <number>, apid <number>"
 
 
