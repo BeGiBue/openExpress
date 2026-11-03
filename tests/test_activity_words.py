@@ -189,27 +189,28 @@ EFFECT = {
     "en": {"title": "Training effect", "aerobic": "Aerobic", "anaerobic": "Anaerobic",
            "load": "Training load",
            "words": ["No benefit", "No benefit", "Minor benefit", "Minor benefit", "Maintaining",
-                     "Improving", "Highly improving", "Highly improving", "Overreaching"],
+                     "Maintaining", "Improving", "Improving", "Highly improving",
+                     "Highly improving", "Overreaching"],
            "text": f"1.6{NB}· Minor benefit"},
-    # Garmin's own Polish words, as Garmin Connect and Garmin's pages say them.
+    # Garmin's own Polish words: those of the scale as the help of Garmin Connect says them.
     "pl": {"title": "Efekt treningu", "aerobic": "Aerobowy", "anaerobic": "Beztlenowy",
            "load": "Obciążenie wysiłkowe",
            "words": ["Brak korzyści", "Brak korzyści", "Umiarkowana korzyść",
-                     "Umiarkowana korzyść", "Utrzymanie", "Wzrost", "Znaczna poprawa",
-                     "Znaczna poprawa", "Przeciążenie"],
+                     "Umiarkowana korzyść", "Utrzymanie", "Utrzymanie", "Poprawa", "Poprawa",
+                     "Duża poprawa", "Duża poprawa", "Przeciążenie"],
            "text": f"1,6{NB}· Umiarkowana korzyść"},
 }
 
 
 def test_the_words_of_the_training_effect(language):
-    """The word of the public scale, at its edges: below 1 no benefit, from 1 minor, 2
-    maintaining, 3 improving, 4 highly improving, 5 overreaching."""
+    """The word of the public scale, at each of its edges: below 1.0 no benefit, from 1.0
+    minor, 2.0 maintaining, 3.0 improving, 4.0 highly improving, 5.0 overreaching."""
     w, said = words(), EFFECT[language]
     assert w.effect_title() == said["title"]
     assert (w.effect_name("aerobic"), w.effect_name("anaerobic")) == (said["aerobic"],
                                                                       said["anaerobic"])
     assert w.training_load_name() == said["load"]
-    edges = (0.0, 0.9, 1.0, 1.9, 2.0, 3.0, 4.0, 4.9, 5.0)
+    edges = (0.0, 0.9, 1.0, 1.9, 2.0, 2.9, 3.0, 3.9, 4.0, 4.9, 5.0)
     assert [w.effect_word(value) for value in edges] == said["words"]
     assert w.effect_text(1.6) == said["text"]
 

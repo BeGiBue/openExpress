@@ -737,18 +737,19 @@ def effect_word(value: float) -> str:
     overreaching."""
     whole = min(5, max(0, round(value * 10) // 10))
     return (
-        # TRANSLATORS: a training effect below 1.0; each word of the scale as Garmin Connect
-        # says it in your language (a device's manual may say it otherwise)
+        # TRANSLATORS: a training effect from 0.0 to 0.9. The six words of the scale are
+        # Garmin Connect's: use those of its help on the training effect in your language (a
+        # device's manual or Garmin's web pages may say them otherwise)
         _("No benefit"),
-        # TRANSLATORS: a training effect from 1.0 to 1.9, as Garmin Connect says it
+        # TRANSLATORS: a training effect from 1.0 to 1.9, in Garmin Connect's word
         _("Minor benefit"),
-        # TRANSLATORS: a training effect from 2.0 to 2.9, as Garmin Connect says it
+        # TRANSLATORS: a training effect from 2.0 to 2.9, in Garmin Connect's word
         _("Maintaining"),
-        # TRANSLATORS: a training effect from 3.0 to 3.9, as Garmin Connect says it
+        # TRANSLATORS: a training effect from 3.0 to 3.9, in Garmin Connect's word
         _("Improving"),
-        # TRANSLATORS: a training effect from 4.0 to 4.9, as Garmin Connect says it
+        # TRANSLATORS: a training effect from 4.0 to 4.9, in Garmin Connect's word
         _("Highly improving"),
-        # TRANSLATORS: a training effect of 5.0, as Garmin Connect says it
+        # TRANSLATORS: a training effect of 5.0, in Garmin Connect's word
         _("Overreaching"),
     )[whole]
 

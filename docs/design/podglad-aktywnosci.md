@@ -605,16 +605,16 @@ empty.
   (as the chart's line); the load a whole number (a half up), with no bar, as it has no fixed
   top; a row the file does not give is left out, with none of the three no section; 0.0 is
   shown ("0.0 · No benefit"). The values are the session's fields 24, 137 and 168 (Appendix A).
-- Corrected when step 9 was tried on a watch: the Polish words are Garmin's own, as a user
-  compares them with Garmin Connect. "Efekt treningu", "Aerobowy", "Beztlenowy", "Obciążenie
-  wysiłkowe", "Brak korzyści", "Umiarkowana korzyść" and "Utrzymanie" as Garmin Connect in
-  Polish says them (the Polish manual of the fēnix 8 says "Niewielka korzyść", which was the first
-  choice, but the page is compared with Connect); "Wzrost", "Znaczna poprawa" and "Przeciążenie" as Garmin's Polish page on the
-  aerobic training effect (garmin.com/pl-PL, running science, its note on the scale: "0 — Brak,
-  1 — Nieznaczna korzyść, 2 — Utrzymanie, 3 — Wzrost, 4 — Znaczna poprawa, 5 — Przeciążenie").
-  The manual describes the scale in sentences ("Utrzymanie sprawności aerobowej", "Wpływ na
-  sprawność aerobową", "Znaczny wpływ…", "Ponad siły…"), not as labels. The English words
-  were Garmin's already.
+- Corrected when step 9 was tried on a watch: the Polish words are Garmin's own, those of Garmin
+  Connect, with which the page is compared. "Efekt treningu", "Aerobowy", "Beztlenowy" and
+  "Obciążenie wysiłkowe" as Garmin Connect in Polish says them; the words of the scale as the
+  help of Garmin Connect in Polish has them: 0.0–0.9 "Brak korzyści", 1.0–1.9 "Umiarkowana
+  korzyść", 2.0–2.9 "Utrzymanie", 3.0–3.9 "Poprawa", 4.0–4.9 "Duża poprawa", 5.0
+  "Przeciążenie". Other Polish texts of Garmin's say the scale otherwise: the manual of the
+  fēnix 8 "Niewielka korzyść" and sentences ("Utrzymanie sprawności aerobowej", "Wpływ na
+  sprawność aerobową", "Znaczny wpływ…", "Ponad siły…"), Garmin's Polish page on the aerobic
+  training effect "Nieznaczna korzyść", "Wzrost" and "Znaczna poprawa"; the page keeps
+  Connect's. The English words were Garmin's already.
 - **An assumption to check:** of several sessions (a multisport activity) each of the three is
   the highest of the sessions. No such file was looked at; when one comes, compare with Garmin
   Connect (whether the device adds up the legs, or keeps each leg's own).
@@ -800,7 +800,7 @@ Accepted, but for those of the sets (D19a put off), which are not added.
 | Bounds from the device: % of lactate threshold ({bpm}) | Granice z urządzenia: % progu mleczanowego ({bpm}) |
 | Bounds from the device: your own | Granice z urządzenia: własne |
 | Training effect / Aerobic / Anaerobic / Training load | Efekt treningu / Aerobowy / Beztlenowy / Obciążenie wysiłkowe (corrected in step 9: Garmin's words, D15) |
-| No benefit / Minor benefit / Maintaining / Improving / Highly improving / Overreaching | Brak korzyści / Umiarkowana korzyść / Utrzymanie / Wzrost / Znaczna poprawa / Przeciążenie (corrected in step 9, D15) |
+| No benefit / Minor benefit / Maintaining / Improving / Highly improving / Overreaching (0.0–0.9, 1.0–1.9, 2.0–2.9, 3.0–3.9, 4.0–4.9, 5.0) | Brak korzyści / Umiarkowana korzyść / Utrzymanie / Poprawa / Duża poprawa / Przeciążenie (Garmin Connect's help on the training effect, D15) |
 | Details | Szczegóły |
 | Elapsed time / Moving time / Work time / Rest time (corrected in step 11: Garmin Connect's words, D17) | Upływ czasu / Czas ruchu / Czas ćwiczeń / Czas odpoczynku |
 | Total descent / Minimum elevation / Maximum elevation (step 11: two rows, not a range) | Całkowity spadek / Minimalna wysokość / Maksymalna wysokość |

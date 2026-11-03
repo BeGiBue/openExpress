@@ -6,7 +6,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: openexpress\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-11-03 20:52+0100\n"
+"POT-Creation-Date: 2026-11-03 20:54+0100\n"
 "PO-Revision-Date: 2026-10-11 02:36+0200\n"
 "Last-Translator: Tomasz Bojanowski\n"
 "Language-Team: none\n"
@@ -6462,7 +6462,7 @@ msgstr[2] "Urządzenia przestały odpowiadać. Odłącz je i podłącz ponownie
 
 #. TRANSLATORS: a distance or an ascent in whole metres on the page of an activity
 #: openexpress/gui/words.py:377 openexpress/gui/words.py:420
-#: openexpress/gui/words.py:513 openexpress/gui/words.py:859
+#: openexpress/gui/words.py:513 openexpress/gui/words.py:860
 #, python-brace-format
 msgid "{metres} m"
 msgstr "{metres} m"
@@ -6474,19 +6474,19 @@ msgid "{distance} km"
 msgstr "{distance} km"
 
 #. TRANSLATORS: a pace, the time a kilometre takes ("5:10 /km")
-#: openexpress/gui/words.py:392 openexpress/gui/words.py:861
+#: openexpress/gui/words.py:392 openexpress/gui/words.py:862
 #, python-brace-format
 msgid "{pace} /km"
 msgstr "{pace} /km"
 
 #. TRANSLATORS: a pace of a swim, the time a hundred metres take ("2:05 /100 m")
-#: openexpress/gui/words.py:395 openexpress/gui/words.py:863
+#: openexpress/gui/words.py:395 openexpress/gui/words.py:864
 #, python-brace-format
 msgid "{pace} /100 m"
 msgstr "{pace} /100 m"
 
 #. TRANSLATORS: a speed in kilometres an hour ("24.3 km/h")
-#: openexpress/gui/words.py:397 openexpress/gui/words.py:864
+#: openexpress/gui/words.py:397 openexpress/gui/words.py:865
 #, python-brace-format
 msgid "{speed} km/h"
 msgstr "{speed} km/h"
@@ -6783,137 +6783,138 @@ msgstr "Aerobowy"
 msgid "Anaerobic"
 msgstr "Beztlenowy"
 
-#. TRANSLATORS: a training effect below 1.0; each word of the scale as Garmin Connect
-#. says it in your language (a device's manual may say it otherwise)
-#: openexpress/gui/words.py:742
+#. TRANSLATORS: a training effect from 0.0 to 0.9. The six words of the scale are
+#. Garmin Connect's: use those of its help on the training effect in your language (a
+#. device's manual or Garmin's web pages may say them otherwise)
+#: openexpress/gui/words.py:743
 msgid "No benefit"
 msgstr "Brak korzyści"
 
-#. TRANSLATORS: a training effect from 1.0 to 1.9, as Garmin Connect says it
-#: openexpress/gui/words.py:744
+#. TRANSLATORS: a training effect from 1.0 to 1.9, in Garmin Connect's word
+#: openexpress/gui/words.py:745
 msgid "Minor benefit"
 msgstr "Umiarkowana korzyść"
 
-#. TRANSLATORS: a training effect from 2.0 to 2.9, as Garmin Connect says it
-#: openexpress/gui/words.py:746
+#. TRANSLATORS: a training effect from 2.0 to 2.9, in Garmin Connect's word
+#: openexpress/gui/words.py:747
 msgid "Maintaining"
 msgstr "Utrzymanie"
 
-#. TRANSLATORS: a training effect from 3.0 to 3.9, as Garmin Connect says it
-#: openexpress/gui/words.py:748
+#. TRANSLATORS: a training effect from 3.0 to 3.9, in Garmin Connect's word
+#: openexpress/gui/words.py:749
 msgid "Improving"
-msgstr "Wzrost"
+msgstr "Poprawa"
 
-#. TRANSLATORS: a training effect from 4.0 to 4.9, as Garmin Connect says it
-#: openexpress/gui/words.py:750
+#. TRANSLATORS: a training effect from 4.0 to 4.9, in Garmin Connect's word
+#: openexpress/gui/words.py:751
 msgid "Highly improving"
-msgstr "Znaczna poprawa"
+msgstr "Duża poprawa"
 
-#. TRANSLATORS: a training effect of 5.0, as Garmin Connect says it
-#: openexpress/gui/words.py:752
+#. TRANSLATORS: a training effect of 5.0, in Garmin Connect's word
+#: openexpress/gui/words.py:753
 msgid "Overreaching"
 msgstr "Przeciążenie"
 
 #. TRANSLATORS: the training load of an activity (a number)
-#: openexpress/gui/words.py:765
+#: openexpress/gui/words.py:766
 msgid "Training load"
 msgstr "Obciążenie wysiłkowe"
 
 #. TRANSLATORS: a series after "Track colour:", as a sentence goes on there (in Polish
 #. in lower case: "tętno")
-#: openexpress/gui/words.py:778
+#: openexpress/gui/words.py:779
 msgctxt "track colour"
 msgid "heart rate"
 msgstr "tętno"
 
 #. TRANSLATORS: a series after "Track colour:" (in Polish "wysokość")
-#: openexpress/gui/words.py:780
+#: openexpress/gui/words.py:781
 msgctxt "track colour"
 msgid "elevation"
 msgstr "wysokość"
 
 #. TRANSLATORS: a series after "Track colour:" (in Polish "tempo")
-#: openexpress/gui/words.py:782
+#: openexpress/gui/words.py:783
 msgctxt "track colour"
 msgid "pace"
 msgstr "tempo"
 
 #. TRANSLATORS: a series after "Track colour:" (in Polish "prędkość")
-#: openexpress/gui/words.py:784
+#: openexpress/gui/words.py:785
 msgctxt "track colour"
 msgid "speed"
 msgstr "prędkość"
 
 #. TRANSLATORS: under the map of an activity: which series of the chart colours the track
-#: openexpress/gui/words.py:787
+#: openexpress/gui/words.py:788
 #, python-brace-format
 msgid "Track colour: {series}"
 msgstr "Kolor trasy: {series}"
 
 #. TRANSLATORS: beside the switch under the map of an activity that colours its track
-#: openexpress/gui/words.py:793
+#: openexpress/gui/words.py:794
 msgid "Colours"
 msgstr "Kolory"
 
 #. TRANSLATORS: the switch above the chart of an activity
-#: openexpress/gui/words.py:803
+#: openexpress/gui/words.py:804
 msgctxt "activity chart"
 msgid "Heart rate"
 msgstr "Tętno"
 
-#: openexpress/gui/words.py:804
+#: openexpress/gui/words.py:805
 msgctxt "activity chart"
 msgid "Elevation"
 msgstr "Wysokość"
 
-#: openexpress/gui/words.py:805 openexpress/gui/words.py:806
+#: openexpress/gui/words.py:806 openexpress/gui/words.py:807
 msgctxt "activity chart"
 msgid "Pace"
 msgstr "Tempo"
 
-#: openexpress/gui/words.py:807
+#: openexpress/gui/words.py:808
 msgctxt "activity chart"
 msgid "Speed"
 msgstr "Prędkość"
 
 #. TRANSLATORS: the unit on top of the axis of the chart of an activity
-#: openexpress/gui/words.py:816
+#: openexpress/gui/words.py:817
 msgctxt "chart unit"
 msgid "bpm"
 msgstr "ud./min"
 
-#: openexpress/gui/words.py:817
+#: openexpress/gui/words.py:818
 msgctxt "chart unit"
 msgid "m"
 msgstr "m"
 
-#: openexpress/gui/words.py:818
+#: openexpress/gui/words.py:819
 msgctxt "chart unit"
 msgid "min/km"
 msgstr "min/km"
 
-#: openexpress/gui/words.py:819
+#: openexpress/gui/words.py:820
 msgctxt "chart unit"
 msgid "min/100 m"
 msgstr "min/100 m"
 
-#: openexpress/gui/words.py:820
+#: openexpress/gui/words.py:821
 msgctxt "chart unit"
 msgid "km/h"
 msgstr "km/h"
 
 #. TRANSLATORS: the name of the chart for a screen reader; {series}: e.g. "Heart rate"
-#: openexpress/gui/words.py:828
+#: openexpress/gui/words.py:829
 #, python-brace-format
 msgid "{series} over time"
 msgstr "{series} w czasie"
 
-#: openexpress/gui/words.py:833
+#: openexpress/gui/words.py:834
 msgid "No heart rate, elevation or speed in this activity"
 msgstr "Brak tętna, wysokości i prędkości w tej aktywności"
 
 #. TRANSLATORS: beside the chart of an activity, where its cursor is on a gap or a pause
-#: openexpress/gui/words.py:871
+#: openexpress/gui/words.py:872
 msgid "no reading"
 msgstr "brak odczytu"
 
