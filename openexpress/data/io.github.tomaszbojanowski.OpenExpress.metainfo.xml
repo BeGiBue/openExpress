@@ -56,7 +56,7 @@
   <provides>
     <binary>openexpress</binary>
   </provides>
-  <url type="homepage">https://github.com/TomaszBojanowski/openExpress</url>
+  <url type="homepage">https://openexpress.bojanowski.me</url>
   <url type="bugtracker">https://github.com/TomaszBojanowski/openExpress/issues</url>
   <url type="vcs-browser">https://github.com/TomaszBojanowski/openExpress</url>
   <url type="translate">https://github.com/TomaszBojanowski/openExpress/blob/main/CONTRIBUTING.md#adding-a-translation</url>

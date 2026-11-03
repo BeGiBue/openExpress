@@ -7,6 +7,7 @@
 <p align="center">
   An unofficial Linux app for Garmin watches and bike computers: sync with Garmin Connect,
   software updates, maps, Connect IQ apps and music over USB.
+  <br><a href="https://openexpress.bojanowski.me">openexpress.bojanowski.me</a>
 </p>
 
 <p align="center">

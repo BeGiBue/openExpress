@@ -172,7 +172,7 @@ class ReportDialog:
             application_icon=APP_ID,
             version=__version__,
             developer_name="Tomasz Bojanowski",
-            website="https://github.com/TomaszBojanowski/openExpress",
+            website="https://openexpress.bojanowski.me",
             issue_url="https://github.com/TomaszBojanowski/openExpress/issues",
             license_type=Gtk.License.GPL_3_0,
             comments=_("Unofficial Linux app for Garmin watches: sync with Garmin Connect, "
@@ -181,6 +181,8 @@ class ReportDialog:
                        "Garmin Ltd. Garmin, fēnix, Garmin Connect and Garmin Express are "
                        "trademarks of Garmin Ltd. or its subsidiaries."),
         )
+        # TRANSLATORS: a link in "About openExpress" to the program's code on GitHub
+        about.add_link(_("Source code"), "https://github.com/TomaszBojanowski/openExpress")
         # TRANSLATORS: a link in "About openExpress" to the page where one can support it
         about.add_link(_("Support the project"), "https://buymeacoffee.com/sojer2005")
         # TRANSLATORS: replace with your name(s) in the translated version

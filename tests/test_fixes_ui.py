@@ -1735,9 +1735,10 @@ def test_about_links_to_the_support_page(monkeypatch):
     monkeypatch.setattr(Adw, "AboutDialog", About)
     MainWindow.show_about(stand_in())
     (about,) = dialogs
-    assert about.props["website"] == "https://github.com/TomaszBojanowski/openExpress"
+    assert about.props["website"] == "https://openexpress.bojanowski.me"
     assert about.props["issue_url"] == "https://github.com/TomaszBojanowski/openExpress/issues"
-    assert about.links == [("Support the project", "https://buymeacoffee.com/sojer2005")]
+    assert about.links == [("Source code", "https://github.com/TomaszBojanowski/openExpress"),
+                           ("Support the project", "https://buymeacoffee.com/sojer2005")]
 
 
 # --- names from the server never lead out of the picture cache --------------------------------
