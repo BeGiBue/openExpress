@@ -8,8 +8,10 @@ that applies, up to five). Steps 1 to 5 of section 8 are implemented (the data o
 steps 6–7 are not. The work goes step
 by step (section 8), each step after a yes. The scope in section 1 is set once: what it does not
 list is not added while it is implemented. After step 5 the page was found correct but plain:
-section 10 proposes additions to the scope, designed together with the laps (step 6), with
-decisions D13–D22 still open and the steps that follow from them (10.5).
+section 10 adds to the scope (items 6–10 of section 1), designed together with the laps. Its
+decisions are made: 13a, 14a, 15a, 16b, 17a with moving time from the records, 18a, 19b, 20a,
+21a, 22a; 19a (the sets of a strength workout) is put off, an idea for later. Its steps (10.5)
+replace steps 6–7 of section 8.
 
 ## 1. Scope
 
@@ -22,7 +24,15 @@ as GPX. This design adds what a user sees of one activity, in the same window:
 4. **A chart** of heart rate, elevation or pace/speed (only those the file has), with the value
    where the cursor is, and that place marked on the map (D5, D6).
 5. **Its laps**, as the device recorded them; a lap chosen is highlighted on the map and on the
-   chart, chosen again it is not (D7).
+   chart, chosen again it is not (D7, D20); kilometres from the records where the device kept no
+   laps (D16).
+6. **Its heart-rate zones**, as the device worked them out, and their bounds behind the chart of
+   heart rate (D14, D19b).
+7. **Its training effect and load** (D15).
+8. **Its details**, in a row that opens (D17).
+9. **The track coloured** by the series of the chart (D13); the sport's colour and the tiles'
+   icons (D18).
+10. **The mouse wheel over the map** scrolls the page; Ctrl and the wheel zoom it (D21).
 
 From the device (MTP or USB drive) and from a copy in a backup, the same way; in the window
 only.
@@ -30,11 +40,13 @@ only.
 Not in scope (a closed list; each would be a project of its own):
 
 - changing, renaming or deleting an activity, on the device or in a backup;
-- comparing activities; segments, personal records, heart-rate zones, training effect, power,
-  running dynamics, splits other than the device's own laps (section 10 proposes the zones, the
-  training effect and kilometres where the device kept no laps);
-- the sets of a strength workout (proposed in section 10, D19), the lengths and strokes of a
-  swim, the transitions of a multisport activity beyond its sessions taken together;
+- comparing activities; segments, personal records, power, running dynamics, splits other than
+  the device's own laps and the kilometres of D16; recovery time and primary benefit (not in the
+  public FIT profile, D15);
+- the sets of a strength workout (D19a, put off: the watch often names an exercise wrongly, the
+  user corrects it in Garmin Connect, and the file keeps the watch's names), the lengths and
+  strokes of a swim, the transitions of a multisport activity beyond its sessions taken
+  together;
 - exports other than the GPX that exists; sharing, uploading to other services;
 - a local archive of activities beyond the backups (the backups are the archive);
 - map tiles for offline use (OpenStreetMap's tile policy forbids it, section 3), satellite or
@@ -355,6 +367,7 @@ its height and narrows; the lap rows wrap.
 | `gui/activity_page.py` (new) | The page: header bar (back, GPX), tiles, map, chart, laps; reading, errors, the narrow window. |
 | `gui/activity_chart.py` (new) | The chart widget (D5, D6): series, axes, cursor, keyboard, highlighted lap. |
 | `gui/activity_map.py` (new) | libshumate around the track (D2–D4): tiles or not, the marker, the highlighted lap, the attribution, the User-Agent, the cache folder. |
+| `gui/activity_laps.py` (new, step 6 of 10.5) | The laps' rows, the kilometres of D16, the lap chosen told to the chart and the map. |
 | `gui/activities_page.py` | Rows of FIT files activatable (an arrow at their end); a click opens the page; the export button shared with the page. |
 | `gui/device_page.py`, `gui/app.py` | The page closed when the pages of the device are drawn anew, and before Refresh and Sync from the keyboard. |
 | `gui/words.py` | Durations, distances, pace and speed by sport, heart rate, the tiles' names, the laps' lines; English and Polish. |
@@ -423,7 +436,7 @@ waits for a yes.
    the map, a second click takes it off, another lap moves it; no list for one lap. Designed
    anew with the additions: step 6 of section 10.5.
 7. **Documentation**: `docs/guide.md`, `README.md`, the status of this design. With the
-   additions: step 13 of section 10.5, after its steps 7–12.
+   additions: step 12 of section 10.5, after its steps 7–11.
 
 On a device: a run and a ride with positions, a workout without, a long hike (the time to read
 and to draw), an activity from a backup with the device unplugged, the map with and without the
@@ -434,8 +447,8 @@ network.
 About 950 lines of code (fit about 150, the words about 80, the page about 180, the chart about
 250, the map about 200, the laps about 90), about 900 lines of tests on made-up files, about
 40 texts with their Polish, 7 commits, one a step of section 8; with 2a, one module in the
-Flatpak manifest. The additions of section 10: about 1,000 lines of code, 1,050 of tests and 110
-texts more (10.5).
+Flatpak manifest. The additions of section 10: about 860 lines of code, 920 of tests and 50 texts
+more (10.5).
 
 ## 10. Additions, designed with the laps (proposed after step 5)
 
@@ -479,7 +492,7 @@ track would paint a walk in one colour (D13).
 
 The header bar (back, a dot of the sport's colour before the title, GPX), the tiles with their
 icons, the map with its legend under it (with positions), the chart, the laps (or kilometres),
-the sets (a strength workout), the heart-rate zones, the training effect and load, the details
+the heart-rate zones, the training effect and load, the details
 (closed). Each part only when the file has its data; a section without data is not shown, not
 empty.
 
@@ -510,9 +523,9 @@ empty.
 
 ### 10.3 Decisions
 
-#### D13: the colours of the track
+#### D13: the colours of the track — chosen: 13a
 
-- **13a. By the series chosen on the chart (recommended):** heart rate, elevation, pace or
+- **13a. By the series chosen on the chart (recommended; chosen):** heart rate, elevation, pace or
   speed, on a scale from blue to red over the activity's own range (its 5th to 95th percentile;
   faster pace is red), a dark edge under it as today; a legend under the map with the two ends
   and the series' name; a switch "Colours" beside it, kept for the program in `gui.json`, on at
@@ -524,9 +537,9 @@ empty.
   - − A walk mostly below zone 1 is one colour (10.1).
 - **13c. One colour always.**
 
-#### D14: heart-rate zones
+#### D14: heart-rate zones — chosen: 14a
 
-- **14a. As the device worked them out, from the file (recommended):** a section "Heart-rate
+- **14a. As the device worked them out, from the file (recommended; chosen):** a section "Heart-rate
   zones": zone 5 on top, then 4–1 and "Below zone 1", each with its bounds in bpm, its time and
   share, and a bar in the zone's colour (grey, blue, green, yellow, orange, red; the time above
   the top bound counted in zone 5); under the title how the bounds are worked out and from what
@@ -539,9 +552,9 @@ empty.
 - **14c. Worked out from the records with % of an assumed maximum.**
   - − A guess shown as a fact.
 
-#### D15: training effect and load
+#### D15: training effect and load — chosen: 15a
 
-- **15a. The values with a word (recommended):** "Aerobic 3.2 · Improving", "Anaerobic 2.0 ·
+- **15a. The values with a word (recommended; chosen):** "Aerobic 3.2 · Improving", "Anaerobic 2.0 ·
   Maintaining", each with a bar over 0–5; the word from the public scale (below 1 no benefit, 1
   minor benefit, 2 maintaining, 3 improving, 4 highly improving, 5 overreaching); "Training
   load" as its number. Recovery time and primary benefit are left out: the public profile does
@@ -550,25 +563,25 @@ empty.
 - **15b. The values only.**
 - **15c. Left out.**
 
-#### D16: kilometres
+#### D16: kilometres — chosen: 16b
 
 - **16a. The device's laps only:** the fēnix 8 already keeps a lap each kilometre (10.1).
-- **16b. Kilometres from the records where the device kept no laps (recommended):** an activity
+- **16b. Kilometres from the records where the device kept no laps (recommended; chosen):** an activity
   with one lap (the whole of it) and at least 2 km gets "Kilometres" in place of "Laps", worked
   out from the records' distance, the last one shorter; the rows and highlighting as the laps.
   - \+ The same page for a device without auto lap; no switch.
 - **16c. Laps and kilometres always, with a switch.**
   - − Twice the same list on a watch with auto lap at 1 km.
 
-#### D17: details
+#### D17: details — chosen: 17a, moving time (1)
 
-- **17a. A closed "Details" row that opens (recommended):** in this order, only what the file
+- **17a. A closed "Details" row that opens (recommended; chosen):** in this order, only what the file
   has: total time (with pauses), moving time, active time (strength), descent, elevation (min–
   max), maximum pace or speed, cadence (average, max; steps a minute on foot, rpm on a bike),
   steps, heart rate (min–max), calories (when not a tile), temperature (average, min–max),
   breathing (average, min–max). What a tile shows already is not repeated.
   - Moving time, sub-choice: **(1) worked out from the records with the chart's rule of a stop
-    (recommended):** the same stops as the gaps of the pace; it may differ from Garmin Connect's;
+    (recommended; chosen):** the same stops as the gaps of the pace; it may differ from Garmin Connect's;
     **(2) only from the file:** none on the fēnix 8.
   - Steps: two a stride; checked against Garmin Connect on one walk in the step's test on a
     device.
@@ -577,9 +590,9 @@ empty.
 - **17c. More tiles.**
   - − Ten tiles say nothing first.
 
-#### D18: the look
+#### D18: the look — chosen: 18a
 
-- **18a. The sport's colour and the tiles' icons (recommended):** a dot of the sport's colour
+- **18a. The sport's colour and the tiles' icons (recommended; chosen):** a dot of the sport's colour
   before the title in the header bar and the tiles' icons in it (foot `#26a269`, cycling
   `#1c71d8`, swimming and water `#62a0ea`, winter `#99c1f1`, training and strength `#9141ac`,
   others `#77767b`; the GNOME palette); the icons from the GNOME icon theme already in the
@@ -592,20 +605,23 @@ empty.
   - − Drawing and a licence to check; could come after 18a.
 - **18c. No colour; icons on the tiles only.**
 
-#### D19: own proposals
+#### D19: own proposals — chosen: 19b; 19a put off
 
-- **19a. The sets of a strength workout (recommended):** a section "Sets" after the chart: the
+- **19a. The sets of a strength workout (recommended; put off):** a section "Sets" after the chart: the
   sets of one exercise in a row ("Squat", "3 sets · 10 × 60 kg, 10 × 60 kg, 8 × 65 kg"; a set
   without repetitions by its time, "1:00"); the rests left out. The names of the 53 categories of
   the profile in English and Polish, not the 1,846 names of its exercises. About half the
   activities looked at are strength workouts, now a page of a chart only.
+  - Put off: the watch often names an exercise wrongly and the user corrects it in Garmin
+    Connect; the file on the watch keeps the wrong names. An idea for later: the sets as Garmin
+    Connect keeps them, corrected. Until then nothing stands in their place on the page.
 - **19b. The bounds of the heart-rate zones as faint bands behind the heart-rate chart
-  (recommended):** with D14; the zone of each part of the line seen at once.
+  (recommended; chosen):** with D14; the zone of each part of the line seen at once.
 - **19c. The fastest lap marked:** not recommended (one more sign on each row).
 
-#### D20: the laps (the questions of step 6)
+#### D20: the laps (the questions of step 6) — chosen: 20a
 
-- **20a. As drawn (recommended):** a section "Laps" (or "Kilometres", D16) of rows: the line
+- **20a. As drawn (recommended; chosen):** a section "Laps" (or "Kilometres", D16) of rows: the line
   large ("1.00 km · 12:20 · 12:20 /km · 101 bpm"), "Lap 2" small above it; a row chosen is
   tinted with a check mark, chosen again it is not, another moves it; Enter and Space as a click.
   On the chart a band behind the lap's time; on the map the lap thick with its edge, the rest
@@ -615,9 +631,9 @@ empty.
 - **20b. 20a with the map's view fitted to the chosen lap.**
   - − New tiles at each click; the place of the lap in the whole is lost.
 
-#### D21: the mouse wheel over the map
+#### D21: the mouse wheel over the map — chosen: 21a
 
-- **21a. The wheel scrolls the page; Ctrl + wheel zooms the map (recommended):** buttons + and
+- **21a. The wheel scrolls the page; Ctrl + wheel zooms the map (recommended; chosen):** buttons + and
   − on the map (its top right), double click and pinch zoom too, dragging moves it; a wheel
   without Ctrl over the map shows "Ctrl + scroll to zoom" on it for a moment.
   - \+ Scrolling the page never stops at the map (today it zooms the map instead).
@@ -625,13 +641,15 @@ empty.
 - **21c. The map takes the wheel only after a click on it,** until the pointer leaves.
   - − A state the user does not see.
 
-#### D22: the order of the page
+#### D22: the order of the page — chosen: 22a
 
-- **22a. As 10.2 (recommended):** what the activity was first (tiles, map, chart, laps or sets),
+- **22a. As 10.2 (recommended; chosen):** what the activity was first (tiles, map, chart, laps),
   how hard it was after (zones, effect), the rest last and closed.
 - **22b. Zones and effect before the map.**
 
 ### 10.4 New texts (English, Polish)
+
+Accepted, but for those of the sets (D19a put off), which are not added.
 
 | English | Polish |
 |---|---|
@@ -659,10 +677,7 @@ empty.
 | Colours | Kolory |
 | Zoom in / Zoom out | Przybliż / Oddal |
 | Ctrl + scroll to zoom | Ctrl + kółko przybliża |
-| Sets | Serie |
-| {count} set · {sets} (plural) | {count} seria · {sets} (serie, serii) |
-| {repetitions} × {weight} kg | {repetitions} × {weight} kg |
-| the 53 exercise categories (Squat, Bench press, Row, Deadlift, Plank, …) | Przysiad, Wyciskanie na ławce, Wiosłowanie, Martwy ciąg, Deska, … |
+| (put off with D19a) Sets; {count} set · {sets}; {repetitions} × {weight} kg; 53 exercise categories | Serie; {count} seria · {sets}; {repetitions} × {weight} kg; Przysiad, … |
 
 The names of the tiles, the laps' rows ("Lap {number}", their line) and the chart's series are
 those of steps 2–4. Hard spaces after one-letter Polish words as everywhere; every row fits 360
@@ -699,14 +714,11 @@ lines of code and of tests.
 11. **The details (D17).** `fit`: the fields of 10.1; moving time from the records; the words.
     Failing tests: each row only with its field, the order, nothing a tile shows, steps from
     strides, cadence by sport, the narrow window. About 150 and 160; 18 texts.
-12. **The sets of a strength workout (D19a).** `fit`: the `set` messages (category as an array);
-    the 53 names. Failing tests: sets grouped by exercise, rests left out, a timed set, a weight
-    in kg with its scale, an unknown category ("Other"). About 140 and 130; about 60 texts.
-13. **Documentation:** `docs/guide.md`, `README.md`, the status of this design.
+12. **Documentation:** `docs/guide.md`, `README.md`, the status of this design.
 
 On a device: the same walk and a strength workout after each step; a ride from the Edge 1050
 for the speed, cadence in rpm and the colours of speed; steps against Garmin Connect (D17).
-In all about 1,000 lines of code, 1,050 of tests, 110 texts, 8 commits, one a step.
+In all about 860 lines of code, 920 of tests, 50 texts, 7 commits, one a step.
 
 ## Appendix A: the FIT facts used
 
@@ -758,7 +770,7 @@ With the additions of section 10 (their steps):
 | | hr_zone_high_boundary | 6 | bpm, an array |
 | | hr_calc_type | 10 | enum: custom 0, % of max 1, % of reserve 2, % of threshold 3 |
 | | max_heart_rate, resting_heart_rate, threshold_heart_rate | 11, 12, 13 | bpm |
-| set (225) | duration | 0 | s (scale 1000) |
+| set (225), put off with D19a | duration | 0 | s (scale 1000) |
 | | repetitions | 3 | |
 | | weight | 4 | kg (scale 16) |
 | | set_type | 5 | enum: rest 0, active 1 |
