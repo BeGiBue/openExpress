@@ -93,7 +93,7 @@ def open_device(args) -> tuple[Storage, GarminDevice]:
     def refuse(st, dev):
         # A drive's data types before it is remembered, without a request; Garmin's word on
         # it once there is a session (service.refuse_drive_sync).
-        if (st.mass_storage and command in ("sync", "baseline")
+        if (st.mass_storage and command in ("sync", "baseline", "register")
                 and not service.declares_uploads(dev)):
             service.drive_not_synced(service.NO_UPLOAD_TYPES)
         if st.mass_storage and command in NOT_ON_A_DRIVE:
@@ -2235,6 +2235,53 @@ def _primary_set(client, dev, apply: bool, role: _PrimaryRole) -> int:
     return 0
 
 
+def cmd_register(args) -> int:
+    """Add the connected device to the Garmin account (service.add_device), experimental; a
+    trial run without --apply. The account is named by its user name, an e-mail address
+    masked: the output is pasted into reports."""
+    from urllib.parse import urlsplit
+
+    from openexpress import service
+    from openexpress.connect import REGISTER_PATH
+
+    _st, dev = open_device(args)
+    client = make_client(Settings.load(), need_auth=True)
+    account = store.masked(client.auth.display)
+    result = service.add_device(client, dev, apply=args.apply)
+    if result.already:
+        print(_("{model} is on the Garmin account {account} already.").format(
+            model=dev.description, account=account))
+        return 0
+    if not args.apply:
+        address = urlsplit(client.connect_url(REGISTER_PATH))
+        print(_("{model} ({part}, software {version}) is not on the Garmin account "
+                "{account}.").format(model=dev.description, part=dev.part_number,
+                                     version=dev.software_version_str, account=account))
+        print(_("Would add it as an active device: POST {address}").format(
+            address=address.netloc + address.path))
+        print(_("with its GarminDevice.xml ({size}; it holds the device's unit ID).").format(
+            size=_human(len(dev.raw))))
+        print(_("After that, a sync uploads its activities and health data to this account."))
+        print(_("A device can be removed from an account only in Garmin Connect."))
+        print(_("This is an experimental feature."))
+        print(_("Dry run. Add --apply."))
+        return 0
+    if result.listed is False:
+        _error(_("Garmin accepted the device, but the account's list does not show it yet. "
+                 "Try again in a few minutes; if it is still missing, check the devices of "
+                 "your account in Garmin Connect."))
+        return 1
+    if result.listed is None:
+        _error(_("Could not read the account's device list to check it. Check the devices "
+                 "of your account in Garmin Connect."))
+        return 1
+    print(_("Added {model} to the Garmin account {account}.").format(model=dev.description,
+                                                                    account=account))
+    if result.made_active:
+        print(_("Garmin kept it as retired; it is active now."))
+    return 0
+
+
 MUSIC_KIND_LINES = {
     "track": N_("Tracks: {count} ({size})"),
     "podcast": N_("Podcasts: {count} ({size})"),
@@ -2670,6 +2717,13 @@ def build_parser() -> argparse.ArgumentParser:
     m.add_argument("--wearable", dest="set_wearable", action="store_true", help=wearable_help)
     m.add_argument("--apply", action="store_true", help=_("change it in your Garmin account"))
     s.set_defaults(func=cmd_primary)
+
+    register_help = _("add the connected device to your Garmin account (experimental; a "
+                      "trial run without --apply)")
+    s = sub.add_parser("register", help=register_help, description=register_help)
+    s.add_argument("--apply", action="store_true",
+                   help=_("add it: changes your Garmin account"))
+    s.set_defaults(func=cmd_register)
 
     s = sub.add_parser("apps", help=_("Connect IQ apps, watch faces and data fields"))
     s.add_argument("--builtin", action="store_true", help=_("also list built-in activities"))

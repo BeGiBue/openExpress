@@ -28,6 +28,13 @@ class ConnectAuth:
         return a.get("username") or a.get("emailaddress") or _("(unknown account)")
 
 
+def masked(name: str) -> str:
+    """An account's name for what is pasted into reports (the command line's output): an
+    e-mail address as its first letters, "t…@e…"; any other name as it is."""
+    local, at, domain = name.partition("@")
+    return f"{local[:1]}…@{domain[:1]}…" if at else name
+
+
 def _path():
     return paths.config_dir() / "connect_auth.json"
 
