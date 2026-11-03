@@ -17,7 +17,8 @@ before):
 | 6. Documentation | – |
 
 In none of them did the log show a step that reached the limit. D3 waits for the log lines of
-step 4 to show a stall after a long time without a request.
+step 4 to show a stall after a long time without a request. D13 (where the error sits among the
+program's errors) is proposed and waits for a decision; nothing of it is implemented.
 
 ## 1. Scope
 
@@ -290,6 +291,49 @@ list (`gio_storage._probe`, for `status` and the start page).
   - − A blocked gvfs may never send it, and a killed `gvfsd-mtp` sends it without the device
     being unplugged (the incident of section 2: the mount went when `gvfsd-mtp` was killed,
     and the device still had to be unplugged).
+
+### D13: where `DeviceNotResponding` sits among the errors — proposed, not decided
+
+Today `DeviceNotResponding` is a `DeviceError` (D5), so every handler of `DeviceError` that a
+device over MTP can reach has a clause before it that raises the stall on (D6, D8). Counted in
+the syntax tree of the package, there are 54 such clauses in 11 modules:
+
+| Before | Clauses | Where |
+|---|---|---|
+| a handler of `DeviceError` | 34 (4 of them a tuple: with `RemountFailed`, `SeveralDevices` or `MassStorageNotice`) | `ciq.py` 10, `device/gio_storage.py` 10, `device/storage.py` 3, `diagnostics.py` 3, `maps.py` 2, `ownmaps.py` 2, `cli.py`, `service.py`, `updates.py`, `watch.py` 1 each |
+| a broad handler (`Exception`, `OSError`) | 20 (6 of them a tuple) | `ciq.py` 5, `sync.py` 4, `maps.py` 3, `device/gio_storage.py` 2, `device/storage.py` 2, `ownmaps.py` 2, `diagnostics.py`, `service.py` 1 each |
+
+Some of the first kind cannot be reached at all: the handlers inside a PTP session (`ciq.py`)
+see only `PtpError` and `CiqError`, and `_remount` asks the device only through calls that
+already let the stall through.
+
+- **13a. `DeviceNotResponding(UserFacingError)`, no longer a `DeviceError` (recommended).** It
+  keeps `says_replug`, `usb` and `during()`; the command line (`_run` catches
+  `UserFacingError`: its words, exit code 1) and the window (`run_task`: one line of the log,
+  `stalled.telling`) say it as today.
+  - The 34 clauses before a handler of `DeviceError` go: 30 whole, and the 4 tuples lose its
+    name. The 20 before a broad handler stay, as long as those handlers do.
+  - A stall would no longer reach the handlers of `DeviceError` that have no clause: the three
+    that only ever see a drive's folder (`find_ums_devices`, `open_ums_storage`,
+    `_eject_drive`, which cannot stall), and `ciq._noting`, which notes the errors of a PTP
+    session (a stall comes before the session opens, from `exclusive_ptp`). Nothing that
+    catches `UserFacingError` changes: `cli._run` as above, and `service.read_account_country`,
+    which asks a server only.
+  - The guard of the syntax tree (`tests/test_mtp_stall.py`) changes with it: it looks for
+    handlers of `UserFacingError` and broad handlers on the way of the device without the
+    clause, and for a clause before a handler that cannot catch the stall (dead). The tests
+    that wait for a stall as a `DeviceError` are read one by one.
+  - \+ About 60 lines less, and a new handler of `DeviceError` cannot swallow a stall by
+    forgetting the clause.
+  - − A change of type that every `except DeviceError` of the device's way depends on: one
+    commit, the tests as the net, and the stall's path on the command line and in the window
+    tried again in the tests (a sync, a backup, maps, apps, the opening of a device).
+- **13b. As it is.**
+  - \+ Nothing to change; the guard of the syntax tree keeps the clauses complete.
+  - − 54 clauses, some dead, and one more for every new handler.
+
+Size of 13a: about 60 lines removed and 10 changed in 11 modules, the guard rewritten (about 40
+lines), one commit.
 
 ## 5. What changes
 
