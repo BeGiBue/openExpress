@@ -1920,7 +1920,7 @@ def _wait(start, timeout_s: float, what: str, name: str = "operation", context=N
     cancellable)` begins it; `done(finish)` gets a function that raises GLib.Error on failure.
     Raises DeviceError when it fails, GioTimedOut when cancelled at `timeout_s` and not done
     within CANCEL_WAIT_S. `quiet` (the many steps of reads): no DEBUG line for an answer in
-    time, and a time limit reached is information (the storage warns of it)."""
+    time, and a stall at the time limit is information (the storage warns of it)."""
     # Gio gives the answer in the main context that was the default of the thread when the
     # operation began. A worker thread's own context, pushed for the wait, needs nothing of
     # the main thread for the answer and the time limit (the window holds the global default
@@ -1983,7 +1983,8 @@ def _wait(start, timeout_s: float, what: str, name: str = "operation", context=N
         if answers[0] is not None:
             raise _err(answers[0], what)
         return
-    # A step of a read that reached its limit is warned of by the storage (_log_stall).
+    # A step of a read that reached its limit is a stall, which the storage warns of
+    # (_log_stall); one that ended all the same is not, so it is warned of here.
     level = logging.INFO if quiet else logging.WARNING
     if not answers:
         log.log(level, "gio: %s: no answer in %g s, cancelled; no answer %g s after the cancel "
@@ -1991,8 +1992,8 @@ def _wait(start, timeout_s: float, what: str, name: str = "operation", context=N
         raise GioTimedOut(_("{action}: the device did not answer in time").format(action=what))
     answer = answers[0]
     if answer is None:  # done all the same is a success: that is what happened
-        log.log(level, "gio: %s: no answer in %g s, cancelled; it ended all the same after "
-                "%.1f s", name, timeout_s, took)
+        log.warning("gio: %s: no answer in %g s, cancelled; it ended all the same after "
+                    "%.1f s", name, timeout_s, took)
         return
     cancelled_only = answer.matches(Gio.io_error_quark(), Gio.IOErrorEnum.CANCELLED)
     # A cancel ends our wait at once; gvfs may go on (an unmount cancelled at its time limit

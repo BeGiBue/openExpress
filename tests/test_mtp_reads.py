@@ -558,6 +558,18 @@ def test_a_stall_is_one_warning_that_names_its_step(device, fast, caplog, plan, 
     assert warnings[0].startswith(f"device: no answer to a {step} in ")
 
 
+def test_a_step_that_ends_after_its_cancel_is_a_warning(device, fast, caplog):
+    """A step of a read past its limit that ends all the same once cancelled is no stall, so
+    the storage says nothing of it: the wait itself warns of it."""
+    st, _files = device({"GARMIN/Activity/x.fit": a_file(10)},
+                        plan={("open", 1): GioOp("on cancel", on_cancel="done", delay_s=0.02)})
+    with caplog.at_level(logging.DEBUG, logger=LOGGER):
+        run_in("worker", lambda: st._read("GARMIN/Activity/x.fit"))
+    warnings = [r.getMessage() for r in caplog.records
+                if r.name == LOGGER and r.levelno >= logging.WARNING]
+    assert len(warnings) == 1 and "it ended all the same" in warnings[0], warnings
+
+
 def test_a_device_plugged_in_again_has_no_mount_time_of_before(device, fast, monkeypatch, caplog):
     """Mounted by this process, unplugged and plugged in again at the same address of gvfs: a
     new device number on USB, so the log tells no time of the mount before."""
