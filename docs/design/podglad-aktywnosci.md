@@ -795,10 +795,10 @@ Accepted, but for those of the sets (D19a put off), which are not added.
 | Zone {number} / Below zone 1 | Strefa {number} / Poniżej strefy 1 |
 | {low}–{high} bpm / below {rate} bpm / above {rate} bpm (corrected in step 8: a zone's bounds as Garmin Connect shows them, D14) | {low}–{high} ud./min / poniżej {rate} ud./min / powyżej {rate} ud./min |
 | {time} · {percent}% | {time} · {percent}% |
-| Bounds from the device: % of maximum heart rate ({bpm}) | Granice z zegarka, od tętna maksymalnego ({bpm}) |
-| Bounds from the device: % of heart rate reserve | Granice z zegarka, od rezerwy tętna |
-| Bounds from the device: % of lactate threshold ({bpm}) | Granice z zegarka, od progu mleczanowego ({bpm}) |
-| Bounds from the device: your own | Granice z zegarka: własne |
+| Bounds from the device: % of maximum heart rate ({bpm}) | Granice z urządzenia: % tętna maksymalnego ({bpm}) |
+| Bounds from the device: % of heart rate reserve | Granice z urządzenia: % rezerwy tętna |
+| Bounds from the device: % of lactate threshold ({bpm}) | Granice z urządzenia: % progu mleczanowego ({bpm}) |
+| Bounds from the device: your own | Granice z urządzenia: własne |
 | Training effect / Aerobic / Anaerobic / Training load | Efekt treningu / Aerobowy / Beztlenowy / Obciążenie wysiłkowe (corrected in step 9: Garmin's words, D15) |
 | No benefit / Minor benefit / Maintaining / Improving / Highly improving / Overreaching | Brak korzyści / Umiarkowana korzyść / Utrzymanie / Wzrost / Znaczna poprawa / Przeciążenie (corrected in step 9, D15) |
 | Details | Szczegóły |

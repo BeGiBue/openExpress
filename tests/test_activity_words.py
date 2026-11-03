@@ -161,10 +161,10 @@ ZONES = {
            "custom": "Bounds from the device: your own"},
     "pl": {"title": "Strefy tętna", "below": "Poniżej strefy 1", "zone": "Strefa 3",
            "share": "36:30 · 88%",
-           "threshold": "Granice z\u00a0zegarka, od progu mleczanowego (165 ud./min)",
-           "max": "Granice z\u00a0zegarka, od tętna maksymalnego (190 ud./min)",
-           "reserve": "Granice z\u00a0zegarka, od rezerwy tętna",
-           "custom": "Granice z\u00a0zegarka: własne"},
+           "threshold": "Granice z\u00a0urządzenia: % progu mleczanowego (165 ud./min)",
+           "max": "Granice z\u00a0urządzenia: % tętna maksymalnego (190 ud./min)",
+           "reserve": "Granice z\u00a0urządzenia: % rezerwy tętna",
+           "custom": "Granice z\u00a0urządzenia: własne"},
 }
 
 
