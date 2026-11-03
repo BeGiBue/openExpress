@@ -257,3 +257,41 @@ def test_zones_the_file_does_not_give_whole_are_none(change):
     data = fit.activity_data(with_zones(zones_of(**change)))
     assert data.zones is None
     assert data.state is fit.FileState.WHOLE
+
+
+# --- training effect and load ----------------------------------------------------------------
+
+# start, sport, timer time, aerobic and anaerobic training effect (tenths), training load peak
+# (scale 65536)
+EFFECT_SESSION = FitDefinition(2, 18, ((2, 0x86), (5, 0x00), (8, 0x86), (24, 0x02), (137, 0x02),
+                                       (168, 0x85)))
+
+
+def with_effects(*effects) -> bytes:
+    sessions = [FitData(2, (START + i, 10, 4000, aerobic, anaerobic, load))
+                for i, (aerobic, anaerobic, load) in enumerate(effects)]
+    return fit_file(*FILE_ID, HEART_RECORD, FitData(1, (START, 120)), EFFECT_SESSION, *sessions)
+
+
+def test_the_training_effect_and_load_of_the_session():
+    data = fit.activity_data(with_effects((16, 0, round(28.5 * 65536))))
+    assert data.aerobic_effect == pytest.approx(1.6)
+    assert data.anaerobic_effect == 0
+    assert data.training_load == pytest.approx(28.5)
+
+
+def test_a_training_effect_or_load_not_given_is_none():
+    data = fit.activity_data(with_effects((0xFF, 12, 0x7FFFFFFF)))
+    assert data.aerobic_effect is None and data.training_load is None
+    assert data.anaerobic_effect == pytest.approx(1.2)
+    data = fit.activity_data(run())  # no such fields at all
+    assert (data.aerobic_effect, data.anaerobic_effect, data.training_load) == (None, None, None)
+
+
+def test_of_several_sessions_the_highest():
+    """An assumption, no file of a multisport activity looked at: the highest of the sessions."""
+    data = fit.activity_data(with_effects((12, 4, 20 * 65536), (21, 0, 35 * 65536),
+                                          (0xFF, 0xFF, 0x7FFFFFFF)))
+    assert data.aerobic_effect == pytest.approx(2.1)
+    assert data.anaerobic_effect == pytest.approx(0.4)
+    assert data.training_load == pytest.approx(35)

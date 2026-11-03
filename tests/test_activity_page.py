@@ -1409,6 +1409,49 @@ def test_no_zones_without_them_in_the_file(monkeypatch):
     assert zone_section(page) is None and "Heart-rate zones" not in labels(page)
 
 
+def with_effect(data, aerobic=1.6, anaerobic=0.0, load=28.4):
+    """The activity with its training effect and load as a device keeps them (made-up)."""
+    import dataclasses
+
+    return dataclasses.replace(data, aerobic_effect=aerobic, anaerobic_effect=anaerobic,
+                               training_load=load)
+
+
+def effect_section(page):
+    from openexpress.gui.activity_effect import EffectList
+
+    found = [w for w in _all(page) if isinstance(w, EffectList)]
+    return found[0] if found else None
+
+
+def test_the_training_effect_under_the_zones(monkeypatch):
+    """Aerobic and anaerobic, each its value with its word and a bar over 0-5 in the accent
+    colour; the training load as a whole number, no bar."""
+    from openexpress.gui.activity_chart import accent_color
+
+    _win, page = page_of(monkeypatch, with_effect(zoned(lapped_walk()), aerobic=2.4,
+                                                  anaerobic=1.2))
+    shown = effect_section(page)
+    assert shown is not None and order_of(shown) > order_of(zone_section(page))
+    assert "Training effect" in labels(page)
+    rows = shown.rows
+    assert [r.name for r in rows] == ["Aerobic", "Anaerobic", "Training load"]
+    assert [r.value_text for r in rows] == ["2.4\u00a0· Maintaining", "1.2\u00a0· Minor benefit",
+                                            "28"]
+    assert [round(r.bar.share, 2) for r in rows[:2]] == [0.48, 0.24] and rows[2].bar is None
+    assert rows[0].bar.fill().to_string() == accent_color().to_string()
+
+
+def test_a_row_of_the_training_effect_not_in_the_file_is_left_out(monkeypatch):
+    _win, page = page_of(monkeypatch, with_effect(lapped_walk(), aerobic=None, load=None))
+    assert [r.name for r in effect_section(page).rows] == ["Anaerobic"]
+
+
+def test_no_training_effect_without_it_in_the_file(monkeypatch):
+    _win, page = page_of(monkeypatch, zoned(lapped_walk()))
+    assert effect_section(page) is None and "Training effect" not in labels(page)
+
+
 def plateaus():
     """Ten minutes of heart rate: 110 bpm, then 150 bpm (made-up), a record a second."""
     from openexpress import fit

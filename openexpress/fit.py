@@ -546,6 +546,9 @@ _SESSION_ELAPSED_TIME = 7  # milliseconds, pauses included
 _SESSION_CALORIES = 11
 _SESSION_AVG_SPEED, _SESSION_ENHANCED_AVG_SPEED = 14, 124  # millimetres a second
 _SESSION_AVG_HEART_RATE, _SESSION_MAX_HEART_RATE = 16, 17
+# total_training_effect, total_anaerobic_training_effect (tenths, 0.0-5.0), training_load_peak
+# (scale 65536)
+_SESSION_AEROBIC_EFFECT, _SESSION_ANAEROBIC_EFFECT, _SESSION_TRAINING_LOAD = 24, 137, 168
 # FIT profile: time_in_zone, of the session (its reference_mesg 18): the time in each zone
 # (seconds, scale 1000; an array: below zone 1, zones 1-5, above the top bound), the zones'
 # bounds (hr_zone_high_boundary, an array), how they are worked out, the max, resting and
@@ -624,6 +627,9 @@ class ActivityData:
     samples: tuple[Sample, ...] = ()
     laps: tuple[Lap, ...] = ()
     zones: HeartRateZones | None = None
+    aerobic_effect: float | None = None  # the training effect, 0.0-5.0
+    anaerobic_effect: float | None = None
+    training_load: float | None = None
 
     @property
     def has_positions(self) -> bool:
@@ -672,7 +678,9 @@ def _lap(values: dict[int, Value]) -> Lap:
 def _sessions_together(sessions: list[dict[int, Value]]) -> dict:
     """What the sessions say together: the times, distance, ascent and calories added up, the
     average speed over all of them (from one session as it gives it), the average heart rate
-    weighted by each one's timer time, the maximum the highest."""
+    weighted by each one's timer time, the maximum the highest; the training effects and load
+    the highest too (several sessions, a multisport activity: an assumption, no such file
+    looked at)."""
     if not sessions:
         return {}
     sports = {_whole_number(s.get(_SESSION_SPORT)) for s in sessions} - {None}
@@ -702,7 +710,16 @@ def _sessions_together(sessions: list[dict[int, Value]]) -> dict:
                            if weighted else None),
         "max_heart_rate": max(heart_rates) if heart_rates else None,
         "calories": _total(sessions, _SESSION_CALORIES),
+        "aerobic_effect": _highest(sessions, _SESSION_AEROBIC_EFFECT, 10),
+        "anaerobic_effect": _highest(sessions, _SESSION_ANAEROBIC_EFFECT, 10),
+        "training_load": _highest(sessions, _SESSION_TRAINING_LOAD, 65536),
     }
+
+
+def _highest(sessions: list[dict[int, Value]], number: int, scale: int) -> float | None:
+    """The highest value of a field of the sessions, scaled; None when none gives it."""
+    values = [v for v in (_scaled(s.get(number), scale) for s in sessions) if v is not None]
+    return max(values) if values else None
 
 
 def _zones(found: list[dict[int, Value]]) -> HeartRateZones | None:

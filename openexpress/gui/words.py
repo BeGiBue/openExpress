@@ -3,6 +3,7 @@ that says a fact says it in these words. Without GTK, so that a test or the comm
 use them too."""
 from __future__ import annotations
 
+import math
 from datetime import datetime
 
 from openexpress import known_devices
@@ -521,6 +522,58 @@ def zones_method_text(zones) -> str | None:
         # TRANSLATORS: under the title of the heart-rate zones: set by the user
         return _("Bounds from the device: your own")
     return None
+
+
+def effect_title() -> str:
+    # TRANSLATORS: the title of the section of the training effect on the page of an activity
+    return _("Training effect")
+
+
+def effect_name(kind: str) -> str:
+    """The name of a training effect: "aerobic" or "anaerobic"."""
+    if kind == "aerobic":
+        # TRANSLATORS: the aerobic training effect of an activity
+        return _("Aerobic")
+    # TRANSLATORS: the anaerobic training effect of an activity
+    return _("Anaerobic")
+
+
+def effect_word(value: float) -> str:
+    """What a training effect (0.0-5.0) means, by the public scale of Garmin's devices: below
+    1 no benefit, from 1 minor benefit, 2 maintaining, 3 improving, 4 highly improving, 5
+    overreaching."""
+    whole = min(5, max(0, round(value * 10) // 10))
+    return (
+        # TRANSLATORS: a training effect below 1.0
+        _("No benefit"),
+        # TRANSLATORS: a training effect from 1.0 to 1.9
+        _("Minor benefit"),
+        # TRANSLATORS: a training effect from 2.0 to 2.9
+        _("Maintaining"),
+        # TRANSLATORS: a training effect from 3.0 to 3.9
+        _("Improving"),
+        # TRANSLATORS: a training effect from 4.0 to 4.9
+        _("Highly improving"),
+        # TRANSLATORS: a training effect of 5.0
+        _("Overreaching"),
+    )[whole]
+
+
+def effect_text(value: float) -> str:
+    """A training effect with its word: "1.6 · Minor benefit"."""
+    from openexpress.i18n import decimal
+
+    return caption(decimal(f"{value:.1f}"), effect_word(value))
+
+
+def training_load_name() -> str:
+    # TRANSLATORS: the training load of an activity (a number)
+    return _("Training load")
+
+
+def training_load_text(load: float) -> str:
+    """The training load as a whole number, a half up: "28"."""
+    return str(math.floor(load + 0.5))
 
 
 # --- the chart of an activity ------------------------------------------------------------------

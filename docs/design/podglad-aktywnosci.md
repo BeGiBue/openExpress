@@ -370,6 +370,7 @@ its height and narrows; the lap rows wrap.
 | `gui/activity_map.py` (new) | libshumate around the track (D2–D4): tiles or not, the marker, the highlighted lap, the attribution, the User-Agent, the cache folder. |
 | `gui/activity_laps.py` (new, step 6 of 10.5) | The laps' rows, the kilometres of D16, the lap chosen told to the chart and the map. |
 | `gui/activity_zones.py` (new, step 8 of 10.5) | The section of the heart-rate zones (D14): its rows and bars, the zones' colours. |
+| `gui/activity_effect.py` (new, step 9 of 10.5) | The section of the training effect and load (D15): its rows, the effects' bars. |
 | `gui/activities_page.py` | Rows of FIT files activatable (an arrow at their end); a click opens the page; the export button shared with the page. |
 | `gui/device_page.py`, `gui/app.py` | The page closed when the pages of the device are drawn anew, and before Refresh and Sync from the keyboard. |
 | `gui/words.py` | Durations, distances, pace and speed by sport, heart rate, the tiles' names, the laps' lines; English and Polish. |
@@ -578,6 +579,13 @@ empty.
   load" as its number. Recovery time and primary benefit are left out: the public profile does
   not describe where the file keeps them, and working that out would be undocumented Garmin data
   (the project's rule stops there).
+- As implemented in step 9: the bars as those of the zones (D14), in the desktop's accent colour
+  (as the chart's line); the load a whole number (a half up), with no bar, as it has no fixed
+  top; a row the file does not give is left out, with none of the three no section; 0.0 is
+  shown ("0.0 · No benefit"). The values are the session's fields 24, 137 and 168 (Appendix A).
+- **An assumption to check:** of several sessions (a multisport activity) each of the three is
+  the highest of the sessions. No such file was looked at; when one comes, compare with Garmin
+  Connect (whether the device adds up the legs, or keeps each leg's own).
 - **15b. The values only.**
 - **15c. Left out.**
 

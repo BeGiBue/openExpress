@@ -184,6 +184,39 @@ def test_the_words_of_the_heart_rate_zones(language):
     assert w.zones_method_text(zones("threshold", None)) is None  # its number not given
 
 
+EFFECT = {
+    "en": {"title": "Training effect", "aerobic": "Aerobic", "anaerobic": "Anaerobic",
+           "load": "Training load",
+           "words": ["No benefit", "No benefit", "Minor benefit", "Minor benefit", "Maintaining",
+                     "Improving", "Highly improving", "Highly improving", "Overreaching"],
+           "text": f"1.6{NB}· Minor benefit"},
+    "pl": {"title": "Efekt treningowy", "aerobic": "Tlenowy", "anaerobic": "Beztlenowy",
+           "load": "Obciążenie treningowe",
+           "words": ["Bez efektu", "Bez efektu", "Niewielki efekt", "Niewielki efekt",
+                     "Podtrzymanie", "Poprawa", "Duża poprawa", "Duża poprawa", "Przeciążenie"],
+           "text": f"1,6{NB}· Niewielki efekt"},
+}
+
+
+def test_the_words_of_the_training_effect(language):
+    """The word of the public scale, at its edges: below 1 no benefit, from 1 minor, 2
+    maintaining, 3 improving, 4 highly improving, 5 overreaching."""
+    w, said = words(), EFFECT[language]
+    assert w.effect_title() == said["title"]
+    assert (w.effect_name("aerobic"), w.effect_name("anaerobic")) == (said["aerobic"],
+                                                                      said["anaerobic"])
+    assert w.training_load_name() == said["load"]
+    edges = (0.0, 0.9, 1.0, 1.9, 2.0, 3.0, 4.0, 4.9, 5.0)
+    assert [w.effect_word(value) for value in edges] == said["words"]
+    assert w.effect_text(1.6) == said["text"]
+
+
+@pytest.mark.parametrize(("load", "said"), [(28.4, "28"), (28.5, "29"), (0.0, "0"),
+                                            (1234.6, "1235")])
+def test_the_training_load_as_a_whole_number(load, said):
+    assert words().training_load_text(load) == said
+
+
 # The bounds as a device keeps them: each the first beat of the zone above it, the last the top
 # of zone 5 (which has none on the page). Zones from the lactate threshold, as Garmin Connect
 # shows them: below zone 1 under 118, zone 1 118–140, …, zone 5 above 182; and from a maximum

@@ -44,10 +44,9 @@ def _draw_bar(bar, cr, width: int, height: int) -> None:
     _rounded(cr, width, height)
     cr.fill()
     if bar.share > 0:
-        color = Gdk.RGBA()
-        color.parse(bar.color)
+        color = bar.fill()
         cr.set_source_rgba(color.red, color.green, color.blue, 1)
-        _rounded(cr, max(height, width * bar.share), height)
+        _rounded(cr, max(height, width * min(1.0, bar.share)), height)
         cr.fill()
 
 
@@ -74,6 +73,12 @@ class ZoneBar(Gtk.DrawingArea):
                          accessible_role=Gtk.AccessibleRole.PRESENTATION)
         self.share, self.color = share, color
         self.set_draw_func(_draw_bar)
+
+    def fill(self) -> Gdk.RGBA:
+        """The colour of the share."""
+        color = Gdk.RGBA()
+        color.parse(self.color)
+        return color
 
 
 class ZoneRow(Gtk.Box):

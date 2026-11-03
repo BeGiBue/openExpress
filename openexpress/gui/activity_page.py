@@ -4,9 +4,9 @@ gui/sports.py, but in a narrow window), the tiles of what its sessions say (the 
 gui/words.py, an icon of their kind in the same colour), the map of its track
 (gui/activity_map.py) with the place of the chart's cursor, the chart of its records
 (gui/activity_chart.py), its laps or kilometres (gui/activity_laps.py; one chosen shown on the
-chart and the map), its heart-rate zones (gui/activity_zones.py), and what a file that could not
-be read, one still being written and one without a summary say. Its file is read again each
-time it opens, in a task
+chart and the map), its heart-rate zones (gui/activity_zones.py) and training effect
+(gui/activity_effect.py), and what a file that could not be read, one still being written and
+one without a summary say. Its file is read again each time it opens, in a task
 (fit.activity_data), from the device or from a copy in a backup; nothing is kept and nothing is
 written. The page is pushed onto the window's navigation above the device view and goes with
 the pages of that view (the device gone, or drawn anew).
@@ -27,6 +27,7 @@ from openexpress.errors import UserFacingError  # noqa: E402
 from openexpress.gui import activity_map  # noqa: E402
 from openexpress.gui.activities_page import PAGE_ICON, export_button  # noqa: E402
 from openexpress.gui.activity_chart import ActivityChart, chart_series  # noqa: E402
+from openexpress.gui.activity_effect import EffectList, has_effect  # noqa: E402
 from openexpress.gui.activity_laps import LapList, laps_of  # noqa: E402
 from openexpress.gui.activity_zones import ZoneList  # noqa: E402
 from openexpress.gui.sports import sport_group  # noqa: E402
@@ -264,6 +265,10 @@ class ActivityView:
             zones = ZoneList(data.zones)
             zones.set_margin_top(12)
             self.content.append(zones)
+        if has_effect(data):
+            effect = EffectList(data)
+            effect.set_margin_top(12)
+            self.content.append(effect)
         self.stack.set_visible_child_name("content")
         log.info("activity page: %d tiles, %s, chart of %s, %s, %d %s", len(tiles),
                  data.state.value, ", ".join(s.kind for s in series) or "nothing",
