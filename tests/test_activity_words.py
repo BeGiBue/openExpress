@@ -284,7 +284,7 @@ def test_a_lap_whose_pace_is_its_time_leaves_it_out(sport, metres, pace):
 def test_a_ride_has_its_speed_worked_out_when_its_session_does_not_say_it():
     ride = activity(sport=CYCLING, timer_time=3600.0, distance=30_000.0)
     assert tiles(words(), ride) == [("30.00 km", "Distance"), ("1:00:00", "Time"),
-                                           ("30.0 km/h", "Average speed")]
+                                    ("30.0 km/h", "Average speed")]
 
 
 def test_a_value_not_given_leaves_its_tile_out():

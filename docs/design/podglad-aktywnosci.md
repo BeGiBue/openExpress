@@ -91,7 +91,7 @@ Not in scope (a closed list; each would be a project of its own):
 (the enhanced field first), the heart rate, the altitude (enhanced first) and the position; the
 laps: start, elapsed and timer time, distance, average speed, average and maximum heart rate,
 ascent; of the sessions: the elapsed time, the average and maximum heart rate, the average
-speed, the calories and the sub-sport (Appendix A). A record with a compressed timestamp takes
+speed and the calories (Appendix A). A record with a compressed timestamp takes
 its time from the last full timestamp, as the protocol says; a field not given is a gap, not a
 zero.
 
