@@ -512,10 +512,10 @@ empty.
    Lap 1   1.00 km · 12:42 · 12:41 /km · 110 bpm
    Lap 2   1.00 km · 12:20 · 12:20 /km · 101 bpm         ✓
  Heart-rate zones        Bounds from the device: % of lactate threshold (… bpm)
-   Zone 5  …–… bpm                                  0:00 · 0%
+   Zone 5  above … bpm                              0:00 · 0%
    ▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬
    …
-   Below zone 1  up to … bpm                      38:24 · 96%
+   Below zone 1  below … bpm                      38:24 · 96%
  Training effect
    Aerobic                                  1.6 · Minor benefit
    Anaerobic                                    0.0 · No benefit
@@ -555,6 +555,15 @@ empty.
   `#8a898e` (3.5 light, 3.6 dark), zone 1 `#3584e4` (3.8, 3.3), zone 2 `#26a269` (3.3, 3.8),
   zone 3 `#c88800` (3.0, 4.1), zone 4 `#e66100` (3.5, 3.6), zone 5 `#f0384a` (3.9, 3.2). The
   bar's track under it is the text's colour, faint.
+- Corrected when step 8 was tried on a watch (its times in the zones the same as Garmin
+  Connect's to the second, its bounds a beat off): a device keeps as the bound of a zone the
+  first beat of the zone above it, and Garmin Connect shows them so. Bounds 118, 141, 158,
+  170, 183, 195 are below zone 1 "below 118 bpm", zone 1 "118–140 bpm", zone 2 "141–157 bpm",
+  zone 3 "158–169 bpm", zone 4 "170–182 bpm", zone 5 "above 182 bpm" (no top: the last bound
+  is not shown, the time above it is zone 5's). The bands of D19b run from bound to bound as
+  before. The bounds are always the activity's file's own. A row's bounds break onto a new
+  line between words only (never in "ud./min"; Pango still may after the dash of a range,
+  which fits the narrowest window on one line).
 - **14b. 14a, and where the file has no zone times, worked out from the records with the
   bounds of its settings (`zones_target`, 7).**
   - − More code for files that are rare among those looked at.
@@ -697,7 +706,7 @@ Accepted, but for those of the sets (D19a put off), which are not added.
 | Kilometre {number} | Kilometr {number} |
 | Heart-rate zones | Strefy tętna |
 | Zone {number} / Below zone 1 | Strefa {number} / Poniżej strefy 1 |
-| {low}–{high} bpm / up to {high} bpm | {low}–{high} ud./min / do {high} ud./min |
+| {low}–{high} bpm / below {rate} bpm / above {rate} bpm (corrected in step 8: a zone's bounds as Garmin Connect shows them, D14) | {low}–{high} ud./min / poniżej {rate} ud./min / powyżej {rate} ud./min |
 | {time} · {percent}% | {time} · {percent}% |
 | Bounds from the device: % of maximum heart rate ({bpm}) | Granice z zegarka, od tętna maksymalnego ({bpm}) |
 | Bounds from the device: % of heart rate reserve | Granice z zegarka, od rezerwy tętna |

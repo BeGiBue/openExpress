@@ -482,13 +482,17 @@ def zone_name(number: int) -> str:
 
 
 def zone_range(bounds, number: int) -> str:
-    """The heart rates of a zone from its high bounds (below zone 1, zones 1-5): "up to 120
-    bpm", "121–140 bpm"."""
+    """The heart rates of a zone (0: below zone 1) from the bounds the device keeps
+    (fit.HeartRateZones), as Garmin Connect shows them: each bound is the first beat of the
+    zone above it. "below 118 bpm", "118–140 bpm", zone 5 with no top: "above 182 bpm"."""
     if number == 0:
-        # TRANSLATORS: the heart rates below zone 1 ("up to 120 bpm")
-        return _("up to {high} bpm").format(high=bounds[0])
-    # TRANSLATORS: the heart rates of a zone ("121–140 bpm")
-    return _("{low}–{high} bpm").format(low=bounds[number - 1] + 1, high=bounds[number])
+        # TRANSLATORS: the heart rates below zone 1 ("below 118 bpm")
+        return _("below {rate} bpm").format(rate=bounds[0])
+    if number == len(bounds) - 1:
+        # TRANSLATORS: the heart rates of the top zone, which has no top ("above 182 bpm")
+        return _("above {rate} bpm").format(rate=bounds[number - 1] - 1)
+    # TRANSLATORS: the heart rates of a zone ("118–140 bpm")
+    return _("{low}–{high} bpm").format(low=bounds[number - 1], high=bounds[number] - 1)
 
 
 def zone_share(seconds: float, total: float) -> str:

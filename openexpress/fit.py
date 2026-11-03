@@ -548,7 +548,10 @@ _SESSION_AVG_SPEED, _SESSION_ENHANCED_AVG_SPEED = 14, 124  # millimetres a secon
 _SESSION_AVG_HEART_RATE, _SESSION_MAX_HEART_RATE = 16, 17
 # FIT profile: time_in_zone, of the session (its reference_mesg 18): the time in each zone
 # (seconds, scale 1000; an array: below zone 1, zones 1-5, above the top bound), the zones'
-# high bounds (an array), how they are worked out, the max, resting and threshold heart rate.
+# bounds (hr_zone_high_boundary, an array), how they are worked out, the max, resting and
+# threshold heart rate. A device keeps as the bound of a zone the first beat of the zone above
+# it, as Garmin Connect shows the zones: bounds 118, 141, … are below zone 1 under 118, zone 1
+# 118–140; the last is the top of zone 5, which Garmin Connect does not show.
 _MESG_TIME_IN_ZONE = 216
 _ZONE_REFERENCE, _ZONE_TIMES, _ZONE_BOUNDS, _ZONE_CALC = 0, 2, 6, 10
 _ZONE_MAX, _ZONE_RESTING, _ZONE_THRESHOLD = 11, 12, 13
@@ -588,8 +591,9 @@ class Lap:
 @dataclass(frozen=True)
 class HeartRateZones:
     """The heart-rate zones of an activity as its device worked them out: the time in each
-    (seconds: below zone 1, zones 1-5, the time above the top bound in zone 5), their high
-    bounds (beats a minute, the same six), how they were worked out ("max", "reserve",
+    (seconds: below zone 1, zones 1-5, the time above the top bound in zone 5), their bounds
+    as the device keeps them (beats a minute, the same six: each the first beat of the zone
+    above it, the last the top of zone 5), how they were worked out ("max", "reserve",
     "threshold", "custom"; None: not said) and from what."""
 
     times: tuple[float, ...]

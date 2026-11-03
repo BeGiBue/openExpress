@@ -490,8 +490,9 @@ def _draw(area, cr, width: int, height: int) -> None:
 
 def _zone_bands(bounds, low: float, high: float) -> list[tuple[int, float, float]]:
     """The bands of zones 1-5 within the heart rates from `low` to `high`, each (zone, from,
-    to), from the zones' high bounds (below zone 1, zones 1-5); above the top bound in zone 5.
-    None below zone 1: it is no zone."""
+    to), from the zones' bounds (fit.HeartRateZones: each the first beat of the zone above it,
+    so a band runs from its zone's bound to the next); zone 5 up to the top of the chart, as
+    the time above the top bound is its. None below zone 1: it is no zone."""
     tops = list(bounds[1:-1]) + [max(high, bounds[-1])]
     bands = []
     for zone, (bottom, top) in enumerate(zip(bounds[:-1], tops, strict=True), start=1):
@@ -575,7 +576,7 @@ class ChartArea(Gtk.DrawingArea):
         self.series = series
         self.cursor: float | None = None
         self.lap: tuple[float, float] | None = None  # the lap chosen, on the chart's time
-        self.zones = None  # the high bounds of the heart-rate zones, their bands
+        self.zones = None  # the bounds of the heart-rate zones, their bands
         self.drag_from = 0.0
         self.drawn = None  # the line brought down to the width last drawn
         self.set_draw_func(_draw)

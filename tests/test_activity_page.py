@@ -1396,8 +1396,8 @@ def test_the_heart_rate_zones_under_the_laps(monkeypatch):
     rows = shown.rows
     assert [r.name for r in rows] == ["Zone 5", "Zone 4", "Zone 3", "Zone 2", "Zone 1",
                                       "Below zone 1"]
-    assert [r.span for r in rows] == ["179–190 bpm", "166–178 bpm", "156–165 bpm",
-                                      "141–155 bpm", "121–140 bpm", "up to 120 bpm"]
+    assert [r.span for r in rows] == ["above 177 bpm", "165–177 bpm", "155–164 bpm",
+                                      "140–154 bpm", "120–139 bpm", "below 120 bpm"]
     assert rows[4].share_text == "5:00 · 12%" and rows[5].share_text == "36:30 · 88%"
     assert [round(r.bar.share, 2) for r in rows] == [0, 0, 0, 0, 0.12, 0.88]
     assert [r.bar.color for r in rows] == list(reversed(ZONE_COLORS))

@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: openexpress 0.1.0\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-11-03 01:44+0100\n"
+"POT-Creation-Date: 2026-11-03 02:58+0100\n"
 "PO-Revision-Date: 2026-10-11 02:36+0200\n"
 "Last-Translator: Automatically generated\n"
 "Language-Team: none\n"
@@ -4085,7 +4085,7 @@ msgstr "Eksportuj do GPX…"
 msgid "No GPS positions in this activity"
 msgstr "Ta aktywność nie ma pozycji GPS"
 
-#: openexpress/gui/activities_page.py:101 openexpress/gui/activity_page.py:116
+#: openexpress/gui/activities_page.py:101 openexpress/gui/activity_page.py:117
 #: openexpress/gui/app.py:429 openexpress/gui/apps_page.py:596
 #: openexpress/gui/detection.py:717 openexpress/gui/device_page.py:797
 #: openexpress/gui/window_tasks.py:498
@@ -4100,8 +4100,8 @@ msgstr "Eksport do GPX"
 msgid "Exporting as GPX…"
 msgstr "Eksport do GPX…"
 
-#: openexpress/gui/activities_page.py:131 openexpress/gui/activity_page.py:69
-#: openexpress/gui/activity_page.py:74 openexpress/gui/activity_page.py:131
+#: openexpress/gui/activities_page.py:131 openexpress/gui/activity_page.py:70
+#: openexpress/gui/activity_page.py:75 openexpress/gui/activity_page.py:132
 msgid "The file of this activity could not be read."
 msgstr "Nie udało się odczytać pliku tej aktywności."
 
@@ -4194,23 +4194,23 @@ msgid ""
 msgstr ""
 "Brak połączenia z internetem: widać tylko wcześniej pobrane fragmenty mapy"
 
-#: openexpress/gui/activity_page.py:134 openexpress/gui/activity_page.py:181
+#: openexpress/gui/activity_page.py:135 openexpress/gui/activity_page.py:182
 msgid "Reading the activity…"
 msgstr "Odczyt aktywności…"
 
-#: openexpress/gui/activity_page.py:219 openexpress/gui/words.py:265
+#: openexpress/gui/activity_page.py:220 openexpress/gui/words.py:265
 msgid "Still being written: disconnect and reconnect the device"
 msgstr "Jeszcze zapisywany: odłącz urządzenie i podłącz je ponownie"
 
-#: openexpress/gui/activity_page.py:223
+#: openexpress/gui/activity_page.py:224
 msgid "This activity has no summary."
 msgstr "Ta aktywność nie ma podsumowania."
 
-#: openexpress/gui/activity_page.py:234 openexpress/gui/words.py:274
+#: openexpress/gui/activity_page.py:235 openexpress/gui/words.py:274
 msgid "Damaged file"
 msgstr "Plik uszkodzony"
 
-#: openexpress/gui/activity_page.py:242
+#: openexpress/gui/activity_page.py:243
 msgid "The map needs the libshumate library, which is not installed"
 msgstr "Mapa wymaga biblioteki libshumate, której nie ma w systemie"
 
@@ -6464,7 +6464,7 @@ msgstr[2] "Urządzenia przestały odpowiadać. Odłącz je i podłącz ponownie
 
 #. TRANSLATORS: a distance or an ascent in whole metres on the page of an activity
 #: openexpress/gui/words.py:337 openexpress/gui/words.py:380
-#: openexpress/gui/words.py:585
+#: openexpress/gui/words.py:589
 #, python-brace-format
 msgid "{metres} m"
 msgstr "{metres} m"
@@ -6476,19 +6476,19 @@ msgid "{distance} km"
 msgstr "{distance} km"
 
 #. TRANSLATORS: a pace, the time a kilometre takes ("5:10 /km")
-#: openexpress/gui/words.py:352 openexpress/gui/words.py:587
+#: openexpress/gui/words.py:352 openexpress/gui/words.py:591
 #, python-brace-format
 msgid "{pace} /km"
 msgstr "{pace} /km"
 
 #. TRANSLATORS: a pace of a swim, the time a hundred metres take ("2:05 /100 m")
-#: openexpress/gui/words.py:355 openexpress/gui/words.py:589
+#: openexpress/gui/words.py:355 openexpress/gui/words.py:593
 #, python-brace-format
 msgid "{pace} /100 m"
 msgstr "{pace} /100 m"
 
 #. TRANSLATORS: a speed in kilometres an hour ("24.3 km/h")
-#: openexpress/gui/words.py:357 openexpress/gui/words.py:590
+#: openexpress/gui/words.py:357 openexpress/gui/words.py:594
 #, python-brace-format
 msgid "{speed} km/h"
 msgstr "{speed} km/h"
@@ -6575,105 +6575,111 @@ msgstr "Poniżej strefy 1"
 msgid "Zone {number}"
 msgstr "Strefa {number}"
 
-#. TRANSLATORS: the heart rates below zone 1 ("up to 120 bpm")
-#: openexpress/gui/words.py:489
+#. TRANSLATORS: the heart rates below zone 1 ("below 118 bpm")
+#: openexpress/gui/words.py:490
 #, python-brace-format
-msgid "up to {high} bpm"
-msgstr "do {high} ud./min"
+msgid "below {rate} bpm"
+msgstr "poniżej {rate} ud./min"
 
-#. TRANSLATORS: the heart rates of a zone ("121–140 bpm")
-#: openexpress/gui/words.py:491
+#. TRANSLATORS: the heart rates of the top zone, which has no top ("above 182 bpm")
+#: openexpress/gui/words.py:493
+#, python-brace-format
+msgid "above {rate} bpm"
+msgstr "powyżej {rate} ud./min"
+
+#. TRANSLATORS: the heart rates of a zone ("118–140 bpm")
+#: openexpress/gui/words.py:495
 #, python-brace-format
 msgid "{low}–{high} bpm"
 msgstr "{low}–{high} ud./min"
 
 #. TRANSLATORS: the time in a heart-rate zone and its share ("36:30 · 88%")
-#: openexpress/gui/words.py:498
+#: openexpress/gui/words.py:502
 #, python-brace-format
 msgid "{time} · {percent}%"
 msgstr "{time} · {percent}%"
 
 #. TRANSLATORS: under the title of the heart-rate zones ("… (190 bpm)")
-#: openexpress/gui/words.py:507
+#: openexpress/gui/words.py:511
 #, python-brace-format
 msgid "Bounds from the device: % of maximum heart rate ({bpm})"
 msgstr "Granice z zegarka, od tętna maksymalnego ({bpm})"
 
 #. TRANSLATORS: under the title of the heart-rate zones ("… (165 bpm)")
-#: openexpress/gui/words.py:511
+#: openexpress/gui/words.py:515
 #, python-brace-format
 msgid "Bounds from the device: % of lactate threshold ({bpm})"
 msgstr "Granice z zegarka, od progu mleczanowego ({bpm})"
 
 #. TRANSLATORS: under the title of the heart-rate zones
-#: openexpress/gui/words.py:515
+#: openexpress/gui/words.py:519
 msgid "Bounds from the device: % of heart rate reserve"
 msgstr "Granice z zegarka, od rezerwy tętna"
 
 #. TRANSLATORS: under the title of the heart-rate zones: set by the user
-#: openexpress/gui/words.py:518
+#: openexpress/gui/words.py:522
 msgid "Bounds from the device: your own"
 msgstr "Granice z zegarka: własne"
 
 #. TRANSLATORS: the switch above the chart of an activity
-#: openexpress/gui/words.py:529
+#: openexpress/gui/words.py:533
 msgctxt "activity chart"
 msgid "Heart rate"
 msgstr "Tętno"
 
-#: openexpress/gui/words.py:530
+#: openexpress/gui/words.py:534
 msgctxt "activity chart"
 msgid "Elevation"
 msgstr "Wysokość"
 
-#: openexpress/gui/words.py:531 openexpress/gui/words.py:532
+#: openexpress/gui/words.py:535 openexpress/gui/words.py:536
 msgctxt "activity chart"
 msgid "Pace"
 msgstr "Tempo"
 
-#: openexpress/gui/words.py:533
+#: openexpress/gui/words.py:537
 msgctxt "activity chart"
 msgid "Speed"
 msgstr "Prędkość"
 
 #. TRANSLATORS: the unit on top of the axis of the chart of an activity
-#: openexpress/gui/words.py:542
+#: openexpress/gui/words.py:546
 msgctxt "chart unit"
 msgid "bpm"
 msgstr "ud./min"
 
-#: openexpress/gui/words.py:543
+#: openexpress/gui/words.py:547
 msgctxt "chart unit"
 msgid "m"
 msgstr "m"
 
-#: openexpress/gui/words.py:544
+#: openexpress/gui/words.py:548
 msgctxt "chart unit"
 msgid "min/km"
 msgstr "min/km"
 
-#: openexpress/gui/words.py:545
+#: openexpress/gui/words.py:549
 msgctxt "chart unit"
 msgid "min/100 m"
 msgstr "min/100 m"
 
-#: openexpress/gui/words.py:546
+#: openexpress/gui/words.py:550
 msgctxt "chart unit"
 msgid "km/h"
 msgstr "km/h"
 
 #. TRANSLATORS: the name of the chart for a screen reader; {series}: e.g. "Heart rate"
-#: openexpress/gui/words.py:554
+#: openexpress/gui/words.py:558
 #, python-brace-format
 msgid "{series} over time"
 msgstr "{series} w czasie"
 
-#: openexpress/gui/words.py:559
+#: openexpress/gui/words.py:563
 msgid "No heart rate, elevation or speed in this activity"
 msgstr "Brak tętna, wysokości i prędkości w tej aktywności"
 
 #. TRANSLATORS: beside the chart of an activity, where its cursor is on a gap or a pause
-#: openexpress/gui/words.py:597
+#: openexpress/gui/words.py:601
 msgid "no reading"
 msgstr "brak odczytu"
 

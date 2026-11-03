@@ -437,6 +437,22 @@ def test_the_bar_with_stop_waiting_fits_the_narrowest_window(narrow_window, lang
     assert win.action_bar.measure(Gtk.Orientation.HORIZONTAL, -1)[0] <= NARROWEST
 
 
+def _starts(label, anywhere=False) -> set[int]:
+    """Where the lines of a label begin, but the first (offsets of its characters): as it is
+    laid out, or `anywhere` it may be broken (its text laid out a pixel wide)."""
+    from gi.repository import Pango
+
+    layout = label.get_layout()
+    if anywhere:
+        layout = layout.copy()
+        layout.set_width(1)
+        layout.set_wrap(Pango.WrapMode.WORD)
+    text, lines, starts = label.get_label().encode(), layout.get_iter(), set()
+    while lines.next_line():
+        starts.add(len(text[:lines.get_index()].decode()))
+    return starts
+
+
 def _long_hike(sport=17):
     """A hike (or a ride) with all five tiles at their longest (two by two in a narrow window)
     and the chart of three series (its switch: the longest names), its row a copy in a backup
@@ -519,7 +535,14 @@ def test_the_page_of_an_activity_fits_the_narrowest_window(narrow_window, monkey
     assert [w for w in _all(page) if isinstance(w, LapList)]  # its kilometres: no laps kept
     from openexpress.gui.activity_zones import ZoneList
 
-    assert [w for w in _all(page) if isinstance(w, ZoneList)]  # its zones, the longest words
+    (zones,) = [w for w in _all(page) if isinstance(w, ZoneList)]  # the longest words
+    for row in zones.rows:  # a zone's bounds broken between words only, never in "ud./min"
+        (span,) = [w for w in _all(row) if isinstance(w, Gtk.Label) and w.get_label() == row.span]
+        spaces = {i + 1 for i, c in enumerate(row.span) if c == " "}
+        dashes = {i + 1 for i, c in enumerate(row.span) if c == "–"}
+        assert _starts(span) <= spaces, row.span  # a range on one line
+        # Pango breaks after a dash whatever it is told; nowhere else in a word.
+        assert _starts(span, anywhere=True) <= spaces | dashes, row.span
     _iterate(0.2)
     (dot,) = [w for w in _all(page) if w.has_css_class("oe-sport-dot")]
     assert not dot.get_visible()  # not in a narrow window: the start under the title stays whole

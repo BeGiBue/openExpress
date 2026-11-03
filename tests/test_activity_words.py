@@ -153,13 +153,13 @@ def test_the_tiles_by_their_kind_for_their_icons():
 
 ZONES = {
     "en": {"title": "Heart-rate zones", "below": "Below zone 1", "zone": "Zone 3",
-           "up to": "up to 120 bpm", "range": "121–140 bpm", "share": "36:30 · 88%",
+           "share": "36:30 · 88%",
            "threshold": "Bounds from the device: % of lactate threshold (165 bpm)",
            "max": "Bounds from the device: % of maximum heart rate (190 bpm)",
            "reserve": "Bounds from the device: % of heart rate reserve",
            "custom": "Bounds from the device: your own"},
     "pl": {"title": "Strefy tętna", "below": "Poniżej strefy 1", "zone": "Strefa 3",
-           "up to": "do 120 ud./min", "range": "121–140 ud./min", "share": "36:30 · 88%",
+           "share": "36:30 · 88%",
            "threshold": "Granice z\u00a0zegarka, od progu mleczanowego (165 ud./min)",
            "max": "Granice z\u00a0zegarka, od tętna maksymalnego (190 ud./min)",
            "reserve": "Granice z\u00a0zegarka, od rezerwy tętna",
@@ -177,13 +177,37 @@ def test_the_words_of_the_heart_rate_zones(language):
     w, said = words(), ZONES[language]
     assert w.zones_title() == said["title"]
     assert w.zone_name(0) == said["below"] and w.zone_name(3) == said["zone"]
-    bounds = (120, 140, 155, 165, 178, 190)
-    assert w.zone_range(bounds, 0) == said["up to"] and w.zone_range(bounds, 1) == said["range"]
     assert w.zone_share(2190, 2490) == said["share"]
     for method in ("threshold", "max", "reserve", "custom"):
         assert w.zones_method_text(zones(method)) == said[method]
     assert w.zones_method_text(zones(None)) is None
     assert w.zones_method_text(zones("threshold", None)) is None  # its number not given
+
+
+# The bounds as a device keeps them: each the first beat of the zone above it, the last the top
+# of zone 5 (which has none on the page). Zones from the lactate threshold, as Garmin Connect
+# shows them: below zone 1 under 118, zone 1 118–140, …, zone 5 above 182; and from a maximum
+# heart rate of 190.
+ZONE_SPANS = {
+    "threshold": ((118, 141, 158, 170, 183, 195), {
+        "en": ["below 118 bpm", "118–140 bpm", "141–157 bpm", "158–169 bpm", "170–182 bpm",
+               "above 182 bpm"],
+        "pl": ["poniżej 118 ud./min", "118–140 ud./min", "141–157 ud./min", "158–169 ud./min",
+               "170–182 ud./min", "powyżej 182 ud./min"]}),
+    "max": ((95, 114, 133, 152, 171, 190), {
+        "en": ["below 95 bpm", "95–113 bpm", "114–132 bpm", "133–151 bpm", "152–170 bpm",
+               "above 170 bpm"],
+        "pl": ["poniżej 95 ud./min", "95–113 ud./min", "114–132 ud./min", "133–151 ud./min",
+               "152–170 ud./min", "powyżej 170 ud./min"]}),
+}
+
+
+@pytest.mark.parametrize("worked_out", ZONE_SPANS)
+def test_the_heart_rates_of_each_zone_from_its_bounds(language, worked_out):
+    """A bound is the first beat of the zone above it: below zone 1 under the first, a zone
+    from its bound to a beat under the next, zone 5 above a beat under its own, no top."""
+    bounds, said = ZONE_SPANS[worked_out][0], ZONE_SPANS[worked_out][1][language]
+    assert [words().zone_range(bounds, n) for n in range(6)] == said
 
 
 @pytest.mark.parametrize(("sport", "metres", "pace"), [

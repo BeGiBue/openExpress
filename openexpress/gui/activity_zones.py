@@ -8,13 +8,14 @@ Has: no attribute of the window; the list keeps its rows."""
 from __future__ import annotations
 
 import math
+import re
 
 import gi
 
 gi.require_version("Gtk", "4.0")
 gi.require_version("Adw", "1")
 
-from gi.repository import Adw, Gdk, Gtk  # noqa: E402 - imports must follow gi.require_version
+from gi.repository import Adw, Gdk, Gtk, Pango  # noqa: E402 - imports must follow gi.require_version
 
 from openexpress.gui.words import (  # noqa: E402
     zone_name,
@@ -50,6 +51,18 @@ def _draw_bar(bar, cr, width: int, height: int) -> None:
         cr.fill()
 
 
+def _whole_words(text: str) -> Pango.AttrList:
+    """A text broken onto a new line between its words only: never in "ud./min", nor after
+    the dash of "118–140"."""
+    words = Pango.AttrList()
+    for word in re.finditer(r"\S+", text):
+        whole = Pango.attr_allow_breaks_new(False)
+        whole.start_index = len(text[:word.start()].encode())
+        whole.end_index = len(text[:word.end()].encode())
+        words.insert(whole)
+    return words
+
+
 class ZoneBar(Gtk.DrawingArea):
     """The share of a zone in its colour, over the whole of the time; for the eye only (the
     row says it)."""
@@ -77,7 +90,8 @@ class ZoneRow(Gtk.Box):
         self.share_text = zone_share(zones.times[number], total)
         line = Gtk.Box(spacing=10)
         line.append(Gtk.Label(label=self.name, xalign=0))
-        span = Gtk.Label(label=self.span, xalign=0, hexpand=True, wrap=True)
+        span = Gtk.Label(label=self.span, xalign=0, hexpand=True, wrap=True,
+                         attributes=_whole_words(self.span))
         span.add_css_class("dim-label")
         span.add_css_class("caption")
         line.append(span)
