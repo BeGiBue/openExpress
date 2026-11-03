@@ -7,6 +7,7 @@ allows, asked again with what the cache has, nothing said of a place in the log.
 asked of a server here: the download is a stand-in. Every value is made up."""
 
 import itertools
+import logging
 import time
 
 import pytest
@@ -213,10 +214,31 @@ def test_an_old_tile_is_asked_again_with_its_tag(monkeypatch):
     assert fetched == [None, '"t1"'] and again.get_data().get_data() == PNG
 
 
-def test_a_tile_that_cannot_be_downloaded_is_an_error_and_the_log_names_no_place(
-        monkeypatch, caplog):
+def test_a_tile_that_cannot_be_downloaded_is_an_error(monkeypatch):
     needs_shumate()
     monkeypatch.setattr(amap(), "_fetch", lambda url, etag: amap().Fetched(None, None, None, 0))
     request = asked(amap().TileSource(), x=4_321, y=2_718, zoom=13)
     assert request.get_error() is not None
-    assert "4321" not in caplog.text and "2718" not in caplog.text
+
+
+@pytest.mark.parametrize(("failure", "why"), [("answer", "HTTP 500"),
+                                              ("no connection", "ConnectionError")])
+def test_tiles_not_downloaded_are_logged_once_and_name_no_place(monkeypatch, caplog, failure,
+                                                                 why):
+    """Why, once for as long as it lasts: never the tile's place nor the server's address."""
+    import requests
+
+    class Session:
+        def get(self, url, headers, timeout):
+            if failure == "no connection":
+                raise requests.ConnectionError(f"made-up refusal of {url}")
+            return type("Answer", (), {"status_code": 500, "content": b"", "headers": {}})()
+
+    monkeypatch.setattr(amap(), "_session", Session)
+    monkeypatch.setattr(amap(), "_said", set())
+    caplog.set_level(logging.INFO, logger="openexpress.gui.activity_map")
+    for _tile in range(2):
+        amap()._fetch("https://tile.example/13/4321/2718.png", None)
+    said = [r.getMessage() for r in caplog.records if r.name == "openexpress.gui.activity_map"]
+    assert said == [f"activity map: tiles not downloaded ({why})"]
+    assert not [part for part in ("4321", "2718", "tile.example") if part in caplog.text]
