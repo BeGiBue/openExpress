@@ -299,9 +299,12 @@ class Storage(ABC):
 
     def delete_quietly(self, path: str) -> bool:
         """Delete `path` after a failure that is said already: a failure of the deletion goes
-        to the log only (one WARNING). Whether it was deleted."""
+        to the log only (one WARNING), but a stall (DeviceNotResponding) goes on. Whether it was
+        deleted."""
         try:
             self.delete(path)
+        except DeviceNotResponding:
+            raise  # a stall stops what meets it: nothing more is asked of the device
         except Exception as e:  # noqa: BLE001 - cleanup after a failure: that one is reported
             log.warning("Cannot delete %s: %s", path, e)
             return False

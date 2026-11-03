@@ -296,12 +296,12 @@ list (`gio_storage._probe`, for `status` and the start page).
 
 Today `DeviceNotResponding` is a `DeviceError` (D5), so every handler of `DeviceError` that a
 device over MTP can reach has a clause before it that raises the stall on (D6, D8). Counted in
-the syntax tree of the package, there are 54 such clauses in 11 modules:
+the syntax tree of the package, there are 56 such clauses in 11 modules:
 
 | Before | Clauses | Where |
 |---|---|---|
 | a handler of `DeviceError` (in 3 of them `(DeviceError, OSError)`) | 37 (4 of them a tuple: with `RemountFailed`, `SeveralDevices` or `MassStorageNotice`) | `ciq.py` 10, `device/gio_storage.py` 10, `diagnostics.py` 4, `ownmaps.py` 4, `device/storage.py` 3, `maps.py` 2, `cli.py`, `service.py`, `updates.py`, `watch.py` 1 each |
-| a broad handler (`Exception`, `BaseException`) | 17 (6 of them a tuple) | `ciq.py` 5, `sync.py` 4, `maps.py` 3, `device/gio_storage.py` 2, `device/storage.py` 2, `service.py` 1 |
+| a broad handler (`Exception`, `BaseException`) | 19 (6 of them a tuple) | `ciq.py` 5, `sync.py` 4, `device/gio_storage.py` 3, `device/storage.py` 3, `maps.py` 3, `service.py` 1 |
 
 Some of the first kind cannot be reached at all: the handlers inside a PTP session (`ciq.py`)
 see only `PtpError` and `CiqError`, and `_remount` asks the device only through calls that
@@ -313,7 +313,7 @@ already let the stall through.
   `UserFacingError`: its words, exit code 1) and the window (`run_task`: one line of the log,
   `stalled.telling`) say it as today.
   - The 37 clauses before a handler of `DeviceError` go (a stall is no `OSError` either): 33
-    whole, and the 4 tuples lose its name. The 17 before a broad handler stay, as long as those
+    whole, and the 4 tuples lose its name. The 19 before a broad handler stay, as long as those
     handlers do.
   - A stall would no longer reach the handlers of `DeviceError` that have no clause: the three
     that only ever see a drive's folder (`find_ums_devices`, `open_ums_storage`,
@@ -332,7 +332,7 @@ already let the stall through.
     tried again in the tests (a sync, a backup, maps, apps, the opening of a device).
 - **13b. As it is (chosen for now).**
   - \+ Nothing to change; the guard of the syntax tree keeps the clauses complete.
-  - − 54 clauses, some dead, and one more for every new handler.
+  - − 56 clauses, some dead, and one more for every new handler.
 
 Size of 13a: about 70 lines removed and 10 changed in 11 modules, the guard rewritten (about 40
 lines), one commit.
@@ -348,7 +348,7 @@ lines), one commit.
 | `device/gio_storage.py` | Fast failure: after a `DeviceNotResponding` the storage keeps it, and every later operation of it (reads, writes, a delete, a new folder, a refresh, a PTP session) raises it again at once, with the same words, instead of waiting 30 s each. A device opened again while it stays at its place on USB (its tile chosen before the list left it out) is refused at once too ("Cannot open the device"), as a new storage would wait for it again. A device plugged in again is a new mount and a new storage. |
 | `device/gio_storage.py` | `open_device_storage` lets it through at once, also while it waits for a device (the command line, unless `--no-wait`): no try after it and no advice about another program. |
 | `sync.py`, `backup.py` | `DeviceNotResponding` stops the sync or the backup: it goes past the handlers that let one unreadable file not stop them, as a device not mounted again does (the files uploaded, the files of the queue written). The backup stopped at any error and leaves no partial folder already. |
-| other modules | D8: every handler of `DeviceError` lets it through, and the broad ones on the way of the device: TrueUp in a sync (`service._trueup`), an app of the queue and the app list (`ciq._install_pass`, `ciq.write_app_list`), a file other maps use (`maps._write_shared`), the count of activities to sync, the look at a device for a list (`gio_storage._probe`: not one more device that cannot be read). |
+| other modules | D8: every handler of `DeviceError` lets it through, and the broad ones on the way of the device: TrueUp in a sync (`service._trueup`), an app of the queue and the app list (`ciq._install_pass`, `ciq.write_app_list`), a file other maps use (`maps._write_shared`), the count of activities to sync, the look at a device for a list (`gio_storage._probe`: not one more device that cannot be read), the quiet clean-ups after a failure (`Storage.delete_quietly`, `GioStorage._discard_partial`). The guard of the syntax tree counts in a storage's own class the calls of its `self` too. |
 | `device/gio_storage.py` | Log lines, never with a path, a file name or the device's address. A step that reached its limit, in one warning: what it was (a read, a listing, a query, a query of the free space), how long before the step the device last answered the storage ("none yet"), how long before it this process made the storage, and who mounted the device: this process (`mount`, mounting again after a PTP session or a refresh), or not this process, as far as it knows from when it first found it mounted (such a mount may be older than the process), e.g. `device: no answer to a read in 30 s, the device stopped responding; its last answer: 2.3 s before this step; the storage opened 41.0 s before this step; mounted already when this process found it 41.2 s before`. What gvfs answered to the step's cancel is a line of information before it (`gio: read: no answer in 30 s, cancelled; …`). A step answered after more than 5 s (`SLOW_STEP_S`): `device: a listing took 6.2 s`. Quick steps log nothing, also at DEBUG. |
 | `device/gio_storage.py` | D11, D12: the places on USB of the devices that stopped responding (`note_stalled`, `stalled_places`), left out of `find_devices` and of the devices counted on USB (`usb_state`, `garmin_products_on_usb`) until they are gone from there. |
 | `gui/` | D4, D9–D12 (`gui/stalled.py`): after a task met a stall (`run_task`), or the USB poll found one that a work in the background met, the window keeps the device (its place and name), shows the banner on the start page and on the device view (`words.stalled_text`), closes that device if it is the one open, and shows no error dialog for it; the USB poll drops it once it is gone from its place. |

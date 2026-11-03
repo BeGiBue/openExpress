@@ -324,6 +324,20 @@ def test_a_device_still_stalled_is_not_opened_again(quick, monkeypatch, tmp_path
         gio_storage._mtp_storage("mtp://Made_Up_Device/", gio_storage.GarminUsb("51b4", 3, 15))
 
 
+def test_a_quiet_clean_up_lets_a_stall_through(tmp_path):
+    """A file deleted after a failure said already: its own failure goes to the log, but a
+    stall stops what meets it, as everywhere."""
+    from openexpress.device.storage import LocalStorage
+
+    class StallsAtDelete(LocalStorage):
+        def _delete(self, real_path):
+            raise DeviceNotResponding.during(f"Cannot delete {real_path}")
+
+    (tmp_path / "x.fit").write_bytes(b"made-up")
+    with pytest.raises(DeviceNotResponding):
+        StallsAtDelete(tmp_path).delete_quietly("x.fit")
+
+
 # --- no handler takes it for another failure ---------------------------------------------
 
 PACKAGE = Path(openexpress.__file__).parent
@@ -342,18 +356,27 @@ def _caught(handler) -> set[str]:
 BROAD = {"Exception", "BaseException", "OSError"}
 
 
-def _asks_a_storage(nodes) -> bool:
-    """Whether the statements call a method of a storage or pass one on."""
+def _asks_a_storage(nodes, in_a_storage: bool = False) -> bool:
+    """Whether the statements call a method of a storage or pass one on; in a storage's own
+    class (`in_a_storage`), also a method of `self`."""
     def named(node) -> str:
         return node.id if isinstance(node, ast.Name) else getattr(node, "attr", "")
 
     for node in nodes:
         for call in (c for c in ast.walk(node) if isinstance(c, ast.Call)):
-            if isinstance(call.func, ast.Attribute) and "storage" in named(call.func.value).lower():
-                return True
+            if isinstance(call.func, ast.Attribute):
+                owner = named(call.func.value)
+                if "storage" in owner.lower() or (in_a_storage and owner == "self"):
+                    return True
             if any("storage" in named(a).lower() for a in call.args):
                 return True
     return False
+
+
+def _a_storage_class(node: ast.ClassDef) -> bool:
+    """A class of a storage: named so, or made from one."""
+    bases = [b.id if isinstance(b, ast.Name) else getattr(b, "attr", "") for b in node.bases]
+    return node.name.endswith("Storage") or any(b.endswith("Storage") for b in bases)
 
 
 def _raises_again(handler) -> bool:
@@ -368,7 +391,13 @@ class _Handlers(ast.NodeVisitor):
 
     def __init__(self):
         self.functions: list[str] = []
+        self.storages: list[bool] = []
         self.found: list[tuple[str, int]] = []
+
+    def visit_ClassDef(self, node):
+        self.storages.append(_a_storage_class(node))
+        self.generic_visit(node)
+        self.storages.pop()
 
     def visit_FunctionDef(self, node):
         self.functions.append(node.name)
@@ -382,10 +411,12 @@ class _Handlers(ast.NodeVisitor):
         for handler in node.handlers:
             caught = _caught(handler) if handler.type is not None else set()
             broad = handler.type is None or bool(caught & BROAD)
+            in_a_storage = bool(self.storages) and self.storages[-1]
             if "DeviceNotResponding" in caught:
                 passed_on = True
             elif not passed_on and ("DeviceError" in caught or (
-                    broad and _asks_a_storage(node.body) and not _raises_again(handler))):
+                    broad and _asks_a_storage(node.body, in_a_storage)
+                    and not _raises_again(handler))):
                 self.found.append((self.functions[-1] if self.functions else "-",
                                    handler.lineno))
         self.generic_visit(node)
@@ -394,8 +425,9 @@ class _Handlers(ast.NodeVisitor):
 
 
 def test_the_guard_sees_a_handler_that_would_take_a_stall():
-    """Planted handlers: of DeviceError, and a broad one around a storage that does not raise
-    again, are found; with a handler of the stall before them, or raising again, not."""
+    """Planted handlers: of DeviceError, and a broad one around a storage (also its own
+    methods, in a storage's class) that does not raise again, are found; with a handler of the
+    stall before them, or raising again, not."""
     planted = ast.parse(
         "def missing_file(storage):\n"
         "    try:\n"
@@ -424,10 +456,22 @@ def test_the_guard_sees_a_handler_that_would_take_a_stall():
         "    try:\n"
         "        return answer.json()\n"
         "    except Exception:\n"
-        "        return None\n")
+        "        return None\n"
+        "class MadeUpStorage(Storage):\n"
+        "    def quietly(self, path):\n"
+        "        try:\n"
+        "            self.delete(path)\n"
+        "        except Exception:\n"
+        "            pass\n"
+        "class Answer:\n"
+        "    def text(self):\n"
+        "        try:\n"
+        "            return self.decode()\n"
+        "        except Exception:\n"
+        "            return ''\n")
     handlers = _Handlers()
     handlers.visit(planted)
-    assert [function for function, _line in handlers.found] == ["missing_file", "broad"]
+    assert [function for function, _line in handlers.found] == ["missing_file", "broad", "quietly"]
 
 
 def test_every_handler_of_device_errors_lets_a_stall_through():

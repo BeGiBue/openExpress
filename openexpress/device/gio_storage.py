@@ -518,6 +518,8 @@ class GioStorage(Storage):
             return
         try:
             self._delete(real_path)
+        except DeviceNotResponding:
+            raise  # a stall stops what meets it: nothing more is asked of the device
         except Exception as e:  # noqa: BLE001 - cleanup after a failure: that one is reported
             log.warning("Cannot delete a partly copied file: %s", type(e).__name__)
 
