@@ -320,9 +320,32 @@ def _caught(handler) -> set[str]:
     return {k.id if isinstance(k, ast.Name) else getattr(k, "attr", "") for k in kinds if k}
 
 
+BROAD = {"Exception", "BaseException", "OSError"}
+
+
+def _asks_a_storage(nodes) -> bool:
+    """Whether the statements call a method of a storage or pass one on."""
+    def named(node) -> str:
+        return node.id if isinstance(node, ast.Name) else getattr(node, "attr", "")
+
+    for node in nodes:
+        for call in (c for c in ast.walk(node) if isinstance(c, ast.Call)):
+            if isinstance(call.func, ast.Attribute) and "storage" in named(call.func.value).lower():
+                return True
+            if any("storage" in named(a).lower() for a in call.args):
+                return True
+    return False
+
+
+def _raises_again(handler) -> bool:
+    return bool(handler.body) and isinstance(handler.body[-1], ast.Raise) \
+        and handler.body[-1].exc is None
+
+
 class _Handlers(ast.NodeVisitor):
-    """Each handler of DeviceError with no handler of DeviceNotResponding before it in its
-    try, as (function, line)."""
+    """Each handler of DeviceError, and each broad one (Exception, BaseException, OSError, a
+    bare except) around what asks a storage that does not raise again, with no handler of
+    DeviceNotResponding before it in its try, as (function, line)."""
 
     def __init__(self):
         self.functions: list[str] = []
@@ -339,9 +362,11 @@ class _Handlers(ast.NodeVisitor):
         passed_on = False
         for handler in node.handlers:
             caught = _caught(handler) if handler.type is not None else set()
+            broad = handler.type is None or bool(caught & BROAD)
             if "DeviceNotResponding" in caught:
                 passed_on = True
-            elif "DeviceError" in caught and not passed_on:
+            elif not passed_on and ("DeviceError" in caught or (
+                    broad and _asks_a_storage(node.body) and not _raises_again(handler))):
                 self.found.append((self.functions[-1] if self.functions else "-",
                                    handler.lineno))
         self.generic_visit(node)
@@ -350,9 +375,10 @@ class _Handlers(ast.NodeVisitor):
 
 
 def test_every_handler_of_device_errors_lets_a_stall_through():
-    """A handler of DeviceError outside the window has one of DeviceNotResponding before it,
-    which lets the stall through: a stall stops what meets it. The window (gui/) has its
-    own way of saying it."""
+    """A handler of DeviceError outside the window, and a broad one around what asks a
+    storage that does not raise again, has one of DeviceNotResponding before it, which lets
+    the stall through: a stall stops what meets it. The window (gui/) has its own way of
+    saying it."""
     missing, exempt = [], set()
     for path in sorted(PACKAGE.rglob("*.py")):
         rel = path.relative_to(PACKAGE).as_posix()

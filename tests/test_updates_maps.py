@@ -1840,3 +1840,15 @@ def test_the_words_of_an_incomplete_map_in_polish(server):
          "openexpress maps install NAZWA."),
         ("5 map jest niekompletnych na urządzeniu; zainstaluj je ponownie poleceniem "
          "openexpress maps install NAZWA."))
+
+
+def test_a_device_that_stops_answering_while_its_map_files_are_listed_stops_the_check(
+        server, device_root, xdg):
+    """No map is said to wait for unplugging then: the check stops, as everything that meets a
+    device that stopped answering."""
+    from fakes import stalls
+
+    from openexpress.device.storage import DeviceNotResponding
+
+    with pytest.raises(DeviceNotResponding):
+        waiting_maps(server, device_root, stalls(device_root, lists=("",)))

@@ -183,3 +183,35 @@ def test_an_install_puts_back_the_list_that_waited(iq_device):
     with pytest.raises(ciq.CiqError, match="Cannot register the apps on the device"):
         ciq.install_queued(dev, Breaking(st.root), FakeClient(), [FACE_MESSAGE], known={})
     assert waiting(st) == before
+
+
+class BreakingThenStalling(Breaking):
+    """The first write of IN.BIN stops half way; then the device stops answering: at the next
+    write of IN.BIN (the list that waited, written back) or at a delete of it."""
+
+    def __init__(self, root, stall_on: str):
+        super().__init__(root, breaks=1)
+        self.stall_on = stall_on
+
+    def _write(self, real_path, data):
+        if real_path.upper().endswith("IN.BIN") and not self.breaks and self.stall_on == "write":
+            raise DeviceNotResponding("Cannot read GARMIN/APPS/IN.BIN: the device stopped "
+                                      "responding. Unplug it and plug it in again.")
+        super()._write(real_path, data)
+
+    def _delete(self, real_path):
+        if real_path.upper().endswith("IN.BIN") and self.stall_on == "delete":
+            raise DeviceNotResponding("Cannot delete GARMIN/APPS/IN.BIN: the device stopped "
+                                      "responding. Unplug it and plug it in again.")
+        super()._delete(real_path)
+
+
+@pytest.mark.parametrize("stall_on", ["write", "delete"])
+def test_a_device_that_stops_answering_while_the_list_is_put_right_says_so(iq_device, stall_on):
+    """The list is put right on the same device that failed: when it stops answering then,
+    that is said (unplug it), not that the list has to be deleted by hand."""
+    st, dev = iq_device
+    if stall_on == "write":
+        ciq.set_enabled(dev, st, PRELOADED, True)  # a list waits: it is written back
+    with pytest.raises(DeviceNotResponding, match="stopped responding"):
+        ciq.set_enabled(dev, BreakingThenStalling(st.root, stall_on), STORE_ID, False)

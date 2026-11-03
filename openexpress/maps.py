@@ -563,6 +563,8 @@ def mark_waiting(storage: Storage, maps: list[UniversalMap]) -> None:
             for e in storage.listdir(folder):
                 if not e.is_dir:
                     present[posixpath.join(folder, e.name).casefold()] = e.size
+    except DeviceNotResponding:
+        raise  # the device stopped answering: nothing more is asked of it
     except Exception as e:  # noqa: BLE001 - only shown: the map check goes on without it
         log.warning("maps: cannot read the map files on the device, none is marked as "
                     "waiting for unplugging: %s", e)

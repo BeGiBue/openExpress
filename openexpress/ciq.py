@@ -1394,6 +1394,8 @@ def write_app_list(device: GarminDevice, storage: Storage, data: bytes) -> str:
     if before is not None:
         try:
             _write_list_checked(storage, path, before)
+        except DeviceNotResponding:
+            raise  # unplugging it is what helps, not deleting the list by hand
         except Exception as e:  # noqa: BLE001 - then it goes (below)
             log.warning("apps: the app list that waited could not be written back: %s",
                         type(e).__name__)
@@ -1403,6 +1405,8 @@ def write_app_list(device: GarminDevice, storage: Storage, data: bytes) -> str:
     try:
         if storage.exists(path):
             storage.delete(path)
+    except DeviceNotResponding:
+        raise  # unplugging it is what helps, not deleting the list by hand
     except Exception as e:  # noqa: BLE001 - said, with what to do
         log.warning("apps: a half written app list could not be deleted: %s", type(e).__name__)
         raise CiqError(_(
