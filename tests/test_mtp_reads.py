@@ -541,6 +541,23 @@ def test_a_stall_logs_what_it_was_and_how_long_the_device_had_been_quiet(
     assert not [line for line in said if "GARMIN" in line or "x.fit" in line or "Made_Up" in line]
 
 
+@pytest.mark.parametrize(("plan", "read", "step"), [
+    (("open", 1), lambda st: st._read("GARMIN/Activity/x.fit"), "read"),
+    (("space", 1), lambda st: st.free_space(), "query of the free space")])
+def test_a_stall_is_one_warning_that_names_its_step(device, fast, caplog, plan, read, step):
+    """One warning says the stall, its step named as a step; what the cancel was answered is
+    a line of information."""
+    st, _files = device({"GARMIN/Activity/x.fit": a_file(10)},
+                        space={"filesystem::free": 5}, plan={plan: GioOp("never", strict=True)})
+    with caplog.at_level(logging.DEBUG, logger=LOGGER), \
+            pytest.raises(storage.DeviceNotResponding):
+        run_in("worker", lambda: read(st))
+    warnings = [r.getMessage() for r in caplog.records
+                if r.name == LOGGER and r.levelno >= logging.WARNING]
+    assert len(warnings) == 1, warnings
+    assert warnings[0].startswith(f"device: no answer to a {step} in ")
+
+
 def test_a_device_plugged_in_again_has_no_mount_time_of_before(device, fast, monkeypatch, caplog):
     """Mounted by this process, unplugged and plugged in again at the same address of gvfs: a
     new device number on USB, so the log tells no time of the mount before."""

@@ -100,7 +100,7 @@ def look(win) -> None:
             known.add(usb_place(usb))
             log.info("window: a device stopped responding in a work in the background, the "
                      "banner says it")
-    changed = [id(s) for s in left] != [id(s) for s in win._stalled]
+    changed = left != win._stalled  # each the same entry (eq=False: by identity)
     if changed:
         gone = len([s for s in win._stalled if s not in left])
         if gone:

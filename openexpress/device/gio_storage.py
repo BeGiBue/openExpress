@@ -423,7 +423,7 @@ class GioStorage(Storage):
         """gvfs-mtp cannot write streams, only copy a whole local file: the bytes go to a
         temporary file, copied as any file is (_write_file, so that what a copy cut short
         left is known to _discard_partial). Failing before the copy: CopyNotStarted."""
-        self._responding()
+        self._responding()  # before the temporary file, which _write_file would not need
         what = _("Cannot write {path}").format(path=real_path)
         with _staging():
             try:
@@ -559,7 +559,7 @@ class GioStorage(Storage):
             self._step(lambda done, cancellable: self.root.query_filesystem_info_async(
                 attr, GLib.PRIORITY_DEFAULT, cancellable,
                 lambda f, res: done(lambda: found.append(f.query_filesystem_info_finish(res)))),
-                _("Cannot read the space on the device"), "free space")
+                _("Cannot read the space on the device"), "query of the free space")
         except DeviceNotResponding:
             raise
         except DeviceError:
@@ -747,9 +747,8 @@ def find_devices() -> list[FoundDevice]:
             uri = vol.get_activation_root().get_uri()
             if uri.rstrip("/") not in found:
                 found[uri.rstrip("/")] = FoundDevice(uri, vol.get_name(), False, vol, usb)
-    stalled = {usb_place(usb) for usb in stalled_places()} if _stalled_keys() else set()
-    return [d for d in found.values()
-            if usb_place(d.usb) is None or usb_place(d.usb) not in stalled]
+    stalled = {usb_place(usb) for usb in stalled_places()}  # never None
+    return [d for d in found.values() if usb_place(d.usb) not in stalled]
 
 
 # --- the devices that stopped responding --------------------------------------------------
@@ -1726,7 +1725,7 @@ def _mtp_storage(uri: str, usb: GarminUsb | None) -> GioStorage:
     for st in storages + [top]:
         if st.exists("GARMIN/GarminDevice.xml"):
             st.usb_id = usb.usb_id if usb is not None else None
-            st.usb, st.device_uri = usb, uri
+            st.device_uri = uri
             return st
     raise NotThereYet(_("GARMIN/GarminDevice.xml not found on device {uri}").format(uri=uri))
 
@@ -1918,8 +1917,8 @@ def _wait(start, timeout_s: float, what: str, name: str = "operation", context=N
     _steps_context), in the main thread on the global default one. `start(done,
     cancellable)` begins it; `done(finish)` gets a function that raises GLib.Error on failure.
     Raises DeviceError when it fails, GioTimedOut when cancelled at `timeout_s` and not done
-    within CANCEL_WAIT_S. `quiet`: no DEBUG line for an answer in time (the many steps of
-    reads)."""
+    within CANCEL_WAIT_S. `quiet` (the many steps of reads): no DEBUG line for an answer in
+    time, and a time limit reached is information (the storage warns of it)."""
     # Gio gives the answer in the main context that was the default of the thread when the
     # operation began. A worker thread's own context, pushed for the wait, needs nothing of
     # the main thread for the answer and the time limit (the window holds the global default
@@ -1982,20 +1981,22 @@ def _wait(start, timeout_s: float, what: str, name: str = "operation", context=N
         if answers[0] is not None:
             raise _err(answers[0], what)
         return
+    # A step of a read that reached its limit is warned of by the storage (_log_stall).
+    level = logging.INFO if quiet else logging.WARNING
     if not answers:
-        log.warning("gio: %s: no answer in %g s, cancelled; no answer %g s after the cancel "
-                    "either, given up", name, timeout_s, CANCEL_WAIT_S)
+        log.log(level, "gio: %s: no answer in %g s, cancelled; no answer %g s after the cancel "
+                "either, given up", name, timeout_s, CANCEL_WAIT_S)
         raise GioTimedOut(_("{action}: the device did not answer in time").format(action=what))
     answer = answers[0]
     if answer is None:  # done all the same is a success: that is what happened
-        log.warning("gio: %s: no answer in %g s, cancelled; it ended all the same after "
-                    "%.1f s", name, timeout_s, took)
+        log.log(level, "gio: %s: no answer in %g s, cancelled; it ended all the same after "
+                "%.1f s", name, timeout_s, took)
         return
     cancelled_only = answer.matches(Gio.io_error_quark(), Gio.IOErrorEnum.CANCELLED)
     # A cancel ends our wait at once; gvfs may go on (an unmount cancelled at its time limit
     # has been seen to take effect afterwards).
-    log.warning("gio: %s: no answer in %g s, cancelled; its answer: %s%s", name, timeout_s,
-                _answer_code(answer), " (our wait ended, gvfs may go on)" if cancelled_only else "")
+    log.log(level, "gio: %s: no answer in %g s, cancelled; its answer: %s%s", name, timeout_s,
+            _answer_code(answer), " (our wait ended, gvfs may go on)" if cancelled_only else "")
     if cancelled_only:
         raise GioTimedOut(_("{action}: the device did not answer in time").format(action=what))
     raise GioTimedOut(f"{what}: {answer.message}")  # what really happened, as _err says it
