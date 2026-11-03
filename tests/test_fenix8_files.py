@@ -54,8 +54,9 @@ def test_the_moving_time_is_garmin_connect_s(case):
     from openexpress.gui.words import activity_clock
 
     moving = moving_time(data_of(case["file"]))
-    assert activity_clock(moving) == case["ours"]
-    assert abs(moving - seconds(case["connect"])) <= 0.01 * seconds(case["connect"])
+    shown, ours, connect = activity_clock(moving), case["ours"], seconds(case["connect"])
+    assert shown == ours
+    assert abs(moving - connect) <= 0.01 * connect
 
 
 @pytest.mark.parametrize("case", TEMPERATURE, ids=ids(TEMPERATURE))
@@ -63,4 +64,6 @@ def test_the_temperature_is_garmin_connect_s(case):
     """The session keeps whole degrees; Garmin Connect's average is that of the records."""
     from openexpress.gui.words import activity_detail_kinds
 
-    assert dict(activity_detail_kinds(data_of(case["file"])))["temperature"] == case["said"]
+    # Worked out before the comparison: a failure prints only the two texts.
+    said, expected = dict(activity_detail_kinds(data_of(case["file"])))["temperature"], case["said"]
+    assert said == expected

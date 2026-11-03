@@ -646,7 +646,7 @@ class ActivityData:
     avg_heart_rate: int | None = None
     max_heart_rate: int | None = None
     calories: int | None = None
-    samples: tuple[Sample, ...] = ()
+    samples: tuple[Sample, ...] = field(default=(), repr=False)  # positions and times
     laps: tuple[Lap, ...] = ()
     zones: HeartRateZones | None = None
     aerobic_effect: float | None = None  # the training effect, 0.0-5.0

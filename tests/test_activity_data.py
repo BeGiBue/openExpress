@@ -406,3 +406,10 @@ def test_the_temperature_is_that_of_the_records():
     assert (data.avg_temperature, data.min_temperature, data.max_temperature) == (-3, -5, -1)
     data = fit.activity_data(with_temperatures(None, None))  # the session's then
     assert (data.avg_temperature, data.min_temperature, data.max_temperature) == (27, 25, 29)
+
+
+def test_the_records_are_left_out_of_the_text_of_the_data():
+    """A test that fails prints the data it compared: its records (each a position and a time)
+    are not printed with it."""
+    data = fit.activity_data(run())
+    assert data.samples and "Sample(" not in repr(data) and "latitude" not in repr(data)
