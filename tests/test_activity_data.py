@@ -190,12 +190,13 @@ def test_what_is_no_fit_file_is_an_error():
 
 
 def test_a_long_activity_is_read_in_a_few_seconds():
-    """A hike of 8 h with a record every second (28,800 records): its page waits for this."""
+    """A hike of 8 h with a record every second (28,800 records): its page waits for this. The
+    time is this process's, not the clock's, which other work on the computer stretches."""
     records = [record(s, s * 1.2) for s in range(8 * 3600)]
     data = run(records=records)
-    started = time.monotonic()
+    started = time.process_time()
     read = fit.activity_data(data)
-    took = time.monotonic() - started
+    took = time.process_time() - started
     assert len(read.samples) == 8 * 3600
     assert took < 5.0, f"{took:.2f} s"
 

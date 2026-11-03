@@ -17,8 +17,8 @@ from openexpress.device import storage
 
 gio_storage = pytest.importorskip("openexpress.device.gio_storage")
 
-LIMIT = 0.2
-GRACE = 0.2
+LIMIT = 0.15
+GRACE = 0.1
 LOGGER = "openexpress.device.gio_storage"
 URI = "mtp://Made_Up_Device/"
 CHUNK = 256 * 1024  # what a file is read in: the most gvfs reads at a time

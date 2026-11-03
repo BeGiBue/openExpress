@@ -63,7 +63,7 @@ def read_of(source="device", sport=HIKING, state="WHOLE", positions=True):
     return activities.Read(where, found)
 
 
-def a_window(data, *, error="raise", busy=False):
+def a_window(data, *, busy=False):
     """A stand-in window with the real navigation: the list under it; reading gives `data`
     (bytes, None: not readable, an exception: raised)."""
     from gi.repository import Adw, Gtk
@@ -80,7 +80,7 @@ def a_window(data, *, error="raise", busy=False):
 
     toasts = []
     win = window(navigation=navigation, toplevel=toplevel, busy=busy, _action_buttons=[],
-                 run_task=RunNow(error=error), toast=toasts.append,
+                 run_task=RunNow(), toast=toasts.append,
                  activities=types.SimpleNamespace(read_file=read_file))
     win.toasts = toasts
     return win, the_list
@@ -196,16 +196,18 @@ def test_a_file_that_could_not_be_read_is_said_on_the_page(fails):
     assert labels(page).count("12.40 km") == 0
 
 
-def test_what_a_file_still_being_written_a_damaged_one_and_one_without_a_summary_say():
-    win, _the_list = a_window(hike(cut=len(hike()) - 40))
+@pytest.mark.parametrize("state", ["still being written", "damaged", "no summary"])
+def test_what_a_file_still_being_written_a_damaged_one_and_one_without_a_summary_say(state):
+    data = {"still being written": hike(cut=len(hike()) - 40), "damaged": hike(bad_crc=True),
+            "no summary": fit_file(HEART, FitData(1, (START, 110)))}[state]  # no session
+    win, _the_list = a_window(data)
     page = open_page(win, read_of())
-    assert "Still being written: disconnect and reconnect the device" in status_texts(page)
-    win, _the_list = a_window(hike(bad_crc=True))
-    page = open_page(win, read_of())
-    assert "Damaged file" in labels(page) and "12.40 km" in labels(page)
-    win, _the_list = a_window(fit_file(HEART, FitData(1, (START, 110))))  # no session
-    page = open_page(win, read_of())
-    assert "This activity has no summary" in status_texts(page)
+    if state == "damaged":  # its tiles, and that the file is damaged
+        assert "Damaged file" in labels(page) and "12.40 km" in labels(page)
+    else:
+        said = {"still being written": "Still being written: disconnect and reconnect the device",
+                "no summary": "This activity has no summary"}[state]
+        assert said in status_texts(page)
 
 
 def test_while_another_task_runs_no_page_opens():
@@ -427,12 +429,24 @@ def test_the_chart_draws_each_series_with_its_cursor():
         assert with_cursor != plain, button.get_label()
 
 
-def test_the_page_and_its_chart_are_released_once_closed():
-    """No handler of the chart holds its widget or a sibling: back to the list, they go."""
+def closed_and_collected(win) -> None:
+    """Back to the list, the stand-in letting go of what the window does not keep, and the
+    garbage collected."""
     import gc
 
     from gi.repository import GLib
 
+    win.navigation.pop()
+    win.run_task.calls.clear()  # the stand-in keeps every task; the window keeps none
+    win._action_buttons.clear()  # what the window drops as its pages are drawn again
+    for _ in range(3):
+        gc.collect()
+        while GLib.main_context_default().iteration(False):
+            pass
+
+
+def test_the_page_and_its_chart_are_released_once_closed():
+    """No handler of the chart holds its widget or a sibling: back to the list, they go."""
     win, _the_list = a_window(walk())
     page = open_page(win, read_of(sport=WALKING))
     chart = chart_of(page)
@@ -442,21 +456,16 @@ def test_the_page_and_its_chart_are_released_once_closed():
     chart.area.weak_ref(lambda: gone.append("chart"))
     page.weak_ref(lambda: gone.append("page"))
     del chart, page
-    win.navigation.pop()
-    win.run_task.calls.clear()  # the stand-in keeps every task; the window keeps none
-    win._action_buttons.clear()  # what the window drops as its pages are drawn again
-    for _ in range(3):
-        gc.collect()
-        while GLib.main_context_default().iteration(False):
-            pass
+    closed_and_collected(win)
     assert sorted(gone) == ["chart", "page"]
 
 
 # --- the map ---------------------------------------------------------------------------------
 
-NOTE = ("The map can show streets and terrain under the track, from OpenStreetMap. The "
-        "OpenStreetMap server then learns the area of each activity you open. You can turn this "
-        "off again in Preferences.")
+def note_shown(page) -> bool:
+    """Whether the map's note says what the tile server would learn."""
+    return any("server then learns the area of each activity you open" in text
+               for text in labels(page))
 
 
 def map_of(page):
@@ -504,7 +513,7 @@ def test_before_the_yes_the_track_is_on_a_plain_background_with_the_note(no_tile
     page = open_page(win, read_of(sport=WALKING))
     shown = map_of(page)
     assert shown is not None and tile_layers(shown) == [] and shown.tiles is None
-    assert NOTE in labels(page) and show_the_map_button(page) is not None
+    assert note_shown(page) and show_the_map_button(page) is not None
     assert not shown.attribution.get_visible()
     assert no_tile_server == []
 
@@ -519,7 +528,7 @@ def test_show_the_map_turns_the_tiles_on_for_the_program(no_tile_server):
     show_the_map_button(page).emit("clicked")
     shown = map_of(page)
     assert load_gui_settings().get("map_tiles") is True
-    assert len(tile_layers(shown)) == 1 and NOTE not in labels(page)
+    assert len(tile_layers(shown)) == 1 and not note_shown(page)
     assert shown.attribution.get_visible()
     assert COPYRIGHT_URL in shown.attribution.get_label()
     assert "© OpenStreetMap contributors" in shown.attribution.get_label()
@@ -546,7 +555,7 @@ def test_the_yes_is_taken_back_in_preferences(no_tile_server):
                                   "you open")
     row.set_active(False)
     assert load_gui_settings().get("map_tiles") is False
-    assert tile_layers(map_of(page)) == [] and NOTE in labels(page)
+    assert tile_layers(map_of(page)) == [] and note_shown(page)
 
 
 def test_an_activity_without_positions_has_no_map():
@@ -674,10 +683,6 @@ def test_the_chart_s_cursor_is_marked_on_the_map():
 
 
 def test_the_map_has_a_name_for_a_screen_reader_and_is_released_once_closed(no_tile_server):
-    import gc
-
-    from gi.repository import GLib
-
     from openexpress.gui import activity_map
 
     activity_map.set_tiles(True)
@@ -688,13 +693,7 @@ def test_the_map_has_a_name_for_a_screen_reader_and_is_released_once_closed(no_t
     gone = []
     shown.weak_ref(lambda: gone.append("map"))
     del shown, page
-    win.navigation.pop()
-    win.run_task.calls.clear()
-    win._action_buttons.clear()
-    for _ in range(3):
-        gc.collect()
-        while GLib.main_context_default().iteration(False):
-            pass
+    closed_and_collected(win)
     assert gone == ["map"]
 
 
@@ -830,6 +829,11 @@ def until(condition, seconds=5):
         GLib.MainContext.default().iteration(False)
 
 
+def turn(seconds: float) -> None:
+    """The main loop turned for this long (frames drawn, timers run)."""
+    until(lambda: False, seconds)
+
+
 @pytest.mark.parametrize("scale", [1.25, 1.5])
 def test_the_tiles_meet_without_a_seam_at_a_fractional_scale(monkeypatch, scale):
     """White tiles on a black background, the track and its markers hidden: where two tiles
@@ -871,7 +875,7 @@ def test_only_the_tiles_in_view_are_asked_and_those_gone_from_it_let_go(monkeypa
     shown, toplevel = a_map()
     try:
         until(lambda: asked, 2)
-        until(lambda: False, 0.3)
+        turn(0.3)
         width, height = shown.map.get_width(), shown.map.get_height()
         viewport = shown.map.get_viewport()
         view = {activity_map.TILE_URL.format(z=z, x=x, y=y) for z, x, y in (
@@ -900,7 +904,7 @@ def test_a_tile_that_failed_is_asked_again_once_the_network_is_back(monkeypatch)
         first = [url for url, _c, _d in asked]
         for _url, _c, done in list(asked):
             done(activity_map.Fetched(None, None, None, 0))  # not reached
-        until(lambda: False, 0.3)
+        turn(0.3)
         assert len(asked) == len(first)  # not asked again while offline
         monitor.change(True)
         until(lambda: len(asked) >= 2 * len(first), 2)
@@ -986,7 +990,7 @@ def test_while_the_zoom_changes_the_map_is_never_empty(monkeypatch, steps):
         no_more_tiles(monkeypatch)
         for step in steps:
             viewport.set_zoom_level(start + step)
-            until(lambda: False, 0.05)  # a few frames
+            turn(0.05)  # a few frames
             shown_before = min(1.0, 2 ** step)  # the middle of the view, zoomed out
             assert uncovered(shown.map, shown_before) == 255, f"empty at {step:+} zoom"
     finally:
@@ -1005,7 +1009,7 @@ def test_the_tiles_of_the_zoom_before_are_let_go_once_the_new_ones_are_drawn(mon
         until(lambda: uncovered(shown.map) == 255)
         viewport.set_zoom_level(zoom + 1)
         until(lambda: uncovered(shown.map) == 255 and not shown.tiles.asked)
-        until(lambda: False, 0.1)
+        turn(0.1)
         assert {key[0] for key in shown.tiles.textures} == {zoom + 1}
     finally:
         toplevel.destroy()
@@ -1175,7 +1179,7 @@ def test_the_chosen_lap_is_a_band_behind_the_chart(monkeypatch):
     try:
         chart = chart_of(page)
         lap_rows(page)[1].emit("activated")
-        until(lambda: False, 0.2)
+        turn(0.2)
         area = chart.area
         plot = activity_chart._plot(area, area.get_width(), area.get_height())
         start, end = area.lap
@@ -1402,7 +1406,7 @@ def test_a_dot_of_the_sport_s_colour_before_the_title_not_in_a_narrow_window(mon
         dot = sport_dot(page)
         assert dot is not None and dot.has_css_class("oe-sport-foot") and dot.get_mapped()
         assert dot.get_ancestor(Adw.HeaderBar) is not None
-        until(lambda: False, 0.1)
+        turn(0.1)
         pixels = colours_of(dot)
         middle = pixels[len(pixels) // 2][len(pixels[0]) // 2]
         assert middle == pytest.approx((0x26, 0xa2, 0x69), abs=3)
@@ -1564,7 +1568,7 @@ def test_the_bands_of_the_zones_behind_the_chart_of_heart_rate(monkeypatch):
     try:
         area = chart_of(page).area
         assert area.zones == ZONE_BOUNDS
-        until(lambda: False, 0.2)
+        turn(0.2)
         plot = activity_chart._plot(area, area.get_width(), area.get_height())
         pixels = colours_of(area, "white")
         x = round(plot.x(150))  # the line at 110 bpm there
@@ -1587,7 +1591,7 @@ def test_the_bar_of_the_chart_s_switch_has_no_background_under_the_pointer(monke
         top = chart_of(page).get_first_child()
         child = top.get_first_child()
         child.set_state_flags(Gtk.StateFlags.PRELIGHT, False)
-        until(lambda: False, 0.2)
+        turn(0.2)
         last = child.get_child().get_last_child()  # the last of the switch's buttons
         _ok, place = last.compute_bounds(win.toplevel)
         _ok, bar = top.compute_bounds(win.toplevel)

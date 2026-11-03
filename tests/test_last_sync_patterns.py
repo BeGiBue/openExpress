@@ -21,8 +21,6 @@ NOTHING_NEW = {"No new data to upload", "Brak nowych danych do wysłania"}
 
 # name: {language: (the numbers, [(a line of the details, whether it is a warning)])}
 EXPECTED = {
-    # A sync of an Edge 1050 (real-flatpak-edge-1050-0.6.13.json): the record has two steps,
-    # shown once each, not under "No new data to upload" of the sync before.
     # No new file on the device, a course from Garmin Connect written: the row of a device that
     # has new activities by now (test_the_row_says_what_is_to_upload_now).
     "format-nothing-new-one-course-received.json": {
@@ -30,6 +28,8 @@ EXPECTED = {
             ("1 file from Garmin Connect: courses", False)]),
         "pl": ("nic do wysłania · 1 odebrany", [
             (f"1 plik z{NB}Garmin Connect: kursy", False)])},
+    # A sync of an Edge 1050 (real-flatpak-edge-1050-0.6.13.json): the record has two steps,
+    # shown once each, not under "No new data to upload" of the sync before.
     "real-flatpak-edge-1050-0.6.13.json": {
         "en": ("16 new files, 12 uploaded", [
             (("Files from the device: monitoring ×2, segment list, Garmin Coach plan ×9, "

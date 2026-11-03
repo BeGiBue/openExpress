@@ -183,6 +183,7 @@ def _activity_page(win, device_root):
     """The Activities page of the made-up device with a hike of its own, and the hike's row
     clicked: its page, its file read at once (the window's tasks run at once)."""
     from fakes import FitData, FitDefinition, RunNow, fit_file
+    from gi.repository import Adw
 
     session = FitDefinition(2, 18, ((2, 0x86), (5, 0x00), (7, 0x86), (8, 0x86), (9, 0x86),
                                     (124, 0x86), (16, 0x02), (22, 0x84)))
@@ -193,7 +194,7 @@ def _activity_page(win, device_root):
     win.select_section("activities")
     _turn()
     rows = [r for r in descendants(win.sections["activities"].page)
-            if r.__class__.__name__ == "ActionRow" and r.get_title() == "Hiking"]
+            if isinstance(r, Adw.ActionRow) and r.get_title() == "Hiking"]
     assert len(rows) == 1 and rows[0].get_activatable()
     win.navigation.set_animate_transitions(False)  # the arrow in view is then the page's own
     rows[0].emit("activated")

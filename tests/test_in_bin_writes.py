@@ -152,24 +152,15 @@ def test_an_install_whose_list_is_cut_short_takes_back_its_app(iq_device):
     assert client.acks == []
 
 
-def test_a_stall_while_an_app_is_written_stops_the_install(iq_device):
-    """The device stops responding at the app's file: the install stops with it, no list is
-    written, nothing is acknowledged (the app comes again)."""
+@pytest.mark.parametrize("stalling", [".PRG", "IN.BIN"], ids=["the app's file", "the list"])
+def test_a_stall_while_an_app_or_its_list_is_written_stops_the_install(iq_device, stalling):
+    """The device stops responding at the app's file, or at its list once the file is written:
+    the install stops with it, nothing more is asked of the device (no list written back or
+    deleted, which would wait on it), nothing is acknowledged (the app comes again)."""
     st, dev = iq_device
     client = FakeClient()
     with pytest.raises(DeviceNotResponding):
-        ciq.install_queued(dev, stalls(st.root, writes=(".PRG",)), client, [FACE_MESSAGE],
-                           known={})
-    assert waiting(st) is None and client.acks == []
-
-
-def test_a_stall_while_the_list_is_written_is_not_put_right(iq_device):
-    """The app's file is written, its list stalls: nothing more is asked of the device (no list
-    written back or deleted, which would wait on it), nothing is acknowledged."""
-    st, dev = iq_device
-    client = FakeClient()
-    with pytest.raises(DeviceNotResponding):
-        ciq.install_queued(dev, stalls(st.root, writes=("IN.BIN",)), client, [FACE_MESSAGE],
+        ciq.install_queued(dev, stalls(st.root, writes=(stalling,)), client, [FACE_MESSAGE],
                            known={})
     assert waiting(st) is None and client.acks == []
 

@@ -444,7 +444,11 @@ def _starts(label, anywhere=False) -> set[int]:
     return starts
 
 
-def _long_hike(sport=17):
+HIKING, CYCLING = 17, 2  # FIT sports: a pace, a speed
+LONG_DETAILS = 15  # the rows of details of _long_hike; a ride has no steps
+
+
+def _long_hike(sport=HIKING):
     """A hike (or a ride) with all five tiles at their longest (two by two in a narrow window)
     and the chart of three series (its switch: the longest names), its row a copy in a backup
     with positions (the GPX button in its header bar)."""
@@ -477,8 +481,22 @@ def _long_hike(sport=17):
     return read, data
 
 
+def _zone_bounds_break_between_words(zones) -> None:
+    """Each zone's bounds on one line, or broken between words: never in "ud./min"."""
+    from gi.repository import Gtk
+
+    for row in zones.rows:
+        (span,) = [w for w in descendants(row)
+                   if isinstance(w, Gtk.Label) and w.get_label() == row.span]
+        spaces = {i + 1 for i, c in enumerate(row.span) if c == " "}
+        dashes = {i + 1 for i, c in enumerate(row.span) if c == "–"}
+        assert _starts(span) <= spaces, row.span  # a range on one line
+        # Pango breaks after a dash whatever it is told; nowhere else in a word.
+        assert _starts(span, anywhere=True) <= spaces | dashes, row.span
+
+
 @pytest.mark.parametrize("tiles", [False, True])  # the map before the yes, and after
-@pytest.mark.parametrize("sport", [17, 2])  # a hike (Pace), a ride (Speed)
+@pytest.mark.parametrize("sport", [HIKING, CYCLING])
 @pytest.mark.parametrize("language", ["en", "pl"])
 def test_the_page_of_an_activity_fits_the_narrowest_window(narrow_window, monkeypatch, language,
                                                            sport, tiles):
@@ -489,7 +507,12 @@ def test_the_page_of_an_activity_fits_the_narrowest_window(narrow_window, monkey
     from fakes import RunNow
     from gi.repository import Adw, Gtk
 
-    from openexpress.gui import activity_page
+    from openexpress.gui import activity_map, activity_page
+    from openexpress.gui.activity_chart import ActivityChart
+    from openexpress.gui.activity_details import DetailsList
+    from openexpress.gui.activity_effect import EffectList
+    from openexpress.gui.activity_laps import LapList
+    from openexpress.gui.activity_zones import ZoneList
     from openexpress.gui.words import activity_start as read_start
 
     win = narrow_window(language)
@@ -498,8 +521,6 @@ def test_the_page_of_an_activity_fits_the_narrowest_window(narrow_window, monkey
     win.navigation.set_animate_transitions(False)
     win.navigation.push(win.device_view)
     win.select_section("activities")
-    from openexpress.gui import activity_map
-
     read, data = _long_hike(sport)
     monkeypatch.setattr(activity_page, "_data", lambda found, activity: data)
     monkeypatch.setattr(activity_map, "_fetch",
@@ -515,8 +536,6 @@ def test_the_page_of_an_activity_fits_the_narrowest_window(narrow_window, monkey
         [w for w in descendants(page) if isinstance(w, Gtk.FlowBoxChild)
          and w.get_child().has_css_class("card")]) == 5
     assert len([w for w in descendants(page) if isinstance(w, Gtk.ToggleButton)]) == 3
-    from openexpress.gui.activity_chart import ActivityChart
-
     (chart,) = [w for w in descendants(page) if isinstance(w, ActivityChart)]
     chart.area.place(180_000)
     assert chart.value_label.get_label()
@@ -529,27 +548,13 @@ def test_the_page_of_an_activity_fits_the_narrowest_window(narrow_window, monkey
     assert shown.legend.get_visible() and shown.legend.scale.get_visible()  # the track's colours
     assert shown.attribution.get_visible() is tiles
     assert shown.note.get_visible() is not tiles
-    from openexpress.gui.activity_laps import LapList
-
     assert [w for w in descendants(page) if isinstance(w, LapList)]  # its kilometres: no laps kept
-    from openexpress.gui.activity_zones import ZoneList
-
     (zones,) = [w for w in descendants(page) if isinstance(w, ZoneList)]  # the longest words
-    for row in zones.rows:  # a zone's bounds broken between words only, never in "ud./min"
-        (span,) = [w for w in descendants(row) if isinstance(w, Gtk.Label) and w.get_label() == row.span]
-        spaces = {i + 1 for i, c in enumerate(row.span) if c == " "}
-        dashes = {i + 1 for i, c in enumerate(row.span) if c == "–"}
-        assert _starts(span) <= spaces, row.span  # a range on one line
-        # Pango breaks after a dash whatever it is told; nowhere else in a word.
-        assert _starts(span, anywhere=True) <= spaces | dashes, row.span
-    from openexpress.gui.activity_effect import EffectList
-
-    assert [w for w in descendants(page) if isinstance(w, EffectList)]  # its longest words of the scale
-    from openexpress.gui.activity_details import DetailsList
-
+    _zone_bounds_break_between_words(zones)
+    assert [w for w in descendants(page) if isinstance(w, EffectList)]  # the scale's longest words
     (details,) = [w for w in descendants(page) if isinstance(w, DetailsList)]  # open, every row
     details.expander.set_expanded(True)
-    assert len(details.rows) == (15 if sport == 17 else 14)  # a ride: no steps
+    assert len(details.rows) == LONG_DETAILS - (sport == CYCLING)
     _iterate(0.2)
     (dot,) = [w for w in descendants(page) if w.has_css_class("oe-sport-dot")]
     assert not dot.get_visible()  # not in a narrow window: the start under the title stays whole

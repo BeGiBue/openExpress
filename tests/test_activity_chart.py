@@ -100,12 +100,13 @@ def test_a_speed_worked_out_from_the_distance_when_the_records_do_not_give_it():
 
 
 def test_a_long_activity_is_ready_for_its_chart_at_once():
-    """A hike of 8 h with a record every second: its series in well under a second or two."""
+    """A hike of 8 h with a record every second: its series in well under a second or two of
+    this process's time (not the clock's, which other work on the computer stretches)."""
     data = activity([sample(s, distance=s * 1.2, speed=1.2 + (s % 7) / 10, heart_rate=120,
                             altitude=400 + s % 300) for s in range(8 * 3600)])
-    started = time.monotonic()
+    started = time.process_time()
     found = chart().chart_series(data)
-    took = time.monotonic() - started
+    took = time.process_time() - started
     assert len(found) == 3 and took < 2.0, f"{took:.2f} s"
 
 
