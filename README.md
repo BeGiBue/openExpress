@@ -87,8 +87,8 @@ devices that connect over USB (MTP) should work too – reports are welcome.
 
 What works on each, and the reports in full: [Supported devices](docs/devices.md). A device
 that connects as a USB drive gets its information, software updates and backups; a watch in
-this mode is also synced, both ways, with the Sync button or `openexpress sync` (new; confirmed
-on an Instinct 2S, [#24](https://github.com/TomaszBojanowski/openExpress/issues/24): more reports
+this mode is also synced, both ways, with the Sync button or `openexpress sync` (confirmed on
+an Instinct 2S, [#24](https://github.com/TomaszBojanowski/openExpress/issues/24): more reports
 welcome). Apps, maps and music are for MTP devices only.
 
 ## Install
