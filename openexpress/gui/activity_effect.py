@@ -13,7 +13,7 @@ gi.require_version("Adw", "1")
 
 from gi.repository import Adw, Gdk, Gtk  # noqa: E402 - imports must follow gi.require_version
 
-from openexpress.gui.activity_chart import accent_color  # noqa: E402
+from openexpress.gui.activity_colours import accent_color  # noqa: E402
 from openexpress.gui.activity_zones import ZoneBar  # noqa: E402
 from openexpress.gui.words import (  # noqa: E402
     effect_name,

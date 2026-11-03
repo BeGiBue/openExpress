@@ -1509,7 +1509,7 @@ def effect_section(page):
 def test_the_training_effect_under_the_zones(monkeypatch):
     """Aerobic and anaerobic, each its value with its word and a bar over 0-5 in the accent
     colour; the training load as a whole number, no bar."""
-    from openexpress.gui.activity_chart import accent_color
+    from openexpress.gui.activity_colours import accent_color
 
     _win, page = page_of(monkeypatch, with_effect(zoned(lapped_walk()), aerobic=2.4,
                                                   anaerobic=1.2))
@@ -1633,3 +1633,62 @@ def test_no_details_without_them_in_the_file(monkeypatch):
     """A workout whose file gives only what its tiles show."""
     _win, page = page_of(monkeypatch, plateaus(), sport=TRAINING)
     assert detail_section(page) is None and "Details" not in labels(page)
+
+
+@pytest.mark.parametrize("dark", [False, True])
+def test_the_cursor_on_the_map_is_the_colour_of_the_chart_s(dark):
+    """The marker of the chart's cursor on the map is drawn in the accent colour of the chart's
+    cursor and line, in either style."""
+    import cairo
+    from gi.repository import Adw
+
+    from openexpress.gui import activity_chart, activity_map
+
+    style = Adw.StyleManager.get_default()
+    style.set_color_scheme(Adw.ColorScheme.FORCE_DARK if dark else Adw.ColorScheme.FORCE_LIGHT)
+    try:
+        surface = cairo.ImageSurface(cairo.FORMAT_RGB24, 20, 20)
+        activity_map._draw_cursor(None, cairo.Context(surface), 20, 20)
+        surface.flush()
+        data, stride = surface.get_data(), surface.get_stride()
+        blue, green, red = data[10 * stride + 40:10 * stride + 43]
+        accent = activity_chart.accent_color()  # the chart's own
+        off = max(abs(drawn - c * 255)
+                  for drawn, c in zip((red, green, blue), (accent.red, accent.green, accent.blue)))
+        assert off <= 1  # cairo rounds a colour its own way
+    finally:
+        style.set_color_scheme(Adw.ColorScheme.DEFAULT)
+
+
+@pytest.mark.parametrize("dark", [False, True])
+def test_without_the_accent_colours_a_line_is_in_the_blue_of_the_style(dark, monkeypatch):
+    """Before libadwaita 1.6 (no accent colours) the chart's line is in libadwaita's blue for a
+    line on the window of the style: lighter in the dark style, and at 3:1 at least from the
+    window's background in either."""
+    from types import SimpleNamespace
+
+    from gi.repository import Adw
+
+    from openexpress.gui import activity_colours
+
+    style = Adw.StyleManager.get_default()
+    style.set_color_scheme(Adw.ColorScheme.FORCE_DARK if dark else Adw.ColorScheme.FORCE_LIGHT)
+    try:
+        monkeypatch.setattr(activity_colours, "Adw", SimpleNamespace(StyleManager=Adw.StyleManager))
+        line = activity_colours.accent_color()
+        other = activity_colours.BLUE[not dark]
+    finally:
+        style.set_color_scheme(Adw.ColorScheme.DEFAULT)
+
+    def luminance(rgb):
+        return sum(w * (c / 12.92 if c <= 0.04045 else ((c + 0.055) / 1.055) ** 2.4)
+                   for w, c in zip((0.2126, 0.7152, 0.0722), rgb))
+
+    ours = luminance((line.red, line.green, line.blue))
+    theirs = luminance(tuple(int(other[i:i + 2], 16) / 255 for i in (1, 3, 5)))
+    background = "#222226" if dark else "#fafafb"  # the window's
+    window = luminance(tuple(int(background[i:i + 2], 16) / 255 for i in (1, 3, 5)))
+    contrast = (max(ours, window) + 0.05) / (min(ours, window) + 0.05)
+    lighter_in_the_dark = (ours > theirs) == dark
+    assert lighter_in_the_dark
+    assert contrast >= 3

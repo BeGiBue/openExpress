@@ -20,11 +20,12 @@ import cairo
 import gi
 
 gi.require_version("Gtk", "4.0")
-gi.require_version("Adw", "1")
+gi.require_version("Gdk", "4.0")
 gi.require_version("PangoCairo", "1.0")
 
-from gi.repository import Adw, Gdk, GObject, Gtk, Pango, PangoCairo  # noqa: E402 - imports must follow gi.require_version
+from gi.repository import Gdk, GObject, Gtk, Pango, PangoCairo  # noqa: E402 - imports must follow gi.require_version
 
+from openexpress.gui.activity_colours import accent_color  # noqa: E402
 from openexpress.gui.activity_zones import ZONE_COLORS  # noqa: E402
 from openexpress.gui.words import (  # noqa: E402
     activity_clock,
@@ -59,7 +60,6 @@ NICE = (1, 2, 2.5, 5, 10)
 TIME_STEPS = (5, 10, 15, 30, 60, 120, 300, 600, 900, 1200, 1800, 3600, 7200, 10_800, 21_600,
               43_200, 86_400)
 PACE_STEPS = (1, 2, 5, 10, 15, 30, 60, 120, 300, 600, 900, 1800, 3600)
-ACCENT = "#3584e4"  # libadwaita's blue, where the accent colour is not known
 
 
 @dataclass(frozen=True)
@@ -421,16 +421,6 @@ def _plot(area, width: int, height: int) -> Plot:
     right = width - max(8, last / 2 + 2)
     times = time_axis(series.duration, max(2, int((right - left) // (last + 24))))
     return Plot(left, top, right, bottom, times, values, faster_on_top(series.kind))
-
-
-def accent_color() -> Gdk.RGBA:
-    """The accent colour of the desktop for a line (libadwaita 1.6 and later), else blue."""
-    manager = Adw.StyleManager.get_default()
-    if hasattr(manager, "get_accent_color") and hasattr(Adw, "AccentColor"):
-        return Adw.AccentColor.to_standalone_rgba(manager.get_accent_color(), manager.get_dark())
-    rgba = Gdk.RGBA()
-    rgba.parse(ACCENT)
-    return rgba
 
 
 def _text(area, cr, text: str, x: float, y: float, align: float, color) -> None:

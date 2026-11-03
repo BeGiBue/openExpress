@@ -189,8 +189,9 @@ its height and narrows; the lap rows wrap.
   orange-red (`#e5420e`, 4 px) with a dark edge (`#6b1d05`, 1.5 px on each side), seen on the
   water, the green and the streets of the tiles and on the plain background, whatever the accent
   colour of the desktop; its start a green disc, its finish a chequered one, a loop's (a finish
-  closer than 50 m) one disc half of each; the marker of the cursor in the accent colour, 20 px
-  with a white ring, above them. The tiles are drawn by openExpress (a layer of its own), not by
+  closer than 50 m) one disc half of each; the marker of the cursor in the accent colour of the
+  chart's cursor (libadwaita's shade for a line or a mark on the window), 20 px with a white
+  ring, above them. The tiles are drawn by openExpress (a layer of its own), not by
   libshumate's: libshumate places its tiles on whole pixels of the widget's whole scale, so on
   a screen at a fractional scale (125 %) two tiles meet between two pixels and the background
   shows through as a thin line. Each tile is drawn a pixel past its right and bottom edges,

@@ -248,6 +248,8 @@ def test_the_guard_sees_every_way_of_replacing_a_name():
 ALONE_ON_PURPOSE = {
     ("test_narrow_window.py", "start", "Adw"):
         "the row of chips of start.py without Adw.WrapBox (libadwaita < 1.7), nothing else",
+    ("test_activity_page.py", "activity_colours", "Adw"):
+        "the accent colour without Adw.AccentColor (libadwaita < 1.6), nothing else",
 }
 
 

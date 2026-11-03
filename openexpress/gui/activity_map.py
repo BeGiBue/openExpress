@@ -42,7 +42,7 @@ except (ValueError, ImportError):  # not installed (the version from source): no
 
 from openexpress import __version__, cache, paths, useragent  # noqa: E402
 from openexpress.gui import activity_colours  # noqa: E402
-from openexpress.gui.activity_chart import ACCENT, GAP_S  # noqa: E402
+from openexpress.gui.activity_chart import GAP_S  # noqa: E402
 from openexpress.gui.gui_settings import load_gui_settings, update_gui_settings  # noqa: E402
 from openexpress.i18n import _  # noqa: E402
 
@@ -766,15 +766,6 @@ def _rgba(text: str) -> Gdk.RGBA:
     return color
 
 
-def cursor_color() -> Gdk.RGBA:
-    """The accent colour of the desktop in its strong shade (libadwaita 1.6 and later), as the
-    chart's cursor; else libadwaita's blue."""
-    manager = Adw.StyleManager.get_default()
-    if hasattr(manager, "get_accent_color_rgba"):
-        return manager.get_accent_color_rgba()
-    return _rgba(ACCENT)
-
-
 def _disc(cr, width: int, height: int, ring: float) -> tuple[float, float, float]:
     """A marker's disc: a thin dark edge and a white ring `ring` wide; its middle (x, y,
     radius) left to fill."""
@@ -790,7 +781,7 @@ def _disc(cr, width: int, height: int, ring: float) -> tuple[float, float, float
 
 def _draw_cursor(_area, cr, width: int, height: int) -> None:
     x, y, radius = _disc(cr, width, height, 3)
-    color = cursor_color()
+    color = activity_colours.accent_color()  # as the chart's cursor
     cr.arc(x, y, radius, 0, 2 * math.pi)
     cr.set_source_rgba(color.red, color.green, color.blue, 1)
     cr.fill()

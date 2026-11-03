@@ -10,6 +10,8 @@ the light style (#fafafb) and in the dark one (#222226); on the tiles a dark edg
 track does it. It has no green and no yellow; still, with deuteranopia or protanopia its blue
 and its purple look alike, and its order is seen by its lightness and said by the legend. A
 point where the series has no value is grey. The numbers need no screen.
+The chart's line and cursor, the cursor's marker on the map and the bars of the training effect
+are in one accent colour (accent_color).
 Has: no attribute of the window; the map keeps its legend (gui/activity_map.py)."""
 from __future__ import annotations
 
@@ -19,8 +21,9 @@ import math
 import gi
 
 gi.require_version("Gtk", "4.0")
+gi.require_version("Adw", "1")
 
-from gi.repository import Gtk  # noqa: E402 - imports must follow gi.require_version
+from gi.repository import Adw, Gdk, Gtk  # noqa: E402 - imports must follow gi.require_version
 
 from openexpress.gui.gui_settings import load_gui_settings, update_gui_settings  # noqa: E402
 from openexpress.gui.words import (  # noqa: E402
@@ -36,6 +39,21 @@ EDGE = "#241f31"  # the dark edge under a coloured track
 NO_VALUE = "#8a898e"  # where the series has no value
 LEGEND_WIDTH = 96  # pixels of the scale in the legend
 LEGEND_HEIGHT = 8
+# libadwaita's blue for a line on the window (its accent colour in 1.5, which has no other), in
+# the light style and in the dark one
+BLUE = {False: "#1c71d8", True: "#78aeed"}
+
+
+def accent_color() -> Gdk.RGBA:
+    """The desktop's accent colour in the shade for a line or a mark on the window's background
+    (libadwaita's standalone one from 1.6), else libadwaita's blue; each as the window's style
+    has it."""
+    manager = Adw.StyleManager.get_default()
+    if hasattr(Adw, "AccentColor"):
+        return Adw.AccentColor.to_standalone_rgba(manager.get_accent_color(), manager.get_dark())
+    color = Gdk.RGBA()
+    color.parse(BLUE[manager.get_dark()])
+    return color
 
 
 def _srgb(linear: float) -> float:
