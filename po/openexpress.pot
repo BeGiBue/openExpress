@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: openexpress 0.8.1\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-11-03 20:54+0100\n"
+"POT-Creation-Date: 2026-11-03 21:16+0100\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -912,8 +912,8 @@ msgstr ""
 
 #. TRANSLATORS: a device connected as a USB drive, not over MTP
 #: openexpress/cli.py:250 openexpress/cli.py:714 openexpress/cli.py:853
-#: openexpress/gui/app.py:423 openexpress/gui/detection.py:547
-#: openexpress/gui/detection.py:564 openexpress/gui/device_page.py:940
+#: openexpress/gui/app.py:423 openexpress/gui/detection.py:550
+#: openexpress/gui/detection.py:567 openexpress/gui/device_page.py:940
 msgid "USB drive"
 msgstr ""
 
@@ -1120,7 +1120,7 @@ msgstr ""
 
 #. TRANSLATORS: strftime format of a date in the popover of the server state button
 #: openexpress/cli.py:499 openexpress/cli.py:931 openexpress/cli.py:1081
-#: openexpress/cli.py:1089 openexpress/gui/words.py:268 openexpress/i18n.py:168
+#: openexpress/cli.py:1089 openexpress/gui/words.py:267 openexpress/i18n.py:168
 #: openexpress/netstatus.py:209 openexpress/netstatus.py:240
 msgid "%Y-%m-%d"
 msgstr ""
@@ -1339,7 +1339,7 @@ msgstr ""
 
 #. TRANSLATORS: the subtitle of "Last sync" after the files of the device were marked as
 #. uploaded without a sync (or synced by an old version)
-#: openexpress/cli.py:732 openexpress/gui/words.py:141
+#: openexpress/cli.py:732 openexpress/gui/words.py:142
 msgid "No record of the last sync; the next sync uploads new data only"
 msgstr ""
 
@@ -1358,8 +1358,8 @@ msgid "an update is ready: unplug the device to install it"
 msgstr ""
 
 #. TRANSLATORS: the state of the updates, without a full stop
-#: openexpress/cli.py:760 openexpress/cli.py:789 openexpress/gui/words.py:74
-#: openexpress/gui/words.py:116
+#: openexpress/cli.py:760 openexpress/cli.py:789 openexpress/gui/words.py:75
+#: openexpress/gui/words.py:117
 msgid "Software is up to date"
 msgstr ""
 
@@ -1416,13 +1416,13 @@ msgid "Devices this installation has seen:"
 msgstr ""
 
 #: openexpress/cli.py:856 openexpress/gui/device_page.py:907
-#: openexpress/gui/start_window.py:222 openexpress/gui/words.py:189
+#: openexpress/gui/start_window.py:222 openexpress/gui/words.py:190
 #, python-brace-format
 msgid "Software {version}"
 msgstr ""
 
-#: openexpress/cli.py:857 openexpress/gui/words.py:211
-#: openexpress/gui/words.py:217
+#: openexpress/cli.py:857 openexpress/gui/words.py:212
+#: openexpress/gui/words.py:218
 #, python-brace-format
 msgid "Last seen {when}"
 msgstr ""
@@ -3287,76 +3287,76 @@ msgstr ""
 msgid "Cannot read the space on the device"
 msgstr ""
 
-#: openexpress/device/gio_storage.py:1138
-#: openexpress/device/gio_storage.py:1209
-#: openexpress/device/gio_storage.py:2032
+#: openexpress/device/gio_storage.py:1140
+#: openexpress/device/gio_storage.py:1211
+#: openexpress/device/gio_storage.py:2034
 msgid "Cannot mount the device"
 msgstr ""
 
-#: openexpress/device/gio_storage.py:1160
-#: openexpress/device/gio_storage.py:2006
+#: openexpress/device/gio_storage.py:1162
+#: openexpress/device/gio_storage.py:2008
 msgid "The device is not mounted."
 msgstr ""
 
-#: openexpress/device/gio_storage.py:1242
+#: openexpress/device/gio_storage.py:1244
 msgid ""
 "The drive is not mounted any more. If it was ejected, you can unplug the "
 "cable."
 msgstr ""
 
-#: openexpress/device/gio_storage.py:1244
+#: openexpress/device/gio_storage.py:1246
 msgid "Cannot eject the device"
 msgstr ""
 
-#: openexpress/device/gio_storage.py:1291
+#: openexpress/device/gio_storage.py:1293
 msgid "The device is ejected. You can unplug the cable."
 msgstr ""
 
-#: openexpress/device/gio_storage.py:1298
+#: openexpress/device/gio_storage.py:1300
 msgid ""
 "Do not unplug the cable yet: the device may not see the files from Garmin "
 "Connect. Close any program that uses the drive and try again, or eject it in "
 "the file manager."
 msgstr ""
 
-#: openexpress/device/gio_storage.py:1302
+#: openexpress/device/gio_storage.py:1304
 msgid ""
 "Do not unplug the cable yet: the device may not see the files from Garmin "
 "Connect. Close any program that uses the drive and eject it in the file "
 "manager."
 msgstr ""
 
-#: openexpress/device/gio_storage.py:1306
+#: openexpress/device/gio_storage.py:1308
 msgid ""
 "Do not unplug the cable yet: the device may not see the update. Close any "
 "program that uses the drive and try again, or eject it in the file manager."
 msgstr ""
 
-#: openexpress/device/gio_storage.py:1308
+#: openexpress/device/gio_storage.py:1310
 msgid ""
 "Do not unplug the cable yet: the device may not see the update. Close any "
 "program that uses the drive and eject it in the file manager."
 msgstr ""
 
-#: openexpress/device/gio_storage.py:1506
+#: openexpress/device/gio_storage.py:1508
 msgid ""
 "The device is connected in mass storage mode (as a USB drive): apps, maps "
 "and music are not supported in this mode."
 msgstr ""
 
-#: openexpress/device/gio_storage.py:1513
+#: openexpress/device/gio_storage.py:1515
 msgid ""
 "After it was ejected, the watch switched to its Garmin USB mode, which "
 "openExpress does not use. Unplug the cable and plug it in again."
 msgstr ""
 
-#: openexpress/device/gio_storage.py:1520
+#: openexpress/device/gio_storage.py:1522
 msgid ""
 "The Garmin device is connected, but its drive is not mounted. Open it in the "
 "file manager, or unplug the cable and plug it in again."
 msgstr ""
 
-#: openexpress/device/gio_storage.py:1527
+#: openexpress/device/gio_storage.py:1529
 msgid ""
 "The Garmin device is connected as a USB drive, but this version (Flatpak) "
 "has no access to /run/media, where the system mounted it."
@@ -3364,7 +3364,7 @@ msgstr ""
 
 #. TRANSLATORS: added once the wait for a device on USB ran out: KDE's MTP service may hold
 #. it; "kquitapp6 kiod6" is a command, not to be translated
-#: openexpress/device/gio_storage.py:1577
+#: openexpress/device/gio_storage.py:1579
 msgid ""
 "KDE's MTP service may be holding the device: it keeps it after Dolphin is "
 "closed and takes it back when the cable is plugged in again. Close Dolphin "
@@ -3372,11 +3372,11 @@ msgid ""
 msgstr ""
 
 #. TRANSLATORS: title while a Garmin device is on USB and gvfs has no MTP support
-#: openexpress/device/gio_storage.py:1584
+#: openexpress/device/gio_storage.py:1586
 msgid "No MTP support in the system (gvfs-mtp)"
 msgstr ""
 
-#: openexpress/device/gio_storage.py:1590
+#: openexpress/device/gio_storage.py:1592
 msgid ""
 "openExpress reads the device over MTP through gvfs, and gvfs on this system "
 "has no MTP support. Install it (Fedora: sudo dnf install gvfs-mtp; Arch: "
@@ -3384,62 +3384,62 @@ msgid ""
 "log out and back in, then plug the device in again."
 msgstr ""
 
-#: openexpress/device/gio_storage.py:1599
+#: openexpress/device/gio_storage.py:1601
 msgid ""
 "The device is still starting. Wait until it shows its usual screen, or "
 "unplug it and plug it in again."
 msgstr ""
 
-#: openexpress/device/gio_storage.py:1602
+#: openexpress/device/gio_storage.py:1604
 msgid ""
 "The Garmin device is connected, but it does not offer its files. Check its "
 "screen: if it is locked with a PIN or asks something, unlock it or confirm."
 msgstr ""
 
-#: openexpress/device/gio_storage.py:1608
+#: openexpress/device/gio_storage.py:1610
 msgid ""
 "No Garmin device (MTP) found. Connect the device with a USB cable and unlock "
 "it if it asks to allow the connection."
 msgstr ""
 
-#: openexpress/device/gio_storage.py:1667
+#: openexpress/device/gio_storage.py:1669
 msgid "The device is starting. Try again in a moment."
 msgstr ""
 
-#: openexpress/device/gio_storage.py:1683 openexpress/gui/detection.py:544
-#: openexpress/gui/detection.py:551 openexpress/gui/detection.py:566
+#: openexpress/device/gio_storage.py:1685 openexpress/gui/detection.py:547
+#: openexpress/gui/detection.py:554 openexpress/gui/detection.py:569
 msgid "The device is starting…"
 msgstr ""
 
-#: openexpress/device/gio_storage.py:1697
+#: openexpress/device/gio_storage.py:1699
 #, python-brace-format
 msgid "Several devices connected, choose one with --device-uri: {names}"
 msgstr ""
 
-#: openexpress/device/gio_storage.py:1712
+#: openexpress/device/gio_storage.py:1714
 msgid "Cannot open the device"
 msgstr ""
 
-#: openexpress/device/gio_storage.py:1729
+#: openexpress/device/gio_storage.py:1731
 #, python-brace-format
 msgid "GARMIN/GarminDevice.xml not found on device {uri}"
 msgstr ""
 
-#: openexpress/device/gio_storage.py:1986
-#: openexpress/device/gio_storage.py:1998
+#: openexpress/device/gio_storage.py:1988
+#: openexpress/device/gio_storage.py:2000
 #, python-brace-format
 msgid "{action}: the device did not answer in time"
 msgstr ""
 
-#: openexpress/device/gio_storage.py:2010
+#: openexpress/device/gio_storage.py:2012
 msgid "Cannot unmount the device"
 msgstr ""
 
-#: openexpress/device/gio_storage.py:2048
+#: openexpress/device/gio_storage.py:2050
 msgid "The device was mounted again but its files are not visible."
 msgstr ""
 
-#: openexpress/device/gio_storage.py:2121
+#: openexpress/device/gio_storage.py:2123
 msgid ""
 "The device did not come back after an unmount that did not finish in time. "
 "Unplug it and plug it in again."
@@ -3688,7 +3688,7 @@ msgstr ""
 
 #: openexpress/gui/activities_page.py:102 openexpress/gui/activity_page.py:136
 #: openexpress/gui/app.py:429 openexpress/gui/apps_page.py:596
-#: openexpress/gui/detection.py:717 openexpress/gui/device_page.py:797
+#: openexpress/gui/detection.py:720 openexpress/gui/device_page.py:797
 #: openexpress/gui/window_tasks.py:498
 msgid "Another operation is in progress"
 msgstr ""
@@ -3737,42 +3737,42 @@ msgid_plural "Show {count} More"
 msgstr[0] ""
 msgstr[1] ""
 
-#: openexpress/gui/activity_map.py:739 openexpress/gui/activity_map.py:948
+#: openexpress/gui/activity_map.py:733 openexpress/gui/activity_map.py:942
 msgid "© OpenStreetMap contributors"
 msgstr ""
 
-#: openexpress/gui/activity_map.py:911
+#: openexpress/gui/activity_map.py:905
 msgid "Map of the track"
 msgstr ""
 
-#: openexpress/gui/activity_map.py:952
+#: openexpress/gui/activity_map.py:946
 msgid "Ctrl + scroll to zoom"
 msgstr ""
 
-#: openexpress/gui/activity_map.py:960
+#: openexpress/gui/activity_map.py:954
 msgid "Zoom in"
 msgstr ""
 
-#: openexpress/gui/activity_map.py:961
+#: openexpress/gui/activity_map.py:955
 msgid "Zoom out"
 msgstr ""
 
-#: openexpress/gui/activity_map.py:980
+#: openexpress/gui/activity_map.py:974
 msgid ""
 "The map can show streets and terrain under the track, from OpenStreetMap. "
 "The OpenStreetMap server then learns the area of each activity you open. You "
 "can turn this off again in Preferences."
 msgstr ""
 
-#: openexpress/gui/activity_map.py:983
+#: openexpress/gui/activity_map.py:977
 msgid "Show the Map"
 msgstr ""
 
-#: openexpress/gui/activity_map.py:988
+#: openexpress/gui/activity_map.py:982
 msgid "The map needs a newer libshumate library to show streets and terrain"
 msgstr ""
 
-#: openexpress/gui/activity_map.py:991
+#: openexpress/gui/activity_map.py:985
 msgid ""
 "No internet connection: only the parts of the map downloaded before are shown"
 msgstr ""
@@ -3786,7 +3786,7 @@ msgctxt "tab"
 msgid "Device"
 msgstr ""
 
-#: openexpress/gui/app.py:79 openexpress/gui/detection.py:709
+#: openexpress/gui/app.py:79 openexpress/gui/detection.py:712
 #: openexpress/gui/start.py:477
 msgid "Detecting the device…"
 msgstr ""
@@ -3890,7 +3890,7 @@ msgstr ""
 msgid "Could not check whether this device belongs to your Garmin account"
 msgstr ""
 
-#: openexpress/gui/app.py:421 openexpress/gui/detection.py:553
+#: openexpress/gui/app.py:421 openexpress/gui/detection.py:556
 #: openexpress/gui/device_page.py:645
 msgid "Connect your device"
 msgstr ""
@@ -4216,47 +4216,47 @@ msgid "Saving…"
 msgstr ""
 
 #. TRANSLATORS: added to the page while a device on USB is not offered over MTP
-#: openexpress/gui/detection.py:92
+#: openexpress/gui/detection.py:99
 msgid ""
 "If the device isn't locked and isn't asking for anything, unplug the cable "
 "and plug it back in."
 msgstr ""
 
 #. TRANSLATORS: the same, after the sentence about a PIN, which names the device already
-#: openexpress/gui/detection.py:95
+#: openexpress/gui/detection.py:102
 msgid ""
 "If it isn't locked and isn't asking for anything, unplug the cable and plug "
 "it back in."
 msgstr ""
 
-#: openexpress/gui/detection.py:539 openexpress/gui/detection.py:568
+#: openexpress/gui/detection.py:542 openexpress/gui/detection.py:571
 msgid "The device is not ready"
 msgstr ""
 
-#: openexpress/gui/detection.py:543 openexpress/gui/detection.py:550
+#: openexpress/gui/detection.py:546 openexpress/gui/detection.py:553
 msgid "This takes a moment after the cable is plugged in."
 msgstr ""
 
-#: openexpress/gui/detection.py:554 openexpress/gui/device_page.py:646
+#: openexpress/gui/detection.py:557 openexpress/gui/device_page.py:646
 msgid ""
 "Connect your Garmin device with a USB cable. It will be detected "
 "automatically."
 msgstr ""
 
 #. TRANSLATORS: title while a drive ejected by openExpress is still plugged in
-#: openexpress/gui/detection.py:559
+#: openexpress/gui/detection.py:562
 msgid "Device ejected"
 msgstr ""
 
-#: openexpress/gui/detection.py:567
+#: openexpress/gui/detection.py:570
 msgid "This takes a moment after the cable is plugged in"
 msgstr ""
 
-#: openexpress/gui/detection.py:749
+#: openexpress/gui/detection.py:752
 msgid "Could not open the device"
 msgstr ""
 
-#: openexpress/gui/detection.py:754
+#: openexpress/gui/detection.py:757
 msgid "Opening the device…"
 msgstr ""
 
@@ -4448,7 +4448,7 @@ msgid "Could not check"
 msgstr ""
 
 #: openexpress/gui/device_page.py:524 openexpress/gui/device_page.py:1285
-#: openexpress/gui/words.py:77
+#: openexpress/gui/words.py:78
 msgid "Checking…"
 msgstr ""
 
@@ -4549,15 +4549,15 @@ msgstr ""
 msgid "Part number"
 msgstr ""
 
-#: openexpress/gui/device_page.py:1039 openexpress/gui/words.py:169
+#: openexpress/gui/device_page.py:1039 openexpress/gui/words.py:170
 msgid "Not set"
 msgstr ""
 
-#: openexpress/gui/device_page.py:1041 openexpress/gui/words.py:171
+#: openexpress/gui/device_page.py:1041 openexpress/gui/words.py:172
 msgid "This device"
 msgstr ""
 
-#: openexpress/gui/device_page.py:1042 openexpress/gui/words.py:172
+#: openexpress/gui/device_page.py:1042 openexpress/gui/words.py:173
 msgid "Another device"
 msgstr ""
 
@@ -4583,7 +4583,7 @@ msgstr ""
 msgid "Changing the primary training device…"
 msgstr ""
 
-#: openexpress/gui/device_page.py:1271 openexpress/gui/words.py:35
+#: openexpress/gui/device_page.py:1271 openexpress/gui/words.py:36
 #, python-brace-format
 msgid "{count} update available"
 msgid_plural "{count} updates available"
@@ -4599,7 +4599,7 @@ msgstr ""
 msgid "No maps are installed"
 msgstr ""
 
-#: openexpress/gui/device_page.py:1283 openexpress/gui/words.py:76
+#: openexpress/gui/device_page.py:1283 openexpress/gui/words.py:77
 msgid "Could not check for updates"
 msgstr ""
 
@@ -5457,7 +5457,7 @@ msgid "Device not connected — connect it to sync or update"
 msgstr ""
 
 #: openexpress/gui/start.py:694 openexpress/gui/start.py:741
-#: openexpress/gui/words.py:102
+#: openexpress/gui/words.py:103
 msgid "Connect the device to check"
 msgstr ""
 
@@ -5695,43 +5695,43 @@ msgstr[1] ""
 
 #. TRANSLATORS: the one update to install is of the device's system software (the row
 #. "Device software" and the top of the Updates page)
-#: openexpress/gui/words.py:29
+#: openexpress/gui/words.py:30
 #, python-brace-format
 msgid "Version {version} available"
 msgstr ""
 
 #. TRANSLATORS: the one update to install, of another part of the device (its name and
 #. version, as the server gives them)
-#: openexpress/gui/words.py:33
+#: openexpress/gui/words.py:34
 #, python-brace-format
 msgid "Update available: {name} {version}"
 msgstr ""
 
 #. TRANSLATORS: below an update copied to the device before that Garmin's server offers
 #. again, whose file on the device has other bytes since
-#: openexpress/gui/words.py:50
+#: openexpress/gui/words.py:51
 #, python-brace-format
 msgid "The device changed or refused the file copied {when}"
 msgstr ""
 
 #. TRANSLATORS: below an update copied to the device before that Garmin's server offers
 #. again: the device has not reported it installed
-#: openexpress/gui/words.py:53
+#: openexpress/gui/words.py:54
 #, python-brace-format
 msgid "Copied {when}, check on the device that it is installed"
 msgstr ""
 
-#: openexpress/gui/words.py:65
+#: openexpress/gui/words.py:66
 msgid "Update ready: eject the device to install it"
 msgstr ""
 
-#: openexpress/gui/words.py:66
+#: openexpress/gui/words.py:67
 msgid "Update ready: disconnect the device to install it"
 msgstr ""
 
 #. TRANSLATORS: after "Update ready: disconnect the device to install it": updates
 #. still to install besides the one copied already
-#: openexpress/gui/words.py:69
+#: openexpress/gui/words.py:70
 #, python-brace-format
 msgid "{count} more available"
 msgid_plural "{count} more available"
@@ -5740,31 +5740,31 @@ msgstr[1] ""
 
 #. TRANSLATORS: after the state of the updates of a device: when the check that said it
 #. was (e.g. "checked 3 days ago")
-#: openexpress/gui/words.py:85
+#: openexpress/gui/words.py:86
 #, python-brace-format
 msgid "checked {when}"
 msgstr ""
 
 #. TRANSLATORS: the updates of a device not connected; {when} is a date and an hour
-#: openexpress/gui/words.py:93
+#: openexpress/gui/words.py:94
 #, python-brace-format
 msgid "Not checked since {when}"
 msgstr ""
 
 #. TRANSLATORS: a chip on the tile of a connected device that openExpress on this
 #. computer has never synced, and the subtitle of "Last sync" on its page
-#: openexpress/gui/words.py:126
+#: openexpress/gui/words.py:127
 msgctxt "chip"
 msgid "Never synced"
 msgstr ""
 
-#: openexpress/gui/words.py:132
+#: openexpress/gui/words.py:133
 msgid "Never synced by this installation of openExpress"
 msgstr ""
 
 #. TRANSLATORS: at the end of the subtitle of "Last sync" of a connected device (and of
 #. `openexpress status`), after what the last sync found ("nothing to upload")
-#: openexpress/gui/words.py:150
+#: openexpress/gui/words.py:151
 #, python-brace-format
 msgid "now to upload: {count} activity"
 msgid_plural "now to upload: {count} activities"
@@ -5773,97 +5773,97 @@ msgstr[1] ""
 
 #. TRANSLATORS: "Primary wearable" is the name Garmin Connect gives the setting (in Polish
 #. "Podstawowe urządzenie typu wearable")
-#: openexpress/gui/words.py:179
+#: openexpress/gui/words.py:180
 msgid ""
 "Primary wearable: steps and sleep in Garmin Connect come from this device"
 msgstr ""
 
 #. TRANSLATORS: the version of a device that only the Garmin account knows of
-#: openexpress/gui/words.py:188
+#: openexpress/gui/words.py:189
 #, python-brace-format
 msgid "Software {version} (Garmin Connect)"
 msgstr ""
 
 #. TRANSLATORS: the free space of the device while it is read
-#: openexpress/gui/words.py:198
+#: openexpress/gui/words.py:199
 msgid "Reading…"
 msgstr ""
 
 #. TRANSLATORS: the free space of the device when it does not say
-#: openexpress/gui/words.py:201
+#: openexpress/gui/words.py:202
 msgctxt "space"
 msgid "Unknown"
 msgstr ""
 
-#: openexpress/gui/words.py:203
+#: openexpress/gui/words.py:204
 #, python-brace-format
 msgid "{free} free of {total}"
 msgstr ""
 
-#: openexpress/gui/words.py:204
+#: openexpress/gui/words.py:205
 #, python-brace-format
 msgid "{size} free"
 msgstr ""
 
 #. TRANSLATORS: the time of an activity in hours and minutes ("1 h 02 min")
-#: openexpress/gui/words.py:229
+#: openexpress/gui/words.py:230
 #, python-brace-format
 msgid "{hours} h {minutes} min"
 msgstr ""
 
 #. TRANSLATORS: a length of time in minutes
-#: openexpress/gui/words.py:232 openexpress/i18n.py:403
+#: openexpress/gui/words.py:233 openexpress/i18n.py:403
 #, python-brace-format
 msgid "{minutes} min"
 msgstr ""
 
 #. TRANSLATORS: a length of time in seconds
-#: openexpress/gui/words.py:233 openexpress/i18n.py:400
+#: openexpress/gui/words.py:234 openexpress/i18n.py:400
 #, python-brace-format
 msgid "{seconds} s"
 msgstr ""
 
-#: openexpress/gui/words.py:242
+#: openexpress/gui/words.py:243
 msgid "Unreadable file"
 msgstr ""
 
 #. TRANSLATORS: in the details of an activity on the Activities page: where it was read
-#: openexpress/gui/words.py:265
+#: openexpress/gui/words.py:264
 msgctxt "activity source"
 msgid "Device"
 msgstr ""
 
-#: openexpress/gui/words.py:267
+#: openexpress/gui/words.py:266
 #, python-brace-format
 msgctxt "activity source"
 msgid "Backup of {date}"
 msgstr ""
 
-#: openexpress/gui/words.py:289
+#: openexpress/gui/words.py:288
 msgid "Still being written: disconnect and reconnect the device"
 msgstr ""
 
-#: openexpress/gui/words.py:294
+#: openexpress/gui/words.py:293
 msgid "Damaged file"
 msgstr ""
 
-#: openexpress/gui/words.py:300
+#: openexpress/gui/words.py:299
 msgid "The file of this activity could not be read."
 msgstr ""
 
-#: openexpress/gui/words.py:305
+#: openexpress/gui/words.py:304
 msgid "The file of this activity could not be read"
 msgstr ""
 
-#: openexpress/gui/words.py:310
+#: openexpress/gui/words.py:309
 msgid "This activity has no summary"
 msgstr ""
 
-#: openexpress/gui/words.py:315
+#: openexpress/gui/words.py:314
 msgid "Reading the activity…"
 msgstr ""
 
-#: openexpress/gui/words.py:322
+#: openexpress/gui/words.py:321
 #, python-brace-format
 msgid "{count} activity"
 msgid_plural "{count} activities"
@@ -5871,12 +5871,12 @@ msgstr[0] ""
 msgstr[1] ""
 
 #. TRANSLATORS: on the Activities page: how many activities only a backup has
-#: openexpress/gui/words.py:324
+#: openexpress/gui/words.py:323
 #, python-brace-format
 msgid "{count} only in backups"
 msgstr ""
 
-#: openexpress/gui/words.py:335
+#: openexpress/gui/words.py:334
 #, python-brace-format
 msgid "The device {names} stopped responding. Unplug it and plug it in again."
 msgid_plural ""
@@ -5885,468 +5885,467 @@ msgstr[0] ""
 msgstr[1] ""
 
 #. TRANSLATORS: the same banner, when the name of a device is not known
-#: openexpress/gui/words.py:339
+#: openexpress/gui/words.py:338
 msgid "The device stopped responding. Unplug it and plug it in again."
 msgid_plural ""
 "The devices stopped responding. Unplug them and plug them in again."
 msgstr[0] ""
 msgstr[1] ""
 
-#. TRANSLATORS: a distance or an ascent in whole metres on the page of an activity
-#: openexpress/gui/words.py:377 openexpress/gui/words.py:420
-#: openexpress/gui/words.py:513 openexpress/gui/words.py:860
-#, python-brace-format
-msgid "{metres} m"
-msgstr ""
-
 #. TRANSLATORS: a distance in kilometres on the page of an activity ("10.24 km")
-#: openexpress/gui/words.py:379
+#: openexpress/gui/words.py:376
 #, python-brace-format
 msgid "{distance} km"
 msgstr ""
 
 #. TRANSLATORS: a pace, the time a kilometre takes ("5:10 /km")
-#: openexpress/gui/words.py:392 openexpress/gui/words.py:862
+#: openexpress/gui/words.py:397
 #, python-brace-format
 msgid "{pace} /km"
 msgstr ""
 
 #. TRANSLATORS: a pace of a swim, the time a hundred metres take ("2:05 /100 m")
-#: openexpress/gui/words.py:395 openexpress/gui/words.py:864
+#: openexpress/gui/words.py:400
 #, python-brace-format
 msgid "{pace} /100 m"
 msgstr ""
 
 #. TRANSLATORS: a speed in kilometres an hour ("24.3 km/h")
-#: openexpress/gui/words.py:397 openexpress/gui/words.py:865
+#: openexpress/gui/words.py:402
 #, python-brace-format
 msgid "{speed} km/h"
 msgstr ""
 
+#. TRANSLATORS: a distance or an ascent in whole metres on the page of an activity
+#: openexpress/gui/words.py:408 openexpress/gui/words.py:853
+#, python-brace-format
+msgid "{metres} m"
+msgstr ""
+
 #. TRANSLATORS: a heart rate in beats a minute ("148 bpm"; in Polish "148 ud./min")
-#: openexpress/gui/words.py:405
+#: openexpress/gui/words.py:416
 #, python-brace-format
 msgid "{rate} bpm"
 msgstr ""
 
 #. TRANSLATORS: the calories of an activity ("520 kcal")
-#: openexpress/gui/words.py:413
+#: openexpress/gui/words.py:424
 #, python-brace-format
 msgid "{calories} kcal"
 msgstr ""
 
 #. TRANSLATORS: the names of the tiles on top of the page of an activity
-#: openexpress/gui/words.py:427
+#: openexpress/gui/words.py:438
 msgctxt "activity tile"
 msgid "Distance"
 msgstr ""
 
-#: openexpress/gui/words.py:428
+#: openexpress/gui/words.py:439
 msgctxt "activity tile"
 msgid "Time"
 msgstr ""
 
-#: openexpress/gui/words.py:429 openexpress/gui/words.py:430
+#: openexpress/gui/words.py:440 openexpress/gui/words.py:441
 msgctxt "activity tile"
 msgid "Average pace"
 msgstr ""
 
-#: openexpress/gui/words.py:431
+#: openexpress/gui/words.py:442
 msgctxt "activity tile"
 msgid "Average speed"
 msgstr ""
 
-#: openexpress/gui/words.py:432
+#: openexpress/gui/words.py:443
 msgctxt "activity tile"
 msgid "Average heart rate"
 msgstr ""
 
-#: openexpress/gui/words.py:433
+#: openexpress/gui/words.py:444
 msgctxt "activity tile"
 msgid "Maximum heart rate"
 msgstr ""
 
-#: openexpress/gui/words.py:434
+#: openexpress/gui/words.py:445
 msgctxt "activity tile"
 msgid "Calories"
 msgstr ""
 
-#: openexpress/gui/words.py:435
+#: openexpress/gui/words.py:446
 msgctxt "activity tile"
 msgid "Total ascent"
 msgstr ""
 
 #. TRANSLATORS: the closed row of the details at the end of the page of an activity
-#: openexpress/gui/words.py:479
+#: openexpress/gui/words.py:484
 msgctxt "activity"
 msgid "Details"
 msgstr ""
 
 #. TRANSLATORS: the details of the page of an activity, as Garmin Connect names them in
 #. your language: the time with the pauses
-#: openexpress/gui/words.py:487
+#: openexpress/gui/words.py:492
 msgctxt "activity detail"
 msgid "Elapsed time"
 msgstr ""
 
-#: openexpress/gui/words.py:488
+#: openexpress/gui/words.py:493
 msgctxt "activity detail"
 msgid "Moving time"
 msgstr ""
 
-#: openexpress/gui/words.py:489
+#: openexpress/gui/words.py:494
 msgctxt "activity detail"
 msgid "Work time"
 msgstr ""
 
-#: openexpress/gui/words.py:490
+#: openexpress/gui/words.py:495
 msgctxt "activity detail"
 msgid "Rest time"
 msgstr ""
 
-#: openexpress/gui/words.py:491
+#: openexpress/gui/words.py:496
 msgctxt "activity detail"
 msgid "Total descent"
 msgstr ""
 
-#: openexpress/gui/words.py:492
+#: openexpress/gui/words.py:497
 msgctxt "activity detail"
 msgid "Minimum elevation"
 msgstr ""
 
-#: openexpress/gui/words.py:493
+#: openexpress/gui/words.py:498
 msgctxt "activity detail"
 msgid "Maximum elevation"
 msgstr ""
 
-#: openexpress/gui/words.py:494
+#: openexpress/gui/words.py:499
 msgctxt "activity detail"
 msgid "Average moving pace"
 msgstr ""
 
-#: openexpress/gui/words.py:495
+#: openexpress/gui/words.py:500
 msgctxt "activity detail"
 msgid "Average moving speed"
 msgstr ""
 
-#: openexpress/gui/words.py:496
+#: openexpress/gui/words.py:501
 msgctxt "activity detail"
 msgid "Best pace"
 msgstr ""
 
-#: openexpress/gui/words.py:497
+#: openexpress/gui/words.py:502
 msgctxt "activity detail"
 msgid "Maximum speed"
 msgstr ""
 
-#: openexpress/gui/words.py:498
+#: openexpress/gui/words.py:503
 msgctxt "activity detail"
 msgid "Average cadence"
 msgstr ""
 
-#: openexpress/gui/words.py:499
+#: openexpress/gui/words.py:504
 msgctxt "activity detail"
 msgid "Steps"
 msgstr ""
 
-#: openexpress/gui/words.py:500
+#: openexpress/gui/words.py:505
 msgctxt "activity detail"
 msgid "Heart rate"
 msgstr ""
 
-#: openexpress/gui/words.py:501
+#: openexpress/gui/words.py:506
 msgctxt "activity detail"
 msgid "Calories"
 msgstr ""
 
-#: openexpress/gui/words.py:502
+#: openexpress/gui/words.py:507
 msgctxt "activity detail"
 msgid "Temperature"
 msgstr ""
 
-#: openexpress/gui/words.py:503
+#: openexpress/gui/words.py:508
 msgctxt "activity detail"
 msgid "Respiration rate"
 msgstr ""
 
 #. TRANSLATORS: a cadence on foot, steps a minute ("104 spm")
-#: openexpress/gui/words.py:526
+#: openexpress/gui/words.py:527
 #, python-brace-format
 msgid "{cadence} spm"
 msgstr ""
 
 #. TRANSLATORS: the average and the maximum cadence on foot ("104 spm (max 118)")
-#: openexpress/gui/words.py:528
+#: openexpress/gui/words.py:529
 #, python-brace-format
 msgid "{average} spm (max {max})"
 msgstr ""
 
 #. TRANSLATORS: a cadence on a bike, revolutions a minute ("85 rpm")
-#: openexpress/gui/words.py:534
+#: openexpress/gui/words.py:535
 #, python-brace-format
 msgid "{cadence} rpm"
 msgstr ""
 
 #. TRANSLATORS: the average and the maximum cadence on a bike ("85 rpm (max 110)")
-#: openexpress/gui/words.py:536
+#: openexpress/gui/words.py:537
 #, python-brace-format
 msgid "{average} rpm (max {max})"
 msgstr ""
 
 #. TRANSLATORS: a temperature ("21.4 °C")
-#: openexpress/gui/words.py:555
+#: openexpress/gui/words.py:554
 #, python-brace-format
 msgid "{temperature} °C"
 msgstr ""
 
 #. TRANSLATORS: the average temperature and its range ("21.4 °C (18.0–26.0 °C)")
-#: openexpress/gui/words.py:557
+#: openexpress/gui/words.py:556
 #, python-brace-format
 msgid "{average} °C ({low}–{high} °C)"
 msgstr ""
 
 #. TRANSLATORS: a respiration rate, breaths a minute ("24 brpm")
-#: openexpress/gui/words.py:568
+#: openexpress/gui/words.py:567
 #, python-brace-format
 msgid "{rate} brpm"
 msgstr ""
 
 #. TRANSLATORS: the average respiration rate and its range ("24 brpm (15–38)")
-#: openexpress/gui/words.py:570
+#: openexpress/gui/words.py:569
 #, python-brace-format
 msgid "{average} brpm ({low}–{high})"
 msgstr ""
 
 #. TRANSLATORS: the heart rates of a zone (made up: "118–140 bpm")
-#: openexpress/gui/words.py:601 openexpress/gui/words.py:689
+#: openexpress/gui/words.py:600 openexpress/gui/words.py:688
 #, python-brace-format
 msgid "{low}–{high} bpm"
 msgstr ""
 
 #. TRANSLATORS: the title of the row of a lap on the page of an activity
-#: openexpress/gui/words.py:620
+#: openexpress/gui/words.py:619
 #, python-brace-format
 msgid "Lap {number}"
 msgstr ""
 
-#: openexpress/gui/words.py:626
+#: openexpress/gui/words.py:625
 msgid "Kilometres"
 msgstr ""
 
-#: openexpress/gui/words.py:626
+#: openexpress/gui/words.py:625
 msgid "Laps"
 msgstr ""
 
 #. TRANSLATORS: the title of the row of a kilometre on the page of an activity whose device
 #. kept no laps
-#: openexpress/gui/words.py:633
+#: openexpress/gui/words.py:632
 #, python-brace-format
 msgid "Kilometre {number}"
 msgstr ""
 
 #. TRANSLATORS: the title of the section of the heart-rate zones on the page of an activity
-#: openexpress/gui/words.py:665
+#: openexpress/gui/words.py:664
 msgid "Heart-rate zones"
 msgstr ""
 
 #. TRANSLATORS: the row of the time below zone 1 of the heart rate
-#: openexpress/gui/words.py:672
+#: openexpress/gui/words.py:671
 msgid "Below zone 1"
 msgstr ""
 
 #. TRANSLATORS: a heart-rate zone ("Zone 3")
-#: openexpress/gui/words.py:674
+#: openexpress/gui/words.py:673
 #, python-brace-format
 msgid "Zone {number}"
 msgstr ""
 
 #. TRANSLATORS: the heart rates below zone 1 (made up: "below 118 bpm")
-#: openexpress/gui/words.py:684
+#: openexpress/gui/words.py:683
 #, python-brace-format
 msgid "below {rate} bpm"
 msgstr ""
 
 #. TRANSLATORS: the heart rates of the top zone, which has no top (made up: "above 182 bpm")
-#: openexpress/gui/words.py:687
+#: openexpress/gui/words.py:686
 #, python-brace-format
 msgid "above {rate} bpm"
 msgstr ""
 
 #. TRANSLATORS: the time in a heart-rate zone and its share ("36:30 · 88%")
-#: openexpress/gui/words.py:696
+#: openexpress/gui/words.py:695
 #, python-brace-format
 msgid "{time} · {percent}%"
 msgstr ""
 
 #. TRANSLATORS: under the title of the heart-rate zones ("… (190 bpm)")
-#: openexpress/gui/words.py:705
+#: openexpress/gui/words.py:704
 #, python-brace-format
 msgid "Bounds from the device: % of maximum heart rate ({bpm})"
 msgstr ""
 
 #. TRANSLATORS: under the title of the heart-rate zones ("… (165 bpm)")
-#: openexpress/gui/words.py:709
+#: openexpress/gui/words.py:708
 #, python-brace-format
 msgid "Bounds from the device: % of lactate threshold ({bpm})"
 msgstr ""
 
 #. TRANSLATORS: under the title of the heart-rate zones
-#: openexpress/gui/words.py:713
+#: openexpress/gui/words.py:712
 msgid "Bounds from the device: % of heart rate reserve"
 msgstr ""
 
 #. TRANSLATORS: under the title of the heart-rate zones: set by the user
-#: openexpress/gui/words.py:716
+#: openexpress/gui/words.py:715
 msgid "Bounds from the device: your own"
 msgstr ""
 
 #. TRANSLATORS: the title of the section of the training effect on the page of an activity
-#: openexpress/gui/words.py:722
+#: openexpress/gui/words.py:721
 msgid "Training effect"
 msgstr ""
 
 #. TRANSLATORS: the aerobic training effect of an activity
-#: openexpress/gui/words.py:729
+#: openexpress/gui/words.py:728
 msgid "Aerobic"
 msgstr ""
 
 #. TRANSLATORS: the anaerobic training effect of an activity
-#: openexpress/gui/words.py:731
+#: openexpress/gui/words.py:730
 msgid "Anaerobic"
 msgstr ""
 
 #. TRANSLATORS: a training effect from 0.0 to 0.9. The six words of the scale are
 #. Garmin Connect's: use those of its help on the training effect in your language (a
 #. device's manual or Garmin's web pages may say them otherwise)
-#: openexpress/gui/words.py:743
+#: openexpress/gui/words.py:742
 msgid "No benefit"
 msgstr ""
 
 #. TRANSLATORS: a training effect from 1.0 to 1.9, in Garmin Connect's word
-#: openexpress/gui/words.py:745
+#: openexpress/gui/words.py:744
 msgid "Minor benefit"
 msgstr ""
 
 #. TRANSLATORS: a training effect from 2.0 to 2.9, in Garmin Connect's word
-#: openexpress/gui/words.py:747
+#: openexpress/gui/words.py:746
 msgid "Maintaining"
 msgstr ""
 
 #. TRANSLATORS: a training effect from 3.0 to 3.9, in Garmin Connect's word
-#: openexpress/gui/words.py:749
+#: openexpress/gui/words.py:748
 msgid "Improving"
 msgstr ""
 
 #. TRANSLATORS: a training effect from 4.0 to 4.9, in Garmin Connect's word
-#: openexpress/gui/words.py:751
+#: openexpress/gui/words.py:750
 msgid "Highly improving"
 msgstr ""
 
 #. TRANSLATORS: a training effect of 5.0, in Garmin Connect's word
-#: openexpress/gui/words.py:753
+#: openexpress/gui/words.py:752
 msgid "Overreaching"
 msgstr ""
 
 #. TRANSLATORS: the training load of an activity (a number)
-#: openexpress/gui/words.py:766
+#: openexpress/gui/words.py:763
 msgid "Training load"
 msgstr ""
 
 #. TRANSLATORS: a series after "Track colour:", as a sentence goes on there (in Polish
 #. in lower case: "tętno")
-#: openexpress/gui/words.py:779
+#: openexpress/gui/words.py:776
 msgctxt "track colour"
 msgid "heart rate"
 msgstr ""
 
 #. TRANSLATORS: a series after "Track colour:" (in Polish "wysokość")
-#: openexpress/gui/words.py:781
+#: openexpress/gui/words.py:778
 msgctxt "track colour"
 msgid "elevation"
 msgstr ""
 
 #. TRANSLATORS: a series after "Track colour:" (in Polish "tempo")
-#: openexpress/gui/words.py:783
+#: openexpress/gui/words.py:780
 msgctxt "track colour"
 msgid "pace"
 msgstr ""
 
 #. TRANSLATORS: a series after "Track colour:" (in Polish "prędkość")
-#: openexpress/gui/words.py:785
+#: openexpress/gui/words.py:782
 msgctxt "track colour"
 msgid "speed"
 msgstr ""
 
 #. TRANSLATORS: under the map of an activity: which series of the chart colours the track
-#: openexpress/gui/words.py:788
+#: openexpress/gui/words.py:785
 #, python-brace-format
 msgid "Track colour: {series}"
 msgstr ""
 
 #. TRANSLATORS: beside the switch under the map of an activity that colours its track
-#: openexpress/gui/words.py:794
+#: openexpress/gui/words.py:791
 msgid "Colours"
 msgstr ""
 
 #. TRANSLATORS: the switch above the chart of an activity
-#: openexpress/gui/words.py:804
+#: openexpress/gui/words.py:801
 msgctxt "activity chart"
 msgid "Heart rate"
 msgstr ""
 
-#: openexpress/gui/words.py:805
+#: openexpress/gui/words.py:802
 msgctxt "activity chart"
 msgid "Elevation"
 msgstr ""
 
-#: openexpress/gui/words.py:806 openexpress/gui/words.py:807
+#: openexpress/gui/words.py:803 openexpress/gui/words.py:804
 msgctxt "activity chart"
 msgid "Pace"
 msgstr ""
 
-#: openexpress/gui/words.py:808
+#: openexpress/gui/words.py:805
 msgctxt "activity chart"
 msgid "Speed"
 msgstr ""
 
 #. TRANSLATORS: the unit on top of the axis of the chart of an activity
-#: openexpress/gui/words.py:817
+#: openexpress/gui/words.py:814
 msgctxt "chart unit"
 msgid "bpm"
 msgstr ""
 
-#: openexpress/gui/words.py:818
+#: openexpress/gui/words.py:815
 msgctxt "chart unit"
 msgid "m"
 msgstr ""
 
-#: openexpress/gui/words.py:819
+#: openexpress/gui/words.py:816
 msgctxt "chart unit"
 msgid "min/km"
 msgstr ""
 
-#: openexpress/gui/words.py:820
+#: openexpress/gui/words.py:817
 msgctxt "chart unit"
 msgid "min/100 m"
 msgstr ""
 
-#: openexpress/gui/words.py:821
+#: openexpress/gui/words.py:818
 msgctxt "chart unit"
 msgid "km/h"
 msgstr ""
 
 #. TRANSLATORS: the name of the chart for a screen reader; {series}: e.g. "Heart rate"
-#: openexpress/gui/words.py:829
+#: openexpress/gui/words.py:826
 #, python-brace-format
 msgid "{series} over time"
 msgstr ""
 
-#: openexpress/gui/words.py:834
+#: openexpress/gui/words.py:831
 msgid "No heart rate, elevation or speed in this activity"
 msgstr ""
 
 #. TRANSLATORS: beside the chart of an activity, where its cursor is on a gap or a pause
-#: openexpress/gui/words.py:872
+#: openexpress/gui/words.py:861
 msgid "no reading"
 msgstr ""
 

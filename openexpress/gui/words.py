@@ -10,6 +10,7 @@ from openexpress import known_devices, service
 from openexpress.i18n import (
     _,
     caption,
+    decimal,
     full_time,
     human_size,
     ngettext,
@@ -257,8 +258,6 @@ def activity_caption(read) -> str:
     only when it was made and that."""
     from openexpress import fit
     from openexpress.activities import Source
-    from openexpress.i18n import decimal
-
     a, found = read.activity, read.summary
     if a.source is Source.DEVICE:
         # TRANSLATORS: in the details of an activity on the Activities page: where it was read
@@ -369,13 +368,10 @@ def activity_clock(seconds: float) -> str:
 def activity_distance(metres: float | None, sport: int | None) -> str | None:
     """A distance: in kilometres with two decimals ("10.24 km"), a swim in whole metres ("1500
     m"); None for none or 0 m (a workout may record 0 m)."""
-    from openexpress.i18n import decimal
-
     if not metres or metres <= 0:
         return None
     if sport == _SWIMMING:
-        # TRANSLATORS: a distance or an ascent in whole metres on the page of an activity
-        return _("{metres} m").format(metres=whole(round(metres)))
+        return metres_text(metres)
     # TRANSLATORS: a distance in kilometres on the page of an activity ("10.24 km")
     return _("{distance} km").format(distance=decimal(f"{metres / 1000:.2f}"))
 
@@ -383,19 +379,33 @@ def activity_distance(metres: float | None, sport: int | None) -> str | None:
 def activity_pace(speed: float | None, sport: int | None) -> str | None:
     """How fast, from a speed in metres a second, as the sport tells it (speed_kind): "5:10
     /km", "2:05 /100 m" or "24.3 km/h"; None for none or 0."""
-    from openexpress.i18n import decimal
-
     if not speed or speed <= 0:
         return None
     kind = speed_kind(sport)
     if kind == "pace":
+        return _pace_text(kind, 1000 / speed)
+    if kind == "swim pace":
+        return _pace_text(kind, 100 / speed)
+    return _pace_text(kind, speed * 3.6)
+
+
+def _pace_text(kind: str, value: float) -> str:
+    """A pace (`value`: the seconds a kilometre takes, a hundred metres of a swim) or a speed
+    (kilometres an hour) in its unit."""
+    if kind == "pace":
         # TRANSLATORS: a pace, the time a kilometre takes ("5:10 /km")
-        return _("{pace} /km").format(pace=activity_clock(1000 / speed))
+        return _("{pace} /km").format(pace=activity_clock(value))
     if kind == "swim pace":
         # TRANSLATORS: a pace of a swim, the time a hundred metres take ("2:05 /100 m")
-        return _("{pace} /100 m").format(pace=activity_clock(100 / speed))
+        return _("{pace} /100 m").format(pace=activity_clock(value))
     # TRANSLATORS: a speed in kilometres an hour ("24.3 km/h")
-    return _("{speed} km/h").format(speed=decimal(f"{speed * 3.6:.1f}"))
+    return _("{speed} km/h").format(speed=decimal(f"{value:.1f}"))
+
+
+def metres_text(metres: float) -> str:
+    """Whole metres: "740 m", from 10 000 with the thousands apart."""
+    # TRANSLATORS: a distance or an ascent in whole metres on the page of an activity
+    return _("{metres} m").format(metres=whole(round(metres)))
 
 
 def heart_rate_text(bpm: int | None) -> str | None:
@@ -418,7 +428,7 @@ def ascent_text(metres: int | None) -> str | None:
     """A total ascent in whole metres: "740 m"; None for none or 0, as the list leaves it out."""
     if not metres or metres <= 0:
         return None
-    return _("{metres} m").format(metres=whole(round(metres)))
+    return metres_text(metres)
 
 
 def tile_name(kind: str) -> str:
@@ -504,10 +514,6 @@ def _clock(seconds: float | None) -> str | None:
     return activity_clock(seconds) if seconds else None
 
 
-def _metres_text(metres: float) -> str:
-    return _("{metres} m").format(metres=whole(round(metres)))
-
-
 def _cadence_text(data) -> str | None:
     """The average cadence and its maximum: steps a minute on foot (two a stride), revolutions
     a minute on a bike; None in another sport."""
@@ -535,8 +541,6 @@ def _cadence_text(data) -> str | None:
 def _degrees(value: float) -> str:
     """A temperature with one decimal, as Garmin Connect shows it ("21.4"); a minus sign below
     zero."""
-    from openexpress.i18n import decimal
-
     shown = round(value, 1)
     return ("\u2212" if shown < 0 else "") + decimal(f"{abs(shown):.1f}")
 
@@ -581,11 +585,11 @@ def activity_detail_kinds(data, moving: float | None = None) -> list[tuple[str, 
         ("moving time", _clock(moving) if "distance" in tiles else None, "time"),
         ("work time", _clock(data.active_time), "time"),
         ("rest time", _clock(data.rest_time), None),
-        ("descent", _metres_text(data.descent) if data.descent else None, None),
+        ("descent", metres_text(data.descent) if data.descent else None, None),
         ("minimum elevation",
-         _metres_text(data.min_altitude) if data.min_altitude is not None else None, None),
+         metres_text(data.min_altitude) if data.min_altitude is not None else None, None),
         ("maximum elevation",
-         _metres_text(data.max_altitude) if data.max_altitude is not None else None, None),
+         metres_text(data.max_altitude) if data.max_altitude is not None else None, None),
         ("moving speed" if kind == "speed" else "moving pace",
          activity_pace(moving_speed, sport) if "distance" in tiles else None, kind),
         ("maximum speed" if kind == "speed" else "best pace",
@@ -730,7 +734,7 @@ def effect_word(value: float) -> str:
     """What a training effect (0.0-5.0) means, by the public scale of Garmin's devices: below
     1 no benefit, from 1 minor benefit, 2 maintaining, 3 improving, 4 highly improving, 5
     overreaching."""
-    whole = min(5, max(0, round(value * 10) // 10))
+    step = min(5, max(0, round(value * 10) // 10))
     return (
         # TRANSLATORS: a training effect from 0.0 to 0.9. The six words of the scale are
         # Garmin Connect's: use those of its help on the training effect in your language (a
@@ -746,13 +750,11 @@ def effect_word(value: float) -> str:
         _("Highly improving"),
         # TRANSLATORS: a training effect of 5.0, in Garmin Connect's word
         _("Overreaching"),
-    )[whole]
+    )[step]
 
 
 def effect_text(value: float) -> str:
     """A training effect with its word: "1.6 · Minor benefit"."""
-    from openexpress.i18n import decimal
-
     return caption(decimal(f"{value:.1f}"), effect_word(value))
 
 
@@ -832,8 +834,6 @@ def no_chart_text() -> str:
 def chart_tick(kind: str, value: float, step: float) -> str:
     """A value on the axis of a series: a whole number of beats or metres, a speed with the
     decimals of the axis' step, a pace as a clock."""
-    from openexpress.i18n import decimal
-
     if kind in PACES:
         return activity_clock(value)
     if kind == "speed":
@@ -847,17 +847,11 @@ def chart_tick(kind: str, value: float, step: float) -> str:
 def chart_value_text(kind: str, value: float) -> str:
     """A value of a series where the cursor is: "152 bpm", "412 m", "5:10 /km", "2:05 /100 m",
     "24.3 km/h"."""
-    from openexpress.i18n import decimal
-
     if kind == "heart rate":
         return heart_rate_text(round(value))
-    if kind == "elevation":
+    if kind == "elevation":  # as the axis has it: no thousands apart, a hyphen below zero
         return _("{metres} m").format(metres=round(value))
-    if kind == "pace":
-        return _("{pace} /km").format(pace=activity_clock(value))
-    if kind == "swim pace":
-        return _("{pace} /100 m").format(pace=activity_clock(value))
-    return _("{speed} km/h").format(speed=decimal(f"{value:.1f}"))
+    return _pace_text(kind, value)
 
 
 def chart_cursor_text(seconds: float, kind: str, value: float | None) -> str:
