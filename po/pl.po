@@ -6,7 +6,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: openexpress\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-11-04 00:28+0100\n"
+"POT-Creation-Date: 2026-11-04 00:40+0100\n"
 "PO-Revision-Date: 2026-10-11 02:36+0200\n"
 "Last-Translator: Tomasz Bojanowski\n"
 "Language-Team: none\n"
@@ -4361,15 +4361,14 @@ msgid "Add to Account"
 msgstr "Dodaj do konta"
 
 #: openexpress/gui/add_to_account.py:87
-#, python-brace-format
-msgid "{model} is on the account {account} already"
-msgstr "{model} jest już na koncie {account}"
+msgid "On your Garmin account already"
+msgstr "Już na koncie Garmin"
 
-#: openexpress/gui/add_to_account.py:91
+#: openexpress/gui/add_to_account.py:90
 msgid "Garmin accepted the device, but the account's list does not show it yet"
 msgstr "Garmin przyjął urządzenie, ale lista konta jeszcze go nie pokazuje"
 
-#: openexpress/gui/add_to_account.py:92
+#: openexpress/gui/add_to_account.py:91
 msgid ""
 "Refresh in a few minutes. If it is still missing, check the devices of your "
 "account in Garmin Connect."
@@ -4377,11 +4376,11 @@ msgstr ""
 "Odśwież za kilka minut. Jeśli nadal go nie ma, sprawdź urządzenia swojego "
 "konta w Garmin Connect."
 
-#: openexpress/gui/add_to_account.py:95
+#: openexpress/gui/add_to_account.py:94
 msgid "Garmin accepted the device"
 msgstr "Garmin przyjął urządzenie"
 
-#: openexpress/gui/add_to_account.py:96
+#: openexpress/gui/add_to_account.py:95
 msgid ""
 "The account's list could not be read to check it. Refresh in a few minutes; "
 "if the device is still refused, check the devices of your account in Garmin "
@@ -4392,23 +4391,22 @@ msgstr ""
 "konta w Garmin Connect."
 
 #: openexpress/gui/add_to_account.py:100
-#, python-brace-format
-msgid "{model} added to the account {account}"
-msgstr "Dodano {model} do konta {account}"
+msgid "Added to your Garmin account"
+msgstr "Dodano do konta Garmin"
 
-#: openexpress/gui/add_to_account.py:107
+#: openexpress/gui/add_to_account.py:106
 msgid "Another Garmin account has a subscription on this device"
 msgstr "Inne konto Garmin ma subskrypcję na tym urządzeniu"
 
-#: openexpress/gui/add_to_account.py:108
+#: openexpress/gui/add_to_account.py:107
 msgid "This device is on another Garmin account"
 msgstr "To urządzenie jest na innym koncie Garmin"
 
-#: openexpress/gui/add_to_account.py:110
+#: openexpress/gui/add_to_account.py:109
 msgid "This device was not added"
 msgstr "Tego urządzenia nie dodano"
 
-#: openexpress/gui/add_to_account.py:116
+#: openexpress/gui/add_to_account.py:115
 #, python-brace-format
 msgid "Adding to the account {account}…"
 msgstr "Dodawanie do konta {account}…"

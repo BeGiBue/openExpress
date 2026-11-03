@@ -162,7 +162,8 @@ def test_added(device_root, informed):
     (call,) = run_task.calls
     assert call.device is False  # an account task: the device may be unplugged meanwhile
     assert s.client.http.paths() == [DEVICES_PATH, DEVICES_PATH, REGISTER_PATH, DEVICES_PATH]
-    assert seen["toasts"] == [f"Test watch added to the account {ACCOUNT}"]
+    # Short: a toast is one line, at 360 px too (the account is on the page).
+    assert seen["toasts"] == ["Added to your Garmin account"]
     assert len(seen["refreshed"]) == 1 and informed == []  # the device checked again
 
 
@@ -171,7 +172,7 @@ def test_on_the_account_meanwhile(device_root, informed):
     win, _run, seen = a_window(s)
     add_to_account.add_to_account(win)  # the list read before the request holds it now
     assert REGISTER_PATH not in s.client.http.paths()
-    assert seen["toasts"] == [f"Test watch is on the account {ACCOUNT} already"]
+    assert seen["toasts"] == ["On your Garmin account already"]
 
 
 def test_accepted_but_not_on_the_list_yet(device_root, informed):

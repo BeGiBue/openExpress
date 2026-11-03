@@ -80,12 +80,11 @@ def add_to_account(win, button=None) -> None:
     s = win.session
     if not offers_adding(s):
         return
-    account, model = _account(s), _model(s)
+    account = _account(s)
 
     def done(result: service.DeviceAddition) -> None:
         if result.already:
-            win.toast(_("{model} is on the account {account} already").format(
-                model=model, account=account))
+            win.toast(_("On your Garmin account already"))
         elif result.listed is False:
             inform(win, "added-not-listed",
                    _("Garmin accepted the device, but the account's list does not show it yet"),
@@ -97,8 +96,8 @@ def add_to_account(win, button=None) -> None:
                      "minutes; if the device is still refused, check the devices of your "
                      "account in Garmin Connect."))
         else:
-            win.toast(_("{model} added to the account {account}").format(
-                model=model, account=account))
+            # One line, at 360 px too: the account is on the page.
+            win.toast(_("Added to your Garmin account"))
         if win.session is s:
             win.refresh_device(cause=Cause.REFRESH_IN_VIEW)
 

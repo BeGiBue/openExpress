@@ -152,7 +152,8 @@ request, the status changed for a retired device (D6), the list asked anew.
 
 ### 4.3 The outcomes
 
-- **Added**: the toast "fēnix 5X added to the account {account}"; the device checked again, so
+- **Added**: the toast "Added to your Garmin account" (one line, at 360 px too; the account is
+  on the page); the device checked again, so
   the banner and the row "On the account" go, Sync, Apps and the primary training device come
   back. Nothing is synced by itself.
 - **Already on the account** (the list read before the request holds it): the same, without a
@@ -182,7 +183,7 @@ request, the status changed for a retired device (D6), the list asked anew.
 | Adding to the account {account}… | Dodawanie do konta {account}… |
 | Add {model} to your Garmin account? | Dodać {model} do konta Garmin? |
 | (the body of 4.2) | openExpress wyśle do Garmina opis urządzenia (plik GarminDevice.xml z jego numerem Unit ID) i doda je do konta {account} jako aktywne. Potem synchronizacja wyśle na to konto jego aktywności i dane o zdrowiu. … |
-| {model} added to the account {account} | Dodano {model} do konta {account} |
+| Added to your Garmin account / On your Garmin account already | Dodano do konta Garmin / Już na koncie Garmin |
 | This device is on another Garmin account | To urządzenie jest na innym koncie Garmin |
 | On another Garmin account | Na innym koncie Garmin |
 | Garmin did not accept the description of this device | Garmin nie przyjął opisu tego urządzenia |
