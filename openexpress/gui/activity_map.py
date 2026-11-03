@@ -16,7 +16,6 @@ without libshumate the page says what is missing.
 Has: no attribute of the window; the map's widgets keep their track and state themselves."""
 from __future__ import annotations
 
-import bisect
 import logging
 import math
 import queue
@@ -42,7 +41,7 @@ except (ValueError, ImportError):  # not installed (the version from source): no
 
 from openexpress import __version__, cache, paths, useragent  # noqa: E402
 from openexpress.gui import activity_colours  # noqa: E402
-from openexpress.gui.activity_chart import GAP_S  # noqa: E402
+from openexpress.gui.activity_chart import nearest  # noqa: E402
 from openexpress.gui.gui_settings import load_gui_settings, update_gui_settings  # noqa: E402
 from openexpress.i18n import _  # noqa: E402
 
@@ -172,13 +171,8 @@ def center(box) -> tuple[float, float]:
 def position_at(track: Track, at: float) -> tuple[float, float] | None:
     """Where the record nearest to the time `at` is; None in a gap or a pause (no record
     within half of the chart's GAP_S)."""
-    times = track.times
-    at = min(max(at, times[0]), times[-1])
-    i = bisect.bisect_left(times, at)
-    nearest = min((j for j in (i - 1, i) if 0 <= j < len(times)), key=lambda j: abs(times[j] - at))
-    if abs(times[nearest] - at) > GAP_S / 2:
-        return None
-    return track.points[nearest]
+    i = nearest(track.times, min(max(at, track.times[0]), track.times[-1]))
+    return None if i is None else track.points[i]
 
 
 def _metres(a, b) -> float:

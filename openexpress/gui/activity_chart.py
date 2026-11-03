@@ -28,6 +28,7 @@ from gi.repository import Gdk, GObject, Gtk, Pango, PangoCairo  # noqa: E402 - i
 from openexpress.gui.activity_colours import accent_color  # noqa: E402
 from openexpress.gui.activity_zones import ZONE_COLORS  # noqa: E402
 from openexpress.gui.words import (  # noqa: E402
+    PACES,
     activity_clock,
     chart_accessible_name,
     chart_cursor_text,
@@ -53,7 +54,6 @@ KEY_STEP = 100  # a key moves the cursor by a hundredth of the activity
 CHART_HEIGHT = 200
 LAP_SHADE = 0.14  # the strength of the accent colour behind the lap chosen
 ZONE_SHADE = 0.13  # the strength of the zones' colours behind the line of heart rate
-PACES = ("pace", "swim pace")
 WHOLE = ("heart rate", "elevation")  # their axes have whole steps
 LEAST_SPAN = {"heart rate": 10, "elevation": 10, "speed": 1, "pace": 60, "swim pace": 10}
 NICE = (1, 2, 2.5, 5, 10)
@@ -201,7 +201,7 @@ def chart_series(data) -> list[Series]:
                          ("elevation", tuple(s.altitude for s in samples))):
         if any(v is not None for v in values):
             found.append(Series(kind, times, values))
-    if data.distance or any((s.distance or 0) > 0 for s in samples):
+    if _has_distance(data):
         speeds = _speeds(samples)
         kind = speed_kind(data.sport)
         if kind == "speed":
@@ -216,6 +216,12 @@ def chart_series(data) -> list[Series]:
     return found
 
 
+def _has_distance(data) -> bool:
+    """Whether an activity (fit.ActivityData) went a distance: its sessions say one, or a
+    record does."""
+    return bool(data.distance or any((s.distance or 0) > 0 for s in data.samples))
+
+
 def moving_time(data) -> float | None:
     """The time an activity (fit.ActivityData) with a distance was moving, as Garmin Connect
     counts it: the time from each record whose own speed is STOP_SPEED or more to the next
@@ -223,7 +229,7 @@ def moving_time(data) -> float | None:
     no window, and a climb the device records at no speed is no moving (a device writes 0 when
     it finds you stopped, also on a slow steep climb). None without a distance or speeds."""
     samples = data.samples
-    if len(samples) < 2 or not (data.distance or any((s.distance or 0) > 0 for s in samples)):
+    if len(samples) < 2 or not _has_distance(data):
         return None
     speeds = _speeds(samples)
     if all(v is None for v in speeds):
@@ -342,16 +348,20 @@ def faster_on_top(kind: str) -> bool:
     return kind in PACES
 
 
+def nearest(times, at: float) -> int | None:
+    """The record of `times` nearest to the time `at` (its index); None in a gap or a pause
+    (no record within half of GAP_S). The chart's cursor and its marker on the map."""
+    i = bisect.bisect_left(times, at)
+    found = min((j for j in (i - 1, i) if 0 <= j < len(times)), key=lambda j: abs(times[j] - at))
+    return None if abs(times[found] - at) > GAP_S / 2 else found
+
+
 def value_at(series: Series, at: float) -> tuple[float, float | None]:
     """Where the cursor goes for the time `at` and the value there: the nearest record, or
-    no value in a gap or a pause (no record within half of GAP_S)."""
-    times = series.times
+    no value in a gap or a pause."""
     at = min(max(at, 0), series.duration)
-    i = bisect.bisect_left(times, at)
-    nearest = min((j for j in (i - 1, i) if 0 <= j < len(times)), key=lambda j: abs(times[j] - at))
-    if abs(times[nearest] - at) > GAP_S / 2:
-        return at, None
-    return times[nearest], series.values[nearest]
+    i = nearest(series.times, at)
+    return (at, None) if i is None else (series.times[i], series.values[i])
 
 
 def cursor_after(series: Series, cursor: float | None, key: str) -> float:

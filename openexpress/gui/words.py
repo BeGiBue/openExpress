@@ -347,6 +347,7 @@ def stalled_text(names: list[str | None]) -> str:
 # swimming with a pace a hundred metres; any other with a distance, with a speed.
 _PACE_SPORTS = {1, 11, 16, 17, 35}
 _SWIMMING = 5
+PACES = ("pace", "swim pace")  # the series read as a pace: the faster, the lower
 
 
 def speed_kind(sport: int | None) -> str:
@@ -833,7 +834,7 @@ def chart_tick(kind: str, value: float, step: float) -> str:
     decimals of the axis' step, a pace as a clock."""
     from openexpress.i18n import decimal
 
-    if kind in ("pace", "swim pace"):
+    if kind in PACES:
         return activity_clock(value)
     if kind == "speed":
         decimals = 0

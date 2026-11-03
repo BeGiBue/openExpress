@@ -27,6 +27,7 @@ from gi.repository import Adw, Gdk, Gtk  # noqa: E402 - imports must follow gi.r
 
 from openexpress.gui.gui_settings import load_gui_settings, update_gui_settings  # noqa: E402
 from openexpress.gui.words import (  # noqa: E402
+    PACES,
     chart_value_text,
     colours_text,
     track_colour_text,
@@ -92,7 +93,7 @@ def scale_ends(series) -> tuple[float, float] | None:
     if not found:
         return None
     low, high = (found[round(share * (len(found) - 1))] for share in PERCENTILES)
-    return (high, low) if series.kind in ("pace", "swim pace") else (low, high)
+    return (high, low) if series.kind in PACES else (low, high)
 
 
 def point_colours(times, series) -> list[str] | None:
