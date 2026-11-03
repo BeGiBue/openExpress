@@ -123,6 +123,28 @@
   </supports>
   <content_rating type="oars-1.1"/>
   <releases>
+    <release version="0.8.2" date="2026-11-03">
+      <description>
+        <ul>
+          <li>New: the page of an activity. A click on an activity of the Activities page opens
+          it: its distance, time, pace or speed, heart rate and ascent; the map of its track,
+          coloured by heart rate, elevation or pace; a chart of heart rate, elevation and pace or
+          speed with its cursor marked on the map; its laps (or each kilometre), heart-rate
+          zones, training effect and load, and its details. Streets and terrain come from
+          OpenStreetMap only after you turn them on. Checked on a fēnix 8 over MTP.</li>
+          <li>A device over MTP that stops responding in the middle of a read no longer leaves
+          the program waiting for ever: after 30 s without an answer the operation stops, a
+          banner says to unplug the device and plug it in again, and nothing more is asked of it
+          until then. Covered by automated tests; a stall cannot be made on purpose.</li>
+          <li>"Last sync" on the device page and "openexpress status" say apart the activities
+          the device has to upload now.</li>
+          <li>The fēnix 5X is reported to work (detection, software updates).</li>
+          <li>The Flatpak installs from the shared bojanowski.me repository; an existing
+          "openexpress" source keeps working. The website openexpress.bojanowski.me is the
+          program's homepage.</li>
+        </ul>
+      </description>
+    </release>
     <release version="0.8.1" date="2026-11-02">
       <description>
         <ul>
