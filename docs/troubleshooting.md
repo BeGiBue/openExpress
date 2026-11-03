@@ -25,8 +25,10 @@
 - **"This device is not registered to your Garmin account", although you registered it.**
   Registering the product on garmin.com does not add it to Garmin Connect, whose list of
   devices openExpress checks. Add the device in Garmin Connect (pair it with the Garmin
-  Connect app on your phone, or add it at connect.garmin.com), then sync again. If it is
-  there already, check that the phone app and openExpress are signed in to the same account.
+  Connect app on your phone, or add it at connect.garmin.com), or here: **Add to Account…** on
+  the banner or on the device page, `openexpress register` on the command line
+  (experimental); then sync again. If it is there already, check that the phone app and
+  openExpress are signed in to the same account.
 
 ## KDE Plasma and Dolphin
 

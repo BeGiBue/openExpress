@@ -346,6 +346,15 @@ fēnix 8 over MTP.
   if the watch is not on it, or the list cannot be fetched, nothing is uploaded and nothing
   is written to the watch. `openexpress baseline` needs a login too. Features
   without the account (backup, software updates, maps, music) work with any watch.
+- **Adding a device to the account (experimental).** A device the account does not list can be
+  added from openExpress, as Garmin Express adds one: **Add to Account…** on the banner or on
+  the device page, or `openexpress register` (a trial run; `--apply` adds it). A question
+  names the device and the account first. openExpress sends Garmin the device's
+  `GarminDevice.xml` and adds it as an active device (one Garmin keeps as retired is made
+  active), then reads the account's list again to check. Garmin refuses a device of another
+  account; its owner has to remove it there first. Nothing is written to the device, and its
+  primary training device is not changed. A device is removed from an account only in Garmin
+  Connect.
 - **TrueUp** (`FIT_TYPE_39`): when you own several Garmin devices, Connect asks the client to
   check back after a delay and then sends adjusted daily totals, which are written to the
   watch. As in Garmin Express, openExpress waits the whole delay when it is under five

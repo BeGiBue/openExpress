@@ -23,6 +23,11 @@ the application key, its secret and the value that signs download addresses are 
   number, version and when), the names of the files already uploaded, the last sync, copies of
   files whose upload failed until they are uploaded, and the list of your own maps.
   **Forget Device…** removes what it keeps of a device.
+- **Adding a device to the account (experimental)** sends Garmin Connect the device's
+  `GarminDevice.xml` (its model, software and unit ID), only after you confirm it, as Garmin
+  Express does. Garmin's answer carries the device's own Garmin Connect credentials (for its
+  uploads over Wi-Fi): openExpress keeps only whether the device was added and its status,
+  never those credentials, not in a file, the log or the device.
 - **No telemetry.** Unlike Garmin Express, the program sends nothing to
   Microsoft Application Insights. Watch diagnostics (error logs, KPIs, memory
   dumps, behaviour log) are not uploaded without `--include-diagnostics`.

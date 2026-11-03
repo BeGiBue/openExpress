@@ -1,9 +1,12 @@
 # Design: adding a device to the Garmin account
 
-Status: decisions made, being implemented. Each decision of section 5 took its recommended
-option, marked "chosen", D3a with one change: the window names the account as it does elsewhere
-(its user name, else its whole e-mail address), the command line masks an e-mail address, since
-its output is pasted into reports. The feature is marked experimental (section 4.6).
+Status: implemented, steps 1 to 5 of section 7; the first attempt on a device (section 9)
+waits. Each decision of section 5 took its recommended option, marked "chosen", D3a with one
+change: the window names the account as it does elsewhere (its user name, else its whole e-mail
+address), the command line masks an e-mail address, since its output is pasted into reports.
+The feature is marked experimental (section 4.7). One detail differs from 4.3 as first written:
+the row "On the account" is shown only for a device off the account, so a device added loses it
+(its group then shows what any device of the account shows).
 
 ## 1. Scope
 
@@ -21,7 +24,7 @@ openExpress:
 4. **What Garmin refuses**, said plainly: a device on another account, with an active
    subscription of another account, a description Garmin does not accept, a device Garmin does
    not allow (D5).
-5. **Marked experimental**, in the window and on the command line (4.6).
+5. **Marked experimental**, in the window and on the command line (4.7).
 
 Not in the scope: everything else Garmin Express does when it adds a device (section 2), namely
 writing the device's own Garmin Connect credentials, the user's profile, e-mail address or phone
@@ -87,7 +90,7 @@ the one request it has never made.
   it in Garmin Connect, and to check that the phone's Garmin Connect app uses the same account;
   the log tells what the list holds (part numbers, states, how the unit IDs compare, the
   environment), never a unit ID.
-- The window: the banner "This device is not registered to your Garmin account" (no button), Sync
+- The window (before this feature): the banner "This device is not registered to your Garmin account" (no button), Sync
   off, the Apps page and the primary training device "Not available".
 - The command line: account commands end with code 1 and the same message.
 
@@ -133,7 +136,7 @@ either):
 > ID) and adds it to the account {account} as an active device. Then a sync uploads its
 > activities and health data to this account.
 >
-> If the watch is paired with the Garmin Connect app on a phone, check first that the app uses
+> If the device is paired with the Garmin Connect app on a phone, check first that the app uses
 > the same account. A device can be removed from an account only in Garmin Connect.
 >
 > Cancel · **Add to Account**
@@ -141,7 +144,7 @@ either):
 {account} is the name the window already shows for the account (Preferences, "Logged in as"):
 its user name, else its e-mail address. The command line masks an e-mail address (`t…@b…`),
 also a user name that is one (D3). The question ends with "This is an experimental feature."
-(4.6).
+(4.7).
 
 Then, as a task with the button busy (`run_task`), "Adding to the account {account}…" in the
 row: the list asked anew (the device may have been added meanwhile: then nothing is sent), the
@@ -150,8 +153,8 @@ request, the status changed for a retired device (D6), the list asked anew.
 ### 4.3 The outcomes
 
 - **Added**: the toast "fēnix 5X added to the account {account}"; the device checked again, so
-  the banner goes, Sync, Apps and the primary training device come back; the row says "Yes, on
-  the account {account}". Nothing is synced by itself.
+  the banner and the row "On the account" go, Sync, Apps and the primary training device come
+  back. Nothing is synced by itself.
 - **Already on the account** (the list read before the request holds it): the same, without a
   request.
 - **On another account (409)**: `inform()` "This device is on another Garmin account": "Garmin
@@ -208,7 +211,20 @@ A device on the account already: "fenix 5x is on the Garmin account tomek_b alre
 nothing sent). Refusals: the texts of 4.3, code 1. No new exit code. An account named by an
 e-mail address shows as `t…@b…`.
 
-### 4.6 Experimental
+### 4.6 How the request introduces itself
+
+As every request of openExpress to the Garmin Connect API: signed (OAuth1) with Garmin Express's
+application key, which the user's own copy of its installer gives at setup, and the account's
+token; with the client headers of Garmin Express (`Garmin-Client-Name`, `-Version`, `-Platform`,
+`-Platform-Version`, `-SessionId`, `X-garmin-client-id`), as for every other request; and with
+openExpress's own User-Agent, `openexpress/<version> (Linux)`, the one every request of the
+program sends. The body is the device's `GarminDevice.xml`, with `Override: 1`, as Garmin Express
+sends it. Garmin Express's own client sends there the default User-Agent of its HTTP library,
+known from the analysis only, not from its traffic: openExpress does not imitate it. If the
+first attempt (section 9) showed Garmin refusing the request for its User-Agent, that would be
+decided anew, with the evidence.
+
+### 4.7 Experimental
 
 Adding a device is the first request of openExpress that Garmin's servers answer with a change
 to the account's devices, and its answers are known from the analysis, not yet from a device.
