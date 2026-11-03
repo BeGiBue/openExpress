@@ -3,7 +3,8 @@
 Status: implemented, steps 1 to 5 of section 7; the first attempt on a device (section 9)
 waits. Each decision of section 5 took its recommended option, marked "chosen", D3a with one
 change: the window names the account as it does elsewhere (its user name, else its whole e-mail
-address), the command line masks an e-mail address, since its output is pasted into reports.
+address), the command line masks the account's name, its user name as well as an e-mail
+address, since its output is pasted into reports (and so do its other commands).
 The feature is marked experimental (section 4.7). One detail differs from 4.3 as first written:
 the row "On the account" is shown only for a device off the account, so a device added loses it
 (its group then shows what any device of the account shows).
@@ -142,8 +143,8 @@ either):
 > Cancel · **Add to Account**
 
 {account} is the name the window already shows for the account (Preferences, "Logged in as"):
-its user name, else its e-mail address. The command line masks an e-mail address (`t…@b…`),
-also a user name that is one (D3). The question ends with "This is an experimental feature."
+its user name, else its e-mail address. The command line masks it: a user name as `t…b`, an
+e-mail address as `t…@b…` (D3). The question ends with "This is an experimental feature."
 (4.7).
 
 Then, as a task with the button busy (`run_task`), "Adding to the account {account}…" in the
@@ -198,19 +199,19 @@ something:
 
 ```
 $ openexpress register
-fenix 5x (006-B2604-00, software 19.10) is not on the Garmin account tomek_b.
+fenix 5x (006-B2604-00, software 19.10) is not on the Garmin account t…b.
 Would add it as an active device: POST connectapi.garmin.com/device-service/deviceregistration/device
 with its GarminDevice.xml (2.1 KB; it holds the device's unit ID).
 After that, a sync uploads its activities and health data to this account.
 A device can be removed from an account only in Garmin Connect.
 Dry run. Add --apply.
 $ openexpress register --apply
-Added fenix 5x to the Garmin account tomek_b.
+Added fenix 5x to the Garmin account t…b.
 ```
 
-A device on the account already: "fenix 5x is on the Garmin account tomek_b already." (code 0,
+A device on the account already: "fenix 5x is on the Garmin account t…b already." (code 0,
 nothing sent). Refusals: the texts of 4.3, code 1. No new exit code. An account named by an
-e-mail address shows as `t…@b…`.
+e-mail address shows as `t…@b…`; every command shows the account masked so.
 
 ### 4.6 How the request introduces itself
 
@@ -263,8 +264,8 @@ your Garmin account (experimental; trial run without --apply)", its trial run en
 ### D3: the question — chosen: 3a
 
 - **3a. The device, the account, what is sent and what follows (recommended; chosen):** the text of
-  4.2; the account named as the window names it; on the command line an e-mail address only
-  masked, since its output is pasted into reports.
+  4.2; the account named as the window names it; on the command line its name only masked
+  (user name and e-mail address), since its output is pasted into reports.
   - \+ The account named is the check that the device goes where the user means; the advice
     about the phone's app catches the commonest mistake (two accounts) before a request.
 - **3b. A short question** ("Add this device to your account?").

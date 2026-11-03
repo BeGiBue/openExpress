@@ -67,7 +67,7 @@ def test_the_trial_run_says_what_would_be_sent(device_root, xdg, garmin, capsys)
     before = tree(device_root)
     assert main(["--path", str(device_root), "register"]) == 0
     assert capsys.readouterr().out.splitlines() == [
-        "Test watch (006-B0000-00, software 23.39) is not on the Garmin account tomek_b.",
+        "Test watch (006-B0000-00, software 23.39) is not on the Garmin account t…b.",
         ("Would add it as an active device: POST "
          "connectapi.garmin.com/device-service/deviceregistration/device"),
         f"with its GarminDevice.xml ({xml_size(device_root)}; it holds the device's unit ID).",
@@ -81,16 +81,18 @@ def test_the_trial_run_says_what_would_be_sent(device_root, xdg, garmin, capsys)
 
 
 @pytest.mark.parametrize("account, shown", [
+    ({"username": "tomek_b"}, "t…b"),
+    ({"username": "tb"}, "t…"),
     ({"emailaddress": "tomek@example.com"}, "t…@e…"),
     ({"username": "tomek@example.com", "emailaddress": "x@y.z"}, "t…@e…"),
     ({}, "(unknown account)"),
 ])
-def test_an_e_mail_address_is_masked(device_root, xdg, garmin, capsys, account, shown):
+def test_the_account_is_masked(device_root, xdg, garmin, capsys, account, shown):
     garmin([[]], account=account)
     assert main(["--path", str(device_root), "register"]) == 0
     out = capsys.readouterr().out
     assert f"on the Garmin account {shown}." in out
-    assert "example.com" not in out and "tomek@" not in out
+    assert "example.com" not in out and "tomek" not in out
 
 
 def test_adding(device_root, xdg, garmin, capsys):
@@ -98,7 +100,7 @@ def test_adding(device_root, xdg, garmin, capsys):
     before = tree(device_root)
     assert main(["--path", str(device_root), "register", "--apply"]) == 0
     assert capsys.readouterr().out.splitlines() == [
-        "Added Test watch to the Garmin account tomek_b."]
+        "Added Test watch to the Garmin account t…b."]
     assert g.requests() == [("GET", DEVICES_PATH), ("POST", REGISTER_PATH),
                             ("GET", DEVICES_PATH)]
     assert tree(device_root) == before  # nothing is ever written to the device
@@ -110,7 +112,7 @@ def test_adding_a_retired_device(device_root, xdg, garmin, capsys):
     g = garmin([[], [{"unitid": UNIT}]], answer=retired)
     assert main(["--path", str(device_root), "register", "--apply"]) == 0
     assert capsys.readouterr().out.splitlines() == [
-        "Added Test watch to the Garmin account tomek_b.",
+        "Added Test watch to the Garmin account t…b.",
         "Garmin kept it as retired; it is active now."]
     assert ("PUT", STATUS_PATH) in g.requests()
 
@@ -120,7 +122,7 @@ def test_a_device_on_the_account_already(device_root, xdg, garmin, capsys, argv)
     g = garmin([[{"unitid": UNIT}]])
     assert main(["--path", str(device_root), *argv]) == 0
     assert capsys.readouterr().out.splitlines() == [
-        "Test watch is on the Garmin account tomek_b already."]
+        "Test watch is on the Garmin account t…b already."]
     assert g.requests() == [("GET", DEVICES_PATH)]
 
 

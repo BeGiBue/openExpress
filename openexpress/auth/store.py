@@ -24,15 +24,28 @@ class ConnectAuth:
 
     @property
     def display(self) -> str:
+        """The account's name as the window shows it: its user name, else its e-mail
+        address, whole."""
         a = self.account
         return a.get("username") or a.get("emailaddress") or _("(unknown account)")
 
+    @property
+    def masked_display(self) -> str:
+        """The account's name as the command line shows it, masked (masked()): its output is
+        pasted into reports."""
+        a = self.account
+        name = a.get("username") or a.get("emailaddress")
+        return masked(name) if name else _("(unknown account)")
+
 
 def masked(name: str) -> str:
-    """An account's name for what is pasted into reports (the command line's output): an
-    e-mail address as its first letters, "t…@e…"; any other name as it is."""
+    """An account's name for what is pasted into reports (the command line's output): a user
+    name as its first and last letters, "t…b" (only the first of two letters or fewer); an
+    e-mail address as the first letters of its two halves, "t…@e…"."""
     local, at, domain = name.partition("@")
-    return f"{local[:1]}…@{domain[:1]}…" if at else name
+    if at:
+        return f"{local[:1]}…@{domain[:1]}…"
+    return f"{name[:1]}…{name[-1:]}" if len(name) > 2 else f"{name[:1]}…"
 
 
 def _path():

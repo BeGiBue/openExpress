@@ -645,7 +645,7 @@ def cmd_login(args) -> int:
         print(_("Warning: could not fetch the profile ({error})").format(
             error=str(e) or e.__class__.__name__), file=sys.stderr)
     store.save(auth)
-    print(_("Logged in as {account}.").format(account=auth.display))
+    print(_("Logged in as {account}.").format(account=auth.masked_display))
     return 0
 
 
@@ -659,12 +659,19 @@ def cmd_whoami(args) -> int:
     auth = store.load()
     settings = Settings.load()
     print(_("Account: {account} (environment {environment})").format(
-        account=auth.display, environment=auth.environment))
+        account=auth.masked_display, environment=auth.environment))
     if args.check:
         prof = make_client(settings, need_auth=True).user_profile()
         print(_("Token works: {username} / {email}").format(
-            username=prof.get("username"), email=prof.get("emailaddress")))
+            username=_masked_field(prof.get("username")),
+            email=_masked_field(prof.get("emailaddress"))))
     return 0
+
+
+def _masked_field(value) -> str:
+    """A field of the account's profile as the command line shows it: masked; "?" when the
+    profile gives none."""
+    return store.masked(value) if isinstance(value, str) and value else "?"
 
 
 def cmd_status(args) -> int:
@@ -679,7 +686,7 @@ def cmd_status(args) -> int:
         auth = store.load()
     except store.NotLoggedIn:
         auth = None
-    print(_("Garmin Connect: logged in as {account}").format(account=auth.display)
+    print(_("Garmin Connect: logged in as {account}").format(account=auth.masked_display)
           if auth is not None else _("Garmin Connect: not logged in"))
     summaries = gio_storage.distinct_devices(
         [gio_storage.probe(f) for f in gio_storage.find_all_devices()])
@@ -2246,7 +2253,7 @@ def cmd_register(args) -> int:
 
     _st, dev = open_device(args)
     client = make_client(Settings.load(), need_auth=True)
-    account = store.masked(client.auth.display)
+    account = client.auth.masked_display
     result = service.add_device(client, dev, apply=args.apply)
     if result.already:
         print(_("{model} is on the Garmin account {account} already.").format(
