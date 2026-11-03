@@ -154,6 +154,11 @@ def test_the_tile_server_is_told_who_asks_and_what_the_cache_has(monkeypatch):
     assert (fetched.status, fetched.max_age) == (304, 60)
 
 
+def test_the_session_of_the_tiles_is_named_as_the_map():
+    """Its own session, never another one's header."""
+    assert amap()._session().headers["User-Agent"] == amap().USER_AGENT
+
+
 def needs_shumate():
     if amap().Shumate is None or not amap().can_ask():
         pytest.skip("libshumate 1.1 or later is not installed")

@@ -292,8 +292,7 @@ def _session() -> requests.Session:
     """The session of a downloading thread, named as openExpress."""
     session = getattr(_local, "session", None)
     if session is None:
-        session = _local.session = useragent.session()
-        session.headers["User-Agent"] = USER_AGENT
+        session = _local.session = useragent.session(USER_AGENT)
     return session
 
 
