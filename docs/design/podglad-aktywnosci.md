@@ -1,18 +1,16 @@
 # Design: the full view of an activity (summary, map, chart, laps)
 
-Status: the decisions of section 5 are made (each took its option a, marked "chosen"; D3a with what
-section 5 adds to it; 10b kept as an idea for later; D11 with the tile of the ascent and every tile
-that applies, up to five). Steps 1 to 5 of section 8 are implemented (the data of an activity,
-`fit.activity_data`; the words of its page, `gui/words.py`; the page with its tiles,
-`gui/activity_page.py`; the chart, `gui/activity_chart.py`; the map, `gui/activity_map.py`).
-The work goes step by step, each step once accepted. The scope in section 1 is set once: what it
-does not list is not added while it is implemented. After step 5 the page was found correct but
-plain: section 10 adds to the scope (items 6–10 of section 1), designed together with the laps.
-Its decisions are made: 13a, 14a, 15a, 16b, 17a with moving time from the records, 18a, 19b,
-20a, 21a, 22a; 19a (the sets of a strength workout) is put off, an idea for later. Its steps
-(10.5) replace steps 6–7 of section 8; steps 6 to 12 are implemented (the laps, the look, the
-heart-rate zones, the training effect, the colours of the track, the details, the
-documentation).
+Status: implemented. The decisions of section 5 are made (each took its option a, marked
+"chosen"; D3a with what section 5 adds to it; 10b kept as an idea for later; D11 with the tile of
+the ascent and every tile that applies, up to five), and those of section 10, which adds to the
+scope (items 6–10 of section 1) and is designed together with the laps: 13a, 14a, 15a, 16b, 17a
+with moving time from the records, 18a, 19b, 20a, 21a, 22a; 19a (the sets of a strength
+workout) is put off, an idea for later. The scope in section 1 is set: what it does not list is
+not added. Steps 1 to 5 of section 8 and steps 6 to 12 of section 10.5, which replace steps 6–7
+of section 8, are implemented: the data of an activity (`fit.activity_data`), the words of its
+page (`gui/words.py`), the page with its tiles (`gui/activity_page.py`), the chart
+(`gui/activity_chart.py`), the map (`gui/activity_map.py`), the laps, the look, the heart-rate
+zones, the training effect, the colours of the track, the details and the documentation.
 
 ## 1. Scope
 
@@ -206,9 +204,9 @@ its height and narrows; the lap rows wrap.
   zooms the tiles are those of the nearest whole zoom, scaled from 0.71 to 1.41 of their size,
   as web maps do, not those of the zoom below, which would be up to twice as large and blurred:
   the map stays sharp and shows more, its words as small as 71 % of their size when the zoom
-  falls just under a half. Checked on the screen at both styles, wide and narrow: no seam
-  between tiles, the map full a tenth of a second after it opens (from the cache), the buttons
-  and the wheel's steps without an empty frame but the edges of a zoom out for a frame.
+  falls just under a half. So no seam shows between tiles, the map is full a tenth of a second
+  after it opens (from the cache), and the buttons and the wheel zoom without an empty frame but
+  the edges of a zoom out, for one frame.
 - **2b. The track drawn by openExpress itself** (a `Gtk.DrawingArea`, no tiles).
   - \+ No new library, no network.
   - − A line without streets or terrain; panning and zooming written anew.
