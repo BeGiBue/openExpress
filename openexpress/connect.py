@@ -29,6 +29,10 @@ log = logging.getLogger(__name__)
 
 TIMEOUT = 60
 PRIMARY_TRAINING_PATH = "userprofile-service/userprofile/user-settings/primary-training-device"
+REGISTER_PATH = "device-service/deviceregistration/device"
+# A 409 of the registration with this subcode: another account has an active subscription on
+# the device.
+SUBSCRIPTION_SUBCODE = 4091
 
 
 def _hosts(client) -> dict[str, str]:
@@ -73,6 +77,19 @@ class DeviceNotVerified(OwnershipError):
     """An account request for a watch was attempted without the ownership check."""
 
 
+class RegistrationRefused(ApiError):
+    """Garmin did not add the device to the account; nothing was changed."""
+
+
+class OtherOwner(RegistrationRefused):
+    """The device is registered to another Garmin account (HTTP 409); `subscription`: that
+    account also has an active subscription on it."""
+
+    def __init__(self, message: str, subscription: bool):
+        super().__init__(message, 409)
+        self.subscription = subscription
+
+
 def lower_keys(obj: Any) -> Any:
     """Garmin servers return either camelCase or PascalCase; normalize the keys."""
     if isinstance(obj, dict):
@@ -80,6 +97,16 @@ def lower_keys(obj: Any) -> Any:
     if isinstance(obj, list):
         return [lower_keys(v) for v in obj]
     return obj
+
+
+@dataclass
+class Registration:
+    """What is kept of Garmin's answer to adding a device to the account. The answer also
+    carries the device's own OAuth credentials (for its uploads over Wi-Fi); those are never
+    kept, logged or written anywhere."""
+
+    new: bool | None
+    status: str  # e.g. "active" or "retired"; "" when not told
 
 
 @dataclass
@@ -105,6 +132,9 @@ class GarminClient:
         self.session_id = str(uuid.uuid4())
         # Set by service.require_account_device(); kept in memory only.
         self.verified_unit_id: int | None = None
+        # The devices this client added to the account (register_device): the only ones whose
+        # status it may change before the account lists them.
+        self.registered_unit_ids: set[int] = set()
 
     # --- helpers ---------------------------------------------------------------------
 
@@ -219,15 +249,23 @@ class GarminClient:
                 resp.text[:500],
             ) from e
 
+    @staticmethod
+    def _clock_skew(resp: requests.Response, what: str) -> ClockSkew | None:
+        """The error for a refusal (401, 403) the computer's wrong clock caused, if it did."""
+        skew = netstatus.clock_skew(resp)
+        if netstatus.kind_of(resp.status_code, skew) != netstatus.CLOCK:
+            return None
+        return ClockSkew(
+            _("{action}: computer clock is off from the server by {minutes} min")
+            .format(action=what, minutes=int(skew // 60)),
+            resp.status_code,
+        )
+
     def _check(self, resp: requests.Response, what: str) -> requests.Response:
         if resp.status_code in (401, 403):
-            skew = netstatus.clock_skew(resp)
-            if netstatus.kind_of(resp.status_code, skew) == netstatus.CLOCK:
-                raise ClockSkew(
-                    _("{action}: computer clock is off from the server by {minutes} min")
-                    .format(action=what, minutes=int(skew // 60)),
-                    resp.status_code,
-                )
+            skew = self._clock_skew(resp, what)
+            if skew is not None:
+                raise skew
             raise Unauthorized(
                 _("{action}: unauthorized (HTTP {status}). Please log in again.")
                 .format(action=what, status=resp.status_code),
@@ -629,6 +667,98 @@ class GarminClient:
         path = f"device-service/deviceservice/device-info/{unit_id}/primary-activity-tracker"
         self._connect("PUT", path, _("Primary wearable"), data=json.dumps(True),
                       headers={"Content-Type": "application/json"})
+
+    # --- adding a device to the account (experimental) -----------------------------------
+
+    def register_device(self, device_xml: bytes, unit_id: int) -> Registration:
+        """Add the device to the logged-in account, as an active device (`Override: 1`, as
+        Garmin Express adds a device that tracks activity). Changes the account.
+
+        The one account request for a device the account does not list yet, so it needs no
+        verified unit ID; it does not verify the device either. One request, never repeated:
+        409 (another account's device, with or without its subscription), 400 and 403 are
+        refusals. Any 2xx answer means the device was accepted, also one that cannot be read
+        (then `Registration(None, "")`); the account's device list, fetched again, tells the
+        result. Nothing of the answer but `Registration` is kept: not its body, not even in an
+        error."""
+        what = _("Adding the device to the account")
+        url = self._prepared_url("POST", self.connect_url(REGISTER_PATH))
+        h = self._client_headers()
+        h.update({"Content-Type": "application/xml", "Accept": "application/json",
+                  "Override": "1"})
+        h["Authorization"] = self._sign("POST", url)
+        resp = self._request("POST", url, what, headers=h, data=device_xml)
+        if resp.status_code == 409:
+            raise OtherOwner(*self._other_owner(resp))
+        if resp.status_code == 400:
+            raise RegistrationRefused(
+                _("Garmin did not accept the description of this device. Nothing was "
+                  "changed."), 400)
+        if resp.status_code == 403:
+            raise self._clock_skew(resp, what) or RegistrationRefused(
+                _("Garmin does not allow adding this device to an account. Nothing was "
+                  "changed."), 403)
+        if not resp.ok:
+            # The usual errors, but without the body: an answer to this request may carry
+            # the device's credentials.
+            try:
+                self._check(resp, what)
+            except ApiError as e:
+                e.body = ""
+                raise
+        self.registered_unit_ids.add(unit_id)
+        try:
+            body = lower_keys(resp.json())
+        except ValueError:
+            body = None
+        if not isinstance(body, dict):
+            log.info("register: accepted, the answer not understood (%s, %s)",
+                     resp.headers.get("Content-Type") or "no content type",
+                     applog.size(len(resp.content)))
+            return Registration(None, "")
+        told = body.get("unitid")
+        if told is not None and str(told) != str(unit_id):
+            raise ApiError(
+                _("Garmin accepted the request, but its answer names another device. Check "
+                  "the devices of your account in Garmin Connect."), resp.status_code)
+        new = body.get("newregistration")
+        status = body.get("devicestatus")
+        return Registration(new if isinstance(new, bool) else None,
+                            status if isinstance(status, str) else "")
+
+    @staticmethod
+    def _other_owner(resp: requests.Response) -> tuple[str, bool]:
+        """The words of a 409 of the registration, and whether it is a subscription's."""
+        try:
+            error = lower_keys(resp.json()).get("error")
+            subscription = isinstance(error, dict) and error.get("subcode") == SUBSCRIPTION_SUBCODE
+        except (ValueError, AttributeError):
+            subscription = False
+        if subscription:
+            return _("Another Garmin account has an active subscription on this device; its "
+                     "owner has to end it first. Nothing was changed."), True
+        return _("This device is registered to another Garmin account. If it is your other "
+                 "account, log in to it in openExpress. If it was someone else's, they have to "
+                 "remove it from their account in Garmin Connect; then add it here. Nothing "
+                 "was changed."), False
+
+    def set_device_active(self, unit_id: int) -> None:
+        """Make a device this client has just added to the account active, as Garmin Express
+        does with one Garmin keeps as retired. Changes the account. Any 2xx answer counts as
+        accepted; the account's device list, fetched again, tells the result."""
+        if unit_id not in self.registered_unit_ids:
+            raise DeviceNotVerified(
+                _("Internal error: this device was not checked against your Garmin account. "
+                  "Nothing was transferred."))
+        what = _("Making the device active")
+        try:
+            # The path names the device: the log has only the host.
+            self._connect("PUT", f"{REGISTER_PATH}/status/{unit_id}", what,
+                          data=json.dumps({"deviceStatus": "active"}),
+                          headers={"Content-Type": "application/json"}, quiet=True)
+        except ApiError as e:
+            e.body = ""
+            raise
 
     def device_messages(self, unit_id: int) -> list[dict]:
         self.require_verified(unit_id)
