@@ -17,8 +17,10 @@ should work, but are untested – reports are welcome. Developed on Fedora/GNOME
 - Connect IQ apps: install, update, remove, enable/disable built-in activities – also on
   watches that hide their app folder (e.g. the fēnix 8), without reordering your widgets.
 - Music, podcasts and audiobooks with playlists.
-- Activities of the watch and of its backups (sport, start, time, distance, ascent), exported
-  as GPX; what a FIT file holds (`openexpress fit inspect`).
+- Activities of the watch and of its backups, each with its own page: the track on a map
+  (streets from OpenStreetMap once you turn them on) coloured by heart rate, pace or elevation,
+  charts, laps, heart-rate zones, training effect and details; exported as GPX; what a FIT
+  file holds (`openexpress fit inspect`).
 - Backups; showing and setting the primary training device and the primary wearable;
   copies of the device's diagnostic files, kept on this computer.
 - GTK 4 / libadwaita window, command-line tool and background sync with notifications.
