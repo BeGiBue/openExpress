@@ -44,8 +44,6 @@ should work, but are untested – reports are welcome. Developed on Fedora/GNOME
 - Maps on a memory card: maps are installed and updated in the device's internal memory only.
 - Installing software updates as part of a sync: they are installed only when you choose
   to, on the Updates page or with `openexpress updates --install`.
-- Charts and maps of an activity: the Activities page lists the activities and exports them
-  as GPX, which other programs can show.
 - Uploading ECG recordings: they go to Garmin Health, which needs a sign-in of its own that
   openExpress does not have. A sync leaves them on the watch and says how many there are.
 
@@ -297,11 +295,31 @@ over MTP or as a USB drive, and of its backups (`Garmin/Backups` in your Documen
 read: the device, or the backup of a date for one the device no longer has. The page reads the
 files when you open it, never when a device connects. A file the device was still writing
 when it was connected says so (disconnect and reconnect the device, then open the page again),
-as do a damaged file and a file that is no FIT file. The moving time, the average moving pace,
-the temperatures with their decimal, the rest time of a strength workout and the kilometres of
-an activity without the watch's own laps are worked out by openExpress from what the watch
-recorded, so they may differ slightly from Garmin Connect's; the other values on the page of an
-activity come from the summary the watch wrote into its file.
+as do a damaged file and a file that is no FIT file.
+
+A click on an activity (or Enter) opens its page, which reads its file again. On top are its
+distance, time, pace or speed, average heart rate and ascent (a workout without a distance: its
+time, heart rate and calories). An activity with positions has a map of its track, its start
+and finish marked, the track coloured by what the chart shows: from blue (low, or a slow pace)
+to red (high, or a fast pace), with the legend and the **Colours** switch under the map.
+Streets and terrain come from OpenStreetMap only once you turn them on, with **Show the Map** or
+in **Preferences → Activity maps** ([Privacy and security](privacy.md#privacy-and-security));
+until then the track is drawn on a plain background. Ctrl + scroll or the buttons on the map
+zoom it. The chart shows heart rate, elevation and pace or speed, one at a time, and the place
+of its cursor is marked on the map. Under it come the laps (the watch's, or each kilometre
+when the watch kept no laps): choose one to see it on the map and on the chart. Then the
+heart-rate zones as the watch worked them out, with the time in each; the training effect and
+training load; and, in a row that opens, the details: elapsed and moving time, descent,
+elevation, best pace, cadence, steps, heart rate, temperature and more, only those the file
+gives. The moving time, the average moving pace, the temperatures with their decimal, the rest
+time of a strength workout and the kilometres of an activity without the watch's own laps are
+worked out by openExpress from what the watch recorded, so they may differ slightly from Garmin
+Connect's; the other values come from the summary the watch wrote into its file.
+
+<p align="center">
+  <img src="screenshots/activity.png" width="800"
+       alt="The page of a hike: its summary, its track on a map coloured by elevation and its elevation profile">
+</p>
 
 The export button of an activity, or `openexpress activities export NAME… --apply`, writes it
 as a GPX 1.1 file named `YYYY-MM-DD HH.MM Sport.gpx`: each point with its position, elevation

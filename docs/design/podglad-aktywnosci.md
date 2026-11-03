@@ -10,9 +10,9 @@ does not list is not added while it is implemented. After step 5 the page was fo
 plain: section 10 adds to the scope (items 6–10 of section 1), designed together with the laps.
 Its decisions are made: 13a, 14a, 15a, 16b, 17a with moving time from the records, 18a, 19b,
 20a, 21a, 22a; 19a (the sets of a strength workout) is put off, an idea for later. Its steps
-(10.5) replace steps 6–7 of section 8; steps 6 to 11 are implemented (the laps, the look, the
-heart-rate zones, the training effect, the colours of the track, the details), step 12 (the
-documentation) is not.
+(10.5) replace steps 6–7 of section 8; steps 6 to 12 are implemented (the laps, the look, the
+heart-rate zones, the training effect, the colours of the track, the details, the
+documentation).
 
 ## 1. Scope
 

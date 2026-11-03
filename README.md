@@ -10,6 +10,11 @@
 </p>
 
 <p align="center">
+  <b>New:</b> the page of an activity, with its track on a map coloured by heart rate,
+  pace or elevation, its charts, laps, heart-rate zones and training effect.
+</p>
+
+<p align="center">
   Featured in <a href="https://the5krunner.com/2026/10/17/openexpress-garmin-express-linux/">the5krunner's Indie Spotlight</a>
 </p>
 
@@ -21,8 +26,8 @@
 
 <p align="center">
   <picture>
-    <source media="(prefers-color-scheme: dark)" srcset="docs/screenshots/start.png">
-    <img alt="openExpress – devices page" src="docs/screenshots/start-light.png" width="800">
+    <source media="(prefers-color-scheme: dark)" srcset="docs/screenshots/activity.png">
+    <img alt="openExpress – the page of a hike: its track on a map coloured by elevation, and its elevation profile" src="docs/screenshots/activity-light.png" width="800">
   </picture>
 </p>
 
@@ -49,9 +54,10 @@ devices that connect over USB (MTP) should work too – reports are welcome.
 - Connect IQ apps: install, update, remove, turn on or off, put back in order – also on
   watches that hide their app folder (e.g. the fēnix 8).
 - Music, podcasts and audiobooks, with playlists.
-- Activities of the watch and of its backups, with their sport, time, distance and ascent,
-  exported as GPX, a look into any FIT file and a look into what a sync will write to the
-  watch (new; checked on a fēnix 8 over MTP).
+- Activities of the watch and of its backups, each with its own page: the track on a map
+  (streets from OpenStreetMap after a yes) coloured by heart rate, pace or elevation, charts,
+  laps, heart-rate zones, training effect and details; exported as GPX, a look into any FIT
+  file and a look into what a sync will write to the watch (checked on a fēnix 8 over MTP).
 - Backups, copies of the device's diagnostic files on this computer, the primary training
   device and the primary wearable.
 - A GTK 4 / libadwaita window, a command-line tool and sync in the background.
@@ -164,6 +170,9 @@ changes anything only shows its plan until you add `--apply`. Every command:
   the copies of its diagnostic files stay on this computer.
 - Sync never deletes files from the watch, and every file written to it is checked.
 - The log never has serial numbers, unit IDs, tokens or e-mail addresses.
+- The map of an activity asks OpenStreetMap for its streets only after you turn them on; the
+  server then learns the area of each map you look at and your IP address, never the activity,
+  its track or your account.
 
 More: [Privacy and security](docs/privacy.md).
 
