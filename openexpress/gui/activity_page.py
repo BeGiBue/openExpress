@@ -1,13 +1,14 @@
 """The page of one activity, opened from its row on the Activities page: its sport and start in
-its header bar with the back arrow and the GPX export, the tiles of what its sessions say (the
-words in gui/words.py), the map of its track (gui/activity_map.py) with the place of the
-chart's cursor, the chart of its records (gui/activity_chart.py), its laps or kilometres
-(gui/activity_laps.py; one chosen shown on the chart and the map), and what a file that could
-not be read, one still being written and one without a summary say. Its file is read
-again each time it opens, in a task (fit.activity_data), from the device or from a copy in a
-backup; nothing is kept and nothing is written. The page is pushed onto the window's
-navigation above the device view and goes with the pages of that view (the device gone, or
-drawn anew).
+its header bar with the back arrow and the GPX export (a dot of the sport's colour before them,
+gui/sports.py, but in a narrow window), the tiles of what its sessions say (the words in
+gui/words.py, an icon of their kind in the same colour), the map of its track
+(gui/activity_map.py) with the place of the chart's cursor, the chart of its records
+(gui/activity_chart.py), its laps or kilometres (gui/activity_laps.py; one chosen shown on the
+chart and the map), and what a file that could not be read, one still being written and one
+without a summary say. Its file is read again each time it opens, in a task
+(fit.activity_data), from the device or from a copy in a backup; nothing is kept and nothing is
+written. The page is pushed onto the window's navigation above the device view and goes with
+the pages of that view (the device gone, or drawn anew).
 Has: no attribute of the window; the page keeps what it needs in its closures."""
 from __future__ import annotations
 
@@ -26,11 +27,13 @@ from openexpress.gui import activity_map  # noqa: E402
 from openexpress.gui.activities_page import PAGE_ICON, export_button  # noqa: E402
 from openexpress.gui.activity_chart import ActivityChart, chart_series  # noqa: E402
 from openexpress.gui.activity_laps import LapList, laps_of  # noqa: E402
+from openexpress.gui.sports import sport_group  # noqa: E402
 from openexpress.gui.words import (  # noqa: E402
     activity_start,
-    activity_tiles,
+    activity_tile_kinds,
     activity_title,
     no_chart_text,
+    tile_name,
 )
 from openexpress.i18n import _  # noqa: E402
 
@@ -38,6 +41,16 @@ log = logging.getLogger(__name__)
 
 TAG = "activity"
 CONTENT_WIDTH = 1000  # its content in one column, at most this wide
+NARROW = "max-width: 450sp"  # a window too narrow for the dot of the sport beside the title
+NARROWEST = (360, 200)  # the page's own least size (its breakpoints need one)
+# The icons of the tiles, by their kind (from the GNOME icon theme).
+TILE_ICONS = {"distance": "mark-location-symbolic", "time": "preferences-system-time-symbolic",
+              "pace": "power-profile-performance-symbolic",
+              "swim pace": "power-profile-performance-symbolic",
+              "speed": "power-profile-performance-symbolic",
+              "average heart rate": "emote-love-symbolic",
+              "maximum heart rate": "emote-love-symbolic", "calories": "emoji-food-symbolic",
+              "ascent": "go-up-symbolic"}
 
 
 class ReadFailed(UserFacingError):
@@ -121,10 +134,16 @@ def open_activity(win, read) -> None:
                  done, failed, device=read.activity.source is Source.DEVICE, in_page=True)
 
 
-def _tile(value: str, name: str) -> Gtk.Widget:
-    """A tile: the value large, its name under it."""
+def _tile(kind: str, value: str, group: str) -> Gtk.Widget:
+    """A tile: its icon in the colour of the sport's group (for the eye only), the value
+    large, its name under it."""
     box = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, spacing=4, margin_top=12,
                   margin_bottom=12, margin_start=12, margin_end=12)
+    icon = Gtk.Image(icon_name=TILE_ICONS[kind], pixel_size=20,
+                     accessible_role=Gtk.AccessibleRole.PRESENTATION)
+    icon.add_css_class(f"oe-sport-{group}")
+    box.append(icon)
+    name = tile_name(kind)
     shown = Gtk.Label(label=value, wrap=True, justify=Gtk.Justification.CENTER)
     shown.add_css_class("title-3")
     named = Gtk.Label(label=name, wrap=True, justify=Gtk.Justification.CENTER)
@@ -144,8 +163,17 @@ class ActivityView:
 
     def __init__(self, win, read):
         title = activity_title(read)
-        header = Adw.HeaderBar(title_widget=Adw.WindowTitle(title=title,
-                                                            subtitle=activity_start(read)))
+        heading = Gtk.Box(spacing=8, halign=Gtk.Align.CENTER)
+        if read.summary is not None:  # the dot of the sport's colour, for the eye only
+            dot = Gtk.Box(valign=Gtk.Align.CENTER,
+                          accessible_role=Gtk.AccessibleRole.PRESENTATION)
+            dot.add_css_class("oe-sport-dot")
+            dot.add_css_class(f"oe-sport-{sport_group(read.summary.sport)}")
+            heading.append(dot)
+        else:
+            dot = None
+        heading.append(Adw.WindowTitle(title=title, subtitle=activity_start(read)))
+        header = Adw.HeaderBar(title_widget=heading)
         button = export_button(win, read)
         if button is not None:
             header.pack_end(button)
@@ -165,7 +193,13 @@ class ActivityView:
         self.stack.set_visible_child_name("loading")
         toolbar = Adw.ToolbarView(content=self.stack)
         toolbar.add_top_bar(header)
-        self.page = Adw.NavigationPage(title=title, tag=TAG, child=toolbar)
+        sized = Adw.BreakpointBin(child=toolbar, width_request=NARROWEST[0],
+                                  height_request=NARROWEST[1])
+        if dot is not None:
+            narrow = Adw.Breakpoint.new(Adw.BreakpointCondition.parse(NARROW))
+            narrow.add_setter(dot, "visible", False)
+            sized.add_breakpoint(narrow)
+        self.page = Adw.NavigationPage(title=title, tag=TAG, child=sized)
 
     def say(self, text: str, icon: str = "dialog-warning-symbolic") -> None:
         self.message.set_icon_name(icon)
@@ -183,7 +217,7 @@ class ActivityView:
         if data.state is fit.FileState.STILL_BEING_WRITTEN:
             self.say(_("Still being written: disconnect and reconnect the device"))
             return
-        tiles = activity_tiles(data)
+        tiles = activity_tile_kinds(data)
         if not tiles:
             self.say(_("This activity has no summary."), PAGE_ICON)
             return
@@ -191,8 +225,9 @@ class ActivityView:
         flow = Gtk.FlowBox(homogeneous=True, selection_mode=Gtk.SelectionMode.NONE,
                            min_children_per_line=2, max_children_per_line=max(2, len(tiles)),
                            column_spacing=12, row_spacing=12)
-        for value, name in tiles:
-            flow.append(Gtk.FlowBoxChild(child=_tile(value, name), focusable=False))
+        group = sport_group(data.sport)
+        for kind, value in tiles:
+            flow.append(Gtk.FlowBoxChild(child=_tile(kind, value, group), focusable=False))
         self.content.append(flow)
         if data.state is fit.FileState.DAMAGED:
             damaged = Gtk.Label(label=_("Damaged file"), wrap=True, xalign=0)

@@ -13,6 +13,7 @@ from fakes import (
     FitDefinition,
     RunNow,
     fit_file,
+    program_style,
     replace_in_window,
     tasks_at_once,
     window,
@@ -1049,7 +1050,7 @@ def lapped_walk(device_laps=True, metres=3250):
         laps = [fit.Lap(begin, float(t), float(t), metres)]
     return fit.ActivityData(fit.FileState.WHOLE, start=begin, sport=WALKING,
                             timer_time=float(t), elapsed_time=float(t), distance=metres,
-                            avg_speed=1.25, avg_heart_rate=105, max_heart_rate=120,
+                            ascent=10, avg_speed=1.25, avg_heart_rate=105, max_heart_rate=120,
                             samples=tuple(samples), laps=tuple(laps))
 
 
@@ -1284,3 +1285,71 @@ def test_the_buttons_of_the_map_zoom_it_by_a_whole_level():
         assert viewport.get_zoom_level() == pytest.approx(zoom)
     finally:
         toplevel.destroy()
+
+
+# --- the look --------------------------------------------------------------------------------
+
+
+def sport_dot(page):
+    from gi.repository import Gtk
+
+    found = [w for w in _all(page) if isinstance(w, Gtk.Widget) and w.has_css_class("oe-sport-dot")]
+    return found[0] if found else None
+
+
+def tile_icons(page):
+    from gi.repository import Gtk
+
+    return [w for w in _all(page) if isinstance(w, Gtk.Image) and w.get_ancestor(Gtk.FlowBoxChild)
+            and w.get_ancestor(Gtk.FlowBoxChild).get_child().has_css_class("card")]
+
+
+def test_a_dot_of_the_sport_s_colour_before_the_title_not_in_a_narrow_window(monkeypatch):
+    """A walk: green, from the program's style; in a narrow window not shown (it would cut
+    the start under the title)."""
+    from gi.repository import Adw
+
+    program_style()
+    win, page = page_of(monkeypatch, lapped_walk())
+    present(win)
+    try:
+        dot = sport_dot(page)
+        assert dot is not None and dot.has_css_class("oe-sport-foot") and dot.get_mapped()
+        assert dot.get_ancestor(Adw.HeaderBar) is not None
+        until(lambda: False, 0.1)
+        pixels = colours_of(dot)
+        middle = pixels[len(pixels) // 2][len(pixels[0]) // 2]
+        assert middle == pytest.approx((0x26, 0xa2, 0x69), abs=3)
+        win.toplevel.set_default_size(360, 800)
+        until(lambda: not dot.get_visible(), 2)
+        assert not dot.get_visible()
+    finally:
+        win.toplevel.destroy()
+
+
+@pytest.mark.parametrize(("which", "group", "icons"), [
+    ("walk", "foot", ["mark-location-symbolic", "preferences-system-time-symbolic",
+                      "power-profile-performance-symbolic", "emote-love-symbolic",
+                      "go-up-symbolic"]),
+    ("workout", "training", ["preferences-system-time-symbolic", "emote-love-symbolic",
+                             "emote-love-symbolic", "emoji-food-symbolic"])])
+def test_the_tiles_have_the_icons_of_their_kind_in_the_sport_s_colour(monkeypatch, which, group,
+                                                                      icons):
+    """Over each tile's value; for the eye only (the value and its name say it)."""
+    from gi.repository import Gtk
+
+    from openexpress.gui.sports import COLORS
+
+    program_style()
+    data = lapped_walk() if which == "walk" else fit_of(heart_only())
+    win, page = page_of(monkeypatch, data, sport=data.sport)
+    present(win)
+    try:
+        shown = tile_icons(page)
+        assert [icon.get_icon_name() for icon in shown] == icons
+        for icon in shown:
+            assert icon.has_css_class(f"oe-sport-{group}")
+            assert icon.get_color().equal(rgba(COLORS[group]))
+            assert icon.get_accessible_role() == Gtk.AccessibleRole.PRESENTATION
+    finally:
+        win.toplevel.destroy()

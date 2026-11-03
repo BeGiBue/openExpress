@@ -10,7 +10,7 @@ import types
 import uuid
 
 import pytest
-from fakes import record_sync, start_section
+from fakes import program_style, record_sync, start_section
 
 NARROWEST = 360  # the width of gui_settings.MIN_WINDOW
 FONT = "Adwaita Sans 11"  # GNOME's: the widths are measured in it
@@ -312,7 +312,7 @@ def narrow_window(monkeypatch):
         i18n.setup(language)
         for name, value in changed.items():
             settings.set_property(name, value)
-        _program_style()
+        program_style()
         win = MainWindow(None)
         windows.append(win)
         win.set_default_size(400, 800)
@@ -331,22 +331,6 @@ def narrow_window(monkeypatch):
         for name in changed:
             settings.reset_property(name)
         i18n.setup("en")
-
-
-_styled: set = set()  # the displays that have the program's own style
-
-
-def _program_style() -> None:
-    """The program's own style (start.CSS: the chips, the tiles), as the application loads it
-    before its window (App): measured without it, a chip would have no padding."""
-    from gi.repository import Gdk
-
-    from openexpress.gui import start
-
-    display = Gdk.Display.get_default()
-    if display not in _styled:
-        _styled.add(display)
-        start.load_css(display)
 
 
 def _min_width(widget) -> int:
@@ -485,9 +469,10 @@ def test_the_page_of_an_activity_fits_the_narrowest_window(narrow_window, monkey
     button (or its attribution), the chart with its switch and the value at its cursor, its
     kilometres, its sport and start in the header bar with the GPX button."""
     from fakes import RunNow
-    from gi.repository import Gtk
+    from gi.repository import Adw, Gtk
 
     from openexpress.gui import activity_page
+    from openexpress.gui.words import activity_start as read_start
 
     win = narrow_window(language)
     win.set_default_size(NARROWEST, 800)
@@ -528,6 +513,12 @@ def test_the_page_of_an_activity_fits_the_narrowest_window(narrow_window, monkey
     from openexpress.gui.activity_laps import LapList
 
     assert [w for w in _all(page) if isinstance(w, LapList)]  # its kilometres: no laps kept
+    _iterate(0.2)
+    (dot,) = [w for w in _all(page) if w.has_css_class("oe-sport-dot")]
+    assert not dot.get_visible()  # not in a narrow window: the start under the title stays whole
+    (start,) = [w for w in _all(page) if isinstance(w, Gtk.Label) and w.get_mapped()
+                and w.get_ancestor(Adw.WindowTitle) and w.get_label() == read_start(read)]
+    assert not start.get_layout().is_ellipsized()
     assert _min_width(page) <= NARROWEST
     assert page.get_width() <= NARROWEST
 

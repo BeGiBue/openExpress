@@ -868,3 +868,20 @@ def fit_activity(start: int, *, sport: int = 1, timer_ms: int | None = 3_600_000
         *(FitData(1, (start + n, *at)) for n in range(records)),
         FitDefinition(2, 18, ((2, 0x86), (5, 0x00), (8, 0x86), (9, 0x86), (22, 0x84))),
         FitData(2, (start, sport, timer_ms, distance_cm, ascent)), **options)
+
+
+_STYLED: set = set()  # the displays that have the program's own style
+
+
+def program_style() -> None:
+    """The program's own style (gui/start.py: the chips, the tiles, the colours of the sports),
+    as the application loads it before its window (App), once for each display: measured or
+    drawn without it, a chip would have no padding, an icon of a sport no colour."""
+    from gi.repository import Gdk
+
+    from openexpress.gui import start
+
+    display = Gdk.Display.get_default()
+    if display not in _STYLED:
+        _STYLED.add(display)
+        start.load_css(display)

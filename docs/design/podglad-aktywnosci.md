@@ -11,7 +11,8 @@ list is not added while it is implemented. After step 5 the page was found corre
 section 10 adds to the scope (items 6–10 of section 1), designed together with the laps. Its
 decisions are made: 13a, 14a, 15a, 16b, 17a with moving time from the records, 18a, 19b, 20a,
 21a, 22a; 19a (the sets of a strength workout) is put off, an idea for later. Its steps (10.5)
-replace steps 6–7 of section 8; step 6 (the laps) is implemented, steps 7–12 are not.
+replace steps 6–7 of section 8; steps 6 (the laps) and 7 (the look) are implemented, steps
+8–12 are not.
 
 ## 1. Scope
 
@@ -600,6 +601,21 @@ empty.
   `power-profile-performance`, heart rate `emote-love`, ascent `go-up`, calories `emoji-food`.
   The colour says nothing the title does not (it is no carrier of meaning alone).
   - \+ No new dependency, no picture to draw.
+- Corrected when step 7 began (the colours above drawn on the cards of both styles): five of
+  the six had less than the contrast of 3:1 that an icon needs, on the light cards (water,
+  winter) or on the dark ones (training, cycling, others). One colour each, of at least 3:1 on
+  both: on foot `#26a269` (3.3 light, 3.8 dark), cycling `#3584e4` (3.8, 3.3), water `#2190a4`
+  (3.8, 3.3), winter `#6f8396` (3.9, 3.2), training `#c061cb` (3.6, 3.4), others `#8a898e`
+  (3.5, 3.6). The groups, by the sport of the FIT profile: on foot running, walking, hiking,
+  mountaineering, rock climbing, floor climbing, the wheelchair's push walk and run, geocaching;
+  cycling, e-biking; water: swimming, rowing, paddling, boating, fishing, sailing, stand-up
+  paddleboarding, surfing, wakeboarding, water skiing, kayaking, rafting, windsurfing,
+  kitesurfing, diving, water tubing, wakesurfing, water sport, snorkeling, pool apnea,
+  canoeing; winter: cross-country and alpine skiing, snowboarding, ice skating, snowshoeing,
+  snowmobiling, winter sport; training: fitness equipment, training, boxing, HIIT, meditation,
+  mixed martial arts, dance, jump rope, mobility; others the rest. The dot is not shown in a
+  narrow window (up to 450 sp): it would cut the start under the title; the icons keep the
+  colour there.
 - **18b. Icons of the sports in the header** (walking, running, cycling…): the GNOME theme has
   none; about eight of our own (drawn for the project, or taken with a compatible licence).
   - − Drawing and a licence to check; could come after 18a.

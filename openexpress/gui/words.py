@@ -397,8 +397,8 @@ def tile_name(kind: str) -> str:
     return names[kind]
 
 
-def activity_tiles(data) -> list[tuple[str, str]]:
-    """The tiles on top of an activity's page (fit.ActivityData), each (value, name): with a
+def activity_tile_kinds(data) -> list[tuple[str, str]]:
+    """The tiles on top of an activity's page (fit.ActivityData), each (kind, value): with a
     distance its distance, time, pace or speed, average heart rate and ascent; without one (a
     workout, also one of 0 m) its time, average and maximum heart rate, calories and ascent. A
     value not given leaves its tile out, an ascent of 0 m too; the time is the timer's, the
@@ -419,7 +419,12 @@ def activity_tiles(data) -> list[tuple[str, str]]:
         tiles = [("time", clock), ("average heart rate", heart_rate_text(data.avg_heart_rate)),
                  ("maximum heart rate", heart_rate_text(data.max_heart_rate)),
                  ("calories", calories_text(data.calories)), ("ascent", ascent_text(data.ascent))]
-    return [(value, tile_name(kind)) for kind, value in tiles if value]
+    return [(kind, value) for kind, value in tiles if value]
+
+
+def activity_tiles(data) -> list[tuple[str, str]]:
+    """The tiles of activity_tile_kinds, each (value, name)."""
+    return [(value, tile_name(kind)) for kind, value in activity_tile_kinds(data)]
 
 
 def lap_title(number: int) -> str:

@@ -17,6 +17,7 @@ from gi.repository import Adw, GLib, Graphene, Gsk, Gtk, Pango  # noqa: E402
 
 from openexpress import devicelist, tile_facts  # noqa: E402
 from openexpress.devicelist import CONNECTED, LIST, ON_ACCOUNT, REMEMBERED  # noqa: E402
+from openexpress.gui import sports  # noqa: E402
 from openexpress.gui.words import (  # noqa: E402
     last_seen_tooltip,
     never_synced,
@@ -129,11 +130,13 @@ label.oe-map-hint {
 
 
 def load_css(display) -> None:
+    """The program's style (CSS) and the colours of the sports (gui/sports.py)."""
     provider = Gtk.CssProvider()
+    style = CSS + sports.css()
     if hasattr(provider, "load_from_string"):  # GTK 4.12
-        provider.load_from_string(CSS)
+        provider.load_from_string(style)
     else:
-        provider.load_from_data(CSS, -1)
+        provider.load_from_data(style, -1)
     Gtk.StyleContext.add_provider_for_display(display, provider,
                                               Gtk.STYLE_PROVIDER_PRIORITY_APPLICATION)
 

@@ -141,6 +141,16 @@ def test_the_tiles_of_a_hike_and_of_a_workout(language):
     assert w.activity_tiles(WORKOUT) == TILES_OF[language]["workout"]
 
 
+def test_the_tiles_by_their_kind_for_their_icons():
+    """The same tiles, each by its kind (its icon on the page) with its value."""
+    w = words()
+    assert w.activity_tile_kinds(HIKE) == [
+        ("distance", "12.40 km"), ("time", "3:50:00"), ("pace", "16:40 /km"),
+        ("average heart rate", "128 bpm"), ("ascent", "740 m")]
+    assert [kind for kind, _value in w.activity_tile_kinds(WORKOUT)] == [
+        "time", "average heart rate", "maximum heart rate", "calories"]
+
+
 def test_a_ride_has_its_speed_worked_out_when_its_session_does_not_say_it():
     ride = activity(sport=CYCLING, timer_time=3600.0, distance=30_000.0)
     assert words().activity_tiles(ride) == [("30.00 km", "Distance"), ("1:00:00", "Time"),
