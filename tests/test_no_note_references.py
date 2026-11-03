@@ -53,6 +53,9 @@ VERSION = re.compile(r"(?<![\w.-])v?0\.\d{1,2}\.\d{1,2}(?![\w.])")
 # clock of a log, no commits and no dates. Their blocks of code are examples of what a command
 # prints: data. "The user" saving a file or told something is the program's user, and stays.
 DESIGN = ROOT / "docs" / "design"
+# A date of the work written as 2026-11-01 (not a file's name); a quoted example is data.
+ISO_DATE = re.compile(r"(?<![\w-])20\d\d-\d\d-\d\d(?![\w-])")
+QUOTED = re.compile(r'"[^"]*"|`[^`]*`')
 STORY = re.compile("|".join((
     r"\b(?:in )?the chat\b", r"\ba yes\b",
     (r"\bthe user(?:'s)? (?:rule|read|reads|compares|chose|chooses|changed|accepted|asked"
@@ -108,6 +111,7 @@ def design_references(path: Path) -> list[str]:
             in_code = not in_code
         elif not in_code:
             said += _said(n, line, (STORY, DATE, WHEN[1], WHEN[4]))
+            said += _said(n, QUOTED.sub("", line), (ISO_DATE,))  # an example's date is data
     return said
 
 
@@ -211,9 +215,11 @@ def test_what_a_design_document_does_not_tell(tmp_path):
     made_up = tmp_path / "made-up.md"
     made_up.write_text("The mockup shown in the chat waits for a yes; as the user read them,\n"
                        "the user's rule. At 00:41:25 on 2 November 2026 (a9ce7b1), 21.10.2026.\n"
+                       "Checked on a device on 2026-11-01; the file 2026-10-30-07-00-00.fit;\n"
+                       'a toast "Saved as 2026-10-30 07.00 Running.gpx".\n'
                        "The user saves the GPX where the user is told; the User-Agent;\n"
                        "tiles only after the yes of D3; the colour #e5420e.\n"
                        "```\nCreated: 2026-10-30 07:00:00\n```\n", encoding="utf-8")
     assert [r.split(": ", 1)[1] for r in design_references(made_up)] == [
         "in the chat", "a yes", "the user read", "the user's rule", "00:41:25",
-        "2 November 2026", "a9ce7b1", "21.10.2026"]
+        "2 November 2026", "a9ce7b1", "21.10.2026", "2026-11-01"]
