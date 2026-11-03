@@ -305,6 +305,26 @@ def test_a_stall_as_the_device_is_opened_knows_its_place(quick, monkeypatch, tmp
     assert places(gio_storage.stalled_places()) == [(3, 14)]
 
 
+def test_a_device_still_stalled_is_not_opened_again(quick, monkeypatch, tmp_path):
+    """Opened again while it stays at its place (its tile chosen before the list left it out),
+    the device is refused at once: a new storage would wait for the blocked gvfs again."""
+    put = usb_devices(monkeypatch, tmp_path / "usb")
+    put({"3-1": ("51b4", 3, 14)})
+    stall_at(FENIX)
+    monkeypatch.setattr(gio_storage.GioStorage, "_list",
+                        lambda self, real: pytest.fail("the device was asked again"))
+    with pytest.raises(DeviceNotResponding) as error:
+        gio_storage._mtp_storage("mtp://Made_Up_Device/", FENIX)
+    words, place = str(error.value), (error.value.usb.bus, error.value.usb.address)
+    assert words == f"Cannot open the device: {STALLED}"
+    assert place == (3, 14)
+    put({"3-1": ("51b4", 3, 15)})  # unplugged and plugged in again: opened as usual
+    monkeypatch.setattr(gio_storage.GioStorage, "_list", lambda self, real: [])
+    monkeypatch.setattr(gio_storage.GioStorage, "exists", lambda self, path: False)
+    with pytest.raises(gio_storage.NotThereYet):
+        gio_storage._mtp_storage("mtp://Made_Up_Device/", gio_storage.GarminUsb("51b4", 3, 15))
+
+
 # --- no handler takes it for another failure ---------------------------------------------
 
 PACKAGE = Path(openexpress.__file__).parent

@@ -795,6 +795,13 @@ def stalled_places() -> list[GarminUsb]:
     return [usb for place, usb in kept if place not in gone]
 
 
+def _still_stalled(usb: GarminUsb | None) -> bool:
+    """Whether the device at `usb` stopped responding and is still at its place on USB."""
+    place = _place(usb)
+    return place is not None and place in _stalled_keys() \
+        and any(_place(u) == place for u in stalled_places())
+
+
 def _stalled_keys() -> set[tuple[int, int]]:
     with _stalled_lock:
         return set(_stalled_at)
@@ -1699,6 +1706,12 @@ def _open_device_storage(uri: str | None) -> GioStorage:
 def _mtp_storage(uri: str, usb: GarminUsb | None) -> GioStorage:
     """The storage of a mounted MTP device that has GARMIN/GarminDevice.xml: the device
     itself or one of its top folders (its internal storage)."""
+    if _still_stalled(usb):  # gvfs stays blocked on it: a new storage would wait for it again
+        log.info("device: one that stopped responding (USB %s) is not opened again",
+                 usb.usb_id)
+        error = DeviceNotResponding.during(_("Cannot open the device"))
+        error.usb = usb
+        raise error
     _note_mounted(uri, by_us=False, usb=usb)  # mounted by now; by this process when mount() did
     # Each with the device's place on USB from the start: a stall while it is opened keeps
     # the device out too (note_stalled).
