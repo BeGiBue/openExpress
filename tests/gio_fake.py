@@ -163,6 +163,8 @@ class GvfsDevice:
     thread has had its signal; `exists` follows gvfs at once. `comes_back=False`: mounted
     again, its files stay unseen. Leaves `events`."""
 
+    usb = None  # its place on USB not known
+
     def __init__(self, uri, unmount_takes_s=0.2, cancel_stops=False, comes_back=True):
         self.uri, self.unmount_takes_s = uri, unmount_takes_s
         self.cancel_stops, self.comes_back = cancel_stops, comes_back

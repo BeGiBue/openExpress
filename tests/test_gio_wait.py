@@ -91,6 +91,8 @@ def _mounted(monkeypatch, mount):
 class Visible:
     """A storage whose GarminDevice.xml is there."""
 
+    usb = None  # its place on USB not known
+
     def exists(self, path):
         return True
 

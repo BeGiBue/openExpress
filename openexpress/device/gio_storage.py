@@ -305,7 +305,7 @@ class GioStorage(Storage):
                   if self._opened is not None else "at a time not known")
         log.warning("device: no answer to a %s in %g s, the device stopped responding; its last "
                     "answer: %s; the storage opened %s; %s", name, STALL_S, last, opened,
-                    _mount_words(self.device_uri, started))
+                    _mount_words(self.device_uri, started, self.usb))
 
     def _next_portion(self, enum, what: str, context) -> list:
         """The next entries of a listing; none at its end."""
@@ -1159,21 +1159,28 @@ def open_ums_storage(dev: FoundDevice) -> UmsStorage:
 # When this process mounted a device (by its address, _key), or first found it mounted, for the
 # log of a stall: a mount this process did not make may be older than the process, and gvfs-mtp
 # asks a mounted device something only every 900 s.
-_mounted_here: dict[str, float] = {}
-_found_mounted: dict[str, float] = {}
+# When a device was mounted, by its address and its place on USB (None: not known): unplugged
+# and plugged in again, a device has the same address of gvfs but a new device number.
+_mounted_here: dict[tuple, float] = {}
+_found_mounted: dict[tuple, float] = {}
 
 
-def _note_mounted(uri: str, by_us: bool) -> None:
-    key = _key(uri)
+def _mount_key(uri: str, usb: GarminUsb | None) -> tuple:
+    return _key(uri), (None if usb is None else (usb.bus, usb.address))
+
+
+def _note_mounted(uri: str, by_us: bool, usb: GarminUsb | None = None) -> None:
+    key = _mount_key(uri, usb)
     if by_us:
         _mounted_here[key] = time.monotonic()
     elif key not in _mounted_here:
         _found_mounted.setdefault(key, time.monotonic())
 
 
-def _mount_words(uri: str | None, now: float) -> str:
-    """Who mounted the device at `uri` and how long before `now`, for the log."""
-    key = _key(uri) if uri else None
+def _mount_words(uri: str | None, now: float, usb: GarminUsb | None = None) -> str:
+    """Who mounted the device at `uri` (at its place on USB `usb`) and how long before `now`,
+    for the log."""
+    key = _mount_key(uri, usb) if uri else None
     if key in _mounted_here:
         return f"mounted by this process {now - _mounted_here[key]:.1f} s before"
     if key in _found_mounted:
@@ -1186,7 +1193,7 @@ def mount(dev: FoundDevice, timeout_s: float | None = None) -> None:
     """Mount the volume of a device found not mounted (as the file manager does)."""
     if dev.mounted or dev.volume is None:
         if dev.mounted:
-            _note_mounted(dev.uri, by_us=False)
+            _note_mounted(dev.uri, by_us=False, usb=dev.usb)
         return
     volume = dev.volume
     _wait(lambda done, cancellable: volume.mount(
@@ -1195,7 +1202,7 @@ def mount(dev: FoundDevice, timeout_s: float | None = None) -> None:
         MOUNT_TIMEOUT_S if timeout_s is None else timeout_s, _("Cannot mount the device"),
         "mount")
     dev.mounted = True
-    _note_mounted(dev.uri, by_us=True)
+    _note_mounted(dev.uri, by_us=True, usb=dev.usb)
 
 
 # --- a Garmin drive ejected by openExpress -------------------------------------------------
@@ -1692,7 +1699,7 @@ def _open_device_storage(uri: str | None) -> GioStorage:
 def _mtp_storage(uri: str, usb: GarminUsb | None) -> GioStorage:
     """The storage of a mounted MTP device that has GARMIN/GarminDevice.xml: the device
     itself or one of its top folders (its internal storage)."""
-    _note_mounted(uri, by_us=False)  # mounted by now; by this process when mount() noted it
+    _note_mounted(uri, by_us=False, usb=usb)  # mounted by now; by this process when mount() did
     # Each with the device's place on USB from the start: a stall while it is opened keeps
     # the device out too (note_stalled).
     top = GioStorage(uri)
@@ -2012,7 +2019,7 @@ def _remount(uri: str, storage: Storage, sleep=time.sleep) -> None:
         raise
     except DeviceError as e:
         raise RemountFailed(str(e)) from e
-    _note_mounted(uri, by_us=True)
+    _note_mounted(uri, by_us=True, usb=storage.usb)
     # Right after mounting gvfs may not list the files yet.
     for _attempt in range(REMOUNT_READY_S):
         try:

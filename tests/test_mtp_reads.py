@@ -382,6 +382,8 @@ def test_a_refused_listing_is_a_missing_file(tmp_path):
 class StalledDevice:
     """The storage of a device that stopped responding, as mounting it again looks at it."""
 
+    usb = None  # its place on USB not known
+
     def __init__(self):
         self.asked = []
 
@@ -537,6 +539,23 @@ def test_a_stall_logs_what_it_was_and_how_long_the_device_had_been_quiet(
     said = logged(caplog)
     assert [line for line in said if re.fullmatch(pattern, line)], said
     assert not [line for line in said if "GARMIN" in line or "x.fit" in line or "Made_Up" in line]
+
+
+def test_a_device_plugged_in_again_has_no_mount_time_of_before(device, fast, monkeypatch, caplog):
+    """Mounted by this process, unplugged and plugged in again at the same address of gvfs: a
+    new device number on USB, so the log tells no time of the mount before."""
+    monkeypatch.setattr(gio_storage, "_mounted_here", {}, raising=False)
+    monkeypatch.setattr(gio_storage, "_found_mounted", {}, raising=False)
+    gio_storage.mount(gio_storage.FoundDevice(URI, "made-up", False, Volume(GioOp()),
+                                              usb=gio_storage.GarminUsb("51b4", 3, 14)))
+    st, _files = device({"GARMIN/Activity/x.fit": a_file(10)},
+                        plan={("open", 1): GioOp("never", strict=True)})
+    st.device_uri, st.usb = URI, gio_storage.GarminUsb("51b4", 3, 15)
+    with caplog.at_level(logging.DEBUG, logger=LOGGER), \
+            pytest.raises(storage.DeviceNotResponding):
+        run_in("worker", lambda: st._read("GARMIN/Activity/x.fit"))
+    said = [line for line in logged(caplog) if "stopped responding;" in line]
+    assert said and all(line.endswith("not known when it was mounted") for line in said), said
 
 
 def test_a_slow_step_logs_one_line(device, fast, monkeypatch, caplog):
