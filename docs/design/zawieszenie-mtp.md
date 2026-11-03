@@ -300,8 +300,8 @@ the syntax tree of the package, there are 54 such clauses in 11 modules:
 
 | Before | Clauses | Where |
 |---|---|---|
-| a handler of `DeviceError` | 34 (4 of them a tuple: with `RemountFailed`, `SeveralDevices` or `MassStorageNotice`) | `ciq.py` 10, `device/gio_storage.py` 10, `device/storage.py` 3, `diagnostics.py` 3, `maps.py` 2, `ownmaps.py` 2, `cli.py`, `service.py`, `updates.py`, `watch.py` 1 each |
-| a broad handler (`Exception`, `OSError`) | 20 (6 of them a tuple) | `ciq.py` 5, `sync.py` 4, `maps.py` 3, `device/gio_storage.py` 2, `device/storage.py` 2, `ownmaps.py` 2, `diagnostics.py`, `service.py` 1 each |
+| a handler of `DeviceError` (in 3 of them `(DeviceError, OSError)`) | 37 (4 of them a tuple: with `RemountFailed`, `SeveralDevices` or `MassStorageNotice`) | `ciq.py` 10, `device/gio_storage.py` 10, `diagnostics.py` 4, `ownmaps.py` 4, `device/storage.py` 3, `maps.py` 2, `cli.py`, `service.py`, `updates.py`, `watch.py` 1 each |
+| a broad handler (`Exception`, `BaseException`) | 17 (6 of them a tuple) | `ciq.py` 5, `sync.py` 4, `maps.py` 3, `device/gio_storage.py` 2, `device/storage.py` 2, `service.py` 1 |
 
 Some of the first kind cannot be reached at all: the handlers inside a PTP session (`ciq.py`)
 see only `PtpError` and `CiqError`, and `_remount` asks the device only through calls that
@@ -311,8 +311,9 @@ already let the stall through.
   keeps `says_replug`, `usb` and `during()`; the command line (`_run` catches
   `UserFacingError`: its words, exit code 1) and the window (`run_task`: one line of the log,
   `stalled.telling`) say it as today.
-  - The 34 clauses before a handler of `DeviceError` go: 30 whole, and the 4 tuples lose its
-    name. The 20 before a broad handler stay, as long as those handlers do.
+  - The 37 clauses before a handler of `DeviceError` go (a stall is no `OSError` either): 33
+    whole, and the 4 tuples lose its name. The 17 before a broad handler stay, as long as those
+    handlers do.
   - A stall would no longer reach the handlers of `DeviceError` that have no clause: the three
     that only ever see a drive's folder (`find_ums_devices`, `open_ums_storage`,
     `_eject_drive`, which cannot stall), and `ciq._noting`, which notes the errors of a PTP
@@ -323,7 +324,7 @@ already let the stall through.
     handlers of `UserFacingError` and broad handlers on the way of the device without the
     clause, and for a clause before a handler that cannot catch the stall (dead). The tests
     that wait for a stall as a `DeviceError` are read one by one.
-  - \+ About 60 lines less, and a new handler of `DeviceError` cannot swallow a stall by
+  - \+ About 70 lines less, and a new handler of `DeviceError` cannot swallow a stall by
     forgetting the clause.
   - − A change of type that every `except DeviceError` of the device's way depends on: one
     commit, the tests as the net, and the stall's path on the command line and in the window
@@ -332,7 +333,7 @@ already let the stall through.
   - \+ Nothing to change; the guard of the syntax tree keeps the clauses complete.
   - − 54 clauses, some dead, and one more for every new handler.
 
-Size of 13a: about 60 lines removed and 10 changed in 11 modules, the guard rewritten (about 40
+Size of 13a: about 70 lines removed and 10 changed in 11 modules, the guard rewritten (about 40
 lines), one commit.
 
 ## 5. What changes
