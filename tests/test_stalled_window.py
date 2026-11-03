@@ -123,6 +123,7 @@ def test_no_detection_starts_while_the_stalled_device_stays(monkeypatch, tmp_pat
     number, the banner goes and it is detected as any device plugged in."""
     from gi.repository import GLib
 
+    from openexpress.gui import detection
     from openexpress.gui.app import MainWindow
     from openexpress.gui.connected import Connected
 
@@ -140,7 +141,7 @@ def test_no_detection_starts_while_the_stalled_device_stays(monkeypatch, tmp_pat
     assert timers == [] and told.start[-1] == NO_NAME
     put({"3-1": ("51b4", 3, 15)})
     win._poll_usb()
-    assert timers == [2500] and told.start[-1] is None
+    assert timers == [detection.PLUGGED_MS] and told.start[-1] is None
 
 
 @pytest.mark.parametrize("busy", [False, True])

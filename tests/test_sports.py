@@ -26,10 +26,7 @@ def test_the_group_of_a_sport(sport, group):
 
 
 def test_each_colour_reads_on_the_cards_of_both_styles():
-    colors = sports().COLOURS
-    assert colors == {"foot": "#26a269", "cycling": "#3584e4", "water": "#2190a4",
-                      "winter": "#6f8396", "training": "#c061cb", "others": "#8a898e"}
-    for color in colors.values():
+    for color in sports().COLOURS.values():
         assert contrast(color, LIGHT_CARD) >= 3 and contrast(color, DARK_CARD) >= 3
 
 

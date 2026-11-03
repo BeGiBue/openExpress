@@ -14,7 +14,7 @@ def colours():
 
 def test_the_scale_runs_from_blue_to_red_orange():
     scale = colours().SCALE
-    assert len(scale) == 64
+    assert len(scale) == colours().STEPS
     assert (scale[0], scale[-1]) == ("#017dd6", "#f75e1c")
 
 

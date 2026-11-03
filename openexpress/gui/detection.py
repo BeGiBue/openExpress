@@ -83,6 +83,8 @@ from openexpress.i18n import N_, _
 
 log = logging.getLogger(__name__)
 
+# A Garmin device come to USB: it is looked for this long after, as gvfs mounts it meanwhile.
+PLUGGED_MS = 2500
 # A drive may come a moment after its USB device: a device in mass storage mode that the last
 # list found without one is looked for again every DRIVE_RETRY_S seconds, at most DRIVE_RETRIES
 # times.
@@ -261,7 +263,7 @@ def watch_drives_while_open(win) -> None:
     if places - before:
         log.info("USB: a Garmin device in mass storage mode came while a device is open, the "
                  "list of devices is read again in 2.5 s")
-        schedule_detection(win, 2500, cause=Cause.PLUGGED)
+        schedule_detection(win, PLUGGED_MS, cause=Cause.PLUGGED)
         return
     connected = win.connected
     if connected is not None and any(u.startswith(UNMOUNTED_DRIVE) for u in connected.unread()):
@@ -463,7 +465,7 @@ class DeviceDetection:
             return  # its tile is there
         log.info("volume %s: a Garmin drive not mounted (USB %s), detecting in 2.5 s (a device "
                  "is open: %s)", what, usb.usb_id, self.session is not None)
-        schedule_detection(self, 2500, key, Cause.PLUGGED)
+        schedule_detection(self, PLUGGED_MS, key, Cause.PLUGGED)
 
     def _drive_gone(self, key: str, what: str) -> None:
         """The volume of a drive not mounted went, or its medium did: its tile goes too."""
@@ -613,12 +615,12 @@ class DeviceDetection:
             # It left its transitional mode: look for it once gvfs had a moment.
             log.info("USB: a Garmin device in its normal mode, detecting in 2.5 s")
             self._normal_since, self._replug_told = clock(), False
-            schedule_detection(self, 2500, cause=Cause.PLUGGED)
+            schedule_detection(self, PLUGGED_MS, cause=Cause.PLUGGED)
         elif state == MASS_STORAGE and self._usb_state != MASS_STORAGE and not unplugged:
             # A drive the system does not mount (KDE) sends no mount event: looked for once,
             # for its tile.
             log.info("USB: a Garmin device in mass storage mode, detecting in 2.5 s")
-            schedule_detection(self, 2500, cause=Cause.PLUGGED)
+            schedule_detection(self, PLUGGED_MS, cause=Cause.PLUGGED)
         elif unplugged and isinstance(detection_plan(Cause.UNPLUGGED_OPEN, left_on_usb=state,
                                                      ejected_waits=ejected_drive_waits()),
                                       Detect):
@@ -627,7 +629,7 @@ class DeviceDetection:
             # mode is, above.
             log.info("USB: the open device unplugged, a Garmin drive is still connected, "
                      "detecting in 2.5 s")
-            schedule_detection(self, 2500, cause=Cause.PLUGGED)
+            schedule_detection(self, PLUGGED_MS, cause=Cause.PLUGGED)
         self._usb_state = state
         normal_s = clock() - self._normal_since if state == PRESENT else 0.0
         if normal_s >= REPLUG_HINT_S and not self._replug_told:

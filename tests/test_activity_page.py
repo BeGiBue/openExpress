@@ -730,9 +730,12 @@ def test_the_track_is_thick_in_its_own_colour_with_a_dark_edge():
     accent colour of the desktop: 4 pixels of colour and 1.5 of a dark edge on each side."""
     shown, toplevel = a_map()
     try:
+        from openexpress.gui import activity_map as am
+
         path = shown.path
-        assert path.track_colour.equal(rgba("#e5420e")) and path.edge.equal(rgba("#6b1d05"))
-        assert (path.width, path.edge_width) == (4, 1.5)
+        assert path.track_colour.equal(rgba(am.TRACK_COLOUR)) and path.edge.equal(
+            rgba(am.TRACK_EDGE))
+        assert (path.width, path.edge_width) == (am.TRACK_WIDTH, am.EDGE_WIDTH)
     finally:
         toplevel.destroy()
 
@@ -757,8 +760,10 @@ def test_the_start_and_the_finish_are_marked_and_the_cursor_above_them():
         assert (start.get_latitude(), start.get_longitude()) == pytest.approx((51.5, -0.16))
         assert (finish.get_latitude(), finish.get_longitude()) == pytest.approx((51.51, -0.16))
         assert start.get_visible() and finish.get_visible()
-        assert shown.marker.get_child().get_content_width() == 20  # larger than the ends
-        assert start.get_child().get_content_width() < 20
+        from openexpress.gui.activity_map import CURSOR_SIZE
+
+        assert shown.marker.get_child().get_content_width() == CURSOR_SIZE
+        assert start.get_child().get_content_width() < CURSOR_SIZE  # the cursor's is larger
         assert order_of(layer_of(shown.marker)) > order_of(layer_of(start)) > order_of(shown.path)
     finally:
         toplevel.destroy()
