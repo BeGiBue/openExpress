@@ -53,7 +53,14 @@ from openexpress.device.gio_storage import (
     usb_still_there,
 )
 from openexpress.gui import stalled
-from openexpress.gui.connected import open_address, open_unit, session_summary, unit_ids, uris
+from openexpress.gui.connected import (
+    close_as_unplugged,
+    open_address,
+    open_unit,
+    session_summary,
+    unit_ids,
+    uris,
+)
 from openexpress.gui.navigation import (
     READ_THE_LIST,
     Cause,
@@ -514,11 +521,7 @@ class DeviceDetection:
                 # Its place on USB, kept: a watch goes into its Garmin USB mode once it is
                 # ejected and comes back as 091e:0003.
                 note_drive_place(getattr(s.storage, "usb", None))
-            self._asked = (Cause.UNPLUGGED_OPEN, open_address(s))
-            self.session = None
-            self._updated_apps = set()  # unplugged: the device applies what was waiting
-            self._open_unplugged = True  # the USB poll looks for a device left (_poll_usb)
-            self.show_no_device()
+            close_as_unplugged(self)
         else:
             log.info("mount removed (%s): not the open device, ignored", where)
 

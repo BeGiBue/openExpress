@@ -142,6 +142,7 @@ def test_no_detection_starts_while_the_stalled_device_stays(monkeypatch, tmp_pat
     from gi.repository import GLib
 
     from openexpress.gui.app import MainWindow
+    from openexpress.gui.connected import Connected
 
     put = usb_devices(monkeypatch, tmp_path / "usb")
     put({"3-1": ("51b4", 3, 14)})
@@ -149,7 +150,7 @@ def test_no_detection_starts_while_the_stalled_device_stays(monkeypatch, tmp_pat
     timers = []
     monkeypatch.setattr(GLib, "timeout_add", lambda ms, fn: timers.append(ms) or len(timers))
     win, told = a_window(monkeypatch)
-    win.connected = None  # no list of devices shown
+    win.connected = Connected()  # no device listed
     win.sections = {"watch": types.SimpleNamespace(set_empty=lambda *notice: None)}
     win._usb_notice, win._update_actions = MainWindow._usb_notice, lambda: None
     window_methods(win, ["_poll_usb"])

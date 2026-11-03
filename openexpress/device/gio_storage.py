@@ -747,8 +747,9 @@ def find_devices() -> list[FoundDevice]:
             uri = vol.get_activation_root().get_uri()
             if uri.rstrip("/") not in found:
                 found[uri.rstrip("/")] = FoundDevice(uri, vol.get_name(), False, vol, usb)
-    stalled = {_place(usb) for usb in stalled_places()} if _stalled_keys() else set()
-    return [d for d in found.values() if _place(d.usb) is None or _place(d.usb) not in stalled]
+    stalled = {usb_place(usb) for usb in stalled_places()} if _stalled_keys() else set()
+    return [d for d in found.values()
+            if usb_place(d.usb) is None or usb_place(d.usb) not in stalled]
 
 
 # --- the devices that stopped responding --------------------------------------------------
@@ -762,7 +763,8 @@ _stalled_at: dict[tuple[int, int], GarminUsb] = {}
 _stalled_lock = threading.Lock()
 
 
-def _place(usb: GarminUsb | None) -> tuple[int, int] | None:
+def usb_place(usb: GarminUsb | None) -> tuple[int, int] | None:
+    """Where a device is on USB (bus, device number); None when not known."""
     if usb is None or usb.bus is None or usb.address is None:
         return None
     return usb.bus, usb.address
@@ -770,7 +772,7 @@ def _place(usb: GarminUsb | None) -> tuple[int, int] | None:
 
 def note_stalled(usb: GarminUsb | None) -> None:
     """The device at `usb` stopped responding; nothing when its place is not known."""
-    place = _place(usb)
+    place = usb_place(usb)
     if place is None:
         return
     with _stalled_lock:
@@ -797,9 +799,9 @@ def stalled_places() -> list[GarminUsb]:
 
 def _still_stalled(usb: GarminUsb | None) -> bool:
     """Whether the device at `usb` stopped responding and is still at its place on USB."""
-    place = _place(usb)
+    place = usb_place(usb)
     return place is not None and place in _stalled_keys() \
-        and any(_place(u) == place for u in stalled_places())
+        and any(usb_place(u) == place for u in stalled_places())
 
 
 def _stalled_keys() -> set[tuple[int, int]]:

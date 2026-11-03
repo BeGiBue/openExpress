@@ -1,7 +1,8 @@
 """The Garmin devices known to be plugged in, for the window (Connected); next to it the
 addresses and unit IDs of entries (uris, unit_ids) and of the open device (open_address,
-open_unit), compared in memory only, and the open device as an entry of the start page
-(session_summary). Nothing here opens, mounts or asks anything.
+open_unit), compared in memory only, the open device as an entry of the start page
+(session_summary), and the open device closed as an unplugged one is (close_as_unplugged).
+Nothing here opens, mounts or asks anything.
 
 `Connected` owns one list, `devices`: the entries of the detection (each with its address in
 `found.uri`), both the list to choose from and the devices connected while one is open.
@@ -14,6 +15,7 @@ from collections.abc import Callable
 from dataclasses import dataclass, field
 
 from openexpress.device.gio_storage import DeviceSummary, FoundDevice
+from openexpress.gui.navigation import Cause
 
 
 def uris(summaries) -> frozenset[str]:
@@ -37,6 +39,17 @@ def open_address(s) -> str | None:
 def open_unit(s) -> int | None:
     """The unit ID of the open device (compared in memory only, never shown), or None."""
     return getattr(getattr(s, "device", None), "unit_id", None) or None
+
+
+def close_as_unplugged(win) -> None:
+    """The open device closed as an unplugged one is: unplugged, or stopped responding (nothing
+    can be done with it). The navigation knows why, what was waiting for its unplug applies,
+    the USB poll looks for a device left, and the window shows no device."""
+    win._asked = (Cause.UNPLUGGED_OPEN, open_address(win.session))
+    win.session = None
+    win._updated_apps = set()  # unplugged: the device applies what was waiting
+    win._open_unplugged = True  # the USB poll looks for a device left (_poll_usb)
+    win.show_no_device()
 
 
 def session_summary(s) -> DeviceSummary:

@@ -15,9 +15,9 @@ from contextlib import contextmanager
 from dataclasses import dataclass
 
 from openexpress.device import gio_storage
+from openexpress.device.gio_storage import usb_place
 from openexpress.device.storage import DeviceNotResponding
-from openexpress.gui.connected import open_address
-from openexpress.gui.navigation import Cause
+from openexpress.gui.connected import close_as_unplugged
 from openexpress.gui.words import stalled_text
 
 log = logging.getLogger(__name__)
@@ -34,31 +34,26 @@ class Stalled:
     usb_then: tuple[str, ...] = ()
 
 
-def _place(usb) -> tuple[int, int] | None:
-    bus, address = getattr(usb, "bus", None), getattr(usb, "address", None)
-    return None if bus is None or address is None else (bus, address)
-
-
 def _is_open(win, place) -> bool:
     """Whether the device at `place` (None: not known) is the one open."""
-    storage = getattr(win.session, "storage", None)
-    if storage is None:
+    if win.session is None:
         return False
+    storage = win.session.storage
     if place is None:
-        return bool(getattr(storage, "stalled", False))
-    return _place(getattr(storage, "usb", None)) == place
+        return storage.stalled
+    # A folder given with --path has no place on USB.
+    return usb_place(getattr(storage, "usb", None)) == place
 
 
 def _name_of(win, usb) -> str | None:
     """The name of the device at `usb`: of the one open, or of one on the list of devices
     connected; None when neither is it."""
-    place = _place(usb)
+    place = usb_place(usb)
     if _is_open(win, place):
-        return getattr(win.session.device, "description", None) or None
-    connected = win.connected
-    for summary in (getattr(connected, "devices", None) or []) if place is not None else []:
-        if _place(getattr(getattr(summary, "found", None), "usb", None)) == place:
-            return getattr(summary, "description", None) or None
+        return win.session.device.description or None
+    for summary in win.connected.devices if place is not None else []:
+        if usb_place(summary.found.usb) == place:
+            return summary.description or None
     return None
 
 
@@ -74,20 +69,16 @@ def _close_if_open(win, place, unless_busy: bool = False) -> None:
     if not _is_open(win, place) or (unless_busy and win.busy):
         return
     log.info("window: the device open stopped responding, closed as if it were unplugged")
-    win._asked = (Cause.UNPLUGGED_OPEN, open_address(win.session))
-    win.session = None
-    win._updated_apps = set()  # it is to be unplugged: it applies what was waiting
-    win._open_unplugged = True  # the USB poll looks for a device left (_poll_usb)
-    win.show_no_device()
+    close_as_unplugged(win)
 
 
 def note(win, error: DeviceNotResponding) -> None:
     """A task met a device that stopped responding: the banner says it, and the device is
     closed if it is the one open."""
-    usb = getattr(error, "usb", None)
-    place = _place(usb)
+    usb = error.usb
+    place = usb_place(usb)
     # A device whose place is not known is one entry, however often it is met.
-    if all((s.usb is not None) if place is None else (_place(s.usb) != place)
+    if all((s.usb is not None) if place is None else (usb_place(s.usb) != place)
            for s in win._stalled):
         win._stalled = [*win._stalled, Stalled(
             usb if place is not None else None, _name_of(win, usb),
@@ -102,11 +93,11 @@ def look(win) -> None:
     """From the USB poll: those gone from their place are forgotten, and a stall that only a
     work in the background met (gio_storage keeps its place) gets the banner too."""
     left = [s for s in win._stalled if _still_there(s)]
-    known = {_place(s.usb) for s in left}
+    known = {usb_place(s.usb) for s in left}
     for usb in gio_storage.stalled_places():
-        if _place(usb) not in known:
+        if usb_place(usb) not in known:
             left.append(Stalled(usb, _name_of(win, usb)))
-            known.add(_place(usb))
+            known.add(usb_place(usb))
             log.info("window: a device stopped responding in a work in the background, the "
                      "banner says it")
     changed = [id(s) for s in left] != [id(s) for s in win._stalled]
@@ -117,7 +108,7 @@ def look(win) -> None:
                      "USB", gone)
         win._stalled = left
     for stalled in left:
-        _close_if_open(win, _place(stalled.usb), unless_busy=True)
+        _close_if_open(win, usb_place(stalled.usb), unless_busy=True)
     if changed:
         show(win)
 

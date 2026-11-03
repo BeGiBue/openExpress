@@ -257,14 +257,18 @@ def stalls(root, reads=(), writes=(), lists=()):
     from openexpress.device.storage import DeviceNotResponding, LocalStorage
 
     class Stalling(LocalStorage):
-        stalled = None
+        stall = None  # the first DeviceNotResponding, said again by every later operation
+
+        @property
+        def stalled(self) -> bool:
+            return self.stall is not None
 
         def _go_on(self, real_path="", action=None, stall=False):
-            if self.stalled is not None:
-                raise DeviceNotResponding(str(self.stalled))
+            if self.stall is not None:
+                raise DeviceNotResponding(str(self.stall))
             if stall:
-                self.stalled = DeviceNotResponding.during(action.format(path=real_path or "/"))
-                raise self.stalled
+                self.stall = DeviceNotResponding.during(action.format(path=real_path or "/"))
+                raise self.stall
 
         def _named(self, real_path, names):
             return any(n in posixpath.basename(real_path) for n in names)
