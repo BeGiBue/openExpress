@@ -2251,7 +2251,7 @@ def _profile_lines(f) -> list[str]:
     edge = names.edge_shaped(p)
 
     def fields(screen) -> str:
-        return ", ".join(names.field_name(n) for n in screen.fields)
+        return ", ".join(names.field_name(n, edge) for n in screen.fields)
 
     def own(screen) -> str:
         return " · ".join((names.screen_title(p, screen),
@@ -2280,8 +2280,8 @@ def _profile_lines(f) -> list[str]:
         lines += [f"  {own(s)}: {fields(s) or '-'}" for s in off]
     if not edge:
         lines.append(_("The fields are named as Garmin's Edge devices number them; the codes "
-                       "of this device's built-in screens and layouts are not known to "
-                       "openExpress yet."))
+                       "of this device's layouts and of some of its built-in screens are not "
+                       "known to openExpress yet."))
     return lines
 
 

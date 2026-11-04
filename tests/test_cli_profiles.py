@@ -9,8 +9,8 @@ from openexpress.cli import main
 SPORTS = ("<DataType><Name>FIT_TYPE_3</Name><File><Location><Path>Garmin/Sports</Path>"
           "<FileExtension>FIT</FileExtension></Location>"
           "<TransferDirection>OutputFromUnit</TransferDirection></File></DataType>")
-RUN = (ScreenRecord(place=0, code=0, order=0, fields=(56, 6, 588, None), variant=2),
-       ScreenRecord(place=1, code=25, order=1, variant=12),
+RUN = (ScreenRecord(place=0, code=0, order=0, fields=(56, 6, 999, None), variant=2),
+       ScreenRecord(place=1, code=110, order=1, variant=12),
        ScreenRecord(place=2, code=127, state=0, order=None, fields=(127,)),
        ScreenRecord(place=3, code=1, state=0, order=None, fields=(9,), variant=1))
 ROAD = (ScreenRecord(place=0, code=0, order=0, fields=(48, 6), variant=1),
@@ -55,16 +55,17 @@ def test_a_watch_profile_s_screens(profiles_root, capsys):
     assert capsys.readouterr().out.splitlines() == [
         "Run",
         "Data screens, in the order the device scrolls through them:",
-        ("  1. Screen 1 · 4 fields · Layout code 2, unknown: Timer, Distance, Field 588, "
+        ("  1. Screen 1 · 4 fields · Layout code 2, unknown: Timer, Distance, Field 999, "
          "Empty field"),
-        "  2. Built-in screen 25",
+        "  2. Built-in screen 110",
         "Built-in screens:",
-        "  Built-in screen 25: on",
+        "  Built-in screen 110: on",
         "  Built-in screen 127: off",
         "Screens turned off:",
         "  Screen 2 · 1 field · Layout code 1, unknown: Elevation",
         ("The fields are named as Garmin's Edge devices number them; the codes of this "
-         "device's built-in screens and layouts are not known to openExpress yet."),
+         "device's layouts and of some of its built-in screens are not known to openExpress "
+         "yet."),
     ]
 
 

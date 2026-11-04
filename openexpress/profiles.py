@@ -41,8 +41,10 @@ _FILE_TYPE = 0
 _SPORT_NAME, _SPORT_COLOUR, _SPORT, _SUB_SPORT = 3, 10, 0, 1
 _PLACE, _STATE, _COUNT, _FIELDS, _VARIANT, _ORDER, _CODE, _HIDDEN = 254, 1, 3, 7, 8, 9, 10, 12
 SHOWN, OFF, UNUSED = 1, 0, 255
-# The codes of the screens of one's own are a counter below the first built-in code (Map).
-FIRST_BUILT_IN_CODE = 25
+# The codes of the screens of one's own are a counter from 0 (ten screens at most); from 20 on
+# they are built-in screens (a watch's clock with status icons is 21, its heart rate zone gauge
+# 22; the Map is 25).
+FIRST_BUILT_IN_CODE = 20
 
 
 class ProfileError(UserFacingError):

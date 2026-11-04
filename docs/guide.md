@@ -354,8 +354,12 @@ The fields are named with Garmin's words, in English or Polish. The numbers of t
 codes of the built-in screens and the letters of the layouts come from two open projects that
 learnt them on Edge bike computers (Activity Profile Editor and Sommet, see the README's
 thanks); a field, a built-in screen or a layout without a known name is shown by its number. On
-a watch (checked on a fēnix 8) the fields have the Edge's numbers, but the codes of its built-in
-screens and layouts are not known yet: they are shown as numbers.
+a watch (checked on a fēnix 8) the fields have the Edge's numbers, with a few of its own (pace,
+its charts and gauges), named as Garmin Connect names them for the watch; so are some of its
+built-in screens (Map, Compass, its clocks). The codes of its other built-in screens and of its
+layouts are not known yet and are shown as numbers. Where a watch keeps whether a built-in
+screen is on is not known yet either: one turned off may be shown among those it scrolls
+through.
 
 ## Sync details
 

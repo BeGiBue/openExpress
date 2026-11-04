@@ -2,13 +2,15 @@
 their built-in screens and the layouts of their own screens, in the window's language. The
 names are Garmin's own words, from the Data Fields pages of its manuals (the Edge 1050's above
 all; the fēnix 8's and the Edge 530's for a few fields the Edge 1050 has not), English as the
-msgid and Polish in po/pl.po; a number nobody has named is shown as a number.
+msgid and Polish in po/pl.po, a watch's in Polish as Garmin Connect shows them for a fēnix 8;
+a number nobody has named is shown as a number.
 
 The numbers of the data fields follow the table of Activity Profile Editor
 (https://github.com/fullcarbonbike/Activity-Profile-Editor), which learnt them on Edge bike
 computers; a watch's profiles give the same numbers to the same fields (a fēnix 8's profile set
 to a dozen of them holds each under its number). The few fields of a watch the table has not
-(pace, ambient pressure) have the numbers that profile gave them. Its notice:
+(pace, ambient pressure, its charts and gauges) have the numbers its profiles gave them, and a
+watch names two numbers its own way (77, 97). Its notice:
 
     MIT License
 
@@ -84,6 +86,7 @@ def _field_names() -> dict[int, str]:
         33: pgettext("data field", "Pace"),
         34: pgettext("data field", "Average Pace"),
         35: pgettext("data field", "Lap Pace"),
+        51: pgettext("data field", "SOG"),
         36: pgettext("data field", "Power"),
         37: pgettext("data field", "Avg Power"),
         38: pgettext("data field", "Kilojoules"),
@@ -149,13 +152,16 @@ def _field_names() -> dict[int, str]:
         180: pgettext("data field", "Rear Gear"),
         181: pgettext("data field", "Gear Battery"),
         182: pgettext("data field", "Gear Ratio"),
+        205: pgettext("data field", "Stroke Rate"),
         214: pgettext("data field", "24-Hour Maximum Temperature"),
         215: pgettext("data field", "24-Hour Minimum Temperature"),
         220: pgettext("data field", "Avg. Vertical Descent Speed"),
         223: pgettext("data field", "Lap Ascent"),
         224: pgettext("data field", "Lap Descent"),
+        228: pgettext("data field", "Maximum Elevation"),
         231: pgettext("data field", "Ambient Pressure"),
         240: pgettext("data field", "Location"),
+        245: pgettext("data field", "Active Calories"),
         257: pgettext("data field", "Time Standing"),
         258: pgettext("data field", "Lap Time Standing"),
         259: pgettext("data field", "Time Seated"),
@@ -231,14 +237,19 @@ def _field_names() -> dict[int, str]:
         522: pgettext("data field", "Duration"),
         523: pgettext("data field", "Step Time"),
         529: pgettext("data field", "Compass"),
+        531: pgettext("data field", "Total Ascent/Descent Gauge"),
         578: pgettext("data field", "Secondary Target"),
         579: pgettext("data field", "Smart Travel Range"),
         580: pgettext("data field", "Potential"),
         581: pgettext("data field", "Stamina"),
         582: pgettext("data field", "Estimated Distance"),
         583: pgettext("data field", "Estimated Time"),
+        586: pgettext("data field", "Elevation Chart"),
+        588: pgettext("data field", "Heart Rate Chart"),
+        590: pgettext("data field", "Speed Chart"),
         595: pgettext("data field", "Dist. to Point"),
         596: pgettext("data field", "Time to Point"),
+        610: pgettext("data field", "Heart Rate Zones Ratio"),
         654: pgettext("data field", "Segment Time"),
         725: pgettext("data field", "Map"),
         786: pgettext("data field", "Vertical Descent Speed"),
@@ -259,14 +270,23 @@ def _field_names() -> dict[int, str]:
     }
 
 
+# The numbers a watch gives a field of its own, named as the fēnix 8's manual and Garmin Connect
+# name them on a watch.
+def _watch_names() -> dict[int, str]:
+    return {
+        77: pgettext("data field", "Vertical Speed"),
+        97: pgettext("data field", "GPS"),
+    }
+
+
 def known_field(number: int) -> bool:
     """Whether the field of this number has a name of Garmin's here."""
     return number in _field_names() or number in _ZONES or number == CONNECT_IQ_FIELD
 
 
-def field_name(number: int | None) -> str:
-    """The name of a data field; an empty place of a screen and a number nobody has named
-    are said as such."""
+def field_name(number: int | None, edge: bool = True) -> str:
+    """The name of a data field, on an Edge or on a watch (`edge` False); an empty place of a
+    screen and a number nobody has named are said as such."""
     if number is None:
         # TRANSLATORS: a place of a data screen with no data field in it
         return _("Empty field")
@@ -278,7 +298,7 @@ def field_name(number: int | None) -> str:
         if kind == "heart rate":
             return _("Time in Heart Rate Zone {zone}").format(zone=n)
         return _("Time in Power Zone {zone}").format(zone=n)
-    name = _field_names().get(number)
+    name = (None if edge else _watch_names().get(number)) or _field_names().get(number)
     if name is not None:
         return name
     # TRANSLATORS: a data field openExpress has no name for, by its number in the profile file
@@ -290,7 +310,8 @@ def field_name(number: int | None) -> str:
 
 def edge_shaped(profile) -> bool:
     """Whether the file is in the shape of an Edge's (it says which screens are hidden): the
-    codes and layouts of the Edge bike computers are known; a watch's are not yet."""
+    codes and layouts of the Edge bike computers are known; of a watch's, some built-in screens
+    and no layouts yet."""
     return profile.has_hidden_flag
 
 
@@ -340,15 +361,33 @@ def _edge_screen_names() -> dict[int, str]:
     }
 
 
+# A watch's built-in screens as Garmin Connect names them for a fēnix 8; in English as its manual
+# does, and for the clocks and the gauge, which it does not name, in plain words.
+def _watch_screen_names() -> dict[int, str]:
+    return {
+        21: pgettext("built-in screen", "Clock with Status Icons"),
+        22: pgettext("built-in screen", "Heart Rate Zone Gauge"),
+        25: pgettext("built-in screen", "Map"),
+        35: pgettext("built-in screen", "Compass"),
+        100: pgettext("built-in screen", "Regatta Timer"),
+        101: pgettext("built-in screen", "Tack Assist"),
+        221: pgettext("built-in screen", "Clock with Sun Info"),
+    }
+
+
+def _screen_names(edge: bool) -> dict[int, str]:
+    return _edge_screen_names() if edge else _watch_screen_names()
+
+
 def built_in_known(screen, edge: bool) -> bool:
     """Whether the built-in screen's code is known for a profile of this shape (an Edge's:
     `edge`)."""
-    return edge and screen.code in _edge_screen_names()
+    return screen.code in _screen_names(edge)
 
 
 def built_in_name(screen, edge: bool) -> str:
     """The name of a built-in screen; its code when it is not known."""
-    name = _edge_screen_names().get(screen.code) if edge else None
+    name = _screen_names(edge).get(screen.code)
     if name is not None:
         return name
     # TRANSLATORS: a built-in screen openExpress has no name for, by its code in the profile

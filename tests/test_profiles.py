@@ -16,6 +16,11 @@ RUN_SCREENS = (
 )
 
 
+def screen_of(code):
+    return profiles.Screen(place=0, code=code, state=1, order=0, fields=(), variant=None,
+                           hidden=None)
+
+
 def test_a_watch_profile():
     p = profiles.read_profile(sport_file("Bieg", 1, 0, (230, 20, 30, 255), RUN_SCREENS,
                                          unused=5))
@@ -27,6 +32,7 @@ def test_a_watch_profile():
         0, 1, 0, (56, 6, 33, 16), 2)
     assert first.own and first.shown and first.hidden is None
     assert not p.screens[2].own  # code 25: built in
+    assert not screen_of(21).own and not screen_of(22).own and screen_of(9).own  # 20 on: built in
     assert not p.screens[3].shown  # off: no place in the carousel
     assert [s.place for s in p.carousel()] == [0, 1, 2]
     assert [s.code for s in p.own_screens()] == [0, 1]

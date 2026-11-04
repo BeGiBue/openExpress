@@ -166,9 +166,10 @@ def draw_screen(area, cr, width, height, edge: bool, lines: list[str]) -> None:
 def drawing_lines(profile: profiles.Profile, screen: profiles.Screen) -> list[str]:
     """What a screen's drawing says: its fields; a built-in screen's name, or for one not
     known its code alone (its title under the drawing says the rest)."""
+    edge = edge_shaped(profile)
     if screen.own:
-        return [names.field_name(i) for i in screen.fields]
-    if names.built_in_known(screen, edge_shaped(profile)):
+        return [names.field_name(i, edge) for i in screen.fields]
+    if names.built_in_known(screen, edge):
         return [screen_title(profile, screen)]
     return [str(screen.code)]
 
@@ -318,7 +319,8 @@ def open_profile(win, profile_file) -> None:
     if not edge:
         details.set_description(_(
             "The fields are named as Garmin's Edge devices number them; the codes of this "
-            "device's built-in screens and layouts are not known to openExpress yet."))
+            "device's layouts and of some of its built-in screens are not known to openExpress "
+            "yet."))
     details.add(_row(_("File"), profile_file.name))
     box.append(details)
     log.info("profile page: %d screens shown, %d built-in, %d turned off (%s)",
@@ -353,7 +355,7 @@ def open_screen(win, profile_file, screen) -> None:
                 # TRANSLATORS: the number of a data field in the profile file
                 sub = caption(_("Field {place}").format(place=n),
                               _("number {number}").format(number=number))
-            fields.add(_row(names.field_name(number), sub))
+            fields.add(_row(names.field_name(number, edge), sub))
         box.append(fields)
     details = Adw.PreferencesGroup(title=_("Details"))
     details.add(_row(_("Code of the screen"), str(screen.code)))

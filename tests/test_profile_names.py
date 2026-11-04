@@ -22,12 +22,12 @@ def screen(code, own_number=None, variant=None):
 def test_a_field_by_its_number():
     assert profile_names.field_name(56) == "Timer"
     assert profile_names.field_name(7) == "Lap Distance"
-    assert profile_names.field_name(588) == "Field 588"  # no name known: its number
+    assert profile_names.field_name(999) == "Field 999"  # no name known: its number
     assert profile_names.field_name(None) == "Empty field"
     assert profile_names.field_name(216) == "Connect IQ data field"
     assert profile_names.field_name(201) == "Time in Heart Rate Zone 3"
     assert profile_names.field_name(419) == "Time in Power Zone 9"
-    assert profile_names.known_field(56) and not profile_names.known_field(588)
+    assert profile_names.known_field(56) and not profile_names.known_field(999)
 
 
 def test_the_names_in_polish():
@@ -35,7 +35,7 @@ def test_the_names_in_polish():
         i18n.setup("pl")
         assert profile_names.field_name(6) == "Dystans"
         assert profile_names.field_name(7) == "Dystans okrążenia"
-        assert profile_names.field_name(588) == "Pole 588"
+        assert profile_names.field_name(999) == "Pole 999"
         assert profile_names.field_name(201) == "Czas w strefie tętna 3"
     finally:
         i18n.setup("en")
@@ -57,6 +57,15 @@ WATCH_FIELDS = [
     (34, "Average Pace", "Średnie tempo"),
     (35, "Lap Pace", "Tempo okrążenia"),
     (231, "Ambient Pressure", "Ciśnienie otoczenia"),
+    (51, "SOG", "PND"),
+    (205, "Stroke Rate", "Tempo ruchów"),
+    (228, "Maximum Elevation", "Maksymalna wysokość"),
+    (245, "Active Calories", "Aktywne kalorie"),
+    (531, "Total Ascent/Descent Gauge", "Wskaź. całkow. wzniosu/spadku"),
+    (586, "Elevation Chart", "Wykres wysokości"),
+    (588, "Heart Rate Chart", "Wykres tętna"),
+    (590, "Speed Chart", "Wykres prędkości"),
+    (610, "Heart Rate Zones Ratio", "Stosunek stref tętna"),
 ]
 
 
@@ -67,6 +76,23 @@ def test_a_field_has_its_name(number, english, polish):
     try:
         i18n.setup("pl")
         assert profile_names.field_name(number) == polish
+    finally:
+        i18n.setup("en")
+
+
+# A number a watch gives a field of its own, named so on a watch only: (number, on an Edge,
+# on a watch in English and in Polish).
+WATCH_NAMES = [(77, "VAM", "Vertical Speed", "Prędkość pionowa"),
+               (97, "GPS Signal Strength", "GPS", "GPS")]
+
+
+@pytest.mark.parametrize("number, edge, english, polish", WATCH_NAMES)
+def test_a_watch_names_some_numbers_its_own_way(number, edge, english, polish):
+    assert profile_names.field_name(number) == edge
+    assert profile_names.field_name(number, edge=False) == english
+    try:
+        i18n.setup("pl")
+        assert profile_names.field_name(number, edge=False) == polish
     finally:
         i18n.setup("en")
 
@@ -94,12 +120,24 @@ SAME_IN_POLISH = {"Intensity Factor", "Normalized Power", "TSS", "VAM", "Stamina
 @pytest.mark.parametrize("edge, code, name", [
     (True, 25, "Map"), (True, 104, "ClimbPro"), (True, 127, "Stamina"),
     (True, 999, "Built-in screen 999"),
-    (False, 25, "Built-in screen 25"),  # a watch's codes are not known yet
-    (False, 127, "Built-in screen 127"),
+    (False, 25, "Map"), (False, 35, "Compass"), (False, 21, "Clock with Status Icons"),
+    (False, 22, "Heart Rate Zone Gauge"), (False, 100, "Regatta Timer"),
+    (False, 101, "Tack Assist"), (False, 221, "Clock with Sun Info"),
+    (False, 127, "Built-in screen 127"), (False, 20, "Built-in screen 20"),  # not known yet
 ])
 def test_a_built_in_screen_by_its_code(edge, code, name):
     assert profile_names.built_in_name(screen(code), edge) == name
     assert profile_names.built_in_known(screen(code), edge) is not name.startswith("Built-in")
+
+
+def test_a_watch_s_built_in_screens_in_polish():
+    try:
+        i18n.setup("pl")
+        said = [profile_names.built_in_name(screen(c), False) for c in (21, 22, 100, 101, 221)]
+    finally:
+        i18n.setup("en")
+    assert said == ["Zegar z\u00a0ikonami stanu", "Wskaźnik strefy tętna", "Minutnik regatowy",
+                    "Asystent halsowania", "Zegar z\u00a0informacjami o\u00a0słońcu"]
 
 
 @pytest.mark.parametrize("edge, variant, said, known", [
