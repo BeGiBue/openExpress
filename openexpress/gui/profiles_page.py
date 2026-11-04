@@ -36,25 +36,7 @@ RECENT_ACTIVITIES = 10
 EDGE_RESERVED_CODE = 32
 
 
-def edge_shaped(profile: profiles.Profile) -> bool:
-    """Whether the file is in the shape of an Edge's (it says which screens are hidden): the
-    codes and layouts of the Edge bike computers are known; a watch's are not yet."""
-    return profile.has_hidden_flag
-
-
-def own_titles(profile: profiles.Profile) -> dict[int, str]:
-    """The titles of the screens of one's own, by their place in the table: "Screen 1, 2…" in
-    the order the device scrolls through them, then those turned off."""
-    own = [s for s in profile.carousel() if s.own]
-    own += [s for s in profile.own_screens() if s not in own]
-    # TRANSLATORS: a data screen of one's own, by its order on the device
-    return {s.place: _("Screen {number}").format(number=n) for n, s in enumerate(own, 1)}
-
-
-def screen_title(profile: profiles.Profile, screen: profiles.Screen) -> str:
-    if screen.own:
-        return own_titles(profile).get(screen.place, "")
-    return names.built_in_name(screen, edge_shaped(profile))
+edge_shaped, screen_title = names.edge_shaped, names.screen_title
 
 
 def fields_text(count: int) -> str:

@@ -339,6 +339,24 @@ fēnix 8 over MTP.
   <img src="screenshots/activities.png" width="700" alt="Activities">
 </p>
 
+## Activity profiles
+
+The **Activity profiles** page and `openexpress profiles` show the sport profiles of the
+connected device (its `Sports` folder) and their data screens, read only: nothing is written to
+the device. The profiles of its newest activities come first, then every profile by name, with
+a search. A profile's page shows the data screens in the order the device scrolls through them:
+each drawn in the shape of the device's screen with its fields in their order (where each field
+stands depends on the layout, which the drawing does not show), and its built-in screens (Map,
+ClimbPro, Stamina…) on, off or hidden. A screen's page and `openexpress profiles show NAME` give
+its layout and each field with its number.
+
+The fields are named with Garmin's words, in English or Polish. The numbers of the fields, the
+codes of the built-in screens and the letters of the layouts come from two open projects that
+learnt them on Edge bike computers (Activity Profile Editor and Sommet, see the README's
+thanks); a field, a built-in screen or a layout without a known name is shown by its number. On
+a watch (checked on a fēnix 8) the fields have the Edge's numbers, but the codes of its built-in
+screens and layouts are not known yet: they are shown as numbers.
+
 ## Sync details
 
 - The watch must be registered to the Garmin account you are signed in to. Before every sync

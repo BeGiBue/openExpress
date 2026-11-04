@@ -59,6 +59,8 @@ devices that connect over USB (MTP) should work too – reports are welcome.
   (streets from OpenStreetMap after a yes) coloured by heart rate, pace or elevation, charts,
   laps, heart-rate zones, training effect and details; exported as GPX, a look into any FIT
   file and a look into what a sync will write to the watch (checked on a fēnix 8 over MTP).
+- The data screens of the device's activity profiles, read only: their fields in Garmin's
+  words, their layouts and built-in screens.
 - Backups, copies of the device's diagnostic files on this computer, the primary training
   device and the primary wearable.
 - A GTK 4 / libadwaita window, a command-line tool and sync in the background.
@@ -210,8 +212,9 @@ your `GarminDevice.xml` or the files in `~/.config/openexpress`. When something 
 
 - [Sommet](https://github.com/skinnie/sommet) by skinnie and
   [Activity Profile Editor](https://github.com/fullcarbonbike/Activity-Profile-Editor) by
-  fullcarbonbike described the files of sport profiles that the planned view of data screens
-  reads ([design](docs/design/ekrany-danych.md)). openExpress copies no code of Sommet
+  fullcarbonbike described the files of sport profiles that the view of data screens
+  reads ([design](docs/design/ekrany-danych.md)); the names of the data fields follow the
+  numbers of Activity Profile Editor's table. openExpress copies no code of Sommet
   (GPL-3.0-only); what it takes from Activity Profile Editor (MIT) keeps that project's notice
   and its author's name.
 

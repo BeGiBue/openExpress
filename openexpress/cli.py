@@ -2242,6 +2242,89 @@ def _primary_set(client, dev, apply: bool, role: _PrimaryRole) -> int:
     return 0
 
 
+def _profile_lines(f) -> list[str]:
+    """A profile's data screens as text: those the device scrolls through in their order, its
+    built-in screens with their state, those turned off; what is not known by its number."""
+    from openexpress import profile_names as names
+
+    p = f.profile
+    edge = names.edge_shaped(p)
+
+    def fields(screen) -> str:
+        return ", ".join(names.field_name(n) for n in screen.fields)
+
+    def own(screen) -> str:
+        return " · ".join((names.screen_title(p, screen),
+                           ngettext("{count} field", "{count} fields", len(screen.fields))
+                           .format(count=len(screen.fields)),
+                           names.layout_name(screen.variant, edge)))
+
+    lines = [_("Data screens, in the order the device scrolls through them:")]
+    for n, screen in enumerate(p.carousel(), 1):
+        if screen.own:
+            lines.append(f"  {n}. {own(screen)}: {fields(screen) or '-'}")
+        else:
+            lines.append(f"  {n}. {names.screen_title(p, screen)}")
+    if not p.carousel():
+        lines.append("  " + _("none"))
+    states = {True: _("on"), False: _("off")}
+    built_in = [s for s in p.built_in() if not (edge and s.code == 32)]
+    if built_in:
+        lines.append(_("Built-in screens:"))
+        for screen in built_in:
+            state = _("hidden") if screen.hidden else states[screen.shown]
+            lines.append(f"  {names.screen_title(p, screen)}: {state}")
+    off = [s for s in p.own_screens() if not s.shown]
+    if off:
+        lines.append(_("Screens turned off:"))
+        lines += [f"  {own(s)}: {fields(s) or '-'}" for s in off]
+    if not edge:
+        lines.append(_("The fields are named as Garmin's Edge devices number them; the codes "
+                       "of this device's built-in screens and layouts are not known to "
+                       "openExpress yet."))
+    return lines
+
+
+def cmd_profiles(args) -> int:
+    """The sport profiles of the connected device and, with show, the data screens of one;
+    read only."""
+    from openexpress import profiles
+
+    st, dev = open_device(args)
+    if not profiles.keeps_profiles(dev):
+        _error(_("This device keeps no activity profiles."))
+        return 1
+    files = profiles.ProfileList(dev, st).read_all()
+    readable = [f for f in files if f.profile is not None]
+    if args.profiles_cmd == "show":
+        wanted = profiles.sort_key(args.name)
+        found = ([f for f in readable if profiles.sort_key(f.profile.name) == wanted]
+                 or [f for f in readable if wanted in profiles.sort_key(f.profile.name)])
+        if len(found) != 1:
+            names_found = ", ".join(f.profile.name for f in found)
+            _error(_("Profiles that match “{name}”: {names}").format(
+                name=args.name, names=names_found) if found
+                else _("No profile is named “{name}”.").format(name=args.name))
+            return 1
+        print(found[0].profile.name)
+        print("\n".join(_profile_lines(found[0])))
+        return 0
+    print(ngettext("{count} profile:", "{count} profiles:", len(readable))
+          .format(count=len(readable)))
+    for f in readable:
+        shown = f.profile.carousel()
+        own = sum(1 for s in shown if s.own)
+        parts = [ngettext("{count} data screen", "{count} data screens", own).format(count=own)]
+        if len(shown) > own:
+            parts.append(ngettext("{count} built-in screen", "{count} built-in screens",
+                                  len(shown) - own).format(count=len(shown) - own))
+        print(f"  {f.profile.name} · " + " · ".join(parts))
+    for f in files:
+        if f.profile is None:
+            print(_("  {file}: {error}").format(file=f.name, error=f.error))
+    return 0
+
+
 def cmd_register(args) -> int:
     """Add the connected device to the Garmin account (service.add_device), experimental; a
     trial run without --apply. The account is named by its user name, an e-mail address
@@ -2724,6 +2807,13 @@ def build_parser() -> argparse.ArgumentParser:
     m.add_argument("--wearable", dest="set_wearable", action="store_true", help=wearable_help)
     m.add_argument("--apply", action="store_true", help=_("change it in your Garmin account"))
     s.set_defaults(func=cmd_primary)
+
+    s = sub.add_parser("profiles", help=_("the sport profiles of the device and their data "
+                                          "screens (read only)"))
+    psub = s.add_subparsers(dest="profiles_cmd")
+    m = psub.add_parser("show", help=_("the data screens of one profile"))
+    m.add_argument("name", metavar="NAME", help=_("the name of the profile, or a part of it"))
+    s.set_defaults(func=cmd_profiles)
 
     register_help = _("add the connected device to your Garmin account (experimental; a "
                       "trial run without --apply)")

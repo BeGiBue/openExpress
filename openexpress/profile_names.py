@@ -274,6 +274,30 @@ def field_name(number: int | None) -> str:
     return _("Field {number}").format(number=number)
 
 
+# --- the screens of a profile ----------------------------------------------------------------
+
+
+def edge_shaped(profile) -> bool:
+    """Whether the file is in the shape of an Edge's (it says which screens are hidden): the
+    codes and layouts of the Edge bike computers are known; a watch's are not yet."""
+    return profile.has_hidden_flag
+
+
+def own_titles(profile) -> dict[int, str]:
+    """The titles of the screens of one's own, by their place in the table: "Screen 1, 2…" in
+    the order the device scrolls through them, then those turned off."""
+    own = [s for s in profile.carousel() if s.own]
+    own += [s for s in profile.own_screens() if s not in own]
+    # TRANSLATORS: a data screen of one's own, by its order on the device
+    return {s.place: _("Screen {number}").format(number=n) for n, s in enumerate(own, 1)}
+
+
+def screen_title(profile, screen) -> str:
+    if screen.own:
+        return own_titles(profile).get(screen.place, "")
+    return built_in_name(screen, edge_shaped(profile))
+
+
 # --- built-in screens and layouts -----------------------------------------------------------
 #
 # The codes of an Edge's built-in screens, as the two open projects learnt them on Edge bike
