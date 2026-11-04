@@ -66,6 +66,7 @@ WATCH_FIELDS = [
     (588, "Heart Rate Chart", "Wykres tętna"),
     (590, "Speed Chart", "Wykres prędkości"),
     (610, "Heart Rate Zones Ratio", "Stosunek stref tętna"),
+    (530, "Training Effect Gauge", "Wskaźnik efektów treningu"),
 ]
 
 
@@ -122,7 +123,7 @@ SAME_IN_POLISH = {"Intensity Factor", "Normalized Power", "TSS", "VAM", "Stamina
     (True, 999, "Built-in screen 999"),
     (False, 25, "Map"), (False, 35, "Compass"), (False, 21, "Clock with Status Icons"),
     (False, 22, "Heart Rate Zone Gauge"), (False, 100, "Regatta Timer"),
-    (False, 101, "Tack Assist"), (False, 221, "Clock with Sun Info"),
+    (False, 101, "Tack Assist"), (False, 221, "Clock with Sun Info"), (False, 80, "Set"),
     (False, 127, "Built-in screen 127"), (False, 20, "Built-in screen 20"),  # not known yet
 ])
 def test_a_built_in_screen_by_its_code(edge, code, name):
@@ -133,11 +134,12 @@ def test_a_built_in_screen_by_its_code(edge, code, name):
 def test_a_watch_s_built_in_screens_in_polish():
     try:
         i18n.setup("pl")
-        said = [profile_names.built_in_name(screen(c), False) for c in (21, 22, 100, 101, 221)]
+        said = [profile_names.built_in_name(screen(c), False)
+                for c in (21, 22, 100, 101, 221, 80)]
     finally:
         i18n.setup("en")
     assert said == ["Zegar z\u00a0ikonami stanu", "Wskaźnik strefy tętna", "Minutnik regatowy",
-                    "Asystent halsowania", "Zegar z\u00a0informacjami o\u00a0słońcu"]
+                    "Asystent halsowania", "Zegar z\u00a0informacjami o\u00a0słońcu", "Seria"]
 
 
 @pytest.mark.parametrize("edge, variant, said, known", [

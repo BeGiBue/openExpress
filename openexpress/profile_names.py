@@ -237,6 +237,7 @@ def _field_names() -> dict[int, str]:
         522: pgettext("data field", "Duration"),
         523: pgettext("data field", "Step Time"),
         529: pgettext("data field", "Compass"),
+        530: pgettext("data field", "Training Effect Gauge"),
         531: pgettext("data field", "Total Ascent/Descent Gauge"),
         578: pgettext("data field", "Secondary Target"),
         579: pgettext("data field", "Smart Travel Range"),
@@ -362,13 +363,15 @@ def _edge_screen_names() -> dict[int, str]:
 
 
 # A watch's built-in screens as Garmin Connect names them for a fēnix 8; in English as its manual
-# does, and for the clocks and the gauge, which it does not name, in plain words.
+# does, and for the clocks, the gauge and a strength workout's set, which it does not name, in
+# plain words.
 def _watch_screen_names() -> dict[int, str]:
     return {
         21: pgettext("built-in screen", "Clock with Status Icons"),
         22: pgettext("built-in screen", "Heart Rate Zone Gauge"),
         25: pgettext("built-in screen", "Map"),
         35: pgettext("built-in screen", "Compass"),
+        80: pgettext("built-in screen", "Set"),
         100: pgettext("built-in screen", "Regatta Timer"),
         101: pgettext("built-in screen", "Tack Assist"),
         221: pgettext("built-in screen", "Clock with Sun Info"),
