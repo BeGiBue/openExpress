@@ -63,7 +63,7 @@ def test_which_sports_have_a_pace(sport, kind):
 
 def test_heart_rate_calories_and_ascent(language):
     w = words()
-    assert w.heart_rate_text(148) == {"en": "148 bpm", "pl": "148 ud./min"}[language]
+    assert w.heart_rate_text(148) == {"en": "148 bpm", "pl": "148 bpm"}[language]
     assert w.calories_text(520) == "520 kcal"
     assert w.ascent_text(740) == "740 m"
     assert w.ascent_text(0) is None and w.ascent_text(None) is None
@@ -77,7 +77,7 @@ TILES = {
            "ascent": "Total ascent"},
     "pl": {"distance": "Dystans", "time": "Czas", "pace": "Średnie tempo",
            "speed": "Średnia prędkość", "average heart rate": "Średnie tętno",
-           "maximum heart rate": "Maksymalne tętno", "calories": "Kalorie",
+           "maximum heart rate": "Maksymalne tętno", "calories": "Suma kalorii",
            "ascent": "Całkowity wznios"},
 }
 
@@ -99,10 +99,10 @@ def test_the_line_of_a_lap(language):
               avg_heart_rate=141)
     assert w.lap_caption(run, RUNNING) == {
         "en": f"1.50 km{NB}· 7:33{NB}· 5:02 /km{NB}· 141 bpm",
-        "pl": f"1,50 km{NB}· 7:33{NB}· 5:02 /km{NB}· 141 ud./min"}[language]
+        "pl": f"1,50 km{NB}· 7:33{NB}· 5:02 /km{NB}· 141 bpm"}[language]
     workout = lap(distance=0.0, timer_time=302.0, avg_heart_rate=141)
     assert w.lap_caption(workout, TRAINING) == {
-        "en": f"5:02{NB}· 141 bpm", "pl": f"5:02{NB}· 141 ud./min"}[language]
+        "en": f"5:02{NB}· 141 bpm", "pl": f"5:02{NB}· 141 bpm"}[language]
 
 
 def test_a_lap_line_has_only_what_the_lap_gives():
@@ -133,9 +133,9 @@ TILES_OF = {
            "workout": [("45:00", "Time"), ("112 bpm", "Average heart rate"),
                        ("151 bpm", "Maximum heart rate"), ("320 kcal", "Calories")]},
     "pl": {"hike": [("12,40 km", "Dystans"), ("3:50:00", "Czas"), ("16:40 /km", "Średnie tempo"),
-                    ("128 ud./min", "Średnie tętno"), ("740 m", "Całkowity wznios")],
-           "workout": [("45:00", "Czas"), ("112 ud./min", "Średnie tętno"),
-                       ("151 ud./min", "Maksymalne tętno"), ("320 kcal", "Kalorie")]},
+                    ("128 bpm", "Średnie tętno"), ("740 m", "Całkowity wznios")],
+           "workout": [("45:00", "Czas"), ("112 bpm", "Średnie tętno"),
+                       ("151 bpm", "Maksymalne tętno"), ("320 kcal", "Suma kalorii")]},
 }
 
 
@@ -166,8 +166,8 @@ ZONES = {
            "custom": "Bounds from the device: your own"},
     "pl": {"title": "Strefy tętna", "below": "Poniżej strefy 1", "zone": "Strefa 3",
            "share": "36:30 · 88%",
-           "threshold": "Granice z\u00a0urządzenia: % progu mleczanowego (165 ud./min)",
-           "max": "Granice z\u00a0urządzenia: % tętna maksymalnego (190 ud./min)",
+           "threshold": "Granice z\u00a0urządzenia: % progu mleczanowego (165 bpm)",
+           "max": "Granice z\u00a0urządzenia: % tętna maksymalnego (190 bpm)",
            "reserve": "Granice z\u00a0urządzenia: % rezerwy tętna",
            "custom": "Granice z\u00a0urządzenia: własne"},
 }
@@ -252,13 +252,13 @@ ZONE_SPANS = {
     "threshold": ((118, 141, 158, 170, 183, 195), {
         "en": ["below 118 bpm", "118–140 bpm", "141–157 bpm", "158–169 bpm", "170–182 bpm",
                "above 182 bpm"],
-        "pl": ["poniżej 118 ud./min", "118–140 ud./min", "141–157 ud./min", "158–169 ud./min",
-               "170–182 ud./min", "powyżej 182 ud./min"]}),
+        "pl": ["poniżej 118 bpm", "118–140 bpm", "141–157 bpm", "158–169 bpm",
+               "170–182 bpm", "powyżej 182 bpm"]}),
     "max": ((95, 114, 133, 152, 171, 190), {
         "en": ["below 95 bpm", "95–113 bpm", "114–132 bpm", "133–151 bpm", "152–170 bpm",
                "above 170 bpm"],
-        "pl": ["poniżej 95 ud./min", "95–113 ud./min", "114–132 ud./min", "133–151 ud./min",
-               "152–170 ud./min", "powyżej 170 ud./min"]}),
+        "pl": ["poniżej 95 bpm", "95–113 bpm", "114–132 bpm", "133–151 bpm",
+               "152–170 bpm", "powyżej 170 bpm"]}),
 }
 
 
@@ -301,7 +301,7 @@ CHART = {
     "en": {"names": ["Heart rate", "Elevation", "Pace", "Pace", "Speed"],
            "units": ["bpm", "m", "min/km", "min/100 m", "km/h"]},
     "pl": {"names": ["Tętno", "Wysokość", "Tempo", "Tempo", "Prędkość"],
-           "units": ["ud./min", "m", "min/km", "min/100 m", "km/h"]},
+           "units": ["bpm", "m", "min/km", "min/100 m", "km/h"]},
 }
 
 
@@ -333,7 +333,7 @@ def test_the_value_at_the_cursor(language):
     w = words()
     at = w.chart_cursor_text
     assert at(1880, "heart rate", 152) == {"en": f"31:20{NB}· 152 bpm",
-                                           "pl": f"31:20{NB}· 152 ud./min"}[language]
+                                           "pl": f"31:20{NB}· 152 bpm"}[language]
     assert at(1880, "elevation", 412.4) == f"31:20{NB}· 412 m"
     assert at(1880, "pace", 310) == f"31:20{NB}· 5:10 /km"
     assert at(1880, "swim pace", 125) == f"31:20{NB}· 2:05 /100 m"
@@ -374,10 +374,10 @@ DETAILS_OF = {
                     ("Maksymalna wysokość", "31 m"), ("Średnie tempo ruchu", "12:21 /km"),
                     ("Najlepsze tempo", "8:52 /km"),
                     ("Średnia kadencja", "104 kr./min (maks. 118)"), ("Kroki", "4380"),
-                    ("Tętno", "86–125 ud./min"), ("Kalorie", "180 kcal"),
+                    ("Tętno", "86–125 bpm"), ("Suma kalorii", "180 kcal"),
                     ("Temperatura", "27,4 °C (25,0–29,0 °C)")],
            "workout": [("Czas ćwiczeń", "24:30"), ("Czas odpoczynku", "25:00"),
-                       ("Tętno", "92–171 ud./min"), ("Temperatura", "29,0 °C (27,0–31,0 °C)"),
+                       ("Tętno", "92–171 bpm"), ("Temperatura", "29,0 °C (27,0–31,0 °C)"),
                        ("Częstotliwość oddechu", "24 odd./min (15–38)")],
            "title": "Szczegóły"},
 }

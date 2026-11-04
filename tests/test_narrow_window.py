@@ -518,7 +518,7 @@ def _long_hike(sport=HIKING):
 
 
 def _zone_bounds_break_between_words(zones) -> None:
-    """Each zone's bounds on one line, or broken between words: never in "ud./min"."""
+    """Each zone's bounds on one line, or broken between words: never inside a word."""
     from gi.repository import Gtk
 
     for row in zones.rows:

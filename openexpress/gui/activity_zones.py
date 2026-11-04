@@ -53,8 +53,8 @@ def _draw_bar(bar, cr, width: int, height: int) -> None:
 
 
 def _whole_words(text: str) -> Pango.AttrList:
-    """A text broken onto a new line between its words only: never in "ud./min", nor after
-    the dash of "118–140"."""
+    """A text broken onto a new line between its words only: never inside a word such as
+    "km/h", nor after the dash of "118–140"."""
     words = Pango.AttrList()
     for word in re.finditer(r"\S+", text):
         whole = Pango.attr_allow_breaks_new(False)

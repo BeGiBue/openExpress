@@ -429,7 +429,7 @@ waits for acceptance.
    measured here.
 2. **The words.** Failing tests: durations with seconds ("52:41"), distances (km with two
    decimals, swimming in metres, 0 m none), pace by sport and speed (D12), heart rate ("148
-   bpm", "148 ud./min"), calories, ascent, the tiles' names (their own texts, not those of the
+   bpm", in Polish too), calories, ascent, the tiles' names (their own texts, not those of the
    command line), a lap's line; English and Polish, hard spaces.
 3. **The page.** Failing tests: a click on a row opens it (D1), the back arrow returns to the
    list where it was, the GPX button exports as the row does; the tiles by what the activity has
@@ -600,7 +600,7 @@ empty.
   zone 3 "158–169 bpm", zone 4 "170–182 bpm", zone 5 "above 182 bpm" (no top: the last bound
   is not shown, the time above it is zone 5's). The bands of D19b run from bound to bound as
   before. The bounds are always the activity's file's own. A row's bounds break onto a new
-  line between words only (never in "ud./min"; Pango still may after the dash of a range,
+  line between words only (never inside a word; Pango still may after the dash of a range,
   which fits the narrowest window on one line).
 - **14b. 14a, and where the file has no zone times, worked out from the records with the
   bounds of its settings (`zones_target`, 7).**
@@ -668,7 +668,7 @@ empty.
   Connect yet), "Czas ćwiczeń" and "Czas odpoczynku" (strength), "Całkowity spadek",
   "Minimalna wysokość" and "Maksymalna wysokość" (two rows as in Connect rather than one
   range), "Najlepsze tempo", "Średnia kadencja" (with its maximum), "Kroki"; "Tętno",
-  "Kalorie", "Temperatura" and "Częstotliwość oddechu" as before. In English Connect's own
+  "Temperatura" and "Częstotliwość oddechu" as before, "Suma kalorii" as Garmin Connect. In English Connect's own
   words; "Work time" and "Rest time" as Garmin's forums quote Connect's strength workouts.
   The order: elapsed time, moving time, work time, rest time, descent, minimum and maximum
   elevation, average moving pace (speed), best pace (maximum speed), cadence, steps, heart rate
@@ -808,7 +808,7 @@ Accepted, but for those of the sets (D19a put off), which are not added.
 | Kilometre {number} | Kilometr {number} |
 | Heart-rate zones | Strefy tętna |
 | Zone {number} / Below zone 1 | Strefa {number} / Poniżej strefy 1 |
-| {low}–{high} bpm / below {rate} bpm / above {rate} bpm (corrected in step 8: a zone's bounds as Garmin Connect shows them, D14) | {low}–{high} ud./min / poniżej {rate} ud./min / powyżej {rate} ud./min |
+| {low}–{high} bpm / below {rate} bpm / above {rate} bpm (corrected in step 8: a zone's bounds as Garmin Connect shows them, D14) | {low}–{high} bpm / poniżej {rate} bpm / powyżej {rate} bpm |
 | {time} · {percent}% | {time} · {percent}% |
 | Bounds from the device: % of maximum heart rate ({bpm}) | Granice z urządzenia: % tętna maksymalnego ({bpm}) |
 | Bounds from the device: % of heart rate reserve | Granice z urządzenia: % rezerwy tętna |
@@ -821,7 +821,7 @@ Accepted, but for those of the sets (D19a put off), which are not added.
 | Total ascent (the tile of step 2; Garmin Connect's word) | Całkowity wznios |
 | Total descent / Minimum elevation / Maximum elevation (step 11: two rows, not a range) | Całkowity spadek / Minimalna wysokość / Maksymalna wysokość |
 | Average moving pace / Average moving speed / Best pace / Maximum speed (step 11) | Średnie tempo ruchu / Średnia prędkość ruchu / Najlepsze tempo / Maksymalna prędkość |
-| Average cadence / Steps / Heart rate / Calories / Temperature / Respiration rate (step 11) | Średnia kadencja / Kroki / Tętno / Kalorie / Temperatura / Częstotliwość oddechu |
+| Average cadence / Steps / Heart rate / Calories / Temperature / Respiration rate (step 11) | Średnia kadencja / Kroki / Tętno / Suma kalorii / Temperatura / Częstotliwość oddechu |
 | {average} spm (max {max}) / {average} rpm (max {max}); without a maximum {cadence} spm / {cadence} rpm | {average} kr./min (maks. {max}) / {average} obr./min (maks. {max}); {cadence} kr./min / {cadence} obr./min |
 | {average} °C ({low}–{high} °C); without a range {temperature} °C | {average} °C ({low}–{high} °C); {temperature} °C |
 | {average} brpm ({low}–{high}); without a range {rate} brpm | {average} odd./min ({low}–{high}); {rate} odd./min |

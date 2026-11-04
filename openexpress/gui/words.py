@@ -412,7 +412,8 @@ def heart_rate_text(bpm: int | None) -> str | None:
     """A heart rate: "148 bpm"; None when not given."""
     if bpm is None:
         return None
-    # TRANSLATORS: a heart rate in beats a minute ("148 bpm"; in Polish "148 ud./min")
+    # TRANSLATORS: a heart rate in beats a minute ("148 bpm"), in Garmin Connect's unit
+    # (Polish keeps "bpm")
     return _("{rate} bpm").format(rate=bpm)
 
 
