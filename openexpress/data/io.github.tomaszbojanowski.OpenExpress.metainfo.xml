@@ -123,6 +123,23 @@
   </supports>
   <content_rating type="oars-1.1"/>
   <releases>
+    <release version="0.8.3" date="2026-11-04">
+      <description>
+        <ul>
+          <li>A device that is not on your Garmin account is refused with clearer words:
+          registering the product on garmin.com does not add it to Garmin Connect; add it with
+          the Garmin Connect app or at connect.garmin.com.</li>
+          <li>Experimental: Add to Account. A device the account does not list can be added from
+          openExpress, as Garmin Express adds one: Add to Account… on the device page, or
+          "openexpress register" on the command line, after a question that names the device and
+          the account. Covered by automated tests; not yet tried with Garmin's servers.</li>
+          <li>The command line shows the account's name masked (t…b, t…@e…), as its output is
+          pasted into reports.</li>
+          <li>The fēnix 5X: the downloads of a sync are reported to work too (software 19.10);
+          uploads not checked yet.</li>
+        </ul>
+      </description>
+    </release>
     <release version="0.8.2" date="2026-11-03">
       <description>
         <ul>
