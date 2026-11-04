@@ -627,7 +627,7 @@ def test_no_warning_for_a_task_that_does_not_touch_a_device(monkeypatch, session
     _run_now(monkeypatch)
     win = _busy_window(session=session)  # e.g. logging in, or no device is open
     during = []
-    win.run_task("Logging in…", lambda: during.append(win.unplug_label.visible), device=device)
+    win.run_task("Signing in…", lambda: during.append(win.unplug_label.visible), device=device)
     assert during == [False] and win.action_bar.visible is False
 
 

@@ -289,7 +289,7 @@ def test_cli_asks_the_account_only_with_a_login_and_for_a_device_of_it(monkeypat
         """As cli.make_client: the saved login only when it is asked for, and NotLoggedIn
         then when none is saved."""
         if need_auth and not saved.login:
-            raise store.NotLoggedIn("Not logged in. Run: openexpress login")
+            raise store.NotLoggedIn("Not signed in. Run: openexpress login")
         return types.SimpleNamespace(auth=object() if need_auth else None,
                                      profile_country=lambda fresh=False: calls.append("country") or "KR")
 

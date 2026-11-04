@@ -267,7 +267,7 @@ class GarminClient:
             if skew is not None:
                 raise skew
             raise Unauthorized(
-                _("{action}: unauthorized (HTTP {status}). Please log in again.")
+                _("{action}: unauthorized (HTTP {status}). Please sign in again.")
                 .format(action=what, status=resp.status_code),
                 resp.status_code,
                 resp.text[:500],
@@ -738,7 +738,7 @@ class GarminClient:
             return _("Another Garmin account has an active subscription on this device; its "
                      "owner has to end it first. Nothing was changed."), True
         return _("This device is registered to another Garmin account. If it is your other "
-                 "account, log in to it in openExpress. If it was someone else's, they have to "
+                 "account, sign in to it in openExpress. If it was someone else's, they have to "
                  "remove it from their account in Garmin Connect; then add it here. Nothing "
                  "was changed."), False
 

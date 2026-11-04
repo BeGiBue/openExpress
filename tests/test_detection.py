@@ -3275,7 +3275,7 @@ def test_sync_is_grey_for_a_garmin_drive(drive_window, monkeypatch, logged_in):
 
 @pytest.mark.parametrize("logged_in", [False, True])
 def test_no_banner_for_a_garmin_drive_that_is_not_synced(drive_window, monkeypatch, logged_in):
-    """Neither "Not logged in" nor the one-time setup: neither is needed for a drive that is
+    """Neither "Not signed in" nor the one-time setup: neither is needed for a drive that is
     not synced (this Varia declares no data types)."""
     from openexpress.gui.app import MainWindow
 
@@ -4297,7 +4297,7 @@ def test_sync_is_only_enabled_with_an_open_device():
     assert _looks(win) == (True, True, None, "Sync")
 
     for change, why in (
-            ({"logged_in": False}, "Not logged in to Garmin Connect"),
+            ({"logged_in": False}, "Not signed in to Garmin Connect"),
             ({"ownership_error": NotAccountDevice("x")},
              "This device is not registered to your Garmin account"),
             ({"ownership_error": OwnershipError("x")},
@@ -4368,7 +4368,7 @@ def test_sync_tooltip_says_what_the_pages_say_while_no_device_is_open():
     assert _looks(win) == (True, True, None, "Sync")
     win.session = types.SimpleNamespace(logged_in=False, ownership_error=None)
     win.update()
-    assert _looks(win)[2] == "Not logged in to Garmin Connect"
+    assert _looks(win)[2] == "Not signed in to Garmin Connect"
 
 
 # --- the start page and the navigation after a detection ---------------------------------------
@@ -5705,7 +5705,7 @@ def login_finished(win, monkeypatch):
     real = win.run_task
 
     def run_task(title, fn, done, failed=None, device=True, in_page=False):
-        if title == "Logging in…":
+        if title == "Signing in…":
             return done((types.SimpleNamespace(display="someone"), True))
         return real(title, fn, done, failed)
 
@@ -5724,7 +5724,7 @@ def test_the_login_finished_in_the_device_view(start_window, monkeypatch):
     login_finished(win, monkeypatch)
     assert win.session is not None and win.session.device.description == "Test watch"
     assert win.navigation.stack == ["start page", "device view"]
-    assert "Logged in as someone" in win.errors
+    assert "Signed in as someone" in win.errors
 
 
 def test_the_login_finished_after_going_back_to_the_start_page(start_window, monkeypatch):

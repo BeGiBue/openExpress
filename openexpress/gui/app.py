@@ -432,7 +432,7 @@ class MainWindow(TaskRunner, DeviceDetection, StartWindow, DevicePage, MapsPage,
         if getattr(s, "drive_refusal", None) is not None:
             return _("USB drive")  # a drive that is not synced; the device page says why
         if not s.logged_in:
-            return _("Not logged in to Garmin Connect")
+            return _("Not signed in to Garmin Connect")
         if s.ownership_error is not None:
             return self._ownership_title(s.ownership_error)
         if self.busy:

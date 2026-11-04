@@ -57,7 +57,7 @@ openExpress appears in your application menu. Setup needs the Garmin Express ins
 no Windows: openExpress only reads it and installs nothing. The installer for macOS does
 not work. Connect the watch and open it: its page has a banner at the top. Click **Choose
 Installer…** there and select the installer (at any time also in Preferences → Setup →
-**Choose File…**), then **Log In** in the same banner (or in Preferences; until the installer is
+**Choose File…**), then **Sign In** in the same banner (or in Preferences; until the installer is
 chosen, Preferences offers **Choose Installer…** there instead). No key needs to be created in
 Garmin Connect. Turn on automatic sync on the
 Device page (or in Preferences) to sync whenever the watch is connected.
@@ -66,7 +66,7 @@ Device page (or in Preferences) to sync whenever the watch is connected.
 
 With one Garmin device connected, the window opens on its page; otherwise on the start page
 (the picture at the top), which is also one step back from a device page: a tile for each
-Garmin device connected, for those seen before and, once you are logged in, for the other
+Garmin device connected, for those seen before and, once you are signed in, for the other
 devices of your Garmin account (by their product name, never one you gave them); a tile
 opens its device. A device with no picture yet shows the icon of its kind, smaller and dimmed
 (a watch, a cycling computer, a handheld, a bike light or radar, a heart rate strap, a scale, a
@@ -83,7 +83,7 @@ when nothing else needs saying, **Synced** (synced before, nothing new to upload
 sync** and **Synced** are there at once, as the last count found them (at most 7 days ago,
 and only while nothing was synced since); the count that runs then confirms or changes them.
 Labels of the account come from the account's list as it was last read (at most 7 days ago,
-with the same login). While you are not logged in the tiles show neither these labels nor
+with the same sign-in). While you are not signed in the tiles show neither these labels nor
 **To sync**, **Never synced** or **Synced**, and a sentence under the tiles says so; it also
 says when the list could not be read (the tiles then keep what was known before). The device page shows **Update available** or
 **Update ready** under the software version too, and, under the account's **Primary training
@@ -121,7 +121,7 @@ Preferences, or **Sync automatically when connected** on the device page; `insta
 does nothing there.
 
 The background service syncs the watch every time it is connected and shows a notification.
-Until you log in it does nothing, and until the device's first sync (in the window, or with
+Until you sign in it does nothing, and until the device's first sync (in the window, or with
 `openexpress baseline --apply` or `openexpress sync --apply --all`) it only shows a
 notification asking for it. The window and the service
 never sync at the same time (shared lock). A watch that is not registered to the signed-in

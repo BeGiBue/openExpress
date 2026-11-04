@@ -6,7 +6,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: openexpress\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-11-04 16:36+0100\n"
+"POT-Creation-Date: 2026-11-04 22:09+0100\n"
 "PO-Revision-Date: 2026-10-11 02:36+0200\n"
 "Last-Translator: Tomasz Bojanowski\n"
 "Language-Team: none\n"
@@ -166,7 +166,7 @@ msgid "Sign in to Garmin"
 msgstr "Zaloguj się do Garmin"
 
 #: openexpress/auth/sso.py:357
-msgid "Login cancelled or no SSO ticket received."
+msgid "Sign-in cancelled or no SSO ticket received."
 msgstr "Anulowano logowanie lub nie otrzymano biletu SSO."
 
 #: openexpress/auth/sso.py:363
@@ -197,11 +197,11 @@ msgid "(unknown account)"
 msgstr "(nieznane konto)"
 
 #: openexpress/auth/store.py:69
-msgid "Not logged in. Run: openexpress login"
+msgid "Not signed in. Run: openexpress login"
 msgstr "Nie zalogowano. Uruchom: openexpress login"
 
 #: openexpress/auth/store.py:74 openexpress/auth/store.py:77
-msgid "The saved login is damaged; please log in again."
+msgid "The saved sign-in is damaged; please sign in again."
 msgstr "Zapisane logowanie jest uszkodzone; zaloguj się ponownie."
 
 #: openexpress/background.py:65
@@ -1415,11 +1415,11 @@ msgstr "Ostrzeżenie: nie można pobrać profilu ({error})"
 
 #: openexpress/cli.py:648
 #, python-brace-format
-msgid "Logged in as {account}."
+msgid "Signed in as {account}."
 msgstr "Zalogowano jako {account}."
 
 #: openexpress/cli.py:653
-msgid "Logged out (local token removed)."
+msgid "Signed out (local token removed)."
 msgstr "Wylogowano (usunięto lokalny token)."
 
 #: openexpress/cli.py:654
@@ -1438,11 +1438,11 @@ msgstr "Token działa: {username} / {email}"
 
 #: openexpress/cli.py:689
 #, python-brace-format
-msgid "Garmin Connect: logged in as {account}"
+msgid "Garmin Connect: signed in as {account}"
 msgstr "Garmin Connect: zalogowano jako {account}"
 
 #: openexpress/cli.py:690
-msgid "Garmin Connect: not logged in"
+msgid "Garmin Connect: not signed in"
 msgstr "Garmin Connect: nie zalogowano"
 
 #: openexpress/cli.py:694
@@ -1664,7 +1664,7 @@ msgid "Device type: {name}"
 msgstr "Typ urządzenia: {name}"
 
 #: openexpress/cli.py:975
-msgid "(not logged in: showing the upload plan only)"
+msgid "(not signed in: showing the upload plan only)"
 msgstr "(nie zalogowano: wyświetlany jest tylko plan wysyłania)"
 
 #: openexpress/cli.py:989
@@ -3170,11 +3170,11 @@ msgid "also copy the memory dumps"
 msgstr "skopiuj też zrzuty pamięci"
 
 #: openexpress/cli.py:2692
-msgid "log in to Garmin Connect"
+msgid "sign in to Garmin Connect"
 msgstr "zaloguj się do Garmin Connect"
 
 #: openexpress/cli.py:2693
-msgid "log in using a regular browser"
+msgid "sign in using a regular browser"
 msgstr "zaloguj się przez zwykłą przeglądarkę"
 
 #: openexpress/cli.py:2696
@@ -3228,7 +3228,7 @@ msgstr "naprawdę zapomnij (z --forget)"
 
 #: openexpress/cli.py:2723
 msgid ""
-"the login, the devices connected, their last sync and updates, from what "
+"the sign-in, the devices connected, their last sync and updates, from what "
 "this installation knows"
 msgstr ""
 "logowanie, podłączone urządzenia, ich ostatnia synchronizacja i aktualizacje "
@@ -3239,7 +3239,7 @@ msgid "also ask Garmin Connect and Garmin's update server now"
 msgstr "zapytaj też teraz Garmin Connect i serwer aktualizacji Garmina"
 
 #: openexpress/cli.py:2729
-msgid "logged-in account"
+msgid "signed-in account"
 msgstr "zalogowane konto"
 
 #: openexpress/cli.py:2730
@@ -3680,7 +3680,7 @@ msgstr "{action}: zegar komputera różni się od serwera o {minutes} min"
 
 #: openexpress/connect.py:270
 #, python-brace-format
-msgid "{action}: unauthorized (HTTP {status}). Please log in again."
+msgid "{action}: unauthorized (HTTP {status}). Please sign in again."
 msgstr "{action}: brak autoryzacji (HTTP {status}). Zaloguj się ponownie."
 
 #: openexpress/connect.py:313
@@ -3787,8 +3787,8 @@ msgstr ""
 #: openexpress/connect.py:740
 msgid ""
 "This device is registered to another Garmin account. If it is your other "
-"account, log in to it in openExpress. If it was someone else's, they have to "
-"remove it from their account in Garmin Connect; then add it here. Nothing "
+"account, sign in to it in openExpress. If it was someone else's, they have "
+"to remove it from their account in Garmin Connect; then add it here. Nothing "
 "was changed."
 msgstr ""
 "To urządzenie jest zarejestrowane na innym koncie Garmin. Jeśli to Twoje "
@@ -4631,7 +4631,7 @@ msgid "Connect your device"
 msgstr "Podłącz urządzenie"
 
 #: openexpress/gui/app.py:435 openexpress/gui/device_page.py:792
-msgid "Not logged in to Garmin Connect"
+msgid "Not signed in to Garmin Connect"
 msgstr "Nie zalogowano do Garmin Connect"
 
 #: openexpress/gui/app.py:511
@@ -5217,7 +5217,7 @@ msgstr "Kopiowanie zrzutów pamięci…"
 
 #. TRANSLATORS: subtitle of "Primary training device" while not logged in
 #: openexpress/gui/device_page.py:523
-msgid "Log in to see"
+msgid "Sign in to see"
 msgstr "Zaloguj się, aby zobaczyć"
 
 #. TRANSLATORS: subtitle of "Primary training device" of a device off the account
@@ -5265,7 +5265,7 @@ msgid "Choose Installer…"
 msgstr "Wybierz instalator…"
 
 #: openexpress/gui/device_page.py:793 openexpress/gui/preferences.py:126
-msgid "Log In"
+msgid "Sign In"
 msgstr "Zaloguj się"
 
 #. TRANSLATORS: group on the device page: the device's own storage
@@ -5318,7 +5318,7 @@ msgid "Garmin Connect account"
 msgstr "Konto Garmin"
 
 #: openexpress/gui/device_page.py:1019 openexpress/gui/preferences.py:129
-msgid "Log out"
+msgid "Sign Out"
 msgstr "Wyloguj"
 
 #: openexpress/gui/device_page.py:1038 openexpress/gui/start.py:703
@@ -5902,10 +5902,10 @@ msgid "The OpenStreetMap server learns the area of each activity you open"
 msgstr "Serwer OpenStreetMap poznaje okolicę każdej otwieranej aktywności"
 
 #: openexpress/gui/preferences.py:118 openexpress/gui/preferences.py:125
-msgid "Not logged in"
+msgid "Not signed in"
 msgstr "Nie zalogowano"
 
-#. TRANSLATORS: under "Not logged in" in the preferences, before the installer is
+#. TRANSLATORS: under "Not signed in" in the preferences, before the installer is
 #. chosen (the button beside it: Choose Installer…)
 #: openexpress/gui/preferences.py:121
 msgid ""
@@ -6129,19 +6129,19 @@ msgstr ""
 
 #: openexpress/gui/preferences.py:561
 #, python-brace-format
-msgid "Logged in as {account}"
+msgid "Signed in as {account}"
 msgstr "Zalogowano jako {account}"
 
 #: openexpress/gui/preferences.py:562
-msgid "Logged in, but the account details could not be loaded"
+msgid "Signed in, but the account details could not be loaded"
 msgstr "Zalogowano, ale nie udało się wczytać danych konta"
 
 #: openexpress/gui/preferences.py:569
-msgid "Logging in…"
+msgid "Signing in…"
 msgstr "Logowanie…"
 
 #: openexpress/gui/preferences.py:584
-msgid "Logged out"
+msgid "Signed out"
 msgstr "Wylogowano"
 
 #. TRANSLATORS: a screen of the device of its own (Map, Compass…), not one of the user's
@@ -6494,7 +6494,7 @@ msgstr[2] ""
 #. TRANSLATORS: under the tiles of the start page
 #: openexpress/gui/start_window.py:202
 msgid ""
-"Not logged in to Garmin Connect: the tiles do not show what is on your "
+"Not signed in to Garmin Connect: the tiles do not show what is on your "
 "account or what there is to sync."
 msgstr ""
 "Nie zalogowano do Garmin Connect: kafle nie pokazują, co jest na koncie ani "
@@ -9161,7 +9161,7 @@ msgstr "Nieobsługiwany typ kodowania {type}"
 #, python-brace-format
 msgid ""
 "The token is for environment {token_environment}, but the configured one is "
-"{environment}. Please log in again."
+"{environment}. Please sign in again."
 msgstr ""
 "Token jest dla środowiska {token_environment}, a skonfigurowane jest "
 "{environment}. Zaloguj się ponownie."
@@ -9681,7 +9681,7 @@ msgstr ""
 "odpowiedział błędem ({error})."
 
 #: openexpress/service.py:1387
-msgid "Not logged in to Garmin Connect."
+msgid "Not signed in to Garmin Connect."
 msgstr "Nie zalogowano do Garmin Connect."
 
 #: openexpress/service.py:1394

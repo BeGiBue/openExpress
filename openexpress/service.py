@@ -187,7 +187,7 @@ def make_client(settings: Settings, need_auth: bool | None = None) -> GarminClie
             if need_auth:
                 raise SetupError(
                     _("The token is for environment {token_environment}, but the configured "
-                      "one is {environment}. Please log in again.").format(
+                      "one is {environment}. Please sign in again.").format(
                         token_environment=auth.environment, environment=settings.environment))
             auth = None
     return GarminClient(settings, consumer, auth)
@@ -1384,7 +1384,7 @@ def plan_sync(s: DeviceSession, options: SyncOptions | None = None,
     progress = say_to(progress)
     options = options or SyncOptions()
     if not s.logged_in and not options.preview:
-        raise store.NotLoggedIn(_("Not logged in to Garmin Connect."))
+        raise store.NotLoggedIn(_("Not signed in to Garmin Connect."))
     if s.logged_in:
         # Before uploads: the account's list asked anew (a plan only shown: as kept).
         require_account_device(s.client, s.device.unit_id, fresh=not options.preview,

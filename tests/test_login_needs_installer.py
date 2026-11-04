@@ -50,7 +50,7 @@ def _account_row():
 @pytest.mark.needs_display
 def test_until_the_installer_is_chosen_the_account_row_offers_it(language):
     row, button, calls = _account_row()
-    assert row.get_title() == {"en": "Not logged in", "pl": "Nie zalogowano"}[language]
+    assert row.get_title() == {"en": "Not signed in", "pl": "Nie zalogowano"}[language]
     assert row.get_subtitle() == ROW[language]
     assert button.get_label() == CHOOSE[language]
     button.emit("clicked")
@@ -62,7 +62,7 @@ def test_with_the_key_the_account_row_offers_log_in():
     _key_saved()
     row, button, calls = _account_row()
     assert (row.get_title(), row.get_subtitle() or "", button.get_label()) == (
-        "Not logged in", "", "Log In")
+        "Not signed in", "", "Sign In")
     button.emit("clicked")
     assert calls == ["login"]
 

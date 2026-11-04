@@ -339,12 +339,12 @@ def test_a_sign_in_left_unfinished_is_one_line_of_the_log(log_file, monkeypatch,
     from openexpress.auth import sso
 
     def cancelled(settings):
-        raise sso.LoginCancelled(sso._("Login cancelled or no SSO ticket received."))
+        raise sso.LoginCancelled(sso._("Sign-in cancelled or no SSO ticket received."))
 
     monkeypatch.setattr(cli, "make_client", lambda settings, need_auth=True: object())
     monkeypatch.setattr(sso, "login_manual" if manual else "login_with_webview", cancelled)
     assert cli.main(["login", "--manual"] if manual else ["login"]) == 1
-    assert capsys.readouterr().err == "Error: Login cancelled or no SSO ticket received.\n"
+    assert capsys.readouterr().err == "Error: Sign-in cancelled or no SSO ticket received.\n"
     text = "\n".join(lines(log_file))
     assert "INFO openexpress.cli: login: not signed in (LoginCancelled)" in text
     assert "Traceback" not in text and "unexpected error" not in text

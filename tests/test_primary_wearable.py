@@ -160,7 +160,7 @@ def test_no_row_for_a_device_that_cannot_be_one_or_while_the_list_is_not_known()
     from openexpress import service
 
     assert _rows(_page(unit=EDGE)[2]) == [("Primary training device", "Checking…")]
-    assert _rows(_page(logged_in=False)[2]) == [("Primary training device", "Log in to see")]
+    assert _rows(_page(logged_in=False)[2]) == [("Primary training device", "Sign in to see")]
     off = service.NotAccountDevice("x")
     assert _rows(_page(unit=3000000099, ownership_error=off)[2]) == [
         ("Primary training device", "Not available")]

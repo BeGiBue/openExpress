@@ -515,12 +515,12 @@ def copy_dumps(win, button=None) -> None:
 
 def primary_training_unknown(s) -> str:
     """The subtitle of "Primary training device" before (or instead of) asking the account:
-    "Log in to see" while not logged in, "Not available" for a device off the account (why,
+    "Sign in to see" while not signed in, "Not available" for a device off the account (why,
     the banner says), "Could not check" when its check against the account failed;
     "Checking…" while it is asked."""
     if not s.logged_in:
         # TRANSLATORS: subtitle of "Primary training device" while not logged in
-        return _("Log in to see")
+        return _("Sign in to see")
     if isinstance(s.ownership_error, NotAccountDevice):
         # TRANSLATORS: subtitle of "Primary training device" of a device off the account
         return pgettext("primary training device", "Not available")
@@ -789,8 +789,8 @@ class DevicePage:
             self._banner_kind = "setup"
             self.banner.set_revealed(True)
         elif s is not None and not s.logged_in:
-            self.banner.set_title(_("Not logged in to Garmin Connect"))
-            self.banner.set_button_label(_("Log In"))
+            self.banner.set_title(_("Not signed in to Garmin Connect"))
+            self.banner.set_button_label(_("Sign In"))
             self._banner_kind = "login"
             self.banner.set_revealed(True)
         elif s is not None and s.ownership_error is not None:
@@ -1016,7 +1016,7 @@ class DevicePage:
             g = sec.group(_("Garmin Connect account"))
         if s.logged_in:
             row = Adw.ActionRow(title=GLib.markup_escape_text(s.client.auth.display))
-            row.add_suffix(self._button(_("Log out"), self.logout))
+            row.add_suffix(self._button(_("Sign Out"), self.logout))
             g.add(row)
         if offers_adding(s):
             g.add(add_to_account_row(self, s))

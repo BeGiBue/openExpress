@@ -354,7 +354,7 @@ def login_with_webview(settings: Settings) -> ServiceTicket:
     app.connect("activate", on_activate)
     app.run([])
     if not result or result[0] is None:
-        raise LoginCancelled(_("Login cancelled or no SSO ticket received."))
+        raise LoginCancelled(_("Sign-in cancelled or no SSO ticket received."))
     return result[0]
 
 

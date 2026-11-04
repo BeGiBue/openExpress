@@ -199,7 +199,7 @@ def account_note(why: str | None) -> str | None:
     ("failed": they say what was kept of it, tile_facts). None: known, or still asked."""
     if why == "logged-out":
         # TRANSLATORS: under the tiles of the start page
-        return _("Not logged in to Garmin Connect: the tiles do not show what is on your "
+        return _("Not signed in to Garmin Connect: the tiles do not show what is on your "
                  "account or what there is to sync.")
     if why == "failed":
         # TRANSLATORS: under the tiles of the start page

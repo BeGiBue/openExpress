@@ -154,6 +154,6 @@ def test_a_toast_on_a_device_s_view_stays_above_the_bar(window):
     window.set_busy(False)
     window.navigation.pop_to_page(window.start.page)
     assert _turn_until(lambda: window.navigation.get_visible_page() is window.start.page)
-    window.toast("Logged out")
+    window.toast("Signed out")
     assert _turn_until(lambda: len(_toast_widgets(window.toasts)) > len(
         _toast_widgets(window.page_toasts)))

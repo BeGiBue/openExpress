@@ -85,7 +85,7 @@ def test_logout_on_the_command_line_removes_the_saved_login(capsys):
 
     saved_login()
     assert main(["logout"]) == 0
-    assert capsys.readouterr().out == "Logged out (local token removed).\n"
+    assert capsys.readouterr().out == "Signed out (local token removed).\n"
     assert not login_file().exists()
     with pytest.raises(store.NotLoggedIn):
         store.load()
@@ -105,7 +105,7 @@ def test_logout_in_the_window_removes_the_saved_login():
     assert not login_file().exists()
     with pytest.raises(store.NotLoggedIn):
         store.load()
-    assert said == ["Logged out"] and win.session is None and refreshed == [True]
+    assert said == ["Signed out"] and win.session is None and refreshed == [True]
 
 
 @pytest.fixture

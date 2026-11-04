@@ -43,7 +43,7 @@ pip install --user .                 # or run without installing: python3 -m ope
 # 1. One-time setup from the official installer (downloaded from garmin.com)
 openexpress setup --from-installer ~/Downloads/GarminExpress.exe
 
-# 2. Log in
+# 2. Sign in
 openexpress login                    # window with the official Garmin sign-in page
 openexpress whoami --check
 
@@ -54,14 +54,14 @@ openexpress sync --apply
 ```
 
 The easiest way is the window: `openexpress gui`, then click **Choose Installer…** in the
-banner at the top and **Log In**.
+banner at the top and **Sign In**.
 
 ## The Flatpak and the version from source
 
 They are separate installations: each keeps its own
 setup (the key from the Garmin Express installer), login, settings and sync state: its own
 last syncs, uploaded files and list of your own maps. After switching from one to the other,
-choose the installer and log in again. The first sync of each device then starts anew: the
+choose the installer and sign in again. The first sync of each device then starts anew: the
 window asks whether to mark the files already on it as uploaded, and on the command line
 `openexpress sync --apply` stops and suggests `openexpress baseline --apply` or `--all`.
 

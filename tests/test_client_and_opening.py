@@ -19,10 +19,10 @@ from openexpress.device.xmldevice import parse
 from openexpress.settings import Consumer, Settings, SetupError, consumer_path, save_consumer
 
 NOT_SET_UP = "openExpress is not set up yet."
-NOT_LOGGED_IN = "Not logged in. Run: openexpress login"
-DAMAGED_LOGIN = "The saved login is damaged; please log in again."
+NOT_LOGGED_IN = "Not signed in. Run: openexpress login"
+DAMAGED_LOGIN = "The saved sign-in is damaged; please sign in again."
 OTHER_ENVIRONMENT = ("The token is for environment china, but the configured one is "
-                     "production. Please log in again.")
+                     "production. Please sign in again.")
 SERIAL = "MADE-UP-SERIAL-7"
 UUID = "ABCD-1234"
 

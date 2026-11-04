@@ -115,18 +115,18 @@ def render_account_row(win) -> None:
     auth = logged_in_auth()
     row.set_subtitle("")
     if auth is None and not has_consumer():
-        row.set_title(_("Not logged in"))
-        # TRANSLATORS: under "Not logged in" in the preferences, before the installer is
+        row.set_title(_("Not signed in"))
+        # TRANSLATORS: under "Not signed in" in the preferences, before the installer is
         # chosen (the button beside it: Choose Installer…)
         row.set_subtitle(_("First choose the Garmin Express installer for Windows: openExpress "
                            "reads the application key from it"))
         button.set_label(_("Choose Installer…"))
     elif auth is None:
-        row.set_title(_("Not logged in"))
-        button.set_label(_("Log In"))
+        row.set_title(_("Not signed in"))
+        button.set_label(_("Sign In"))
     else:
         row.set_title(GLib.markup_escape_text(auth.display))
-        button.set_label(_("Log out"))
+        button.set_label(_("Sign Out"))
 
 
 # The question before a part of the cache is cleared: only for those that take long to download
@@ -558,15 +558,15 @@ class Preferences:
 
             def done(result):
                 auth, profile_ok = result
-                self.toast(_("Logged in as {account}").format(account=auth.display) if profile_ok
-                           else _("Logged in, but the account details could not be loaded"))
+                self.toast(_("Signed in as {account}").format(account=auth.display) if profile_ok
+                           else _("Signed in, but the account details could not be loaded"))
                 self._want_account()
                 account_changed(self)
 
             def start():
                 if self.busy:
                     return True  # the ticket expires only after minutes: wait for the task
-                self.run_task(_("Logging in…"), work, done, device=False)
+                self.run_task(_("Signing in…"), work, done, device=False)
                 return False
 
             def first():
@@ -581,7 +581,7 @@ class Preferences:
 
     def logout(self) -> None:
         store.delete()
-        self.toast(_("Logged out"))
+        self.toast(_("Signed out"))
         self._account = None  # the start page lists no device of the account any more
         self._account_why = "logged-out"  # and says so
         account_changed(self, Cause.LOGGED_OUT)

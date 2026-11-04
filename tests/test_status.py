@@ -54,7 +54,7 @@ def test_status_says_what_is_known_without_asking_a_server(monkeypatch, capsys, 
     _checked(VARIA, "3.36")
     assert main(["status"]) == 0
     assert capsys.readouterr().out.splitlines() == [
-        "Garmin Connect: logged in as m…p",
+        "Garmin Connect: signed in as m…p",
         "Connected: 2 devices",
         "fēnix 8 - 47mm, Solar · MTP · on your account",
         "  Last sync: just now · 2 new files, 2 uploaded · 1 received",
@@ -89,7 +89,7 @@ def test_status_without_a_login_or_a_record(monkeypatch, capsys, clock):
     _connected(monkeypatch, [_fenix()])
     assert main(["status"]) == 0
     assert capsys.readouterr().out.splitlines() == [
-        "Garmin Connect: not logged in",
+        "Garmin Connect: not signed in",
         "Connected: 1 device",
         "fēnix 8 - 47mm, Solar · MTP · account not known",
         "  Last sync: Never synced",
@@ -101,7 +101,7 @@ def test_status_without_a_device(monkeypatch, capsys):
     _connected(monkeypatch, [])
     assert main(["status"]) == 0
     assert capsys.readouterr().out.splitlines() == [
-        "Garmin Connect: logged in as m…p", "No Garmin device is connected."]
+        "Garmin Connect: signed in as m…p", "No Garmin device is connected."]
 
 
 def test_status_online_asks_the_account_and_the_update_server(monkeypatch, capsys, clock,

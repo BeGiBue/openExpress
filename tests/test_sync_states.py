@@ -291,7 +291,7 @@ def _primary(texts, title="Primary training device"):
 def test_not_logged_in_the_row_says_to_log_in():
     texts = _page_texts(logged_in=False)
     assert ("Garmin Connect account", "") in texts
-    assert _primary(texts) == ["Log in to see"]
+    assert _primary(texts) == ["Sign in to see"]
 
 
 @pytest.mark.needs_display
@@ -326,7 +326,7 @@ def test_the_row_in_polish():
 # --- the account's list not known ----------------------------------------------------------
 
 
-LOGGED_OUT = ("Not logged in to Garmin Connect: the tiles do not show what is on your "
+LOGGED_OUT = ("Not signed in to Garmin Connect: the tiles do not show what is on your "
               "account or what there is to sync.")
 FAILED = ("Your Garmin Connect account could not be read: the tiles show only what was known "
           "of it before.")

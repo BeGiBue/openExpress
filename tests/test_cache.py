@@ -845,7 +845,7 @@ def test_preferences_have_the_storage_group(cache, monkeypatch):
 @pytest.mark.needs_display
 def test_the_preferences_show_the_account_and_log_in_or_out(monkeypatch, in_the_window):
     """The group "Garmin Connect account", first in the preferences: who is logged in with
-    Log out, or "Not logged in" with Log In (the application key saved, a made-up one). The
+    Log out, or "Not signed in" with Log In (the application key saved, a made-up one). The
     button goes the way of the device view (MainWindow.logout / login, which decide where the
     user goes), and the row follows a change of account while the preferences are open."""
     import types
@@ -879,12 +879,12 @@ def test_the_preferences_show_the_account_and_log_in_or_out(monkeypatch, in_the_
     assert groups[0].get_title() == "Garmin Connect account"
     (row,) = [w for w in descendants(groups[0]) if isinstance(w, Adw.ActionRow)]
     (button,) = [w for w in descendants(row) if isinstance(w, Gtk.Button)]
-    assert (row.get_title(), button.get_label()) == ("someone", "Log out")
+    assert (row.get_title(), button.get_label()) == ("someone", "Sign Out")
     button.emit("clicked")
     assert calls == ["logout"]
     client.auth = None  # logged out: the window tells of the change of account
     account_changed(win, Cause.LOGGED_OUT)
-    assert (row.get_title(), button.get_label()) == ("Not logged in", "Log In")
+    assert (row.get_title(), button.get_label()) == ("Not signed in", "Sign In")
     button.emit("clicked")
     assert calls == ["logout", "login"]
     shown[0].emit("closed")  # the preferences closed: the window keeps no widget of them

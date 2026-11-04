@@ -184,7 +184,7 @@ def test_not_logged_in_is_refused_without_a_request():
 def test_rejected_login_is_reported_as_such(status):
     client = make_client(**{DEVICES_PATH: response(status, b"")})
     client.verified_unit_id = UNIT
-    with pytest.raises(Unauthorized, match="Please log in again"):
+    with pytest.raises(Unauthorized, match="Please sign in again"):
         service.require_account_device(client, UNIT)
     assert client.verified_unit_id is None
 
@@ -521,7 +521,7 @@ def test_cli_asks_to_log_in_again_when_the_login_is_rejected(device_root, xdg, c
     before = tree(device_root)
     assert main(["--path", str(device_root), *argv]) == 1
     err = capsys.readouterr().err
-    assert "Please log in again" in err and COULD_NOT_CHECK not in err
+    assert "Please sign in again" in err and COULD_NOT_CHECK not in err
     assert cli_client["client"].http.paths() == [DEVICES_PATH]
     assert tree(device_root) == before and not sync.SyncState(UNIT).dir.exists()
 
@@ -650,7 +650,7 @@ def test_watcher_rejected_login_gets_one_notification(device_root, xdg, device, 
     monkeypatch.setattr(watcher, "_open_session", lambda: session(device_root, device, client))
     watcher._sync()
     assert len(watcher.notes) == 1 and watcher.synced == []
-    assert watcher.notes[0][0] == "Sync failed" and "Please log in again" in watcher.notes[0][1]
+    assert watcher.notes[0][0] == "Sync failed" and "Please sign in again" in watcher.notes[0][1]
 
 
 # --- a Garmin device in mass storage mode: no sync, nothing asked of the account -------------
@@ -757,7 +757,7 @@ def test_window_banner_for_each_outcome(device_root, device):
     # A rejected login: the usual "log in" banner, not "Try Again".
     s = checked(**{DEVICES_PATH: response(401, b"")})
     assert not s.logged_in and s.ownership_error is None and s.client.verified_unit_id is None
-    assert banner_for(s) == {"title": "Not logged in to Garmin Connect", "button": "Log In",
+    assert banner_for(s) == {"title": "Not signed in to Garmin Connect", "button": "Sign In",
                              "revealed": True, "kind": "login"}
 
     # A wrong clock: the clock message, and a way to check again.

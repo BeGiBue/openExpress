@@ -51,5 +51,5 @@ def test_login_masks_the_account(xdg, capsys, monkeypatch):
     monkeypatch.setattr(cli, "make_client", lambda settings, need_auth: client)
     assert main(["login", "--manual"]) == 0
     out = capsys.readouterr().out
-    assert "Logged in as t…b." in out and "tomek" not in out
+    assert "Signed in as t…b." in out and "tomek" not in out
     assert store.load().display == "tomek_b"  # kept whole: the window shows it

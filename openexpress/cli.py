@@ -645,12 +645,12 @@ def cmd_login(args) -> int:
         print(_("Warning: could not fetch the profile ({error})").format(
             error=str(e) or e.__class__.__name__), file=sys.stderr)
     store.save(auth)
-    print(_("Logged in as {account}.").format(account=auth.masked_display))
+    print(_("Signed in as {account}.").format(account=auth.masked_display))
     return 0
 
 
 def cmd_logout(args) -> int:
-    print(_("Logged out (local token removed).") if store.delete()
+    print(_("Signed out (local token removed).") if store.delete()
           else _("No saved token found."))
     return 0
 
@@ -686,8 +686,8 @@ def cmd_status(args) -> int:
         auth = store.load()
     except store.NotLoggedIn:
         auth = None
-    print(_("Garmin Connect: logged in as {account}").format(account=auth.masked_display)
-          if auth is not None else _("Garmin Connect: not logged in"))
+    print(_("Garmin Connect: signed in as {account}").format(account=auth.masked_display)
+          if auth is not None else _("Garmin Connect: not signed in"))
     summaries = gio_storage.distinct_devices(
         [gio_storage.probe(f) for f in gio_storage.find_all_devices()])
     if not summaries:
@@ -972,7 +972,7 @@ def cmd_sync(args) -> int:
             raise
         # The upload plan can be shown without logging in; the download queue needs a token.
         client = make_client(settings, need_auth=False)
-        print(_("(not logged in: showing the upload plan only)"))
+        print(_("(not signed in: showing the upload plan only)"))
     session = service.DeviceSession(st, dev, settings, client)
     if st.mass_storage and not args.apply:
         service.refuse_drive_sync(session)  # with --apply in run_sync, before its uploads
@@ -2689,8 +2689,8 @@ def build_parser() -> argparse.ArgumentParser:
     s.add_argument("--dumps", action="store_true", help=_("also copy the memory dumps"))
     s.set_defaults(func=cmd_diagnostics)
 
-    s = sub.add_parser("login", help=_("log in to Garmin Connect"))
-    s.add_argument("--manual", action="store_true", help=_("log in using a regular browser"))
+    s = sub.add_parser("login", help=_("sign in to Garmin Connect"))
+    s.add_argument("--manual", action="store_true", help=_("sign in using a regular browser"))
     s.set_defaults(func=cmd_login)
 
     s = sub.add_parser("logout", help=_("remove the local token"))
@@ -2720,13 +2720,13 @@ def build_parser() -> argparse.ArgumentParser:
     s.add_argument("--apply", action="store_true", help=_("really forget (with --forget)"))
     s.set_defaults(func=cmd_devices)
 
-    s = sub.add_parser("status", help=_("the login, the devices connected, their last sync and "
+    s = sub.add_parser("status", help=_("the sign-in, the devices connected, their last sync and "
                                         "updates, from what this installation knows"))
     s.add_argument("--online", action="store_true",
                    help=_("also ask Garmin Connect and Garmin's update server now"))
     s.set_defaults(func=cmd_status)
 
-    s = sub.add_parser("whoami", help=_("logged-in account"))
+    s = sub.add_parser("whoami", help=_("signed-in account"))
     s.add_argument("--check", action="store_true", help=_("verify the token with the server"))
     s.set_defaults(func=cmd_whoami)
 

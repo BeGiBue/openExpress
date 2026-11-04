@@ -199,7 +199,7 @@ def _banner(s):
 def test_a_drive_that_may_sync_asks_to_log_in_as_over_mtp(device_root):
     s, _account = checked(device_root)
     s.client.consumer, s.client.auth = object(), None  # set up, not logged in
-    assert _banner(s) == {"title": "Not logged in to Garmin Connect", "button": "Log In",
+    assert _banner(s) == {"title": "Not signed in to Garmin Connect", "button": "Sign In",
                           "revealed": True}
 
 
