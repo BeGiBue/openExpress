@@ -43,7 +43,7 @@ def test_the_list(profiles_root, capsys):
     before = tree(profiles_root)
     assert main(["--path", str(profiles_root), "profiles"]) == 0
     out = capsys.readouterr().out.splitlines()
-    assert out[:4] == ["3 profiles:", "  Road · 1 data screen · 1 built-in screen",  # Compass is hidden
+    assert out[:4] == ["3 profiles:", "  Road · 1 data screen · 1 built-in screen (1 hidden)",
                        "  Run · 1 data screen · 1 built-in screen",
                        "  Trail Run · 1 data screen"]
     assert out[4].startswith("  Broken.fit: The file of this profile could not be read")

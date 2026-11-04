@@ -39,7 +39,8 @@ each heart-rate and power zone, named here with its zone."""
 
 from __future__ import annotations
 
-from openexpress.i18n import _, pgettext
+from openexpress.i18n import _, ngettext, pgettext
+from openexpress.profiles import SHOWN
 
 # The number of a Connect IQ data field: which app it shows is said elsewhere in the file.
 CONNECT_IQ_FIELD = 216
@@ -314,6 +315,23 @@ def edge_shaped(profile) -> bool:
     codes and layouts of the Edge bike computers are known; of a watch's, some built-in screens
     and layouts."""
     return profile.has_hidden_flag
+
+
+def hidden_built_in(profile) -> int:
+    """How many of the profile's built-in screens are on but hidden on the device (an Edge's)."""
+    return sum(1 for s in profile.built_in() if s.hidden and s.state == SHOWN)
+
+
+def built_in_count(shown: int, hidden: int) -> str:
+    """The built-in screens a profile scrolls through, and those hidden: "3 built-in screens
+    (6 hidden)"."""
+    text = ngettext("{count} built-in screen", "{count} built-in screens", shown).format(
+        count=shown)
+    if hidden:
+        # TRANSLATORS: after the number of built-in screens, those hidden on the device
+        text += " " + ngettext("({count} hidden)", "({count} hidden)", hidden).format(
+            count=hidden)
+    return text
 
 
 def own_titles(profile) -> dict[int, str]:

@@ -60,9 +60,9 @@ def profile_caption(profile: profiles.Profile) -> str:
     own = sum(1 for s in shown if s.own)
     built_in = len(shown) - own
     parts = [ngettext("{count} data screen", "{count} data screens", own).format(count=own)]
-    if built_in:
-        parts.append(ngettext("{count} built-in screen", "{count} built-in screens",
-                              built_in).format(count=built_in))
+    hidden = names.hidden_built_in(profile)
+    if built_in or hidden:
+        parts.append(names.built_in_count(built_in, hidden))
     return caption(*parts)
 
 
@@ -99,6 +99,33 @@ def name_font(cr, name: str, width: float, points: float) -> Pango.FontDescripti
         smaller = max(LEAST_POINTS, points * width / widest * 0.95)
         font = Pango.FontDescription.from_string(f"Sans {smaller:.1f}")
     return font
+
+
+def _fits(cr, font: Pango.FontDescription, name: str, width: float, row: float) -> bool:
+    """Whether a field's name fits its place: each word within `width`, the whole in two lines
+    at most, broken between its words, and within the `row` the field has."""
+    layout = PangoCairo.create_layout(cr)
+    layout.set_font_description(font)
+    for word in name.split():
+        layout.set_text(word, -1)
+        if layout.get_pixel_size()[0] > width:
+            return False
+    layout.set_text(name, -1)
+    layout.set_width(int(width * Pango.SCALE))
+    layout.set_wrap(Pango.WrapMode.WORD)
+    return layout.get_line_count() <= 2 and layout.get_pixel_size()[1] <= row
+
+
+def fields_font(cr, names: list[str], width: float, row: float,
+                points: float) -> Pango.FontDescription:
+    """The font of a screen's fields in its drawing, one for all of them: `points` at most,
+    smaller until every name fits its place (`_fits`); never below the least size."""
+    size = points
+    while True:
+        font = Pango.FontDescription.from_string(f"Sans {size:.1f}")
+        if size <= LEAST_POINTS or all(_fits(cr, font, n, width, row) for n in names):
+            return font
+        size = max(LEAST_POINTS, size - 0.5)
 
 
 def draw_screen(area, cr, width, height, edge: bool, lines: list[str]) -> None:
@@ -138,7 +165,7 @@ def draw_screen(area, cr, width, height, edge: bool, lines: list[str]) -> None:
     if len(lines) == 1:  # a built-in screen's name
         font = name_font(cr, lines[0], w, points)
     else:
-        font = Pango.FontDescription.from_string(f"Sans {points:.1f}")
+        font = fields_font(cr, lines, w, row, points)
     cr.set_source_rgba(fg.red, fg.green, fg.blue, 0.9)
     for n, line in enumerate(lines):
         layout = PangoCairo.create_layout(cr)
@@ -146,9 +173,10 @@ def draw_screen(area, cr, width, height, edge: bool, lines: list[str]) -> None:
         layout.set_text(line, -1)
         layout.set_width(int(max(w, 4) * Pango.SCALE))
         layout.set_alignment(Pango.Alignment.CENTER)
-        if len(lines) == 1:  # a built-in screen's name: wrapped between its words
-            layout.set_wrap(Pango.WrapMode.WORD)
-            layout.set_height(int(row * Pango.SCALE))
+        # Wrapped between words: a built-in screen's name within its row, a field's name in two
+        # lines at most; cut short only when even the least size does not fit.
+        layout.set_wrap(Pango.WrapMode.WORD)
+        layout.set_height(int(row * Pango.SCALE) if len(lines) == 1 else -2)
         layout.set_ellipsize(Pango.EllipsizeMode.END)
         _tw, th = layout.get_pixel_size()
         cr.move_to(x, y + row * n + (row - th) / 2)
@@ -180,6 +208,8 @@ def screen_drawing(profile: profiles.Profile, screen: profiles.Screen, size: int
     area = Gtk.DrawingArea(content_width=size, content_height=size, halign=Gtk.Align.CENTER,
                            accessible_role=Gtk.AccessibleRole.PRESENTATION)
     area.set_draw_func(lambda a, cr, w, h: draw_screen(a, cr, w, h, edge, lines))
+    if screen.own:
+        area.set_tooltip_text("\n".join(lines))  # the names in full, however small drawn
     return area
 
 

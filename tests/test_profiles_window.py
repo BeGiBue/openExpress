@@ -109,7 +109,7 @@ def test_the_list_of_the_profiles(root):
     assert _titles(every) == [
         ("Ćwiczenia siłowe", "2 data screens"),
         ("Hike", "1 data screen"),
-        ("Road", "1 data screen\u00a0· 1 built-in screen"),
+        ("Road", "1 data screen\u00a0· 1 built-in screen (1 hidden)"),  # Compass is hidden
         ("Run", "2 data screens\u00a0· 1 built-in screen")]
     (broken,) = _titles(section.groups[3])
     assert broken[0] == "Broken.fit" and "could not be read" in broken[1]
@@ -240,6 +240,46 @@ def test_what_a_screen_s_drawing_says():
     assert profiles_page.drawing_lines(watch, by_code[110]) == ["110"]
     climb = next(s for s in edge.screens if s.code == 104)
     assert profiles_page.drawing_lines(edge, climb) == ["ClimbPro"]
+
+
+# Long names of fields as a screen of an Edge and of a watch shows them.
+LONG_FIELDS = ["Aktualny czas", "Stoper", "Upływ czasu", "Przygotowanie wydolnościowe",
+               "Wskaźnik efektów treningu"]
+
+
+@pytest.mark.parametrize("edge, size", [(True, 220), (False, 220), (True, 112), (False, 112)])
+def test_a_field_s_name_is_drawn_whole(monkeypatch, edge, size):
+    """A field's name is never cut short with "…" in a screen's drawing: it breaks onto a second
+    line between its words, and the font is smaller when two lines would not fit."""
+    import cairo
+    from gi.repository import Gdk, PangoCairo
+
+    from openexpress.gui import profiles_page
+
+    drawn = []
+    show = PangoCairo.show_layout
+    monkeypatch.setattr(PangoCairo, "show_layout",
+                        lambda cr, layout: (drawn.append(layout), show(cr, layout)))
+
+    class Area:
+        def get_color(self):
+            return Gdk.RGBA()
+
+    cr = cairo.Context(cairo.ImageSurface(cairo.FORMAT_ARGB32, size, size))
+    profiles_page.draw_screen(Area(), cr, size, size, edge, LONG_FIELDS)
+    assert [layout.get_text() for layout in drawn] == LONG_FIELDS
+    assert [layout.get_text() for layout in drawn if layout.is_ellipsized()] == []
+    assert all(layout.get_line_count() <= 2 for layout in drawn)
+
+
+def test_a_screen_s_drawing_tells_its_fields_in_full():
+    from openexpress import profiles
+    from openexpress.gui import profiles_page
+
+    watch = profiles.read_profile(sport_file("Run", screens=RUN))
+    by_code = {s.code: s for s in watch.screens}
+    drawing = profiles_page.screen_drawing(watch, by_code[0], 112)
+    assert drawing.get_tooltip_text() == "Timer\nDistance\nField 999\n%Max Heart Rate"
 
 
 @pytest.mark.parametrize("name", ["GroupTrack", "Podsumowanie okrążenia", "Shimano STEPS"])

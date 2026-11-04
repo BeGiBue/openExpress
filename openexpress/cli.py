@@ -2288,6 +2288,7 @@ def _profile_lines(f) -> list[str]:
 def cmd_profiles(args) -> int:
     """The sport profiles of the connected device and, with show, the data screens of one;
     read only."""
+    from openexpress import profile_names as names
     from openexpress import profiles
 
     st, dev = open_device(args)
@@ -2315,9 +2316,9 @@ def cmd_profiles(args) -> int:
         shown = f.profile.carousel()
         own = sum(1 for s in shown if s.own)
         parts = [ngettext("{count} data screen", "{count} data screens", own).format(count=own)]
-        if len(shown) > own:
-            parts.append(ngettext("{count} built-in screen", "{count} built-in screens",
-                                  len(shown) - own).format(count=len(shown) - own))
+        hidden = names.hidden_built_in(f.profile)
+        if len(shown) > own or hidden:
+            parts.append(names.built_in_count(len(shown) - own, hidden))
         print(f"  {f.profile.name} · " + " · ".join(parts))
     for f in files:
         if f.profile is None:
