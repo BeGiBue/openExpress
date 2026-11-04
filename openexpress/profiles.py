@@ -23,11 +23,14 @@ it is never decoded."""
 from __future__ import annotations
 
 import logging
+import time
+from collections.abc import Callable, Iterable
 from dataclasses import dataclass, field
 
-from openexpress import fit
+from openexpress import applog, fit
 from openexpress.errors import UserFacingError
 from openexpress.i18n import _
+from openexpress.progress import Step, say_to
 
 log = logging.getLogger(__name__)
 
@@ -157,3 +160,85 @@ def read_profile(data: bytes) -> Profile:
                    sport=_int(sport.get(_SPORT)), sub_sport=_int(sport.get(_SUB_SPORT)),
                    colour=colour, screens=tuple(screens), slots=slots,
                    has_hidden_flag=hidden_flag, incomplete=incomplete)
+
+
+# --- the profiles of a device ----------------------------------------------------------------
+
+SPORT_DATATYPE = "FIT_TYPE_3"
+
+
+def keeps_profiles(device) -> bool:
+    """Whether the device's GarminDevice.xml declares a folder of sport profiles."""
+    return bool(device.sources(SPORT_DATATYPE))
+
+
+@dataclass(frozen=True)
+class ProfileFile:
+    """A file of the device's Sports folder: its real path and name, its size and time of
+    change, and the profile it holds, or why it could not be read."""
+
+    path: str
+    name: str
+    size: int
+    mtime: float
+    profile: Profile | None
+    error: str | None = None
+
+
+class ProfileList:
+    """The sport profiles of a device, as its storage lists and reads them: each file read
+    once, kept by its path, size and time of change (read again once one of them changes).
+    Nothing is written. Has: what it read of the open device."""
+
+    def __init__(self, device, storage):
+        self.device, self.storage = device, storage
+        self._kept: dict[tuple, ProfileFile] = {}
+
+    def read_all(self, progress: Callable[[str], None] | None = None) -> list[ProfileFile]:
+        """Every file of the Sports folder: the profiles by their name, then those that could
+        not be read. `progress`: a step for each file read, never its name. An error of the
+        device stops it (DeviceError)."""
+        progress = say_to(progress)
+        found = []
+        for src in self.device.sources(SPORT_DATATYPE):
+            for path, entry in self.storage.walk_files(src.path):
+                if src.matches(path):
+                    found.append((path, entry))
+        keys = {(path.casefold(), entry.size, entry.mtime): (path, entry)
+                for path, entry in found}
+        to_read = [key for key in keys if key not in self._kept]
+        started, size, unreadable = time.monotonic(), 0, 0
+        # TRANSLATORS: a step of a long task: the profile files read ("… · 2 of 30")
+        head = _("Reading profiles")
+        for n, key in enumerate(to_read, 1):
+            progress(Step(head, n, len(to_read)))
+            path, entry = keys[key]
+            data = self.storage.read_at(path)
+            size += len(data)
+            name = path.rsplit("/", 1)[-1]
+            try:
+                kept = ProfileFile(path, name, entry.size, entry.mtime, read_profile(data))
+            except ProfileError as e:
+                unreadable += 1
+                kept = ProfileFile(path, name, entry.size, entry.mtime, None, str(e))
+            self._kept[key] = kept
+        self._kept = {key: self._kept[key] for key in keys}  # files gone are forgotten
+        if to_read:
+            log.info("profiles: %d files, %d read now in %.1f s (%s), %d not readable",
+                     len(keys), len(to_read), time.monotonic() - started, applog.size(size),
+                     unreadable)
+        return sorted(self._kept.values(), key=lambda f: (
+            f.profile is None, (f.profile.name if f.profile else f.name).casefold()))
+
+
+def recent_names(summaries: Iterable, limit: int = 5) -> list[str]:
+    """The names of the profiles of the newest activities, newest first, each once: from the
+    summaries of activity files (fit.ActivitySummary; None: a file that could not be read)."""
+    dated = sorted((s for s in summaries if s is not None and s.profile),
+                   key=lambda s: s.start or s.created or 0, reverse=True)
+    names: list[str] = []
+    for s in dated:
+        if s.profile not in names:
+            names.append(s.profile)
+    return names[:limit]
+
