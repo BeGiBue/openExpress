@@ -70,7 +70,12 @@ WATCH_FIELDS = [
 ]
 
 
-@pytest.mark.parametrize("number, english, polish", COMPOSITE_FIELDS + WATCH_FIELDS)
+# A field of an Edge the table has not, named as the Edge 1050 shows it.
+EDGE_FIELDS = [(711, "Training Effect", "Efekt treningu")]
+
+
+@pytest.mark.parametrize("number, english, polish",
+                         COMPOSITE_FIELDS + WATCH_FIELDS + EDGE_FIELDS)
 def test_a_field_has_its_name(number, english, polish):
     assert profile_names.known_field(number)
     assert profile_names.field_name(number) == english

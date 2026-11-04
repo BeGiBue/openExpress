@@ -10,7 +10,8 @@ The numbers of the data fields follow the table of Activity Profile Editor
 computers; a watch's profiles give the same numbers to the same fields (a fēnix 8's profile set
 to a dozen of them holds each under its number). The few fields of a watch the table has not
 (pace, ambient pressure, its charts and gauges) have the numbers its profiles gave them, and a
-watch names two numbers its own way (77, 97). Its notice:
+watch names two numbers its own way (77, 97); one field of the Edge 1050 the table has not
+(711) is named as that Edge shows it. Its notice:
 
     MIT License
 
@@ -253,6 +254,7 @@ def _field_names() -> dict[int, str]:
         596: pgettext("data field", "Time to Point"),
         610: pgettext("data field", "Heart Rate Zones Ratio"),
         654: pgettext("data field", "Segment Time"),
+        711: pgettext("data field", "Training Effect"),
         725: pgettext("data field", "Map"),
         786: pgettext("data field", "Vertical Descent Speed"),
         787: pgettext("data field", "30s Vertical Descent Speed"),
