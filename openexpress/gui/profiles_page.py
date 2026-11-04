@@ -43,12 +43,20 @@ def fields_text(count: int) -> str:
     return ngettext("{count} field", "{count} fields", count).format(count=count)
 
 
+def _sentence(text: str) -> str:
+    """A text that begins a row's subtitle: its first letter a capital."""
+    return text[:1].upper() + text[1:]
+
+
 def screen_caption(profile: profiles.Profile, screen: profiles.Screen) -> str:
     """Under a screen's title: its fields and layout, or what kind of screen it is."""
     if screen.own:
         return caption(fields_text(len(screen.fields)),
                        names.layout_name(screen.variant, edge_shaped(profile)))
     if names.built_in_known(screen, edge_shaped(profile)):
+        when = names.when_needed(screen, edge_shaped(profile))
+        if when:
+            return _sentence(when)
         # TRANSLATORS: a screen of the device of its own (Map, Compass…), not one of the user's
         return _("Built-in screen")
     return _("Not known to openExpress yet")
@@ -60,9 +68,9 @@ def profile_caption(profile: profiles.Profile) -> str:
     own = sum(1 for s in shown if s.own)
     built_in = len(shown) - own
     parts = [ngettext("{count} data screen", "{count} data screens", own).format(count=own)]
-    hidden = names.hidden_built_in(profile)
-    if built_in or hidden:
-        parts.append(names.built_in_count(built_in, hidden))
+    built_in = names.built_in_summary(profile)
+    if built_in:
+        parts.append(built_in)
     return caption(*parts)
 
 
@@ -163,9 +171,12 @@ def draw_screen(area, cr, width, height, edge: bool, lines: list[str]) -> None:
     # one of 220 px read alike.
     points = max(LEAST_POINTS, min(width / 14, row * 0.5))
     if len(lines) == 1:  # a built-in screen's name
-        font = name_font(cr, lines[0], w, points)
+        font, two_lines = name_font(cr, lines[0], w, points), False
     else:
         font = fields_font(cr, lines, w, row, points)
+        # Two lines only where they fit: on a small card with many long names each stays on
+        # its line, cut short (the drawing's tooltip says them in full).
+        two_lines = all(_fits(cr, font, line, w, row) for line in lines)
     cr.set_source_rgba(fg.red, fg.green, fg.blue, 0.9)
     for n, line in enumerate(lines):
         layout = PangoCairo.create_layout(cr)
@@ -174,9 +185,9 @@ def draw_screen(area, cr, width, height, edge: bool, lines: list[str]) -> None:
         layout.set_width(int(max(w, 4) * Pango.SCALE))
         layout.set_alignment(Pango.Alignment.CENTER)
         # Wrapped between words: a built-in screen's name within its row, a field's name in two
-        # lines at most; cut short only when even the least size does not fit.
+        # lines at most, or one when two do not fit even at the least size.
         layout.set_wrap(Pango.WrapMode.WORD)
-        layout.set_height(int(row * Pango.SCALE) if len(lines) == 1 else -2)
+        layout.set_height(int(row * Pango.SCALE) if len(lines) == 1 else -2 if two_lines else -1)
         layout.set_ellipsize(Pango.EllipsizeMode.END)
         _tw, th = layout.get_pixel_size()
         cr.move_to(x, y + row * n + (row - th) / 2)
@@ -332,12 +343,22 @@ def open_profile(win, profile_file) -> None:
     box.append(screens)
     built_in = [s for s in profile.built_in()
                 if not (edge and s.code == EDGE_RESERVED_CODE)]
-    if built_in:
+    needed = [s for s in built_in if names.when_needed(s, edge)]
+    always = [s for s in built_in if s not in needed]
+    if always:
         group = Adw.PreferencesGroup(title=_("Built-in screens"))
-        for screen in built_in:
+        for screen in always:
             caption = ("" if names.built_in_known(screen, edge)
                        else _("Not known to openExpress yet"))
             group.add(_row(screen_title(profile, screen), caption, state_text(screen)))
+        box.append(group)
+    if needed:
+        group = Adw.PreferencesGroup(
+            title=_("Built-in screens when needed"),
+            description=_("The device shows them only when they are needed"))
+        for screen in needed:
+            group.add(_row(screen_title(profile, screen),
+                           _sentence(names.when_needed(screen, edge)), state_text(screen)))
         box.append(group)
     off = [s for s in profile.own_screens() if not s.shown]
     if off:
@@ -352,8 +373,8 @@ def open_profile(win, profile_file) -> None:
             "this device's layouts and built-in screens are not known to openExpress yet."))
     details.add(_row(_("File"), profile_file.name))
     box.append(details)
-    log.info("profile page: %d screens shown, %d built-in, %d turned off (%s)",
-             len(profile.carousel()), len(built_in), len(off),
+    log.info("profile page: %d screens shown, %d built-in (%d when needed), %d turned off (%s)",
+             len(profile.carousel()), len(built_in), len(needed), len(off),
              "an Edge's" if edge else "a watch's")
     win.navigation.push(_page(profile.name or profile_file.name, _device_name(win),
                               PROFILE_TAG, box))

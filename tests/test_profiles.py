@@ -39,6 +39,19 @@ def test_a_watch_profile():
     assert [s.code for s in p.built_in()] == [25, 127]
 
 
+def test_an_edge_s_screen_hidden_by_its_visibility():
+    """On an Edge 1050 a built-in screen hidden on the device (the Map of an indoor trainer's
+    profile) says so in field 11 (2; 1: shown), field 12 staying 0."""
+    p = profiles.read_profile(sport_file("Indoor", 2, 6, screens=(
+        ScreenRecord(place=0, code=0, order=0, fields=(56,), variant=1),
+        ScreenRecord(place=1, code=25, order=1, visibility=2),
+        ScreenRecord(place=2, code=44, order=2)), shape="edge"))
+    by_code = {s.code: s for s in p.screens}
+    assert by_code[25].hidden and not by_code[25].shown
+    assert not by_code[44].hidden and by_code[44].shown
+    assert [s.code for s in p.carousel()] == [0, 44]
+
+
 def test_an_edge_profile_says_which_screens_are_hidden():
     screens = (ScreenRecord(place=0, code=0, order=0, fields=(48, 6, 56, 16, 23, 2),
                             variant=0),

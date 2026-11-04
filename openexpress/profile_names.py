@@ -324,16 +324,56 @@ def hidden_built_in(profile) -> int:
     return sum(1 for s in profile.built_in() if s.hidden and s.state == SHOWN)
 
 
-def built_in_count(shown: int, hidden: int) -> str:
-    """The built-in screens a profile scrolls through, and those hidden: "3 built-in screens
-    (6 hidden)"."""
-    text = ngettext("{count} built-in screen", "{count} built-in screens", shown).format(
-        count=shown)
+# The built-in screens an Edge shows only in their situation, and when it shows them.
+def _edge_when() -> dict[int, str]:
+    # TRANSLATORS: when a device shows a built-in screen it shows only then ("ClimbPro (on a
+    # climb)")
+    return {
+        38: pgettext("built-in screen shown", "during a workout"),
+        56: pgettext("built-in screen shown", "on a segment"),
+        57: pgettext("built-in screen shown", "during a group ride"),
+        104: pgettext("built-in screen shown", "on a climb"),
+        125: pgettext("built-in screen shown", "with an active power plan"),
+        162: pgettext("built-in screen shown", "during a group ride"),
+    }
+
+
+def when_needed(screen, edge: bool) -> str | None:
+    """When the device shows a built-in screen it shows only in its situation ("during a
+    workout"); None for one it shows always, or whose situation is not known."""
+    return None if screen.own or not edge else _edge_when().get(screen.code)
+
+
+def built_in_count(always: int, needed: int, hidden: int) -> str:
+    """The built-in screens a profile scrolls through: those always shown, those shown when
+    needed and those hidden on the device ("3 built-in screens (+6 when needed, 1 hidden)")."""
+    extras = []
+    if always or not needed:
+        text = ngettext("{count} built-in screen", "{count} built-in screens", always).format(
+            count=always)
+        if needed:
+            # TRANSLATORS: after the number of built-in screens, those shown only when needed
+            extras.append(ngettext("+{count} when needed", "+{count} when needed",
+                                   needed).format(count=needed))
+    else:
+        text = ngettext("{count} built-in screen when needed",
+                        "{count} built-in screens when needed", needed).format(count=needed)
     if hidden:
         # TRANSLATORS: after the number of built-in screens, those hidden on the device
-        text += " " + ngettext("({count} hidden)", "({count} hidden)", hidden).format(
-            count=hidden)
-    return text
+        extras.append(ngettext("{count} hidden", "{count} hidden", hidden).format(count=hidden))
+    return text + (" (" + ", ".join(extras) + ")" if extras else "")
+
+
+def built_in_summary(profile) -> str | None:
+    """How many built-in screens the profile scrolls through, as `built_in_count` says it;
+    None when it has none, shown or hidden."""
+    edge = edge_shaped(profile)
+    shown = [s for s in profile.carousel() if not s.own]
+    needed = sum(1 for s in shown if when_needed(s, edge))
+    hidden = hidden_built_in(profile)
+    if not shown and not hidden:
+        return None
+    return built_in_count(len(shown) - needed, needed, hidden)
 
 
 def own_titles(profile) -> dict[int, str]:

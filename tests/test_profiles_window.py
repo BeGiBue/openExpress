@@ -109,7 +109,7 @@ def test_the_list_of_the_profiles(root):
     assert _titles(every) == [
         ("Ćwiczenia siłowe", "2 data screens"),
         ("Hike", "1 data screen"),
-        ("Road", "1 data screen\u00a0· 1 built-in screen (1 hidden)"),  # Compass is hidden
+        ("Road", "1 data screen\u00a0· 1 built-in screen when needed (1 hidden)"),
         ("Run", "2 data screens\u00a0· 1 built-in screen")]
     (broken,) = _titles(section.groups[3])
     assert broken[0] == "Broken.fit" and "could not be read" in broken[1]
@@ -200,6 +200,10 @@ def test_an_edge_profile_s_page():
     assert "3 fields\u00a0· Layout A" in labels
     assert not any(t.startswith("Built-in screen 32") for t in labels)  # reserved: left out
     assert "Hidden" in labels and "On" in labels
+    # ClimbPro, shown only on a climb: its own group, and its card says when.
+    assert "Built-in screens when needed" in labels
+    assert ("ClimbPro", "On a climb") in [r[:2] for r in rows]
+    assert "On a climb" in labels
 
 
 def test_a_screen_s_page():
@@ -247,10 +251,11 @@ LONG_FIELDS = ["Aktualny czas", "Stoper", "Upływ czasu", "Przygotowanie wydolno
                "Wskaźnik efektów treningu"]
 
 
-@pytest.mark.parametrize("edge, size", [(True, 220), (False, 220), (True, 112), (False, 112)])
+@pytest.mark.parametrize("edge, size", [(True, 220), (False, 220), (True, 112)])
 def test_a_field_s_name_is_drawn_whole(monkeypatch, edge, size):
-    """A field's name is never cut short with "…" in a screen's drawing: it breaks onto a second
-    line between its words, and the font is smaller when two lines would not fit."""
+    """A field's name is never cut short with "…" in a screen's drawing where two lines fit:
+    it breaks onto a second line between its words, and the font is smaller when two lines
+    would not fit."""
     import cairo
     from gi.repository import Gdk, PangoCairo
 
@@ -270,6 +275,39 @@ def test_a_field_s_name_is_drawn_whole(monkeypatch, edge, size):
     assert [layout.get_text() for layout in drawn] == LONG_FIELDS
     assert [layout.get_text() for layout in drawn if layout.is_ellipsized()] == []
     assert all(layout.get_line_count() <= 2 for layout in drawn)
+
+
+# The seven fields of an Edge's first screen, most of them long.
+MANY_FIELDS = ["Prędkość (średnia/maks.)", "Tętno (średnie/maks.)", "Dystans",
+               "Kadencja (średnia/maks.)", "Moc (średnia/maks.)", "Aktualny czas", "Stoper"]
+
+
+@pytest.mark.parametrize("edge, lines", [(True, MANY_FIELDS), (False, LONG_FIELDS)])
+def test_long_names_on_a_card_never_overlap(monkeypatch, edge, lines):
+    """On a card (112 px) long names may not each have two lines: each stays within its row,
+    in one line cut short when two do not fit (the tooltip says them in full)."""
+    import cairo
+    from gi.repository import Gdk, PangoCairo
+
+    from openexpress.gui import profiles_page
+
+    drawn = []
+    show = PangoCairo.show_layout
+    monkeypatch.setattr(PangoCairo, "show_layout",
+                        lambda cr, layout: (drawn.append(layout), show(cr, layout)))
+
+    class Area:
+        def get_color(self):
+            return Gdk.RGBA()
+
+    size = 112
+    cr = cairo.Context(cairo.ImageSurface(cairo.FORMAT_ARGB32, size, size))
+    profiles_page.draw_screen(Area(), cr, size, size, edge, lines)
+    # The inside of the drawing (an Edge's rectangle, the square in a watch's circle) in rows.
+    inside = size - 4 - 8 if edge else (size / 2 - 2) * 2 ** 0.5
+    row = inside / len(lines)
+    assert [layout.get_text() for layout in drawn] == lines
+    assert all(layout.get_pixel_size()[1] <= row for layout in drawn)
 
 
 def test_a_screen_s_drawing_tells_its_fields_in_full():

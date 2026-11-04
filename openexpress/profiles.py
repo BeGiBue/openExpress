@@ -40,6 +40,8 @@ _MESG_FILE_ID, _MESG_SPORT, _MESG_SCREEN = 0, 12, 14
 _FILE_TYPE = 0
 _SPORT_NAME, _SPORT_COLOUR, _SPORT, _SUB_SPORT = 3, 10, 0, 1
 _PLACE, _STATE, _COUNT, _FIELDS, _VARIANT, _ORDER, _CODE, _HIDDEN = 254, 1, 3, 7, 8, 9, 10, 12
+# An Edge 1050 says a screen hidden on the device in its visibility (1 shown), field 12 staying 0.
+_VISIBILITY, HIDDEN_VISIBILITY = 11, 2
 SHOWN, OFF, UNUSED = 1, 0, 255
 # The codes of the screens of one's own are a counter from 0 (ten screens at most); from 20 on
 # they are built-in screens (a watch's clock with status icons is 21, its heart rate zone gauge
@@ -117,12 +119,14 @@ def _screen(values: dict) -> Screen | None:
     ids = ids if isinstance(ids, tuple) else (() if ids is None else (ids,))
     count = _int(values.get(_COUNT)) or 0
     hidden = values.get(_HIDDEN, "absent")
+    visibility = _int(values.get(_VISIBILITY))
     return Screen(
         place=_int(values.get(_PLACE)) if _int(values.get(_PLACE)) is not None else -1,
         code=code, state=state, order=_int(values.get(_ORDER)),
         fields=tuple(i if isinstance(i, int) else None for i in ids[:count]),
         variant=_int(values.get(_VARIANT)),
-        hidden=None if hidden == "absent" else hidden == 1)
+        hidden=(None if hidden == "absent" and visibility is None
+                else hidden == 1 or visibility == HIDDEN_VISIBILITY))
 
 
 def read_profile(data: bytes) -> Profile:

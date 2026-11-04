@@ -914,8 +914,9 @@ SPORT_SHAPES = {
 @dataclass(frozen=True)
 class ScreenRecord:
     """One record of message 14: its place (254), state (1 shown, 0 off, 255 unused), count of
-    fields (3), field IDs (7), variant (8), order (9), code (10: below 25 a screen of one's own,
-    else a built-in one) and, on an Edge, hidden (12)."""
+    fields (3), field IDs (7), variant (8), order (9), code (10: below 20 a screen of one's own,
+    else a built-in one) and, on an Edge, its visibility (11: 1 shown, 2 hidden) and hidden
+    (12)."""
 
     place: int
     code: int
@@ -924,6 +925,7 @@ class ScreenRecord:
     fields: tuple = ()
     variant: int | None = None
     hidden: int | None = 0
+    visibility: int | None = 1
 
 
 def sport_file(name="Run", sport=1, sub_sport=0, colour=(200, 40, 40, 255), screens=(),
@@ -958,7 +960,8 @@ def sport_file(name="Run", sport=1, sub_sport=0, colour=(200, 40, 40, 255), scre
                       r.code)
         else:
             values = ("", ids, (None,) * slots, r.place, r.state, len(r.fields),
-                      tuple(range(1, slots + 1)), r.variant, r.order, r.code, 1, r.hidden)
+                      tuple(range(1, slots + 1)), r.variant, r.order, r.code, r.visibility,
+                      r.hidden)
         msgs.append(FitData(3, values))
     return fit_file(*msgs, cut=cut, bad_crc=bad_crc)
 

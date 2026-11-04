@@ -2253,6 +2253,11 @@ def _profile_lines(f) -> list[str]:
     def fields(screen) -> str:
         return ", ".join(names.field_name(n, edge) for n in screen.fields)
 
+    def built_in(screen) -> str:
+        when = names.when_needed(screen, edge)
+        title = names.screen_title(p, screen)
+        return f"{title} ({when})" if when else title
+
     def own(screen) -> str:
         return " · ".join((names.screen_title(p, screen),
                            ngettext("{count} field", "{count} fields", len(screen.fields))
@@ -2264,16 +2269,19 @@ def _profile_lines(f) -> list[str]:
         if screen.own:
             lines.append(f"  {n}. {own(screen)}: {fields(screen) or '-'}")
         else:
-            lines.append(f"  {n}. {names.screen_title(p, screen)}")
+            lines.append(f"  {n}. {built_in(screen)}")
     if not p.carousel():
         lines.append("  " + _("none"))
     states = {True: _("on"), False: _("off")}
-    built_in = [s for s in p.built_in() if not (edge and s.code == 32)]
-    if built_in:
-        lines.append(_("Built-in screens:"))
-        for screen in built_in:
-            state = _("hidden") if screen.hidden else states[screen.shown]
-            lines.append(f"  {names.screen_title(p, screen)}: {state}")
+    every = [s for s in p.built_in() if not (edge and s.code == 32)]
+    needed = [s for s in every if names.when_needed(s, edge)]
+    for title, group in ((_("Built-in screens:"), [s for s in every if s not in needed]),
+                         (_("Built-in screens when needed:"), needed)):
+        if group:
+            lines.append(title)
+            for screen in group:
+                state = _("hidden") if screen.hidden else states[screen.shown]
+                lines.append(f"  {built_in(screen)}: {state}")
     off = [s for s in p.own_screens() if not s.shown]
     if off:
         lines.append(_("Screens turned off:"))
@@ -2316,9 +2324,9 @@ def cmd_profiles(args) -> int:
         shown = f.profile.carousel()
         own = sum(1 for s in shown if s.own)
         parts = [ngettext("{count} data screen", "{count} data screens", own).format(count=own)]
-        hidden = names.hidden_built_in(f.profile)
-        if len(shown) > own or hidden:
-            parts.append(names.built_in_count(len(shown) - own, hidden))
+        built_in = names.built_in_summary(f.profile)
+        if built_in:
+            parts.append(built_in)
         print(f"  {f.profile.name} · " + " · ".join(parts))
     for f in files:
         if f.profile is None:

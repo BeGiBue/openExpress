@@ -43,7 +43,8 @@ def test_the_list(profiles_root, capsys):
     before = tree(profiles_root)
     assert main(["--path", str(profiles_root), "profiles"]) == 0
     out = capsys.readouterr().out.splitlines()
-    assert out[:4] == ["3 profiles:", "  Road · 1 data screen · 1 built-in screen (1 hidden)",
+    assert out[:4] == ["3 profiles:",
+                       "  Road · 1 data screen · 1 built-in screen when needed (1 hidden)",
                        "  Run · 1 data screen · 1 built-in screen",
                        "  Trail Run · 1 data screen"]
     assert out[4].startswith("  Broken.fit: The file of this profile could not be read")
@@ -74,10 +75,11 @@ def test_an_edge_profile_s_screens(profiles_root, capsys):
         "Road",
         "Data screens, in the order the device scrolls through them:",
         "  1. Screen 1 · 2 fields · Layout B: Speed, Distance",
-        "  2. ClimbPro",
+        "  2. ClimbPro (on a climb)",
         "Built-in screens:",
         "  Compass: hidden",
-        "  ClimbPro: on",
+        "Built-in screens when needed:",
+        "  ClimbPro (on a climb): on",
     ]
 
 

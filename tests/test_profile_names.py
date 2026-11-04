@@ -136,6 +136,36 @@ def test_a_built_in_screen_by_its_code(edge, code, name):
     assert profile_names.built_in_known(screen(code), edge) is not name.startswith("Built-in")
 
 
+@pytest.mark.parametrize("edge, code, when", [
+    (True, 162, "during a group ride"), (True, 57, "during a group ride"),
+    (True, 38, "during a workout"), (True, 56, "on a segment"), (True, 104, "on a climb"),
+    (True, 125, "with an active power plan"), (True, 25, None), (True, 127, None),
+    (False, 38, None),  # a watch's: not known yet
+])
+def test_a_built_in_screen_shown_when_needed(edge, code, when):
+    """An Edge shows some built-in screens only in their situation (a group ride, a workout…)."""
+    assert profile_names.when_needed(screen(code), edge) == when
+
+
+@pytest.mark.parametrize("always, needed, hidden, said", [
+    (3, 6, 1, "3 built-in screens (+6 when needed, 1 hidden)"),
+    (3, 0, 0, "3 built-in screens"),
+    (0, 1, 1, "1 built-in screen when needed (1 hidden)"),
+    (2, 0, 2, "2 built-in screens (2 hidden)"),
+])
+def test_how_many_built_in_screens(always, needed, hidden, said):
+    assert profile_names.built_in_count(always, needed, hidden) == said
+
+
+def test_how_many_built_in_screens_in_polish():
+    try:
+        i18n.setup("pl")
+        said = profile_names.built_in_count(3, 6, 1), profile_names.when_needed(screen(38), True)
+    finally:
+        i18n.setup("en")
+    assert said == ("3 ekrany wbudowane (+6 w\u00a0razie potrzeby, 1 ukryty)", "podczas treningu")
+
+
 def test_a_watch_s_built_in_screens_in_polish():
     try:
         i18n.setup("pl")
