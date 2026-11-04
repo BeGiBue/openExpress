@@ -196,4 +196,4 @@ def test_in_polish():
         i18n.setup("en")
     assert said == ["Dostępna wersja 23.40", "Dostępna aktualizacja: Test Font 23.40",
                     "Dostępne są 2 aktualizacje", "Dostępnych jest 5 aktualizacji"]
-    assert words == ("Aktualizacja dostępna", "Oprogramowanie 23.39", "Aktualizacja dostępna")
+    assert words == ("Dostępna aktualizacja", "Wersja oprogramowania 23.39", "Dostępna aktualizacja")

@@ -115,8 +115,8 @@ def test_the_chips_in_polish():
     i18n.setup("pl")
     try:
         assert _words(_tile(update_found=NOW, kind="ums")) == [
-            ("Aktualizacja dostępna", "warning"), ("Dysk USB", "dimmed")]
-        assert _words(_tile(primary=True)) == [("Główne", "dimmed")]
+            ("Dostępna aktualizacja", "warning"), ("Dysk USB", "dimmed")]
+        assert _words(_tile(primary=True)) == [("Podstawowe", "dimmed")]
         assert _words(_tile(on_account=False)) == [("Poza kontem", "dimmed")]
     finally:
         i18n.setup("en")

@@ -117,8 +117,8 @@ def test_the_chips_in_polish(count, words):
         ((chip, _style, tooltip),) = _said(_tile(to_sync=count, synced_at=NOW))
         assert chip == "Do synchronizacji"
         assert tooltip.startswith(words + " od ")
-        assert _words(_tile(never_synced=True)) == [("Nie synchronizowano", "dimmed")]
-        assert _words(_tile(primary=True)) == [("Główne", "dimmed")]
+        assert _words(_tile(never_synced=True)) == [("Nie zsynchronizowano", "dimmed")]
+        assert _words(_tile(primary=True)) == [("Podstawowe", "dimmed")]
         assert _words(_tile(to_sync=0, synced_at=NOW)) == [("Zsynchronizowane", "dimmed")]
     finally:
         i18n.setup("en")

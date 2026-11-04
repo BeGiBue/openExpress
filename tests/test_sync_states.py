@@ -151,7 +151,7 @@ def test_never_synced_in_polish():
         record = no_sync_record()
     finally:
         i18n.setup("en")
-    assert (chip, tooltip) == ("Nie synchronizowano",
+    assert (chip, tooltip) == ("Nie zsynchronizowano",
                                "Ta instalacja openExpress nie synchronizowała tego urządzenia")
     assert record == ("Brak zapisu ostatniej synchronizacji; następna wyśle tylko nowe dane")
 

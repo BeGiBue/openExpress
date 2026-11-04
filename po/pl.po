@@ -308,7 +308,7 @@ msgstr "widżet"
 
 #: openexpress/ciq.py:49
 msgid "watch face"
-msgstr "tarcza"
+msgstr "tarcza zegarka"
 
 #: openexpress/ciq.py:50
 msgid "data field"
@@ -511,7 +511,7 @@ msgstr "lokalizacja GPS"
 
 #: openexpress/ciq.py:585
 msgid "push notifications"
-msgstr "powiadomienia push"
+msgstr "powiadomienia typu push"
 
 #: openexpress/ciq.py:586
 msgid "sensors (heart rate, ANT+ sensors, compass)"
@@ -1562,7 +1562,7 @@ msgstr "Urządzenia, które widziała ta instalacja:"
 #: openexpress/gui/start_window.py:222 openexpress/gui/words.py:190
 #, python-brace-format
 msgid "Software {version}"
-msgstr "Oprogramowanie {version}"
+msgstr "Wersja oprogramowania {version}"
 
 #: openexpress/cli.py:864 openexpress/gui/words.py:212
 #: openexpress/gui/words.py:218
@@ -3440,7 +3440,7 @@ msgstr "dodaj je: zmienia konto Garmin"
 
 #: openexpress/cli.py:2825
 msgid "Connect IQ apps, watch faces and data fields"
-msgstr "aplikacje Connect IQ, tarcze i pola danych"
+msgstr "aplikacje Connect IQ, tarcze zegarka i pola danych"
 
 #: openexpress/cli.py:2826
 msgid "also list built-in activities"
@@ -4525,7 +4525,7 @@ msgstr "Aktualizacje"
 
 #: openexpress/gui/app.py:85 openexpress/gui/updates_page.py:218
 msgid "Checking for updates…"
-msgstr "Wyszukiwanie aktualizacji…"
+msgstr "Sprawdzanie aktualizacji…"
 
 #. TRANSLATORS: tab title
 #: openexpress/gui/app.py:87 openexpress/gui/device_page.py:987
@@ -5412,11 +5412,11 @@ msgstr[2] "Skopiowano {count} plików do {path}"
 
 #: openexpress/gui/device_page.py:1458 openexpress/watch.py:174
 msgid "Sync finished"
-msgstr "Ukończono synchronizację"
+msgstr "Synchronizacja zakończona"
 
 #: openexpress/gui/device_page.py:1459
 msgid "Sync finished with errors"
-msgstr "Ukończono synchronizację z błędami"
+msgstr "Synchronizacja zakończona z błędami"
 
 #: openexpress/gui/device_page.py:1486
 msgid "Syncing…"
@@ -6343,7 +6343,7 @@ msgstr "Tomasz Bojanowski"
 #. the check found it), and under the software version on the device page
 #: openexpress/gui/start.py:335
 msgid "Update available"
-msgstr "Aktualizacja dostępna"
+msgstr "Dostępna aktualizacja"
 
 #. TRANSLATORS: a chip under the software version on the device page: an update is copied
 #. to the device, which installs it once disconnected
@@ -6405,7 +6405,7 @@ msgstr "Dysk USB"
 #. tooltip says what it is)
 #: openexpress/gui/start.py:390
 msgid "Primary"
-msgstr "Główne"
+msgstr "Podstawowe"
 
 #. TRANSLATORS: a chip on the tile of a device that is not on the Garmin account
 #: openexpress/gui/start.py:393
@@ -6761,7 +6761,7 @@ msgstr "Nie sprawdzano od {when}"
 #: openexpress/gui/words.py:127
 msgctxt "chip"
 msgid "Never synced"
-msgstr "Nie synchronizowano"
+msgstr "Nie zsynchronizowano"
 
 #: openexpress/gui/words.py:133
 msgid "Never synced by this installation of openExpress"
@@ -6790,7 +6790,7 @@ msgstr ""
 #: openexpress/gui/words.py:189
 #, python-brace-format
 msgid "Software {version} (Garmin Connect)"
-msgstr "Oprogramowanie {version} (Garmin Connect)"
+msgstr "Wersja oprogramowania {version} (Garmin Connect)"
 
 #. TRANSLATORS: the free space of the device while it is read
 #: openexpress/gui/words.py:199
@@ -7754,7 +7754,7 @@ msgstr "Problem z serwerem Garmina"
 
 #: openexpress/netstatus.py:198
 msgid "Sign-in expired"
-msgstr "Logowanie wygasło"
+msgstr "Sesja wygasła"
 
 #: openexpress/netstatus.py:198
 msgid "Computer clock is off"
@@ -9326,7 +9326,7 @@ msgstr "harmonogramy"
 
 #: openexpress/service.py:911
 msgid "weight"
-msgstr "waga"
+msgstr "waga ciała"
 
 #: openexpress/service.py:912
 msgid "goals"
@@ -9358,7 +9358,7 @@ msgstr "lista segmentów"
 
 #: openexpress/service.py:919
 msgid "golf scorecards"
-msgstr "karty wyników golfa"
+msgstr "golfowe karty wyników"
 
 #: openexpress/service.py:920
 msgid "settings change log"
@@ -9386,7 +9386,7 @@ msgstr "status HRV"
 
 #: openexpress/service.py:929
 msgid "training status data"
-msgstr "dane o wytrenowaniu"
+msgstr "dane stanu wytrenowania"
 
 #: openexpress/service.py:930
 msgid "skin temperature"
@@ -9406,7 +9406,7 @@ msgstr "zaburzenia snu"
 
 #: openexpress/service.py:936
 msgid "gear tracking"
-msgstr "śledzenie sprzętu"
+msgstr "sprzęt"
 
 #: openexpress/service.py:937
 msgid "multi-day activities"
@@ -10020,4 +10020,4 @@ msgstr "Garmin: to urządzenie nie zostało zsynchronizowane"
 
 #: openexpress/watch.py:189
 msgid "Sync failed"
-msgstr "Synchronizacja się nie powiodła"
+msgstr "Synchronizacja nieudana"

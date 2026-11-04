@@ -399,7 +399,7 @@ def test_names_for_the_training_status_primary_device_and_coach_files():
         (line,) = step_words([step])
     finally:
         i18n.setup("en")
-    assert line == ("Pliki z\u00a0urządzenia: dziennik zmian ustawień, dane o\u00a0wytrenowaniu, dane "
+    assert line == ("Pliki z\u00a0urządzenia: dziennik zmian ustawień, dane stanu wytrenowania, dane "
                     "urządzenia głównego, plan Garmin Coach ×2, inne dane (FIT_TYPE_70)")
 
 

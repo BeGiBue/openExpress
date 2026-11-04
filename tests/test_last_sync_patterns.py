@@ -47,7 +47,7 @@ EXPECTED = {
             ("2 files were already in Garmin Connect", False)]),
         "pl": ("8 nowych plików, 6 wysłanych", [
             ((f"Pliki z{NB}urządzenia: aktywności, monitorowanie, lista segmentów, dziennik "
-             f"zmian ustawień, dziennik urządzenia, dane o{NB}wytrenowaniu, dane urządzenia "
+             f"zmian ustawień, dziennik urządzenia, dane stanu wytrenowania, dane urządzenia "
              "głównego, plan Garmin Coach"), False),
             (f"2 pliki były już w{NB}Garmin Connect", False)])},
     # Written by the version from source in Polish, in words (with full stops): shown as it

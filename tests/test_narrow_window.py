@@ -887,7 +887,7 @@ def test_a_list_with_the_longest_chips_fits_the_narrowest_window(narrow_window, 
 # The longest pair of chips in either language: 271 px on one line in one measurement,
 # 309 px in GNOME's font; more than a tile has at 700 and 1000 px. Its update is one copied
 # ("Unplug to install"), not one found.
-LONGEST_PAIR = ("Odłącz, aby zainstalować", "Nie synchronizowano")
+LONGEST_PAIR = ("Odłącz, aby zainstalować", "Nie zsynchronizowano")
 
 
 def _tiles_per_line(page) -> int:
@@ -938,7 +938,7 @@ def test_chips_never_change_how_many_tiles_share_a_line(narrow_window, monkeypat
     for chips in ({}, {"update_ready": time.time(), "never_synced": True}):
         entries = [(Tile(name, "006-B4532-00", "23.39", "mtp", True, True, False, None,
                          "006-B4532-00", None, None, account_known=True, **chips),
-                    "Oprogramowanie 23.39")
+                    "Wersja oprogramowania 23.39")
                    for name in ("fēnix 8 - 47mm, Solar", "Edge 1050", "Venu 2")]
         win.start.show(entries, False)
         _iterate(0.5)

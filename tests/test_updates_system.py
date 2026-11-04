@@ -871,7 +871,7 @@ def test_the_status_in_polish():
     finally:
         i18n.setup("en")
     assert [t for t, _c in current["texts"]] == ["Oprogramowanie jest aktualne",
-                                                 "Oprogramowanie 23.39"]
+                                                 "Wersja oprogramowania 23.39"]
     assert current["buttons"] == [("Sprawdź ponownie", False)]
     assert [t for t, _c in system["texts"]] == [
         "Dostępne są 2 aktualizacje", f"{VERSIONS}\u00a0· 12\u00a0B",
@@ -1523,7 +1523,7 @@ def test_ready_in_polish():
     assert status["buttons"] == [("Sprawdź ponownie", False)]
     assert win.update_row.get_subtitle() == (
         "Aktualizacja gotowa: odłącz urządzenie, aby ją zainstalować")
-    assert win.software_label.get_label() == "Oprogramowanie 23.39"
+    assert win.software_label.get_label() == "Wersja oprogramowania 23.39"
 
 
 # --- the progress bar moves while downloading ------------------------------------------------

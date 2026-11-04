@@ -224,7 +224,7 @@ QUEUE_TYPES = [
     ("FIT_TYPE_11", "goals", "cele"),
     ("FIT_TYPE_29", "personal records", "rekordy osobiste"),  # as Garmin Connect
     ("FIT_TYPE_34", "segments", "segmenty"),
-    ("FIT_TYPE_87", "gear tracking", "śledzenie sprzętu"),
+    ("FIT_TYPE_87", "gear tracking", "sprzęt"),
 ]
 
 
