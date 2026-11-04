@@ -41,6 +41,27 @@ def test_the_names_in_polish():
         i18n.setup("en")
 
 
+# The fields of an Edge that show two values in one place.
+COMPOSITE_FIELDS = [
+    (351, "Heart Rate (Avg/Max)", "Tętno (średnie/maks.)"),
+    (352, "Speed (Avg/Max)", "Prędkość (średnia/maks.)"),
+    (353, "Cadence (Avg/Max)", "Kadencja (średnia/maks.)"),
+    (354, "Power (Avg/Max)", "Moc (średnia/maks.)"),
+    (358, "Elevation (Asc/Desc)", "Wznios/spadek"),
+]
+
+
+@pytest.mark.parametrize("number, english, polish", COMPOSITE_FIELDS)
+def test_a_field_with_two_values_has_its_name(number, english, polish):
+    assert profile_names.known_field(number)
+    assert profile_names.field_name(number) == english
+    try:
+        i18n.setup("pl")
+        assert profile_names.field_name(number) == polish
+    finally:
+        i18n.setup("en")
+
+
 def test_every_name_is_translated_and_each_number_named_once():
     tree = ast.parse((ROOT / "openexpress" / "profile_names.py").read_text())
     (table,) = [n for n in ast.walk(tree) if isinstance(n, ast.FunctionDef)

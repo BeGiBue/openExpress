@@ -6,7 +6,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: openexpress\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-11-04 22:09+0100\n"
+"POT-Creation-Date: 2026-11-04 22:44+0100\n"
 "PO-Revision-Date: 2026-10-11 02:36+0200\n"
 "Last-Translator: Tomasz Bojanowski\n"
 "Language-Team: none\n"
@@ -8644,440 +8644,465 @@ msgctxt "data field"
 msgid "3s Power Bar"
 msgstr "Pasek mocy z 3 s"
 
-#: openexpress/profile_names.py:189
+#: openexpress/profile_names.py:190
+msgctxt "data field"
+msgid "Heart Rate (Avg/Max)"
+msgstr "Tętno (średnie/maks.)"
+
+#: openexpress/profile_names.py:191
+msgctxt "data field"
+msgid "Speed (Avg/Max)"
+msgstr "Prędkość (średnia/maks.)"
+
+#: openexpress/profile_names.py:192
+msgctxt "data field"
+msgid "Cadence (Avg/Max)"
+msgstr "Kadencja (średnia/maks.)"
+
+#: openexpress/profile_names.py:193
+msgctxt "data field"
+msgid "Power (Avg/Max)"
+msgstr "Moc (średnia/maks.)"
+
+#: openexpress/profile_names.py:194
+msgctxt "data field"
+msgid "Elevation (Asc/Desc)"
+msgstr "Wznios/spadek"
+
+#: openexpress/profile_names.py:195
 msgctxt "data field"
 msgid "Elevation Graph"
 msgstr "Wykres wysokości"
 
-#: openexpress/profile_names.py:190
+#: openexpress/profile_names.py:196
 msgctxt "data field"
 msgid "SOG"
 msgstr "PND"
 
-#: openexpress/profile_names.py:191
+#: openexpress/profile_names.py:197
 msgctxt "data field"
 msgid "Battery Hours"
 msgstr "Godziny pracy baterii"
 
-#: openexpress/profile_names.py:192
+#: openexpress/profile_names.py:198
 msgctxt "data field"
 msgid "Di2 Battery Level"
 msgstr "Poziom baterii Di2"
 
-#: openexpress/profile_names.py:193
+#: openexpress/profile_names.py:199
 msgctxt "data field"
 msgid "Gear Combo"
 msgstr "Kombinacja biegów"
 
-#: openexpress/profile_names.py:194
+#: openexpress/profile_names.py:200
 msgctxt "data field"
 msgid "Di2 Shift Mode"
 msgstr "Tryb zmiany biegów Di2"
 
-#: openexpress/profile_names.py:195
+#: openexpress/profile_names.py:201
 msgctxt "data field"
 msgid "Anaerobic Training Effect"
 msgstr "Efekt treningu beztlenowego"
 
-#: openexpress/profile_names.py:196
+#: openexpress/profile_names.py:202
 msgctxt "data field"
 msgid "Avg Watts/kg"
 msgstr "Średnia W/kg"
 
-#: openexpress/profile_names.py:197
+#: openexpress/profile_names.py:203
 msgctxt "data field"
 msgid "Lap Watts/kg"
 msgstr "W/kg okrążenia"
 
-#: openexpress/profile_names.py:198
+#: openexpress/profile_names.py:204
 msgctxt "data field"
 msgid "3s Watts/kg"
 msgstr "W/kg z 3 s"
 
-#: openexpress/profile_names.py:199
+#: openexpress/profile_names.py:205
 msgctxt "data field"
 msgid "10s Watts/kg"
 msgstr "W/kg z 10 s"
 
-#: openexpress/profile_names.py:200
+#: openexpress/profile_names.py:206
 msgctxt "data field"
 msgid "30s Watts/kg"
 msgstr "W/kg z 30 s"
 
-#: openexpress/profile_names.py:201
+#: openexpress/profile_names.py:207
 msgctxt "data field"
 msgid "Lap VAM"
 msgstr "VAM okrążenia"
 
-#: openexpress/profile_names.py:202
+#: openexpress/profile_names.py:208
 msgctxt "data field"
 msgid "Avg VAM"
 msgstr "Średni VAM"
 
-#: openexpress/profile_names.py:203
+#: openexpress/profile_names.py:209
 msgctxt "data field"
 msgid "Ascent Remaining"
 msgstr "Pozostały wznios"
 
-#: openexpress/profile_names.py:204
+#: openexpress/profile_names.py:210
 msgctxt "data field"
 msgid "Asc. to Next Course Pt."
 msgstr "Wznios do następnego punktu kursu"
 
-#: openexpress/profile_names.py:205
+#: openexpress/profile_names.py:211
 msgctxt "data field"
 msgid "Respiration Rate"
 msgstr "Częstotliwość oddechu"
 
-#: openexpress/profile_names.py:206
+#: openexpress/profile_names.py:212
 msgctxt "data field"
 msgid "Load"
 msgstr "Obciążenie"
 
-#: openexpress/profile_names.py:207
+#: openexpress/profile_names.py:213
 msgctxt "data field"
 msgid "Grit"
 msgstr "Trudność"
 
-#: openexpress/profile_names.py:208
+#: openexpress/profile_names.py:214
 msgctxt "data field"
 msgid "Lap Grit"
 msgstr "Trudność okrążenia"
 
-#: openexpress/profile_names.py:209
+#: openexpress/profile_names.py:215
 msgctxt "data field"
 msgid "Flow"
 msgstr "Płynność"
 
-#: openexpress/profile_names.py:210
+#: openexpress/profile_names.py:216
 msgctxt "data field"
 msgid "Lap Flow"
 msgstr "Płynność okrążenia"
 
-#: openexpress/profile_names.py:211
+#: openexpress/profile_names.py:217
 msgctxt "data field"
 msgid "Assist Mode"
 msgstr "Tryb wspomagania"
 
-#: openexpress/profile_names.py:212
+#: openexpress/profile_names.py:218
 msgctxt "data field"
 msgid "Shifting Advice"
 msgstr "Sugestie zmiany biegów"
 
-#: openexpress/profile_names.py:213
+#: openexpress/profile_names.py:219
 msgctxt "data field"
 msgid "eBike Battery"
 msgstr "Bateria e-roweru"
 
-#: openexpress/profile_names.py:214
+#: openexpress/profile_names.py:220
 msgctxt "data field"
 msgid "Travel Range"
 msgstr "Zasięg podróży"
 
-#: openexpress/profile_names.py:215
+#: openexpress/profile_names.py:221
 msgctxt "data field"
 msgid "60s Grit"
 msgstr "Trudność z 60 s"
 
-#: openexpress/profile_names.py:216
+#: openexpress/profile_names.py:222
 msgctxt "data field"
 msgid "60s Flow"
 msgstr "Płynność z 60 s"
 
-#: openexpress/profile_names.py:217
+#: openexpress/profile_names.py:223
 msgctxt "data field"
 msgid "Workout Comparison"
 msgstr "Porównanie treningów"
 
-#: openexpress/profile_names.py:218
+#: openexpress/profile_names.py:224
 msgctxt "data field"
 msgid "Primary Target"
 msgstr "Cel główny"
 
-#: openexpress/profile_names.py:219
+#: openexpress/profile_names.py:225
 msgctxt "data field"
 msgid "Target"
 msgstr "Cel"
 
-#: openexpress/profile_names.py:220
+#: openexpress/profile_names.py:226
 msgctxt "data field"
 msgid "Duration"
 msgstr "Czas trwania"
 
-#: openexpress/profile_names.py:221
+#: openexpress/profile_names.py:227
 msgctxt "data field"
 msgid "Step Time"
 msgstr "Czas etapu"
 
-#: openexpress/profile_names.py:222
+#: openexpress/profile_names.py:228
 msgctxt "data field"
 msgid "Compass"
 msgstr "Kompas"
 
-#: openexpress/profile_names.py:223
+#: openexpress/profile_names.py:229
 msgctxt "data field"
 msgid "Secondary Target"
 msgstr "Cel dodatkowy"
 
-#: openexpress/profile_names.py:224
+#: openexpress/profile_names.py:230
 msgctxt "data field"
 msgid "Smart Travel Range"
 msgstr "Int. zasięg podróży"
 
-#: openexpress/profile_names.py:225
+#: openexpress/profile_names.py:231
 msgctxt "data field"
 msgid "Potential"
 msgstr "Potencjalna stamina"
 
-#: openexpress/profile_names.py:226
+#: openexpress/profile_names.py:232
 msgctxt "data field"
 msgid "Stamina"
 msgstr "Stamina"
 
-#: openexpress/profile_names.py:227
+#: openexpress/profile_names.py:233
 msgctxt "data field"
 msgid "Estimated Distance"
 msgstr "Szacowany dystans"
 
-#: openexpress/profile_names.py:228
+#: openexpress/profile_names.py:234
 msgctxt "data field"
 msgid "Estimated Time"
 msgstr "Szacowany czas"
 
-#: openexpress/profile_names.py:229
+#: openexpress/profile_names.py:235
 msgctxt "data field"
 msgid "Dist. to Point"
 msgstr "Dystans do punktu"
 
-#: openexpress/profile_names.py:230
+#: openexpress/profile_names.py:236
 msgctxt "data field"
 msgid "Time to Point"
 msgstr "Czas do punktu"
 
-#: openexpress/profile_names.py:231
+#: openexpress/profile_names.py:237
 msgctxt "data field"
 msgid "Segment Time"
 msgstr "Czas segmentu"
 
-#: openexpress/profile_names.py:232
+#: openexpress/profile_names.py:238
 msgctxt "data field"
 msgid "Map"
 msgstr "Mapa"
 
-#: openexpress/profile_names.py:233
+#: openexpress/profile_names.py:239
 msgctxt "data field"
 msgid "Vertical Descent Speed"
 msgstr "VDM"
 
-#: openexpress/profile_names.py:234
+#: openexpress/profile_names.py:240
 msgctxt "data field"
 msgid "30s Vertical Descent Speed"
 msgstr "VDM z 30 s"
 
-#: openexpress/profile_names.py:235
+#: openexpress/profile_names.py:241
 msgctxt "data field"
 msgid "Lap Vertical Descent Speed"
 msgstr "VDM okrążenia"
 
-#: openexpress/profile_names.py:236
+#: openexpress/profile_names.py:242
 msgctxt "data field"
 msgid "Avg Force"
 msgstr "Śr. siła"
 
-#: openexpress/profile_names.py:237
+#: openexpress/profile_names.py:243
 msgctxt "data field"
 msgid "Lap Force"
 msgstr "Siła okrążenia"
 
-#: openexpress/profile_names.py:238
+#: openexpress/profile_names.py:244
 msgctxt "data field"
 msgid "Max. Force"
 msgstr "Maks. siła"
 
-#: openexpress/profile_names.py:239
+#: openexpress/profile_names.py:245
 msgctxt "data field"
 msgid "Max. Lap Force"
 msgstr "Maks. siła okrążenia"
 
-#: openexpress/profile_names.py:240
+#: openexpress/profile_names.py:246
 msgctxt "data field"
 msgid "3s Force"
 msgstr "Siła z 3 s"
 
-#: openexpress/profile_names.py:241
+#: openexpress/profile_names.py:247
 msgctxt "data field"
 msgid "10s Force"
 msgstr "Siła z 10 s"
 
-#: openexpress/profile_names.py:242
+#: openexpress/profile_names.py:248
 msgctxt "data field"
 msgid "30s Force"
 msgstr "Siła z 30 s"
 
-#: openexpress/profile_names.py:243
+#: openexpress/profile_names.py:249
 msgctxt "data field"
 msgid "Last Lap Force"
 msgstr "Siła ostatniego okrążenia"
 
-#: openexpress/profile_names.py:244
+#: openexpress/profile_names.py:250
 msgctxt "data field"
 msgid "Normalized Force"
 msgstr "Siła znormalizowana"
 
-#: openexpress/profile_names.py:245
+#: openexpress/profile_names.py:251
 msgctxt "data field"
 msgid "Lap Norm. Force"
 msgstr "Siła znorm. okrąż."
 
-#: openexpress/profile_names.py:246
+#: openexpress/profile_names.py:252
 msgctxt "data field"
 msgid "Last Lap Norm. Force"
 msgstr "Siła znorm. ost. okrąż."
 
-#: openexpress/profile_names.py:247
+#: openexpress/profile_names.py:253
 msgctxt "data field"
 msgid "Force"
 msgstr "Siła"
 
 #. TRANSLATORS: a place of a data screen with no data field in it
-#: openexpress/profile_names.py:261
+#: openexpress/profile_names.py:267
 msgid "Empty field"
 msgstr "Puste pole"
 
-#: openexpress/profile_names.py:263
+#: openexpress/profile_names.py:269
 msgid "Connect IQ data field"
 msgstr "Pole danych Connect IQ"
 
-#: openexpress/profile_names.py:268
+#: openexpress/profile_names.py:274
 #, python-brace-format
 msgid "Time in Heart Rate Zone {zone}"
 msgstr "Czas w strefie tętna {zone}"
 
-#: openexpress/profile_names.py:269
+#: openexpress/profile_names.py:275
 #, python-brace-format
 msgid "Time in Power Zone {zone}"
 msgstr "Czas w strefie mocy {zone}"
 
 #. TRANSLATORS: a data field openExpress has no name for, by its number in the profile file
-#: openexpress/profile_names.py:274
+#: openexpress/profile_names.py:280
 #, python-brace-format
 msgid "Field {number}"
 msgstr "Pole {number}"
 
 #. TRANSLATORS: a data screen of one's own, by its order on the device
-#: openexpress/profile_names.py:292
+#: openexpress/profile_names.py:298
 #, python-brace-format
 msgid "Screen {number}"
 msgstr "Ekran {number}"
 
-#: openexpress/profile_names.py:311
+#: openexpress/profile_names.py:317
 msgctxt "built-in screen"
 msgid "Map"
 msgstr "Mapa"
 
-#: openexpress/profile_names.py:312
+#: openexpress/profile_names.py:318
 msgctxt "built-in screen"
 msgid "Virtual Partner"
 msgstr "Virtual Partner"
 
-#: openexpress/profile_names.py:313
+#: openexpress/profile_names.py:319
 msgctxt "built-in screen"
 msgid "Music Controls"
 msgstr "Sterowanie muzyką"
 
-#: openexpress/profile_names.py:314
+#: openexpress/profile_names.py:320
 msgctxt "built-in screen"
 msgid "Compass"
 msgstr "Kompas"
 
-#: openexpress/profile_names.py:315
+#: openexpress/profile_names.py:321
 msgctxt "built-in screen"
 msgid "Workout"
 msgstr "Trening"
 
-#: openexpress/profile_names.py:316
+#: openexpress/profile_names.py:322
 msgctxt "built-in screen"
 msgid "Elevation"
 msgstr "Wysokość"
 
-#: openexpress/profile_names.py:317
+#: openexpress/profile_names.py:323
 msgctxt "built-in screen"
 msgid "Segment"
 msgstr "Segment"
 
-#: openexpress/profile_names.py:318
+#: openexpress/profile_names.py:324
 msgctxt "built-in screen"
 msgid "GroupTrack"
 msgstr "GroupTrack"
 
-#: openexpress/profile_names.py:319
+#: openexpress/profile_names.py:325
 msgctxt "built-in screen"
 msgid "eBike"
 msgstr "e-Bike"
 
-#: openexpress/profile_names.py:320
+#: openexpress/profile_names.py:326
 msgctxt "built-in screen"
 msgid "Cycling Dynamics"
 msgstr "Dynamika jazdy"
 
-#: openexpress/profile_names.py:321
+#: openexpress/profile_names.py:327
 msgctxt "built-in screen"
 msgid "Lap Summary"
 msgstr "Podsumowanie okrążenia"
 
-#: openexpress/profile_names.py:322
+#: openexpress/profile_names.py:328
 msgctxt "built-in screen"
 msgid "Shimano STEPS"
 msgstr "Shimano STEPS"
 
-#: openexpress/profile_names.py:323
+#: openexpress/profile_names.py:329
 msgctxt "built-in screen"
 msgid "ClimbPro"
 msgstr "ClimbPro"
 
-#: openexpress/profile_names.py:324
+#: openexpress/profile_names.py:330
 msgctxt "built-in screen"
 msgid "Power Guide"
 msgstr "Przewodnik mocy"
 
-#: openexpress/profile_names.py:325
+#: openexpress/profile_names.py:331
 msgctxt "built-in screen"
 msgid "Stamina"
 msgstr "Stamina"
 
-#: openexpress/profile_names.py:326
+#: openexpress/profile_names.py:332
 msgctxt "built-in screen"
 msgid "Solar"
 msgstr "Energia słoneczna"
 
-#: openexpress/profile_names.py:327
+#: openexpress/profile_names.py:333
 msgctxt "built-in screen"
 msgid "GroupRide"
 msgstr "GroupRide"
 
-#: openexpress/profile_names.py:328
+#: openexpress/profile_names.py:334
 msgctxt "built-in screen"
 msgid "Radar"
 msgstr "Radar"
 
 #. TRANSLATORS: a built-in screen openExpress has no name for, by its code in the profile
-#: openexpress/profile_names.py:344
+#: openexpress/profile_names.py:350
 #, python-brace-format
 msgid "Built-in screen {code}"
 msgstr "Ekran wbudowany {code}"
 
-#: openexpress/profile_names.py:359
+#: openexpress/profile_names.py:365
 msgid "Layout not given"
 msgstr "Układ niepodany"
 
 #. TRANSLATORS: the layout of a data screen by the letter of the device's menu
-#: openexpress/profile_names.py:362
+#: openexpress/profile_names.py:368
 #, python-brace-format
 msgid "Layout {letter}"
 msgstr "Układ {letter}"
 
 #. TRANSLATORS: a layout openExpress has no name for, by its code in the profile
-#: openexpress/profile_names.py:364
+#: openexpress/profile_names.py:370
 #, python-brace-format
 msgid "Layout code {code}, unknown"
 msgstr "Kod układu {code}, nieznany"

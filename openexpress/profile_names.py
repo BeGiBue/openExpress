@@ -186,6 +186,12 @@ def _field_names() -> dict[int, str]:
         348: pgettext("data field", "Speed Bars"),
         349: pgettext("data field", "Cadence Bars"),
         350: pgettext("data field", "3s Power Bar"),
+        # Two values in one place, named as the table names them
+        351: pgettext("data field", "Heart Rate (Avg/Max)"),
+        352: pgettext("data field", "Speed (Avg/Max)"),
+        353: pgettext("data field", "Cadence (Avg/Max)"),
+        354: pgettext("data field", "Power (Avg/Max)"),
+        358: pgettext("data field", "Elevation (Asc/Desc)"),
         368: pgettext("data field", "Elevation Graph"),
         371: pgettext("data field", "SOG"),
         395: pgettext("data field", "Battery Hours"),
