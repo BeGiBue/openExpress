@@ -140,7 +140,8 @@ class MainWindow(TaskRunner, DeviceDetection, StartWindow, DevicePage, MapsPage,
         self._update_record_at: float | None = None  # the time of the record shown
         self._update_check_session = None
         # None = unknown, "none" (no maps for the device), "empty" (none installed),
-        # "current", "available", "unsupported" (map updates not supported for it), "failed"
+        # "current", "available", "unsupported" (map updates not supported for it), "nomaps"
+        # (the device has no maps), "failed"
         self.map_state: str | None = None
         self.map_update_count = 0
         self._map_check_session = None

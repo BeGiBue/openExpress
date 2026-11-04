@@ -2,7 +2,8 @@
 universal one, which is the only one asked, serves a device filed as Universal, or as
 UniversalDetect while it declares the data type PreProgrammedNamedMaps. A device served
 another way (Gemini, LegacyRmu, Unknown, none given) gets "not supported yet" and no map
-check. All data here is made up."""
+check, unless it declares no data type of maps in its GarminDevice.xml: then it has none (a
+Venu 2, a Varia). All data here is made up."""
 import logging
 from datetime import timedelta
 from pathlib import Path
@@ -16,6 +17,7 @@ from openexpress.device.xmldevice import parse
 PPNM = "PreProgrammedNamedMaps"
 UNIT, PART = 3000000061, "006-B9999-00"
 REFUSAL = "Map updates for this device aren't supported yet."
+NO_MAPS = "This device has no maps."
 
 
 def device(*datatypes):
@@ -57,32 +59,41 @@ def _route_lines(caplog):
             if r.getMessage().startswith("maps: map update type")]
 
 
-@pytest.mark.parametrize("info, datatypes, universal", [
-    ({"mapupdatetype": "Universal"}, (), True),
-    ({"mapupdatetype": "Universal"}, (PPNM,), True),
-    ({"mapupdatetype": "UniversalDetect"}, (PPNM,), True),   # the fēnix 8 and the Edge 1050
-    ({"mapupdatetype": "UniversalDetect"}, (), False),
-    ({"mapupdatetype": "UniversalDetect"}, ("FIT_TYPE_4",), False),
-    ({"mapupdatetype": "Gemini"}, (PPNM,), False),
-    ({"mapupdatetype": "LegacyRmu"}, (PPNM,), False),
-    ({"mapupdatetype": "Unknown"}, (PPNM,), False),
-    ({}, (PPNM,), False),                                     # no field
-    ({"mapupdatetype": None}, (PPNM,), False),
-    ({"mapupdatetype": ""}, (PPNM,), False),
+@pytest.mark.parametrize("info, datatypes, outcome", [
+    ({"mapupdatetype": "Universal"}, (), "universal"),
+    ({"mapupdatetype": "Universal"}, (PPNM,), "universal"),
+    ({"mapupdatetype": "UniversalDetect"}, (PPNM,), "universal"),  # the fēnix 8, the Edge 1050
+    ({"mapupdatetype": "UniversalDetect"}, (), "none"),            # a Varia
+    ({"mapupdatetype": "UniversalDetect"}, ("FIT_TYPE_4",), "none"),  # a Venu 2
+    ({"mapupdatetype": "UniversalDetect"}, ("NMaps",), "unsupported"),
+    ({"mapupdatetype": "UniversalDetect"}, ("Maps",), "unsupported"),
+    ({"mapupdatetype": "UniversalDetect"}, ("SupplementalMapsTopo",), "unsupported"),
+    ({"mapupdatetype": "Gemini"}, ("ManifestGmf",), "unsupported"),  # a zūmo
+    ({"mapupdatetype": "Gemini"}, ("CustomPOI",), "none"),  # points of interest are no maps
+    ({"mapupdatetype": "Gemini"}, (PPNM,), "unsupported"),
+    ({"mapupdatetype": "LegacyRmu"}, (PPNM,), "unsupported"),
+    ({"mapupdatetype": "Unknown"}, (PPNM,), "unsupported"),
+    ({}, (PPNM,), "unsupported"),                                  # no field
+    ({}, (), "none"),
+    ({"mapupdatetype": None}, (PPNM,), "unsupported"),
+    ({"mapupdatetype": ""}, (PPNM,), "unsupported"),
 ])
 def test_only_a_device_the_universal_service_serves_is_asked_for_its_maps(
-        info, datatypes, universal, caplog):
+        info, datatypes, outcome, caplog):
     client = Client(info)
+    universal = outcome == "universal"
     with caplog.at_level(logging.INFO, logger="openexpress"):
         if universal:
             assert maps.check(client, device(*datatypes)) == ([], 0)
         else:
             with pytest.raises(maps.MapsNotSupported) as refused:
                 maps.check(client, device(*datatypes))
-            assert str(refused.value) == REFUSAL
+            assert str(refused.value) == (NO_MAPS if outcome == "none" else REFUSAL)
+            assert isinstance(refused.value, maps.DeviceHasNoMaps) is (outcome == "none")
     assert client.asked == [("unit-info", UNIT, PART)] + ([("universal",)] if universal else [])
     (line,) = _route_lines(caplog)  # one line: the way the check went
     assert ("the universal map service's answer" in line) is universal
+    assert ("the device declares no maps" in line) is (outcome == "none")
     assert PART in line and str(UNIT) not in caplog.text
 
 
@@ -97,6 +108,7 @@ def test_a_failed_unit_info_is_a_failed_map_check_not_a_guess():
 
 def test_the_window_says_it_without_a_full_stop():
     assert maps.not_supported_text() == "Map updates for this device aren't supported yet"
+    assert maps.no_maps_on_device_text() == "This device has no maps"
 
 
 # --- the command line ---------------------------------------------------------------------
@@ -123,11 +135,31 @@ def _cli_maps(device_root, monkeypatch, info, *argv):
     return cli.main([*argv, "maps"]), asked
 
 
+def _with_maps(device_root):
+    """The test device, declaring a data type of maps (NMaps) too."""
+    xml = device_root / "GARMIN" / "GarminDevice.xml"
+    text = xml.read_text()
+    assert text.count("</MassStorageMode>") == 1
+    xml.write_text(text.replace("</MassStorageMode>", (
+        "<DataType><Name>NMaps</Name><File><Location><Path>Garmin/Maps</Path>"
+        "<FileExtension>IMG</FileExtension></Location>"
+        "<TransferDirection>InputToUnit</TransferDirection></File></DataType>"
+        "</MassStorageMode>")))
+
+
 def test_cli_maps_refuses_a_device_the_universal_service_does_not_serve(
         device_root, monkeypatch, capsys):
+    _with_maps(device_root)
     code, asked = _cli_maps(device_root, monkeypatch, {"mapUpdateType": "LegacyRmu"})
     assert code == 1 and asked == ["unit-info"]
     assert capsys.readouterr().err.strip() == "Error: " + REFUSAL
+
+
+def test_cli_maps_says_a_device_without_maps_has_none(device_root, monkeypatch, capsys):
+    """The test device declares no data type of maps (as a Venu 2)."""
+    code, asked = _cli_maps(device_root, monkeypatch, {"mapUpdateType": "UniversalDetect"})
+    assert code == 1 and asked == ["unit-info"]
+    assert capsys.readouterr().err.strip() == "Error: " + NO_MAPS
 
 
 def test_cli_maps_asks_the_universal_service_for_a_device_it_serves(device_root, monkeypatch):

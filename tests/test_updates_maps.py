@@ -716,10 +716,10 @@ class Row:
 UNIVERSAL = {"mapupdatetype": "Universal"}
 
 
-def _overview_window(answers, device_root=None, unit_info=UNIVERSAL):
+def _overview_window(answers, device_root=None, unit_info=UNIVERSAL, datatypes=("NMaps",)):
     """A window with the "Maps" row; the server gives `answers` in turn (an exception is
-    raised), unit-info gives `unit_info`. Background work runs at once unless `later`
-    collects it."""
+    raised), unit-info gives `unit_info`; the device declares `datatypes` (by default one of
+    maps). Background work runs at once unless `later` collects it."""
     import types
 
     from openexpress.gui.app import MainWindow
@@ -746,7 +746,8 @@ def _overview_window(answers, device_root=None, unit_info=UNIVERSAL):
     session = types.SimpleNamespace(
         client=types.SimpleNamespace(universal_maps=universal_maps,
                                      unit_info=lambda unit_id, part_number: unit_info),
-        device=types.SimpleNamespace(raw=b"xml", unit_id=3000000002, part_number="006-B0000-00"),
+        device=types.SimpleNamespace(raw=b"xml", unit_id=3000000002, part_number="006-B0000-00",
+                                     datatypes=lambda: list(datatypes)),
         storage=LocalStorage(device_root) if device_root else None)
     win = stand_in(session=session, map_state=None, map_update_count=0,
                    _map_check_session=None, map_row=Row(), hold=False,
@@ -782,6 +783,17 @@ def test_maps_row_says_map_updates_are_not_supported_for_a_device_served_another
     win._check_maps_quietly()
     assert (win.map_state, win.map_row.subtitle) == (
         "unsupported", "Map updates for this device aren't supported yet")
+    assert asked == [] and win._map_check_session is None
+
+
+@pytest.mark.parametrize("datatypes", [(), ("FIT_TYPE_4", "CustomPOI")])
+def test_maps_row_says_a_device_that_declares_no_maps_has_none(datatypes):
+    """A device Garmin's universal service does not serve, which declares no data type of maps
+    either (a Venu 2): the row says plainly that it has no maps, not "not supported yet"."""
+    win, asked, _later = _overview_window([], unit_info={"mapupdatetype": "UniversalDetect"},
+                                          datatypes=datatypes)
+    win._check_maps_quietly()
+    assert (win.map_state, win.map_row.subtitle) == ("nomaps", "This device has no maps")
     assert asked == [] and win._map_check_session is None
 
 
@@ -905,7 +917,7 @@ def _refresh_window(page, device_root, maps_answers=(), updates_answers=()):
         if win.map_state is None:
             win._check_maps_quietly()
 
-    def show_maps(result, own=None, space=None, map_update_type=None):
+    def show_maps(result, own=None, space=None, map_update_type=None, no_maps=False):
         win.shown.append("maps")
         win._set_map_state(result)  # what the Maps page does for the row of the device page
 
@@ -1079,9 +1091,10 @@ def test_maps_page_without_maps_has_one_check_again(device_root):
     assert group.header is None  # only the button under the message
 
 
-def _real_maps_page(answers, device_root, unit_info=UNIVERSAL):
+def _real_maps_page(answers, device_root, unit_info=UNIVERSAL, datatypes=("NMaps",)):
     """The Maps page of the real kind in a window that is never shown, loaded the way
-    MainWindow loads it; Garmin's server gives `answers` in turn, unit-info `unit_info`."""
+    MainWindow loads it; Garmin's server gives `answers` in turn, unit-info `unit_info`; the
+    device declares `datatypes` (by default one of maps)."""
     import types
 
     from fakes import page_window
@@ -1102,7 +1115,8 @@ def _real_maps_page(answers, device_root, unit_info=UNIVERSAL):
                 lambda unit_id, part_number: unit_info)),
         # A device that declares no folder for maps: the page has no group of own maps.
         device=types.SimpleNamespace(raw=b"xml", unit_id=3000000002, part_number="006-B0000-00",
-                                     targets=lambda datatype: []),
+                                     targets=lambda datatype: [],
+                                     datatypes=lambda: list(datatypes)),
         storage=LocalStorage(device_root))
     win.map_state, win.map_update_count, win._map_check_session = None, 0, None
     win.map_row = Row()
@@ -1153,6 +1167,22 @@ def test_maps_page_says_map_updates_are_not_supported_for_a_device_served_anothe
     assert "Check Again" in texts and asked == []
     assert (win.map_state, win.map_row.subtitle) == (
         "unsupported", "Map updates for this device aren't supported yet")
+
+
+@pytest.mark.needs_display
+def test_maps_page_says_a_device_that_declares_no_maps_has_none(device_root):
+    """The Maps page of a device without maps: the sentence, nothing to check again; the
+    "Maps" row of the device page follows."""
+    from test_detection import _texts
+
+    win, section, asked = _real_maps_page([], device_root, datatypes=(),
+                                          unit_info={"mapupdatetype": "UniversalDetect"})
+    win.load_section("maps")
+    texts = [t for g in section.groups for t in _texts(g)]
+    assert "This device has no maps" in texts
+    assert "Check Again" not in texts and not check_again_buttons(win) and asked == []
+    assert not any("map update type" in t for t in texts)
+    assert (win.map_state, win.map_row.subtitle) == ("nomaps", "This device has no maps")
 
 
 @pytest.mark.needs_display

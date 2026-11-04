@@ -218,6 +218,35 @@ class MapsNotSupported(MapError):
         self.map_update_type = map_update_type
 
 
+class DeviceHasNoMaps(MapsNotSupported):
+    """Garmin's universal map service does not serve the device, and it declares no data type
+    of maps either (declares_maps): it has none, rather than maps this program does not
+    update yet (a Venu 2, a Varia)."""
+
+    def __init__(self) -> None:
+        MapError.__init__(self, _("This device has no maps."))
+        self.map_update_type = None
+
+
+# The data types of maps a device declares in its GarminDevice.xml (the maps' folders): by
+# them a device whose maps Garmin serves another way is told apart from one without maps.
+# Points of interest (CustomPOI) are no maps.
+MAP_DATATYPES = ("maps", "nmaps", "preprogrammednamedmaps", "manifestgmf")
+MAP_DATATYPE_PREFIX = "supplementalmaps"
+
+
+def declares_maps(device) -> bool:
+    """Whether the device's GarminDevice.xml declares a data type of maps."""
+    names = [name.casefold() for name in device.datatypes()]
+    return any(name in MAP_DATATYPES or name.startswith(MAP_DATATYPE_PREFIX)
+               for name in names)
+
+
+def no_maps_on_device_text() -> str:
+    # TRANSLATORS: subtitle of the row "Maps" and title of the Maps page, without a full stop
+    return _("This device has no maps")
+
+
 def not_supported_text() -> str:
     # TRANSLATORS: subtitle of the row "Maps" and title of the Maps page, without a full stop
     return _("Map updates for this device aren't supported yet")
@@ -239,7 +268,8 @@ def universal_serves(map_update_type, device) -> bool:
 
 def check(client, device, ask=None, country=None) -> tuple[list[UniversalMap], int]:
     """The maps of the device and the count of listed maps (read_maps), restrictions applied;
-    MapsNotSupported when unit-info says the universal map service does not serve it. `ask`
+    MapsNotSupported when unit-info says the universal map service does not serve it
+    (DeviceHasNoMaps when the device declares no maps either). `ask`
     gives unit-info's answer (the window: service.unit_info); none: it is asked here.
     `country` gives the account's country, asked only when a map is restricted to one; none:
     such a map is only marked."""
@@ -255,6 +285,10 @@ def check(client, device, ask=None, country=None) -> tuple[list[UniversalMap], i
     else:  # a word as Garmin gives it; an answer of another shape by its type, not quoted
         said = value[:40] if isinstance(value, str) else type(value).__name__
     if not universal_serves(value, device):
+        if not declares_maps(device):
+            log.info("maps: map update type %s for %s: the device declares no maps, no map "
+                     "check", said, device.part_number)
+            raise DeviceHasNoMaps()
         log.info("maps: map update type %s for %s: map updates not supported, no map check",
                  said, device.part_number)
         raise MapsNotSupported(value[:40] if isinstance(value, str) and value else None)

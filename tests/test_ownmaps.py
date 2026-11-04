@@ -130,7 +130,8 @@ def test_local_read_start_opens_for_reading_only_and_always_closes(tmp_path, mon
 def device(folder="Garmin"):
     """A device that keeps its maps in `folder`; None: it declares no maps."""
     place = [types.SimpleNamespace(path=folder)] if folder else []
-    return types.SimpleNamespace(targets=lambda datatype: place if datatype == "NMaps" else [])
+    return types.SimpleNamespace(targets=lambda datatype: place if datatype == "NMaps" else [],
+                                 datatypes=lambda: ["NMaps"] if folder else [])
 
 
 def garmin_map(*paths, remove=()):
@@ -1170,7 +1171,7 @@ def test_maps_page_loads_garmins_maps_and_own_maps_in_one_task(map_folder, xdg):
     win.session.device.raw, win.session.device.part_number = b"xml", "006-B0000-00"
     real = win.show_own_maps
 
-    def show_maps(result, own, space=None, map_update_type=None):  # Garmin's maps page
+    def show_maps(result, own, space=None, map_update_type=None, no_maps=False):  # Garmin's maps page
         drawn.append(("maps", result))
         drawn.append(("own", [m.filename for m in own.maps]))
         real(own)
@@ -1204,7 +1205,7 @@ def test_maps_page_shows_own_maps_whatever_service_serves_garmins_maps(map_folde
     win.session.device.raw, win.session.device.part_number = b"xml", "006-B0000-00"
     real = win.show_own_maps
 
-    def show_maps(result, own, space=None, map_update_type=None):  # Garmin's maps page
+    def show_maps(result, own, space=None, map_update_type=None, no_maps=False):  # Garmin's maps page
         drawn.append(("maps", result))
         drawn.append(("own", [m.filename for m in own.maps]))
         real(own)
@@ -1229,7 +1230,7 @@ def test_own_maps_show_under_the_message_that_map_updates_are_not_supported():
     win, section = own_maps_window()
     win.session = types.SimpleNamespace(storage=types.SimpleNamespace(
         free_space=lambda: 12_400_000_000, capacity=lambda: 31_100_000_000))
-    win._set_map_state = lambda result: None
+    win._set_map_state = lambda result, no_maps=False: None
     MainWindow.show_maps(win, None, view_of(("mine.img", 2000, "Mine")))
     assert [g.get_title() for g in section.groups] == ["", "Own maps"]
     assert "Map updates for this device aren't supported yet" in _texts(section.groups[0])
@@ -1318,7 +1319,7 @@ def page_with_garmins_and_own_maps(view, answer):
     win.session = types.SimpleNamespace(storage=types.SimpleNamespace(
         free_space=lambda: 12_400_000_000, capacity=lambda: 31_100_000_000))
     win.confirm_map = win.confirm_remove = lambda m: None
-    win._set_map_state = lambda result: None
+    win._set_map_state = lambda result, no_maps=False: None
     win._map_subtitle, win._search_filter = MainWindow._map_subtitle, MainWindow._search_filter
     MainWindow.show_maps(win, mp.read_maps(answer), view)
     return [g.get_title() for g in section.groups]

@@ -532,6 +532,9 @@ def primary_training_unknown(s) -> str:
 DEVICE_PICTURE_SIZE = 180
 
 
+# The quiet map check's answer for a device without maps (maps.DeviceHasNoMaps).
+NO_MAPS = object()
+
 # The pages that do not apply to a Garmin device in mass storage mode.
 NOT_FOR_MASS_STORAGE = ("maps", "apps", "music")
 
@@ -1292,20 +1295,23 @@ class DevicePage:
             text = mp.no_maps_message()
         elif self.map_state == "unsupported":
             text = mp.not_supported_text()
+        elif self.map_state == "nomaps":
+            text = mp.no_maps_on_device_text()
         elif self.map_state == "failed":
             text = _("Could not check for updates")
         else:
             text = _("Checking…")
         self.map_row.set_subtitle(text)
 
-    def _set_map_state(self, result) -> None:
+    def _set_map_state(self, result, no_maps: bool = False) -> None:
         """From an answer of the map check: the maps read, and how many the server listed;
-        None when map updates for the device are not supported (maps.check). Also called by
-        the Maps page, whose answer is the newer one."""
+        None when map updates for the device are not supported (maps.check), `no_maps` when
+        it has no maps at all (maps.DeviceHasNoMaps). Also called by the Maps page, whose
+        answer is the newer one."""
         self._map_check_session = None  # a quiet check that is still running is out of date
         if result is None:
             self.map_update_count = 0
-            self.map_state = "unsupported"
+            self.map_state = "nomaps" if no_maps else "unsupported"
             self._render_map_state()
             return
         all_maps, listed = result
@@ -1334,7 +1340,10 @@ class DevicePage:
             if self._map_check_session is not s:
                 return  # another device, or the Maps page has a newer answer
             if self.session is s:
-                self._set_map_state(result)
+                if result is NO_MAPS:
+                    self._set_map_state(None, no_maps=True)
+                else:
+                    self._set_map_state(result)
             self._map_check_session = None
 
         def failed(_e):
@@ -1349,6 +1358,8 @@ class DevicePage:
             try:
                 result = mp.check(s.client, s.device, ask=lambda: service.unit_info(s),
                                   country=lambda: service.account_country(s))
+            except mp.DeviceHasNoMaps:
+                return NO_MAPS  # the row says so
             except mp.MapsNotSupported:
                 return None  # the row says so; nothing to read on the device
             mp.mark_waiting(s.storage, result[0])

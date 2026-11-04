@@ -275,8 +275,9 @@ def test_the_backup_words_in_polish(backups):
 def test_maps_not_supported_carries_the_type_garmin_gives():
     from openexpress import maps
 
+    # A device with maps (NMaps) that Garmin serves another way than the universal service.
     device = types.SimpleNamespace(unit_id=UNIT, part_number="006-B0000-00",
-                                   datatypes=list)
+                                   datatypes=lambda: ["NMaps"])
     with pytest.raises(maps.MapsNotSupported) as raised:
         maps.check(None, device, ask=lambda: {"mapupdatetype": "Gemini"})
     assert raised.value.map_update_type == "Gemini"
@@ -295,7 +296,7 @@ def _maps_page(map_update_type):
 
     win, section = page_window("maps")
     win.session = types.SimpleNamespace(device=types.SimpleNamespace(unit_id=UNIT))
-    win._set_map_state = lambda result: None
+    win._set_map_state = lambda result, no_maps=False: None
     win.show_own_maps = lambda own: None
     MainWindow.show_maps(win, None, None, map_update_type=map_update_type)
     return section
