@@ -81,6 +81,26 @@ def state_text(screen: profiles.Screen) -> str:
 # --- the drawing of a screen ----------------------------------------------------------------
 
 
+LEAST_POINTS = 5.0  # the smallest text of a drawing
+
+
+def name_font(cr, name: str, width: float, points: float) -> Pango.FontDescription:
+    """The font of a built-in screen's name in its drawing: `points` at most, smaller when its
+    longest word would not fit `width` (a word is then never broken in the middle)."""
+    font = Pango.FontDescription.from_string(f"Sans {points:.1f}")
+    layout = PangoCairo.create_layout(cr)
+    layout.set_font_description(font)
+    widest = 0
+    for word in name.split():
+        layout.set_text(word, -1)
+        widest = max(widest, layout.get_pixel_size()[0])
+    if widest > width:
+        # Text grows with its size; a little less, as sizes are rounded to whole pixels.
+        smaller = max(LEAST_POINTS, points * width / widest * 0.95)
+        font = Pango.FontDescription.from_string(f"Sans {smaller:.1f}")
+    return font
+
+
 def draw_screen(area, cr, width, height, edge: bool, lines: list[str]) -> None:
     """A screen of the device: a circle for a watch, a rounded rectangle for an Edge, with
     `lines` (its fields, or the name of a built-in screen) one under another, in their order:
@@ -112,7 +132,13 @@ def draw_screen(area, cr, width, height, edge: bool, lines: list[str]) -> None:
         return
     x, y, w, h = inner
     row = h / max(len(lines), 1)
-    font = Pango.FontDescription.from_string(f"Sans {max(6, min(12, int(row * 0.45)))}")
+    # One size for every drawing of a size, smaller for many fields: a drawing of 112 px and
+    # one of 220 px read alike.
+    points = max(LEAST_POINTS, min(width / 14, row * 0.5))
+    if len(lines) == 1:  # a built-in screen's name
+        font = name_font(cr, lines[0], w, points)
+    else:
+        font = Pango.FontDescription.from_string(f"Sans {points:.1f}")
     cr.set_source_rgba(fg.red, fg.green, fg.blue, 0.9)
     for n, line in enumerate(lines):
         layout = PangoCairo.create_layout(cr)
@@ -120,6 +146,9 @@ def draw_screen(area, cr, width, height, edge: bool, lines: list[str]) -> None:
         layout.set_text(line, -1)
         layout.set_width(int(max(w, 4) * Pango.SCALE))
         layout.set_alignment(Pango.Alignment.CENTER)
+        if len(lines) == 1:  # a built-in screen's name: wrapped between its words
+            layout.set_wrap(Pango.WrapMode.WORD)
+            layout.set_height(int(row * Pango.SCALE))
         layout.set_ellipsize(Pango.EllipsizeMode.END)
         _tw, th = layout.get_pixel_size()
         cr.move_to(x, y + row * n + (row - th) / 2)
@@ -134,10 +163,19 @@ def draw_screen(area, cr, width, height, edge: bool, lines: list[str]) -> None:
             cr.restore()
 
 
+def drawing_lines(profile: profiles.Profile, screen: profiles.Screen) -> list[str]:
+    """What a screen's drawing says: its fields; a built-in screen's name, or for one not
+    known its code alone (its title under the drawing says the rest)."""
+    if screen.own:
+        return [names.field_name(i) for i in screen.fields]
+    if names.built_in_known(screen, edge_shaped(profile)):
+        return [screen_title(profile, screen)]
+    return [str(screen.code)]
+
+
 def screen_drawing(profile: profiles.Profile, screen: profiles.Screen, size: int) -> Gtk.Widget:
     edge = edge_shaped(profile)
-    lines = ([names.field_name(i) for i in screen.fields] if screen.own
-             else [screen_title(profile, screen)])
+    lines = drawing_lines(profile, screen)
     area = Gtk.DrawingArea(content_width=size, content_height=size, halign=Gtk.Align.CENTER,
                            accessible_role=Gtk.AccessibleRole.PRESENTATION)
     area.set_draw_func(lambda a, cr, w, h: draw_screen(a, cr, w, h, edge, lines))

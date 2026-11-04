@@ -224,3 +224,41 @@ def test_the_pages_go_with_the_device_view():
     profiles_page.open_screen(win, found, found.profile.screens[0])
     profiles_page.leave(win)
     assert win.navigation.get_visible_page() is win.device_view
+
+
+def test_what_a_screen_s_drawing_says():
+    """A screen of one's own: its fields; a built-in one: its name, or for one not known its
+    code alone (its title under the drawing says the rest)."""
+    from openexpress import profiles
+    from openexpress.gui import profiles_page
+
+    watch = profiles.read_profile(sport_file("Run", screens=RUN))
+    edge = profiles.read_profile(sport_file("Road", 2, screens=ROAD, shape="edge"))
+    by_code = {s.code: s for s in watch.screens}
+    assert profiles_page.drawing_lines(watch, by_code[0]) == [
+        "Timer", "Distance", "Field 33", "%Max Heart Rate"]
+    assert profiles_page.drawing_lines(watch, by_code[25]) == ["25"]
+    climb = next(s for s in edge.screens if s.code == 104)
+    assert profiles_page.drawing_lines(edge, climb) == ["ClimbPro"]
+
+
+@pytest.mark.parametrize("name", ["GroupTrack", "Podsumowanie okrążenia", "Shimano STEPS"])
+def test_a_built_in_screen_s_name_keeps_its_words_whole(name):
+    """The name of a built-in screen is drawn small enough for its longest word to fit the
+    drawing's width: no word is broken in the middle."""
+    import cairo
+    from gi.repository import PangoCairo
+
+    from openexpress.gui import profiles_page
+
+    cr = cairo.Context(cairo.ImageSurface(cairo.FORMAT_ARGB32, 10, 10))
+    width = 52.0  # the inside of the smallest drawing, a card's
+    font = profiles_page.name_font(cr, name, width, points=9.0)
+    layout = PangoCairo.create_layout(cr)
+    layout.set_font_description(font)
+    widest = 0
+    for word in name.split():
+        layout.set_text(word, -1)
+        widest = max(widest, layout.get_pixel_size()[0])
+    assert widest <= width
+    assert font.get_size() / 1024 >= 5.0  # never smaller than the least size
