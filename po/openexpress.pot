@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: openexpress 0.8.3\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-11-04 01:02+0100\n"
+"POT-Creation-Date: 2026-11-04 01:23+0100\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -7107,6 +7107,19 @@ msgstr ""
 #: openexpress/ownmaps.py:439
 #, python-brace-format
 msgid "{path} is still on the device; nothing was taken off the list."
+msgstr ""
+
+#: openexpress/profiles.py:143 openexpress/profiles.py:149
+#, python-brace-format
+msgid "The file of this profile could not be read ({error})"
+msgstr ""
+
+#: openexpress/profiles.py:146 openexpress/profiles.py:151
+msgid "This file is not a sport profile."
+msgstr ""
+
+#: openexpress/profiles.py:150
+msgid "it ends too soon"
 msgstr ""
 
 #. TRANSLATORS: how far a step of a long task is: "3 of 8", "412.0 MB of 1.5 GB"
