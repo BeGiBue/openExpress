@@ -139,7 +139,7 @@ def test_the_files_of_the_queue_get_a_line_of_their_types(device_root, xdg, monk
         "3 files from Garmin Connect: metrics ×3",
         "Installed Connect IQ apps: Face It",
         "TrueUp: daily totals aligned with your other Garmin devices"]
-    assert _details(record, "pl")[0] == f"3 pliki z{NB}Garmin Connect: metryki ×3"
+    assert _details(record, "pl")[0] == f"3 pliki z{NB}Garmin Connect: zestawienia ×3"
     assert _row(record) == "nothing to upload · 5 received"
 
 
@@ -165,7 +165,7 @@ def test_no_file_from_the_queue_no_line(device_root, xdg):
 @pytest.mark.parametrize("language, words", [
     ("en", ("6 files from Garmin Connect: activity summary, metrics ×3, other data "
             "(FIT_TYPE_99) ×2")),
-    ("pl", (f"6 plików z{NB}Garmin Connect: podsumowanie aktywności, metryki ×3, inne dane "
+    ("pl", (f"6 plików z{NB}Garmin Connect: podsumowanie aktywności, zestawienia ×3, inne dane "
             "(FIT_TYPE_99) ×2")),
 ])
 def test_the_types_are_named_as_the_files_from_the_device(language, words):
@@ -180,9 +180,9 @@ def test_the_plural_forms_in_polish():
     def said(n):
         return _details({"lines": [service.received_files_step(["FIT_TYPE_44"] * n)]}, "pl")
 
-    assert said(2) == [f"2 pliki z{NB}Garmin Connect: metryki ×2"]
-    assert said(5) == [f"5 plików z{NB}Garmin Connect: metryki ×5"]
-    assert said(22) == [f"22 pliki z{NB}Garmin Connect: metryki ×22"]
+    assert said(2) == [f"2 pliki z{NB}Garmin Connect: zestawienia ×2"]
+    assert said(5) == [f"5 plików z{NB}Garmin Connect: zestawienia ×5"]
+    assert said(22) == [f"22 pliki z{NB}Garmin Connect: zestawienia ×22"]
 
 
 def test_a_record_without_the_received_files_line_shows_its_downloaded_count():

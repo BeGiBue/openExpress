@@ -824,7 +824,7 @@ Accepted, but for those of the sets (D19a put off), which are not added.
 | Average cadence / Steps / Heart rate / Calories / Temperature / Respiration rate (step 11) | Średnia kadencja / Kroki / Tętno / Suma kalorii / Temperatura / Częstotliwość oddechu |
 | {average} spm (max {max}) / {average} rpm (max {max}); without a maximum {cadence} spm / {cadence} rpm | {average} kr./min (maks. {max}) / {average} obr./min (maks. {max}); {cadence} kr./min / {cadence} obr./min |
 | {average} °C ({low}–{high} °C); without a range {temperature} °C | {average} °C ({low}–{high} °C); {temperature} °C |
-| {average} brpm ({low}–{high}); without a range {rate} brpm | {average} odd./min ({low}–{high}); {rate} odd./min |
+| {average} brpm ({low}–{high}); without a range {rate} brpm | {average} brpm ({low}–{high}); {rate} brpm |
 | (step 11) the separator of the thousands from 10 000: "," | a hard space (U+00A0) |
 | Track colour: {series} | Kolor trasy: {series} |
 | (step 10) heart rate / elevation / pace / speed, after "Track colour:" (lower case) | tętno / wysokość / tempo / prędkość |

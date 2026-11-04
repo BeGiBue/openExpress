@@ -172,7 +172,7 @@ def test_the_row_of_a_sync_in_polish():
     finally:
         i18n.setup("en")
     assert row == "2 dni temu\u00a0· 8 nowych plików, 6 wysłanych"  # two days back (by the date)
-    assert details == [("Pliki z\u00a0urządzenia: aktywności, monitorowanie ×5, metryki, dziennik "
+    assert details == [("Pliki z\u00a0urządzenia: aktywności, monitorowanie ×5, zestawienia, dziennik "
                         "urządzenia"), "2 pliki były już w\u00a0Garmin Connect"]
 
 

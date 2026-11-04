@@ -427,5 +427,5 @@ def test_the_notes_in_polish():
     assert said == [
         ("Nie zalogowano do Garmin Connect: kafle nie pokazują, co jest na koncie ani co jest "
          "do synchronizacji."),
-        ("Nie udało się odczytać konta Garmin Connect: kafle pokazują tylko to, co było "
+        ("Nie udało się odczytać konta Garmin: kafle pokazują tylko to, co było "
          "o\u00a0nim wiadomo wcześniej.")]

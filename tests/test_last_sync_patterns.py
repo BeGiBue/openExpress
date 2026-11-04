@@ -175,7 +175,7 @@ EXPECTED = {
         "pl": ("8 nowych plików, 8 wysłanych · 4 odebrane", [
             ((f"Pliki z{NB}urządzenia: monitorowanie ×3, lista segmentów, dziennik zmian "
               "ustawień, plan Garmin Coach ×3"), False),
-            (f"3 pliki z{NB}Garmin Connect: metryki ×3", False),
+            (f"3 pliki z{NB}Garmin Connect: zestawienia ×3", False),
             (f"TrueUp: dzienne podsumowania uzgodnione z{NB}innymi urządzeniami Garmin",
              False)])},
     "format-0.7.5-ecg-not-uploaded.json": {

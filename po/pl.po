@@ -5160,7 +5160,7 @@ msgid ""
 "to your Garmin Connect account."
 msgstr ""
 "Serwer aktualizacji Garmina go nie ma. Pobranie wysyła Unit ID tego "
-"urządzenia na Twoje konto Garmin Connect."
+"urządzenia na Twoje konto Garmin."
 
 #: openexpress/gui/device_page.py:360
 msgid "Get Picture From Account"
@@ -5168,7 +5168,7 @@ msgstr "Pobierz zdjęcie z konta"
 
 #: openexpress/gui/device_page.py:407
 msgid "Your Garmin Connect account has no picture of this device"
-msgstr "Twoje konto Garmin Connect nie ma zdjęcia tego urządzenia"
+msgstr "Twoje konto Garmin nie ma zdjęcia tego urządzenia"
 
 #: openexpress/gui/device_page.py:426
 msgid "Getting the picture…"
@@ -5315,7 +5315,7 @@ msgstr "Aplikacje i muzyka"
 #: openexpress/gui/device_page.py:1016 openexpress/gui/preferences.py:398
 #: openexpress/gui/start.py:688
 msgid "Garmin Connect account"
-msgstr "Konto Garmin Connect"
+msgstr "Konto Garmin"
 
 #: openexpress/gui/device_page.py:1019 openexpress/gui/preferences.py:129
 msgid "Log out"
@@ -6506,8 +6506,8 @@ msgid ""
 "Your Garmin Connect account could not be read: the tiles show only what was "
 "known of it before."
 msgstr ""
-"Nie udało się odczytać konta Garmin Connect: kafle pokazują tylko to, co "
-"było o nim wiadomo wcześniej."
+"Nie udało się odczytać konta Garmin: kafle pokazują tylko to, co było o nim "
+"wiadomo wcześniej."
 
 #: openexpress/gui/start_window.py:224
 msgid "Not mounted; choose it to open it"
@@ -7123,13 +7123,13 @@ msgstr "{average} °C ({low}–{high} °C)"
 #: openexpress/gui/words.py:570
 #, python-brace-format
 msgid "{rate} brpm"
-msgstr "{rate} odd./min"
+msgstr "{rate} brpm"
 
 #. TRANSLATORS: the average respiration rate and its range ("24 brpm (15–38)")
 #: openexpress/gui/words.py:572
 #, python-brace-format
 msgid "{average} brpm ({low}–{high})"
-msgstr "{average} odd./min ({low}–{high})"
+msgstr "{average} brpm ({low}–{high})"
 
 #. TRANSLATORS: the heart rates of a zone (made up: "118–140 bpm")
 #: openexpress/gui/words.py:603 openexpress/gui/words.py:691
@@ -8282,12 +8282,12 @@ msgstr "Normalized Power"
 #: openexpress/profile_names.py:116
 msgctxt "data field"
 msgid "TSS"
-msgstr "Punktacja obciążenia treningowego (TSS)"
+msgstr "TSS"
 
 #: openexpress/profile_names.py:117
 msgctxt "data field"
 msgid "Intensity Factor"
-msgstr "Współczynnik intensywności (IF)"
+msgstr "IF"
 
 #: openexpress/profile_names.py:118
 msgctxt "data field"
@@ -9366,7 +9366,7 @@ msgstr "dziennik zmian ustawień"
 
 #: openexpress/service.py:921
 msgid "metrics"
-msgstr "metryki"
+msgstr "zestawienia"
 
 #: openexpress/service.py:922
 msgid "sleep"

@@ -378,7 +378,7 @@ DETAILS_OF = {
                     ("Temperatura", "27,4 °C (25,0–29,0 °C)")],
            "workout": [("Czas ćwiczeń", "24:30"), ("Czas odpoczynku", "25:00"),
                        ("Tętno", "92–171 bpm"), ("Temperatura", "29,0 °C (27,0–31,0 °C)"),
-                       ("Częstotliwość oddechu", "24 odd./min (15–38)")],
+                       ("Częstotliwość oddechu", "24 brpm (15–38)")],
            "title": "Szczegóły"},
 }
 
