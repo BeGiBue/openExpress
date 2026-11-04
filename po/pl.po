@@ -6,7 +6,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: openexpress\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-11-04 23:59+0100\n"
+"POT-Creation-Date: 2026-11-05 00:04+0100\n"
 "PO-Revision-Date: 2026-10-11 02:36+0200\n"
 "Last-Translator: Tomasz Bojanowski\n"
 "Language-Team: none\n"
@@ -9917,21 +9917,22 @@ msgstr "brak zgody ({consents})"
 msgid "Uploading {what}"
 msgstr "Wysyłanie: {what}"
 
-#: openexpress/sync.py:577
-msgid "Upload consent was revoked in Garmin Connect"
-msgstr "Zgoda na wysyłanie została wycofana w Garmin Connect"
+#: openexpress/sync.py:584
+msgid "too many uploads; files of this kind wait for the next sync"
+msgstr ""
+"zbyt wiele wysyłek; pliki tego rodzaju czekają na następną synchronizację"
 
-#: openexpress/sync.py:592
+#: openexpress/sync.py:600
 #, python-brace-format
 msgid "server rejected the file (codes {codes})"
 msgstr "serwer odrzucił plik (kody {codes})"
 
-#: openexpress/sync.py:830
+#: openexpress/sync.py:838
 msgid "device does not accept this type"
 msgstr "urządzenie nie obsługuje tego typu"
 
 #. TRANSLATORS: a step of the progress of a sync ("… · 5 of 21")
-#: openexpress/sync.py:909
+#: openexpress/sync.py:917
 msgid "Downloading from Garmin Connect"
 msgstr "Pobieranie z Garmin Connect"
 

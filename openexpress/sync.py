@@ -574,7 +574,15 @@ def _upload_one(c, data, label, last, client, state, report, progress,
         if res.status == 409:
             outcome = "duplicate"
         elif res.status == 412:
-            raise ApiError(_("Upload consent was revoked in Garmin Connect"), 412)
+            # Garmin Connect has no consent for this file: it is left out as a refusing
+            # location's file is (the next sync tries again), the other files go on.
+            continue
+        elif res.status == 429:
+            # Too many uploads: the other files of this kind wait for the next sync, the
+            # other kinds go on, as in Garmin Connect's app.
+            stop_types.add(c.datatype)
+            ok, error = False, _("too many uploads; files of this kind wait for the next sync")
+            break
         elif res.status == TRACKER_CONFLICT or TRACKER_CONFLICT in codes:
             outcome = "tracker_conflict"
         elif res.status in REJECTED_HTTP:

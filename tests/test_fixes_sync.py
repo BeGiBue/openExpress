@@ -7,7 +7,7 @@ from fakes import SyncClient
 from test_sync import UPLOAD_CONFIG
 
 from openexpress import sync
-from openexpress.connect import ApiError, ClockSkew, UploadResult
+from openexpress.connect import ClockSkew, UploadResult
 from openexpress.device.storage import DeviceError, LocalStorage
 from openexpress.device.xmldevice import DeviceFile, parse
 from openexpress.fit import FitError, iter_messages, parse_file_id
@@ -493,8 +493,53 @@ def test_watcher_stops_when_a_second_device_comes_while_it_waits(monkeypatch, ca
         "Watch not ready, retrying in 0 s", "Not syncing: several devices are connected"]
 
 
-def test_upload_412_still_raises(device_root, tmp_path):
+class AnswersInTurn(SyncClient):
+    """Answers the uploads to an address with the given statuses in turn, then 201."""
+
+    def __init__(self, turns, **kw):
+        super().__init__(**kw)
+        self.turns = {url: list(statuses) for url, statuses in turns.items()}
+
+    def upload_file(self, url, data, **kw):
+        super().upload_file(url, data, **kw)
+        left = self.turns.get(url)
+        return UploadResult(left.pop(0) if left else 201, {}, None, None)
+
+
+FIRST, SECOND = "2026-10-01-10-00-00.fit", "2026-10-02-10-00-00.fit"
+
+
+def test_a_412_leaves_out_that_file_alone(device_root, tmp_path):
+    """412: Garmin Connect has no consent for this one file. It is left out as a refusing
+    location's file is (no error, not marked: the next sync tries it again) and the upload goes
+    on with the next file, as Garmin Connect's app does."""
     st, dev, state = _setup(device_root, tmp_path)
     plan = sync.plan_uploads(dev, st, UPLOAD_CONFIG, state, only_types={"FIT_TYPE_4"})
-    with pytest.raises(ApiError):
-        sync.run_uploads(plan, dev, st, SyncClient(statuses={ACT: 412}), state)
+    client = AnswersInTurn({ACT: [412]})
+    rep = sync.run_uploads(plan, dev, st, client, state)
+    assert [u[0] for u in client.uploads] == [ACT, ACT]
+    assert (len(rep.not_taken), len(rep.uploaded), rep.failed) == (1, 1, [])
+    done = [state.is_completed("FIT_TYPE_4", name) for name in (FIRST, SECOND)]
+    assert sorted(done) == [False, True]
+
+
+def test_a_429_holds_back_the_rest_of_that_kind_only(device_root, tmp_path):
+    """429: too many uploads. The file fails (the next sync tries it again) and the other files
+    of its kind wait for the next sync, as in Garmin Connect's app; the other kinds go on."""
+    st, dev, state = _setup(device_root, tmp_path)
+    plan = sync.plan_uploads(dev, st, UPLOAD_CONFIG, state,
+                             only_types={"FIT_TYPE_4", "FIT_TYPE_32"})
+    client = AnswersInTurn({ACT: [429]})
+    rep = sync.run_uploads(plan, dev, st, client, state)
+    sent = [u[0] for u in client.uploads]
+    assert sent.count(ACT) == 1 and sent.count(MON) == 1
+    assert len(rep.failed) == 1 and len(rep.uploaded) == 1
+    assert not any(state.is_completed("FIT_TYPE_4", name) for name in (FIRST, SECOND))
+
+
+def test_a_409_is_a_file_connect_already_has(device_root, tmp_path):
+    st, dev, state = _setup(device_root, tmp_path)
+    plan = sync.plan_uploads(dev, st, UPLOAD_CONFIG, state, only_types={"FIT_TYPE_4"})
+    rep = sync.run_uploads(plan, dev, st, SyncClient(statuses={ACT: 409}), state)
+    assert (len(rep.duplicates), rep.failed) == (2, [])
+    assert all(state.is_completed("FIT_TYPE_4", name) for name in (FIRST, SECOND))
