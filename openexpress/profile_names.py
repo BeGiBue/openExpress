@@ -6,8 +6,9 @@ msgid and Polish in po/pl.po; a number nobody has named is shown as a number.
 
 The numbers of the data fields follow the table of Activity Profile Editor
 (https://github.com/fullcarbonbike/Activity-Profile-Editor), which learnt them on Edge bike
-computers; a watch's profiles give the same numbers to the same fields (its running and map
-screens hold its timer, distance and speed under them). Its notice:
+computers; a watch's profiles give the same numbers to the same fields (a fēnix 8's profile set
+to a dozen of them holds each under its number). The few fields of a watch the table has not
+(pace, ambient pressure) have the numbers that profile gave them. Its notice:
 
     MIT License
 
@@ -80,6 +81,9 @@ def _field_names() -> dict[int, str]:
         30: pgettext("data field", "Time to Next"),
         31: pgettext("data field", "Destination Location"),
         32: pgettext("data field", "Next Waypoint"),
+        33: pgettext("data field", "Pace"),
+        34: pgettext("data field", "Average Pace"),
+        35: pgettext("data field", "Lap Pace"),
         36: pgettext("data field", "Power"),
         37: pgettext("data field", "Avg Power"),
         38: pgettext("data field", "Kilojoules"),
@@ -150,6 +154,7 @@ def _field_names() -> dict[int, str]:
         220: pgettext("data field", "Avg. Vertical Descent Speed"),
         223: pgettext("data field", "Lap Ascent"),
         224: pgettext("data field", "Lap Descent"),
+        231: pgettext("data field", "Ambient Pressure"),
         240: pgettext("data field", "Location"),
         257: pgettext("data field", "Time Standing"),
         258: pgettext("data field", "Lap Time Standing"),

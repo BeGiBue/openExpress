@@ -9,7 +9,7 @@ from openexpress.cli import main
 SPORTS = ("<DataType><Name>FIT_TYPE_3</Name><File><Location><Path>Garmin/Sports</Path>"
           "<FileExtension>FIT</FileExtension></Location>"
           "<TransferDirection>OutputFromUnit</TransferDirection></File></DataType>")
-RUN = (ScreenRecord(place=0, code=0, order=0, fields=(56, 6, 33, None), variant=2),
+RUN = (ScreenRecord(place=0, code=0, order=0, fields=(56, 6, 588, None), variant=2),
        ScreenRecord(place=1, code=25, order=1, variant=12),
        ScreenRecord(place=2, code=127, state=0, order=None, fields=(127,)),
        ScreenRecord(place=3, code=1, state=0, order=None, fields=(9,), variant=1))
@@ -55,7 +55,7 @@ def test_a_watch_profile_s_screens(profiles_root, capsys):
     assert capsys.readouterr().out.splitlines() == [
         "Run",
         "Data screens, in the order the device scrolls through them:",
-        ("  1. Screen 1 · 4 fields · Layout code 2, unknown: Timer, Distance, Field 33, "
+        ("  1. Screen 1 · 4 fields · Layout code 2, unknown: Timer, Distance, Field 588, "
          "Empty field"),
         "  2. Built-in screen 25",
         "Built-in screens:",

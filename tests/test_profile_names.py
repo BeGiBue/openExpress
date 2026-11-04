@@ -51,8 +51,17 @@ COMPOSITE_FIELDS = [
 ]
 
 
-@pytest.mark.parametrize("number, english, polish", COMPOSITE_FIELDS)
-def test_a_field_with_two_values_has_its_name(number, english, polish):
+# Fields a watch has and the Edge's table does not, named as the fēnix 8's manual names them.
+WATCH_FIELDS = [
+    (33, "Pace", "Tempo"),
+    (34, "Average Pace", "Średnie tempo"),
+    (35, "Lap Pace", "Tempo okrążenia"),
+    (231, "Ambient Pressure", "Ciśnienie otoczenia"),
+]
+
+
+@pytest.mark.parametrize("number, english, polish", COMPOSITE_FIELDS + WATCH_FIELDS)
+def test_a_field_has_its_name(number, english, polish):
     assert profile_names.known_field(number)
     assert profile_names.field_name(number) == english
     try:

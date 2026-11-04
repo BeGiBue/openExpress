@@ -22,7 +22,7 @@ from openexpress.device.xmldevice import parse
 
 pytestmark = pytest.mark.needs_display
 
-RUN = (ScreenRecord(place=0, code=0, order=0, fields=(56, 6, 33, 16), variant=2),
+RUN = (ScreenRecord(place=0, code=0, order=0, fields=(56, 6, 588, 16), variant=2),
        ScreenRecord(place=1, code=1, order=2, fields=(58, 7), variant=12),
        ScreenRecord(place=2, code=25, order=1, fields=(), variant=12),
        ScreenRecord(place=3, code=127, state=0, order=None, fields=(127,), variant=2),
@@ -212,7 +212,7 @@ def test_a_screen_s_page():
     assert rows[:2] == [("Layout", "Layout code 2, unknown"), ("Number of fields", "4")]
     assert [r for r in rows if r[1].startswith("Field ")] == [
         ("Timer", "Field 1\u00a0· number 56"), ("Distance", "Field 2\u00a0· number 6"),
-        ("Field 33", "Field 3\u00a0· number 33"), ("%Max Heart Rate", "Field 4\u00a0· number 16")]
+        ("Field 588", "Field 3\u00a0· number 588"), ("%Max Heart Rate", "Field 4\u00a0· number 16")]
     assert ("Code of the screen", "0") in rows
 
 
@@ -236,7 +236,7 @@ def test_what_a_screen_s_drawing_says():
     edge = profiles.read_profile(sport_file("Road", 2, screens=ROAD, shape="edge"))
     by_code = {s.code: s for s in watch.screens}
     assert profiles_page.drawing_lines(watch, by_code[0]) == [
-        "Timer", "Distance", "Field 33", "%Max Heart Rate"]
+        "Timer", "Distance", "Field 588", "%Max Heart Rate"]
     assert profiles_page.drawing_lines(watch, by_code[25]) == ["25"]
     climb = next(s for s in edge.screens if s.code == 104)
     assert profiles_page.drawing_lines(edge, climb) == ["ClimbPro"]
