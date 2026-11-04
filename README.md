@@ -77,7 +77,7 @@ devices that connect over USB (MTP) should work too – reports are welcome.
 | Edge 1050 | MTP | the developer |
 | Varia RTL515 | USB drive | the developer; [#9](https://github.com/TomaszBojanowski/openExpress/issues/9) |
 | epix (Gen 2) | MTP | the developer (read-only: another account) |
-| Venu 2 | MTP | the developer (read-only: another account) |
+| Venu 2 | MTP | the developer (added with Add to Account; not synced) |
 | fēnix 8 (47 mm, AMOLED) | MTP | [#4](https://github.com/TomaszBojanowski/openExpress/issues/4) |
 | fēnix 8 (51 mm, AMOLED) | MTP | [#14](https://github.com/TomaszBojanowski/openExpress/issues/14) |
 | fēnix 7 (Sapphire Dual Power) | MTP | [#6](https://github.com/TomaszBojanowski/openExpress/issues/6) |

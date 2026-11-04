@@ -1,7 +1,8 @@
 # Design: adding a device to the Garmin account
 
-Status: implemented, steps 1 to 5 of section 7; the first attempt on a device (section 9)
-waits. Each decision of section 5 took its recommended option, marked "chosen", D3a with one
+Status: implemented, steps 1 to 5 of section 7; the first attempt on a device succeeded (a
+Venu 2, section 9.1); "experimental" stays until a second attempt succeeds, by another user
+(4.7). Each decision of section 5 took its recommended option, marked "chosen", D3a with one
 change: the window names the account as it does elsewhere (its user name, else its whole e-mail
 address), the command line masks the account's name, its user name as well as an e-mail
 address, since its output is pasted into reports (and so do its other commands).
@@ -222,15 +223,15 @@ token; with the client headers of Garmin Express (`Garmin-Client-Name`, `-Versio
 openExpress's own User-Agent, `openexpress/<version> (Linux)`, the one every request of the
 program sends. The body is the device's `GarminDevice.xml`, with `Override: 1`, as Garmin Express
 sends it. Garmin Express's own client sends there the default User-Agent of its HTTP library,
-known from the analysis only, not from its traffic: openExpress does not imitate it. If the
-first attempt (section 9) showed Garmin refusing the request for its User-Agent, that would be
-decided anew, with the evidence.
+known from the analysis only, not from its traffic: openExpress does not imitate it. Garmin
+accepted the first attempt (section 9.1) with openExpress's own User-Agent.
 
 ### 4.7 Experimental
 
 Adding a device is the first request of openExpress that Garmin's servers answer with a change
-to the account's devices, and its answers are known from the analysis, not yet from a device.
-Until a first device has been added this way (section 9), the feature says so: the question ends
+to the account's devices. A first device has been added this way (section 9.1); until a second
+attempt succeeds, by a user other than the one of the first, on another account, the feature
+says it is experimental: the question ends
 with "This is an experimental feature.", the command's help reads "add the connected device to
 your Garmin account (experimental; trial run without --apply)", its trial run ends with
 "Experimental.", and the documentation calls it experimental.
@@ -405,5 +406,24 @@ proof. It is made once, by hand, with the log kept:
   changed"; or "on the account's list after adding it: no", which waits a few minutes and a
   Refresh before anything else is tried.
 - **Then:** the device in Garmin Connect's list of devices, as active; `docs/devices.md` and the
-  README say what was checked; the word "experimental" stays until a second device, of another
-  kind, has been added the same way.
+  README say what was checked; the word "experimental" stays until a second attempt succeeds,
+  by another user on another account.
+
+### 9.1 The first attempt
+
+A Venu 2 (part 006-B3703-00, software 19.05), not on the account, was added from the window
+(Add to Account… on the banner, then the question's Add to Account), with the Flatpak of the
+version that brought the feature. The log, in this order, without its times:
+
+```
+account: the device (006-B3703-00) is not among the 2 devices of the account (006-B4440-00 active, 006-B4532-00 active); none of its part number; environment production
+dialog add-to-account: add
+register: 006-B3703-00 sent as an active device (GarminDevice.xml …, environment production)
+HTTP POST https://connectapi.garmin.com/device-service/deviceregistration/device -> 200
+register: Garmin added it (new registration: True, status: active)
+register: on the account's list after adding it: yes
+```
+
+Then the device was checked again, as by Refresh, with no line "is not among" after it, and the
+window showed it on the account. The request went with openExpress's own User-Agent (4.6).
+Nothing was synced afterwards, and the account's primary devices were not changed.
