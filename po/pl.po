@@ -25,12 +25,12 @@ msgstr "Aktywność"
 #: openexpress/activities.py:81
 msgctxt "sport"
 msgid "Running"
-msgstr "Bieg"
+msgstr "Bieganie"
 
 #: openexpress/activities.py:82
 msgctxt "sport"
 msgid "Cycling"
-msgstr "Jazda na rowerze"
+msgstr "Kolarstwo"
 
 #: openexpress/activities.py:83
 msgctxt "sport"
@@ -50,12 +50,12 @@ msgstr "Trening"
 #: openexpress/activities.py:86
 msgctxt "sport"
 msgid "Walking"
-msgstr "Spacer"
+msgstr "Chodzenie"
 
 #: openexpress/activities.py:87
 msgctxt "sport"
 msgid "Cross-country skiing"
-msgstr "Narciarstwo biegowe"
+msgstr "Bieg narciarski"
 
 #: openexpress/activities.py:88
 msgctxt "sport"
@@ -80,7 +80,7 @@ msgstr "Alpinizm"
 #: openexpress/activities.py:92
 msgctxt "sport"
 msgid "Hiking"
-msgstr "Wędrówka"
+msgstr "Piesze wędrówki"
 
 #: openexpress/activities.py:93
 msgctxt "sport"
@@ -90,7 +90,7 @@ msgstr "Multisport"
 #: openexpress/activities.py:94
 msgctxt "sport"
 msgid "Paddling"
-msgstr "Wiosłowanie"
+msgstr "Kajakarstwo"
 
 #: openexpress/activities.py:95
 msgctxt "sport"
@@ -105,7 +105,7 @@ msgstr "Golf"
 #: openexpress/activities.py:97
 msgctxt "sport"
 msgid "Rock climbing"
-msgstr "Wspinaczka skałkowa"
+msgstr "Wspinaczka"
 
 #: openexpress/activities.py:98
 msgctxt "sport"
@@ -115,7 +115,7 @@ msgstr "Rakiety śnieżne"
 #: openexpress/activities.py:99
 msgctxt "sport"
 msgid "Stand-up paddleboarding"
-msgstr "Deska SUP"
+msgstr "SUP"
 
 #: openexpress/activities.py:100
 msgctxt "sport"
