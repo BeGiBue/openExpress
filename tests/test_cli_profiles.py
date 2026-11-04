@@ -55,17 +55,16 @@ def test_a_watch_profile_s_screens(profiles_root, capsys):
     assert capsys.readouterr().out.splitlines() == [
         "Run",
         "Data screens, in the order the device scrolls through them:",
-        ("  1. Screen 1 · 4 fields · Layout code 2, unknown: Timer, Distance, Field 999, "
+        ("  1. Screen 1 · 4 fields · Layout “Stack”: Timer, Distance, Field 999, "
          "Empty field"),
         "  2. Built-in screen 110",
         "Built-in screens:",
         "  Built-in screen 110: on",
         "  Built-in screen 127: off",
         "Screens turned off:",
-        "  Screen 2 · 1 field · Layout code 1, unknown: Elevation",
-        ("The fields are named as Garmin's Edge devices number them; the codes of this "
-         "device's layouts and of some of its built-in screens are not known to openExpress "
-         "yet."),
+        "  Screen 2 · 1 field · Layout “No Labels”: Elevation",
+        ("The fields are named as Garmin's Edge devices number them; the codes of some of this "
+         "device's layouts and built-in screens are not known to openExpress yet."),
     ]
 
 

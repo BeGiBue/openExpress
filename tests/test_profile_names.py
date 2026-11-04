@@ -143,10 +143,19 @@ def test_a_watch_s_built_in_screens_in_polish():
 @pytest.mark.parametrize("edge, variant, said, known", [
     (True, 0, "Layout A", True), (True, 1, "Layout B", True), (True, 2, "Layout C", True),
     (True, 7, "Layout code 7, unknown", False),
-    (False, 2, "Layout code 2, unknown", False),  # a watch's: not known yet
-    (False, 12, "Layout code 12, unknown", False),
+    (False, 2, "Layout “Stack”", True), (False, 1, "Layout “No Labels”", True),
+    (False, 12, "Layout code 12, unknown", False), (False, 4, "Layout code 4, unknown", False),
     (True, None, "Layout not given", False),
 ])
 def test_a_layout_by_its_variant(edge, variant, said, known):
     assert profile_names.layout_name(variant, edge) == said
     assert profile_names.layout_known(variant, edge) is known
+
+
+def test_a_watch_s_layouts_in_polish():
+    try:
+        i18n.setup("pl")
+        said = [profile_names.layout_name(v, False) for v in (2, 1)]
+    finally:
+        i18n.setup("en")
+    assert said == ["Układ „stos”", "Układ „bez podpisów”"]

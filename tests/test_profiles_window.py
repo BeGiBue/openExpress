@@ -182,9 +182,9 @@ def test_a_watch_profile_s_page(monkeypatch):
     # The carousel: by its order, a built-in screen of a watch by its code.
     cards = [t for t in labels if t.startswith(("Screen", "Built-in"))]
     assert cards[:3] == ["Screen 1", "Built-in screen 110", "Screen 2"]
-    assert "4 fields\u00a0· Layout code 2, unknown" in labels
+    assert "4 fields\u00a0· Layout “Stack”" in labels
     assert ("Built-in screen 110", "Not known to openExpress yet") in [r[:2] for r in rows]
-    assert ("Screen 3", "1 field\u00a0· Layout code 1, unknown") in rows  # turned off
+    assert ("Screen 3", "1 field\u00a0· Layout “No Labels”") in rows  # turned off
     assert any("not known to openExpress yet" in t for t in labels)  # the watch's note
 
 
@@ -209,7 +209,7 @@ def test_a_screen_s_page():
     profiles_page.open_screen(win, found, found.profile.screens[0])
     page, rows, _labels = _page_texts(win)
     assert page.get_tag() == "profile-screen" and page.get_title() == "Screen 1"
-    assert rows[:2] == [("Layout", "Layout code 2, unknown"), ("Number of fields", "4")]
+    assert rows[:2] == [("Layout", "Layout “Stack”"), ("Number of fields", "4")]
     assert [r for r in rows if r[1].startswith("Field ")] == [
         ("Timer", "Field 1\u00a0· number 56"), ("Distance", "Field 2\u00a0· number 6"),
         ("Field 999", "Field 3\u00a0· number 999"), ("%Max Heart Rate", "Field 4\u00a0· number 16")]

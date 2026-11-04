@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: openexpress 0.8.3\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-11-04 22:59+0100\n"
+"POT-Creation-Date: 2026-11-04 23:37+0100\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -1161,7 +1161,7 @@ msgstr ""
 msgid "Source"
 msgstr ""
 
-#: openexpress/cli.py:522 openexpress/gui/profiles_page.py:324
+#: openexpress/cli.py:522 openexpress/gui/profiles_page.py:323
 msgid "File"
 msgstr ""
 
@@ -2409,12 +2409,12 @@ msgstr ""
 
 #: openexpress/cli.py:2282 openexpress/gui/profiles_page.py:321
 msgid ""
-"The fields are named as Garmin's Edge devices number them; the codes of this "
-"device's layouts and of some of its built-in screens are not known to "
-"openExpress yet."
+"The fields are named as Garmin's Edge devices number them; the codes of some "
+"of this device's layouts and built-in screens are not known to openExpress "
+"yet."
 msgstr ""
 
-#: openexpress/cli.py:2295 openexpress/gui/profiles_page.py:392
+#: openexpress/cli.py:2295 openexpress/gui/profiles_page.py:391
 msgid "This device keeps no activity profiles."
 msgstr ""
 
@@ -4126,7 +4126,7 @@ msgctxt "tab"
 msgid "Activity profiles"
 msgstr ""
 
-#: openexpress/gui/app.py:100 openexpress/gui/profiles_page.py:401
+#: openexpress/gui/app.py:100 openexpress/gui/profiles_page.py:400
 msgid "Reading profiles…"
 msgstr ""
 
@@ -5625,76 +5625,76 @@ msgstr ""
 msgid "Screens turned off"
 msgstr ""
 
-#: openexpress/gui/profiles_page.py:318 openexpress/gui/profiles_page.py:360
+#: openexpress/gui/profiles_page.py:318 openexpress/gui/profiles_page.py:359
 msgid "Details"
 msgstr ""
 
-#: openexpress/gui/profiles_page.py:341
+#: openexpress/gui/profiles_page.py:340
 msgid ""
 "The fields in their order; where each stands on the screen depends on the "
 "layout"
 msgstr ""
 
-#: openexpress/gui/profiles_page.py:344 openexpress/gui/profiles_page.py:345
+#: openexpress/gui/profiles_page.py:343 openexpress/gui/profiles_page.py:344
 msgid "Layout"
 msgstr ""
 
-#: openexpress/gui/profiles_page.py:346
+#: openexpress/gui/profiles_page.py:345
 msgid "Number of fields"
 msgstr ""
 
-#: openexpress/gui/profiles_page.py:348
+#: openexpress/gui/profiles_page.py:347
 msgid "Fields"
 msgstr ""
 
-#: openexpress/gui/profiles_page.py:349
+#: openexpress/gui/profiles_page.py:348
 msgid "In their order on the screen"
 msgstr ""
 
 #. TRANSLATORS: the n-th place of a screen
 #. TRANSLATORS: the number of a data field in the profile file
-#: openexpress/gui/profiles_page.py:353 openexpress/gui/profiles_page.py:356
+#: openexpress/gui/profiles_page.py:352 openexpress/gui/profiles_page.py:355
 #, python-brace-format
 msgid "Field {place}"
 msgstr ""
 
-#: openexpress/gui/profiles_page.py:357
+#: openexpress/gui/profiles_page.py:356
 #, python-brace-format
 msgid "number {number}"
 msgstr ""
 
-#: openexpress/gui/profiles_page.py:361
+#: openexpress/gui/profiles_page.py:360
 msgid "Code of the screen"
 msgstr ""
 
-#: openexpress/gui/profiles_page.py:362
+#: openexpress/gui/profiles_page.py:361
 msgid "State"
 msgstr ""
 
-#: openexpress/gui/profiles_page.py:415
+#: openexpress/gui/profiles_page.py:414
 msgid "No activity profiles"
 msgstr ""
 
-#: openexpress/gui/profiles_page.py:421
+#: openexpress/gui/profiles_page.py:420
 #, python-brace-format
 msgid "Search {count} profile"
 msgid_plural "Search {count} profiles"
 msgstr[0] ""
 msgstr[1] ""
 
-#: openexpress/gui/profiles_page.py:429
+#: openexpress/gui/profiles_page.py:428
 msgid "Used recently"
 msgstr ""
 
-#: openexpress/gui/profiles_page.py:429
+#: openexpress/gui/profiles_page.py:428
 msgid "From the newest activities on the device"
 msgstr ""
 
-#: openexpress/gui/profiles_page.py:433
+#: openexpress/gui/profiles_page.py:432
 msgid "All profiles"
 msgstr ""
 
-#: openexpress/gui/profiles_page.py:439
+#: openexpress/gui/profiles_page.py:438
 msgid "Files that are no profile"
 msgstr ""
 
@@ -8539,18 +8539,34 @@ msgstr ""
 msgid "Built-in screen {code}"
 msgstr ""
 
-#: openexpress/profile_names.py:409
+#: openexpress/profile_names.py:406
+msgctxt "layout"
+msgid "No Labels"
+msgstr ""
+
+#: openexpress/profile_names.py:407
+msgctxt "layout"
+msgid "Stack"
+msgstr ""
+
+#: openexpress/profile_names.py:419
 msgid "Layout not given"
 msgstr ""
 
 #. TRANSLATORS: the layout of a data screen by the letter of the device's menu
-#: openexpress/profile_names.py:412
+#: openexpress/profile_names.py:422
 #, python-brace-format
 msgid "Layout {letter}"
 msgstr ""
 
+#. TRANSLATORS: the layout of a watch's data screen by its family ("Stack")
+#: openexpress/profile_names.py:425
+#, python-brace-format
+msgid "Layout “{family}”"
+msgstr ""
+
 #. TRANSLATORS: a layout openExpress has no name for, by its code in the profile
-#: openexpress/profile_names.py:414
+#: openexpress/profile_names.py:427
 #, python-brace-format
 msgid "Layout code {code}, unknown"
 msgstr ""

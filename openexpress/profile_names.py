@@ -311,7 +311,7 @@ def field_name(number: int | None, edge: bool = True) -> str:
 def edge_shaped(profile) -> bool:
     """Whether the file is in the shape of an Edge's (it says which screens are hidden): the
     codes and layouts of the Edge bike computers are known; of a watch's, some built-in screens
-    and no layouts yet."""
+    and layouts."""
     return profile.has_hidden_flag
 
 
@@ -398,17 +398,30 @@ def built_in_name(screen, edge: bool) -> str:
 _EDGE_LAYOUTS = {0: "A", 1: "B", 2: "C"}
 
 
+# The families of a watch's layouts, as Garmin Connect's pictures of a fēnix 8's screens show
+# them: a stack of rows (two fields in two rows, three in three, four with the lower row split),
+# one field without a label.
+def _watch_layouts() -> dict[int, str]:
+    return {
+        1: pgettext("layout", "No Labels"),
+        2: pgettext("layout", "Stack"),
+    }
+
+
 def layout_known(variant: int | None, edge: bool) -> bool:
-    return edge and variant in _EDGE_LAYOUTS
+    return variant in (_EDGE_LAYOUTS if edge else _watch_layouts())
 
 
 def layout_name(variant: int | None, edge: bool) -> str:
-    """The layout of a screen of one's own: its letter on an Edge; its code otherwise (a
-    watch's codes are not known yet)."""
+    """The layout of a screen of one's own: its letter on an Edge, its family on a watch; its
+    code when it is not known."""
     if variant is None:
         return _("Layout not given")
-    if layout_known(variant, edge):
+    if layout_known(variant, edge) and edge:
         # TRANSLATORS: the layout of a data screen by the letter of the device's menu
         return _("Layout {letter}").format(letter=_EDGE_LAYOUTS[variant])
+    if layout_known(variant, edge):
+        # TRANSLATORS: the layout of a watch's data screen by its family ("Stack")
+        return _("Layout “{family}”").format(family=_watch_layouts()[variant])
     # TRANSLATORS: a layout openExpress has no name for, by its code in the profile
     return _("Layout code {code}, unknown").format(code=variant)

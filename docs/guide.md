@@ -356,8 +356,9 @@ learnt them on Edge bike computers (Activity Profile Editor and Sommet, see the 
 thanks); a field, a built-in screen or a layout without a known name is shown by its number. On
 a watch (checked on a fēnix 8) the fields have the Edge's numbers, with a few of its own (pace,
 its charts and gauges), named as Garmin Connect names them for the watch; so are some of its
-built-in screens (Map, Compass, its clocks). The codes of its other built-in screens and of its
-layouts are not known yet and are shown as numbers.
+built-in screens (Map, Compass, its clocks) and the families of some of its layouts (a stack of
+rows, a field without a label). The codes of its other built-in screens and layouts are not
+known yet and are shown as numbers.
 
 ## Sync details
 

@@ -318,9 +318,8 @@ def open_profile(win, profile_file) -> None:
     details = Adw.PreferencesGroup(title=_("Details"))
     if not edge:
         details.set_description(_(
-            "The fields are named as Garmin's Edge devices number them; the codes of this "
-            "device's layouts and of some of its built-in screens are not known to openExpress "
-            "yet."))
+            "The fields are named as Garmin's Edge devices number them; the codes of some of "
+            "this device's layouts and built-in screens are not known to openExpress yet."))
     details.add(_row(_("File"), profile_file.name))
     box.append(details)
     log.info("profile page: %d screens shown, %d built-in, %d turned off (%s)",
