@@ -77,8 +77,9 @@ def test_the_side_panel_chooses_a_section(window):
     from gi.repository import Gtk
 
     keys = list(window.sections)
-    assert keys == ["watch", "updates", "maps", "apps", "music", "activities"]
+    assert keys == ["watch", "updates", "maps", "apps", "music", "activities", "profiles"]
     assert window.sections["activities"].icon == "x-office-calendar-symbolic"
+    assert window.sections["profiles"].icon == "view-grid-symbolic"
     rows = [r for r in descendants(window.nav) if isinstance(r, Gtk.ListBoxRow)]
     assert [r.key for r in rows] == keys
     window.select_section("maps")

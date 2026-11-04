@@ -10,7 +10,14 @@ import types
 import uuid
 
 import pytest
-from fakes import descendants, program_style, record_sync, start_section
+from fakes import (
+    ScreenRecord,
+    descendants,
+    program_style,
+    record_sync,
+    sport_file,
+    start_section,
+)
 
 NARROWEST = 360  # the width of gui_settings.MIN_WINDOW
 FONT = "Adwaita Sans 11"  # GNOME's: the widths are measured in it
@@ -265,10 +272,39 @@ def _fill(win, page: str) -> str:
         MainWindow.show_music(win, _music(), free=win.session.storage.free_space())
     elif key == "activities":
         MainWindow.show_activities(win, _activities())
+    elif key == "profiles":
+        MainWindow.show_profiles(win, None, _profiles(), ["Narciarstwo skiturowe w terenie"])
     win.sections[key].show("content")
     win._update_actions()
     win._update_banner()
     return key
+
+
+# Profiles with long names and long words, of a watch and of an Edge.
+LONG_SCREENS = (
+    ScreenRecord(place=0, code=0, order=0, fields=(7, 445, 269, 177), variant=2),
+    ScreenRecord(place=1, code=221, order=1, fields=(), variant=12),
+    ScreenRecord(place=2, code=1, state=0, order=None, fields=(579,), variant=3),
+)
+LONG_EDGE = (
+    ScreenRecord(place=0, code=0, order=0, fields=(445, 177, 269), variant=1),
+    ScreenRecord(place=1, code=63, order=1), ScreenRecord(place=2, code=128, order=2, hidden=1),
+)
+
+
+def _profiles():
+    from openexpress import profiles
+
+    files = []
+    for name, screens, shape in (("Narciarstwo skiturowe w terenie", LONG_SCREENS, "watch"),
+                                 ("Kolarstwo szosowe z czujnikami", LONG_EDGE, "edge")):
+        data = sport_file(name, screens=screens, shape=shape)
+        files.append(profiles.ProfileFile(f"GARMIN/Sports/{name}.fit", f"{name}.fit",
+                                          len(data), 0.0, profiles.read_profile(data)))
+    files.append(profiles.ProfileFile("GARMIN/Sports/Uszkodzony.fit", "Uszkodzony.fit", 3, 0.0,
+                                      None, "The file of this profile could not be read (it "
+                                      "ends too soon)"))
+    return files
 
 
 def _iterate(seconds):
@@ -343,7 +379,7 @@ DEVICE_PAGES = ["device", "device-update-copied", "device-off-account", "device-
                 "device-refused-drive", "updates-beta",
                 "updates-beta-drive",
                 "updates-beta-copied", "updates-beta-copied-drive", "maps", "maps-none", "apps",
-                "music", "activities"]
+                "music", "activities", "profiles"]
 
 
 @pytest.mark.parametrize("language", ["en", "pl"])
@@ -975,3 +1011,22 @@ def test_the_banner_of_devices_that_stopped_responding_fits_the_narrowest_window
     _iterate(0.05)
     assert win.banner.get_revealed() and "Edge 1050" in win.banner.get_title()
     assert _min_width(win.device_view) <= NARROWEST
+
+
+@pytest.mark.parametrize("language", ["en", "pl"])
+@pytest.mark.parametrize("which", [0, 1])
+def test_a_profile_s_pages_fit_the_narrowest_window(narrow_window, language, which):
+    """A profile's page and its first screen's, of a watch and of an Edge, with long names."""
+    from openexpress.gui import profiles_page
+
+    win = narrow_window(language)
+    _fill(win, "profiles")
+    win.navigation.set_animate_transitions(False)
+    win.navigation.push(win.device_view)
+    found = _profiles()[which]
+    profiles_page.open_profile(win, found)
+    _iterate(0.05)
+    assert _min_width(win.navigation.get_visible_page()) <= NARROWEST
+    profiles_page.open_screen(win, found, found.profile.screens[0])
+    _iterate(0.05)
+    assert _min_width(win.navigation.get_visible_page()) <= NARROWEST

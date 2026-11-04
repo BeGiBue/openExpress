@@ -35,7 +35,7 @@ from openexpress import (  # noqa: E402
 )
 from openexpress.connect import ApiError, NotAccountDevice, OwnershipError  # noqa: E402
 from openexpress.device.gio_storage import DeviceSummary, FoundDevice, mass_storage_text  # noqa: E402
-from openexpress.gui import activity_page, pictures, start  # noqa: E402
+from openexpress.gui import activity_page, pictures, profiles_page, start  # noqa: E402
 from openexpress.gui.add_to_account import (  # noqa: E402
     add_to_account_row,
     confirm_add_to_account,
@@ -716,6 +716,8 @@ class DevicePage:
         """Every page of the device view loaded anew: nothing kept from the device before, nor
         the page of an activity read from it."""
         activity_page.leave(self)
+        profiles_page.leave(self)
+        self.profiles = None
         self.maps_cache = self.updates_cache = None
         self.map_cleanup = []
         self.update_state = None
@@ -828,10 +830,8 @@ class DevicePage:
         if getattr(self.session, "mass_storage", False) and key in NOT_FOR_MASS_STORAGE:
             show_not_for_mass_storage(sec)  # no request, nothing read
             return
-        loader = {"updates": self.load_updates, "maps": self.load_maps,
-                  "apps": self.load_apps, "music": self.load_music,
-                  "activities": self.load_activities}[key]
-        loader()
+        # Only the loader of the page asked for is looked up.
+        getattr(self, f"load_{key}")()
 
     def _load(self, key: str, title: str, work, show, device: bool = True,
               on_error=None) -> None:

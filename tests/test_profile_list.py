@@ -67,6 +67,16 @@ def test_the_profiles_of_the_device_by_name(root):
     assert {f.name for f in found} == {"Bike.fit", "Hike.fit", "Run.fit"}
 
 
+def test_the_profiles_are_sorted_with_letter_case_and_diacritics_aside(root):
+    sports = root / "GARMIN" / "Sports"
+    (sports / "C.fit").write_bytes(sport_file("Ćwiczenia siłowe", 10, screens=SCREEN))
+    (sports / "L.fit").write_bytes(sport_file("łyżwy", 13, screens=SCREEN))
+    found = profiles.ProfileList(device(), Counting(root)).read_all()
+    assert [f.profile.name for f in found] == ["Bike", "Ćwiczenia siłowe", "Hike", "łyżwy",
+                                               "Run"]
+    assert profiles.sort_key("Ćwiczenia ŁYŻWY") == "cwiczenia lyzwy"
+
+
 def test_each_file_is_read_once_and_again_when_it_changed(root):
     storage = Counting(root)
     listing = profiles.ProfileList(device(), storage)

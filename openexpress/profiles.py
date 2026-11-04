@@ -24,6 +24,7 @@ from __future__ import annotations
 
 import logging
 import time
+import unicodedata
 from collections.abc import Callable, Iterable
 from dataclasses import dataclass, field
 
@@ -228,7 +229,14 @@ class ProfileList:
                      len(keys), len(to_read), time.monotonic() - started, applog.size(size),
                      unreadable)
         return sorted(self._kept.values(), key=lambda f: (
-            f.profile is None, (f.profile.name if f.profile else f.name).casefold()))
+            f.profile is None, sort_key(f.profile.name if f.profile else f.name)))
+
+
+def sort_key(name: str) -> str:
+    """A name as profiles are sorted and searched by it: letter case and diacritics aside (ł
+    as l too)."""
+    text = unicodedata.normalize("NFKD", name.casefold().replace("ł", "l"))
+    return "".join(c for c in text if not unicodedata.combining(c))
 
 
 def recent_names(summaries: Iterable, limit: int = 5) -> list[str]:
