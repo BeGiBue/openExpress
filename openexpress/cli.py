@@ -56,6 +56,13 @@ FIRST_SYNC_CHOICE = 3
 WORKS_ON_DEVICE = frozenset({"sync", "backup", "updates", "maps", "apps", "music"})
 
 
+# Commands that open a device: they take --path, --device-uri and --no-wait after them too
+# (_device_options).
+DEVICE_COMMANDS = frozenset({
+    "report", "info", "files", "activities", "diagnostics", "upload-config", "sync", "baseline",
+    "backup", "updates", "maps", "primary", "profiles", "register", "apps", "music"})
+
+
 # Commands that do not apply to a Garmin device in mass storage mode (as in the window);
 # `sync` of one goes as service.drive_sync_refusal lets it (service.refuse_drive_sync).
 NOT_ON_A_DRIVE = ("apps", "music", "maps")
@@ -2626,15 +2633,7 @@ def build_parser() -> argparse.ArgumentParser:
     p.add_argument("--lang", metavar="LANG",
                    help=_("interface language, e.g. {examples}").format(
                        examples=", ".join(i18n.available_languages())))
-    # A device in mass storage mode is found by itself, like an MTP device.
-    p.add_argument("--path", metavar="DIR",
-                   help=_("a folder with a copy of a device's files, instead of a connected "
-                          "device"))
-    p.add_argument("--device-uri", metavar="URI", help=_("MTP device URI, e.g. {example}").format(
-        example="mtp://091e_51b4_…/"))
-    p.add_argument("--no-wait", action="store_true",
-                   help=_("do not wait for a device that was just plugged in and is still "
-                          "starting"))
+    _device_options(p)
     sub = p.add_subparsers(dest="cmd")
     # Without a command the application window opens (as from the application menu), and
     # it is logged as the window. After add_subparsers: it would set "cmd" to None.
@@ -2938,7 +2937,39 @@ def build_parser() -> argparse.ArgumentParser:
     s.add_argument("--force", action="store_true",
                    help=_("install even if the Flatpak of openExpress is installed"))
     s.set_defaults(func=cmd_install_desktop)
+    for name in DEVICE_COMMANDS:
+        for parser in _with_its_commands(sub.choices[name]):
+            _device_options(parser, after_command=True)
     return p
+
+
+def _device_options(parser: argparse.ArgumentParser, after_command: bool = False) -> None:
+    """Which device a command opens: before the command, and after one that opens a device
+    ("openexpress sync --device-uri …", as the message of several devices says it). After it,
+    an option left out keeps what was given before the command (no default of its own)."""
+    keep = {"default": argparse.SUPPRESS} if after_command else {}
+    # A device in mass storage mode is found by itself, like an MTP device.
+    parser.add_argument("--path", metavar="DIR",
+                        help=_("a folder with a copy of a device's files, instead of a "
+                               "connected device"), **keep)
+    parser.add_argument("--device-uri", metavar="URI",
+                        help=_("MTP device URI, e.g. {example}").format(
+                            example="mtp://091e_51b4_…/"), **keep)
+    parser.add_argument("--no-wait", action="store_true",
+                        help=_("do not wait for a device that was just plugged in and is still "
+                               "starting"), **keep)
+
+
+def _with_its_commands(parser: argparse.ArgumentParser):
+    """A command's parser and those of its own commands (maps install …), each once."""
+    yield parser
+    seen = set()
+    for action in parser._actions:
+        if isinstance(action, argparse._SubParsersAction):
+            for child in action.choices.values():
+                if id(child) not in seen:
+                    seen.add(id(child))
+                    yield from _with_its_commands(child)
 
 
 def _lang_from_argv(argv: list[str]) -> str | None:

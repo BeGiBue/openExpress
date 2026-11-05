@@ -49,8 +49,9 @@ in the version from source it is `openexpress <command>`.
 
 Before the command: `--lang LANG` (the language of this run), `-v` (more detail), `--no-wait`
 (see below), `--device-uri URI` (one MTP device when several are connected), `--path DIR` (a
-folder with a copy of a device's files instead of a device) and `--version`. `openexpress`
-without a command opens the window.
+folder with a copy of a device's files instead of a device) and `--version`. `--no-wait`,
+`--device-uri` and `--path` also go after a command that opens a device
+(`openexpress sync --device-uri URI`). `openexpress` without a command opens the window.
 
 All commands that change anything run **in dry-run mode by default**:
 they show the plan and do nothing without `--apply`. The exceptions are `setup`, `login` and
