@@ -536,6 +536,23 @@ def test_a_412_is_not_undone_by_a_location_that_needs_a_consent(device_root, tmp
     assert not any(state.is_completed("FIT_TYPE_4", name) for name in (FIRST, SECOND))
 
 
+@pytest.mark.parametrize("datatype, main, optional", [("FIT_TYPE_4", ACT, MON),
+                                                      ("FIT_TYPE_32", MON, ACT)])
+def test_a_412_at_a_location_that_needs_a_consent_is_that_location_s_refusal(
+        device_root, tmp_path, datatype, main, optional):
+    """The main location took the file and an optional one that needs a consent (HRV, skin
+    temperature) answers 412: the file is uploaded and marked like any refused optional
+    location's, and the files after it (monitoring and sleep data come in order) go on."""
+    config = {"datatypes": [{"datatypename": datatype, "uploadlocations": [
+        {"url": main, "requiresauthentication": True, "requiresuserconsent": False},
+        {"url": optional, "requiresauthentication": True, "requiresuserconsent": True}]}]}
+    st, dev, state = _setup(device_root, tmp_path)
+    plan = sync.plan_uploads(dev, st, config, state, only_types={datatype})
+    rep = sync.run_uploads(plan, dev, st, SyncClient(statuses={main: 201, optional: 412}), state)
+    assert plan.candidates and (rep.not_taken, rep.failed) == ([], [])
+    assert len(rep.uploaded) == len(plan.candidates)
+
+
 def test_a_429_holds_back_the_rest_of_that_kind_only(device_root, tmp_path):
     """429: too many uploads. The file fails (the next sync tries it again) and the other files
     of its kind wait for the next sync; the other kinds go on."""

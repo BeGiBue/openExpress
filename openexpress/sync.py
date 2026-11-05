@@ -575,10 +575,11 @@ def _upload_one(c, data, label, last, client, state, report, progress,
         if res.status == 409:
             outcome = "duplicate"
         elif res.status == 412:
-            # Garmin Connect has no consent for this file: it is left out as a refusing
-            # location's file is (the next sync tries again), whatever another location
-            # answers; the other files go on.
-            refused = True
+            # Garmin Connect has no consent for this file. At a location that needs a consent
+            # (HRV, skin temperature) it is that location's refusal, as below; at one that
+            # needs none the file is left out as a refusing location's file is (the next sync
+            # tries again), whatever another location answers. The other files go on.
+            refused = refused or not loc.requires_consent
             continue
         elif res.status == 429:
             # Too many uploads: the other files of this kind wait for the next sync, the
