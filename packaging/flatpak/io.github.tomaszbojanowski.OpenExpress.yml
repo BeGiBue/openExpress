@@ -104,6 +104,8 @@ modules:
   - name: openexpress
     buildsystem: simple
     build-commands:
+      # The compiled catalogs and the translated metainfo, made from po/ (not in the repository)
+      - python3 -m openexpress.catalogs
       - pip3 install --no-index --no-deps --no-build-isolation --prefix=${FLATPAK_DEST} .
       - python3 -c "from openexpress.desktop import desktop_entry; print(desktop_entry('openexpress gui'), end='')"
         > ${FLATPAK_ID}.desktop
@@ -131,6 +133,9 @@ modules:
         skip:
           - _extracted
           - testdata
+          # Made by the build itself, never taken from the working tree
+          - openexpress/locale
+          - openexpress/data/io.github.tomaszbojanowski.OpenExpress.metainfo.xml
           - build
           - .flatpak-builder
           - flatpak-build

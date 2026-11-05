@@ -173,7 +173,7 @@ def cmd_setup(args) -> int:
         environment=settings.environment, locale=settings.locale))
     if args.ui_language:
         print(_("Interface language: {language}").format(
-            language=i18n.LANGUAGE_NAMES.get(ui_language, ui_language) if ui_language
+            language=i18n.language_name(ui_language) if ui_language
             else _("system language")))
     if getattr(args, "diagnostics_copy", None):
         print(_diagnostics_copy_text(settings.diagnostics_copy))
@@ -2590,6 +2590,8 @@ def cmd_install_desktop(args) -> int:
                 "A second entry with the same name would hide it. Use --force to install "
                 "anyway, or turn on background sync in the Flatpak window."), file=sys.stderr)
         return 1
+    if args.apply:
+        _build_translations()
     written, removed = desktop.install(dry_run=not args.apply)
     for p in written:
         print((_("Wrote {path}") if args.apply else _("Would write {path}")).format(path=p))
@@ -2602,6 +2604,21 @@ def cmd_install_desktop(args) -> int:
     print("\n" + _("To enable background sync, run:"))
     print("  systemctl --user daemon-reload && systemctl --user enable --now " + desktop.SERVICE)
     return 0
+
+
+def _build_translations() -> None:
+    """From source: the compiled catalogs and the metainfo built from po/ (they are not in the
+    repository), before the menu entry, which takes its translations from them. Without
+    gettext the program and its entry stay in English: said, and the install goes on."""
+    from openexpress import catalogs
+
+    if not catalogs.PO.is_dir():
+        return  # an installed package: its catalogs came with it
+    try:
+        catalogs.build()
+        catalogs.compose_metainfo()
+    except catalogs.CatalogError as e:
+        print(e, file=sys.stderr)
 
 
 # --- parser ----------------------------------------------------------------------------

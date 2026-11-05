@@ -117,8 +117,24 @@ def pytest_unconfigure(config):
 
 # Tests check English messages regardless of the system language.
 os.environ["OPENEXPRESS_LANG"] = "en"
-from openexpress import i18n  # noqa: E402 - after the display and the language are set
+from openexpress import catalogs, i18n  # noqa: E402 - after the display and the language are set
 
+
+def _catalogs_of_the_tests() -> Path:
+    """The compiled catalogs of every language of po/LINGUAS, built from po/ into a folder of
+    the tests (none is kept in the repository), and read by the program from there."""
+    import tempfile
+
+    folder = Path(tempfile.mkdtemp(prefix="openexpress-tests-locale-"))
+    atexit.register(shutil.rmtree, folder, ignore_errors=True)
+    try:
+        catalogs.build(folder)
+    except catalogs.CatalogError as e:
+        pytest.exit(f"The tests need the translations built: {e}", returncode=4)
+    return folder
+
+
+i18n.LOCALE_DIR = _catalogs_of_the_tests()
 i18n.setup("en")
 
 

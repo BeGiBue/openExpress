@@ -1,12 +1,16 @@
 #!/usr/bin/env python3
-"""Polish typography in a .po file: a hard space (U+00A0) instead of a plain one after a
-one-letter word (w, z, i, o, u, a and their capitals), so that the word never stays at the
-end of a line when a text of the window wraps. tests/test_i18n.py checks po/pl.po for it.
+"""Typography in a .po file, by the rules of its language, so that a text of the window that
+wraps never leaves a short word or a mark alone at the end or the start of a line:
+- Polish, Czech and Slovak: a hard space (U+00A0) instead of a plain one after a one-letter
+  word (Polish w, z, i, o, u, a; Czech and Slovak k, s, v, z, o, u, a, i; and their capitals);
+- French: a narrow hard space (U+202F) instead of a plain one before ; : ! ? and inside « ».
+The language is the file's name (pl.po), or --lang. A language without rules is left as it
+is. tests/test_i18n.py checks every language of po/LINGUAS that has rules.
 
 Usage, after new translations (e.g. tools/po-fill.py):
     tools/po-hard-spaces.py po/pl.po            preview: what would change, nothing written
     tools/po-hard-spaces.py po/pl.po --apply    write it
-    msgfmt --check -o openexpress/locale/pl/LC_MESSAGES/openexpress.mo po/pl.po
+    tools/po-hard-spaces.py draft.po --lang cs  a file named otherwise
 
 Only msgstr (also msgstr[N]) is changed, not in the header nor in obsolete entries (#~), and
 the layout of the lines stays.
@@ -15,12 +19,31 @@ import re
 import sys
 from pathlib import Path
 
-NBSP = "\u00a0"
+NBSP, NARROW_NBSP = "\u00a0", "\u202f"
 KEY = re.compile(r'^(msgctxt|msgid|msgid_plural|msgstr(?:\[\d+\])?) "(.*)"$')
 CONTINUED = re.compile(r'^"(.*)"$')
 # A letter that is not a word is left alone: one after a letter or a digit, a format code
 # (%i), a tag (<a href…>), an option (-a), a placeholder ({a}), a path (/a) or an escape (\a).
-ONE_LETTER = re.compile(r"(?<![\w%<\-/{\\])[wziouaWZIOUA] ")
+ONE_LETTER_WORDS = {"pl": "wziouaWZIOUA", "cs": "ksvzouaiKSVZOUAI", "sk": "ksvzouaiKSVZOUAI"}
+
+
+def one_letter_words(letters: str):
+    pattern = re.compile(rf"(?<![\w%<\-/{{\\])[{letters}] ")
+
+    def spaces(text: str) -> list[tuple[int, str]]:
+        # One after another ("i w ") as well: each match takes the letter and its space.
+        return [(m.end() - 1, NBSP) for m in pattern.finditer(text)]
+    return spaces
+
+
+def french(text: str) -> list[tuple[int, str]]:
+    """The plain spaces before ; : ! ? and », and after «."""
+    return [(i, NARROW_NBSP) for i, ch in enumerate(text) if ch == " " and (
+        (i + 1 < len(text) and text[i + 1] in ";:!?»") or (i > 0 and text[i - 1] == "«"))]
+
+
+RULES = {**{lang: one_letter_words(letters) for lang, letters in ONE_LETTER_WORDS.items()},
+         "fr": french}
 ESCAPES = {"n": "\n", "t": "\t", '"': '"', "\\": "\\"}
 
 
@@ -72,27 +95,31 @@ def fields(lines):
 def main():
     path = Path(sys.argv[1])
     apply = "--apply" in sys.argv[2:]
+    lang = sys.argv[sys.argv.index("--lang") + 1] if "--lang" in sys.argv else path.stem
+    rule = RULES.get(lang)
+    if rule is None:
+        print(f"{lang}: no rules for hard spaces, nothing to do")
+        return
     lines = path.read_text(encoding="utf-8").split("\n")
     changed_texts = replaced = 0
     for key, chunks in fields(lines):
         chars = [(ch, chunk, raw_i) for chunk, (_n, _start, raw) in enumerate(chunks)
                  for ch, raw_i in decoded(raw)]
         text = "".join(ch for ch, _c, _i in chars)
-        # One after another ("i w ") as well: each match takes the letter and its space.
-        spaces = [m.end() - 1 for m in ONE_LETTER.finditer(text)]
+        spaces = rule(text)
         if not spaces:
             continue
         changed_texts += 1
         replaced += len(spaces)
         shown = list(text)
-        for pos in spaces:
+        for pos, hard in spaces:
             shown[pos] = "⍽"
             _ch, chunk, raw_i = chars[pos]
             n, start, _raw = chunks[chunk]
             line = lines[n]
             at = start + raw_i
             assert line[at] == " ", (n, line)
-            lines[n] = line[:at] + NBSP + line[at + 1:]
+            lines[n] = line[:at] + hard + line[at + 1:]
         print(f"{key} (line {chunks[0][0] + 1}): {''.join(shown)!r}")
     done = "" if apply else " (preview, nothing written)"
     print(f"\n{changed_texts} texts, {replaced} spaces{done}")
@@ -100,4 +127,5 @@ def main():
         path.write_text("\n".join(lines), encoding="utf-8")
 
 
-main()
+if __name__ == "__main__":
+    main()

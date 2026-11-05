@@ -1,4 +1,7 @@
 # Build and cache files
+# Made at the build from po/ (python3 -m openexpress.catalogs), never committed
+openexpress/locale/
+openexpress/data/io.github.tomaszbojanowski.OpenExpress.metainfo.xml
 __pycache__/
 .ruff_cache/
 *.pyc

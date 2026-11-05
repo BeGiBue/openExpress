@@ -214,6 +214,12 @@ report has no serial number, unit ID or e-mail. Do not post the output of `opene
 your `GarminDevice.xml` or the files in `~/.config/openexpress`. When something goes wrong:
 [Troubleshooting](docs/troubleshooting.md).
 
+## Help translate
+
+openExpress speaks English and Polish. To add your language or correct one, send a pull
+request with a `.po` file: [Adding a translation](CONTRIBUTING.md#adding-a-translation).
+Translators are named in [TRANSLATORS](TRANSLATORS) and in the window's About dialog.
+
 ## Documentation
 
 - [Supported devices](docs/devices.md) – every device and what was tested, USB modes

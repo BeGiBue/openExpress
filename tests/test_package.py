@@ -12,7 +12,7 @@ import openexpress
 
 ROOT = Path(openexpress.__file__).parent.parent
 PYPROJECT = tomllib.loads((ROOT / "pyproject.toml").read_text(encoding="utf-8"))
-METAINFO = ROOT / "openexpress" / "data" / "io.github.tomaszbojanowski.OpenExpress.metainfo.xml"
+METAINFO = ROOT / "openexpress" / "data" / "io.github.tomaszbojanowski.OpenExpress.metainfo.xml.in"
 
 
 def test_the_version_is_the_same_in_its_three_places():

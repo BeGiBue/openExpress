@@ -1,15 +1,17 @@
 import re
-import shutil
 import subprocess
 import sys
 from pathlib import Path
 
 import pytest
 
-from openexpress import i18n
+from openexpress import catalogs, i18n
 
 ROOT = Path(__file__).resolve().parent.parent
-PO_FILES = sorted((ROOT / "po").glob("*.po"))
+# Every language of po/LINGUAS: its placeholders and plural forms; Polish, the one complete
+# translation, also its completeness and hard spaces.
+PO_FILES = [ROOT / "po" / f"{language}.po" for language in catalogs.languages()]
+HARD_SPACES = ROOT / "tools" / "po-hard-spaces.py"
 PLACEHOLDER = re.compile(r"\{\w+\}|%\(\w+\)\w|%s")
 
 
@@ -130,13 +132,84 @@ def test_the_tool_puts_hard_spaces_into_msgstr_only(tmp_path):
         .replace('"W tle"', f'"W{nb}tle"').replace('"u nas"', f'"u{nb}nas"'))
 
 
-@pytest.mark.skipif(not shutil.which("msgfmt"), reason="msgfmt not installed")
 @pytest.mark.parametrize("po", PO_FILES, ids=lambda p: p.stem)
-def test_compiled_catalog_is_current(po, tmp_path):
-    mo = ROOT / "openexpress/locale" / po.stem / "LC_MESSAGES" / f"{i18n.DOMAIN}.mo"
-    fresh = tmp_path / "fresh.mo"
-    subprocess.run(["msgfmt", "--check", "-o", str(fresh), str(po)], check=True)
-    assert mo.read_bytes() == fresh.read_bytes(), "run tools/update-translations.sh"
+def test_every_language_with_rules_has_its_hard_spaces(po):
+    """tools/po-hard-spaces.py finds nothing to change in any language it has rules for (a
+    language without rules is said to have none)."""
+    done = subprocess.run([sys.executable, "-I", str(HARD_SPACES), str(po)],
+                          capture_output=True, text=True, check=True)
+    assert done.stdout.endswith("\n0 texts, 0 spaces (preview, nothing written)\n") or (
+        done.stdout == f"{po.stem}: no rules for hard spaces, nothing to do\n")
+
+
+def test_polish_is_complete():
+    """Polish is the maintainer's: every text has it, none is fuzzy."""
+    text = (ROOT / "po" / "pl.po").read_text(encoding="utf-8")
+    assert "#, fuzzy\nmsgid \"\"" not in text.split("\n\n", 1)[1]
+    assert not any("fuzzy" in line for line in text.splitlines()[20:] if line.startswith("#,"))
+    empty = [e["msgid"] for e in _entries(ROOT / "po" / "pl.po")
+             if not any(v for k, v in e.items() if k.startswith("msgstr"))]
+    assert empty == []
+
+
+def _tool(tmp_path, name, text, *args):
+    po = tmp_path / name
+    po.write_text(text, encoding="utf-8")
+    done = subprocess.run([sys.executable, "-I", str(HARD_SPACES), str(po), "--apply", *args],
+                          capture_output=True, text=True, check=True)
+    return po.read_text(encoding="utf-8"), done.stdout
+
+
+CZECH_PO = """msgid ""
+msgstr ""
+"Language: cs\\n"
+
+msgid "x"
+msgstr "Soubor v adresáři a k zařízení s kopií"
+"""
+
+
+@pytest.mark.parametrize("language", ["cs", "sk"])
+def test_czech_and_slovak_get_hard_spaces_after_one_letter_words(tmp_path, language):
+    text, said = _tool(tmp_path, f"{language}.po", CZECH_PO)
+    nb = "\u00a0"
+    assert f'"Soubor v{nb}adresáři a{nb}k{nb}zařízení s{nb}kopií"' in text
+    assert said.endswith("\n1 texts, 4 spaces\n")
+
+
+FRENCH_PO = """msgid ""
+msgstr ""
+"Language: fr\\n"
+
+msgid "x"
+msgstr "Erreur : le fichier « a » manque ; vraiment ?"
+"""
+
+
+def test_french_gets_narrow_hard_spaces_before_its_marks_and_inside_its_quotes(tmp_path):
+    text, said = _tool(tmp_path, "fr.po", FRENCH_PO)
+    nn = "\u202f"
+    assert f'"Erreur{nn}: le fichier «{nn}a{nn}» manque{nn}; vraiment{nn}?"' in text
+    assert said.endswith("\n1 texts, 5 spaces\n")
+
+
+def test_a_language_without_rules_is_left_as_it_is(tmp_path):
+    text, said = _tool(tmp_path, "de.po", CZECH_PO.replace("cs", "de"))
+    assert text == CZECH_PO.replace("cs", "de")
+    assert said == "de: no rules for hard spaces, nothing to do\n"
+
+
+def test_the_language_of_a_file_named_otherwise_is_given(tmp_path):
+    text, _said = _tool(tmp_path, "draft.po", CZECH_PO, "--lang", "cs")
+    assert "v\u00a0adresáři" in text
+
+
+def test_the_name_of_each_language_in_that_language():
+    """From its own catalog ("language name" context): no list of names in the code."""
+    assert i18n.language_name("en") == "English"
+    assert i18n.language_name("pl") == "Polski"
+    assert i18n.language_name("xx") == "xx"  # no catalog: its code
+    assert not hasattr(i18n, "LANGUAGE_NAMES")
 
 
 # --- the decimal separator follows the language of the program --------------------------------

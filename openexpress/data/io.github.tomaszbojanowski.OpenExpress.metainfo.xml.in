@@ -3,11 +3,10 @@
   <id>io.github.tomaszbojanowski.OpenExpress</id>
   <metadata_license>CC0-1.0</metadata_license>
   <project_license>GPL-3.0-or-later</project_license>
-  <name>openExpress</name>
+  <name translate="no">openExpress</name>
   <summary>Manage your Garmin watch on Linux</summary>
-  <summary xml:lang="pl">Zarządzaj zegarkiem Garmin na Linuksie</summary>
   <developer id="io.github.tomaszbojanowski">
-    <name>Tomasz Bojanowski</name>
+    <name translate="no">Tomasz Bojanowski</name>
   </developer>
   <description>
     <p>
@@ -15,41 +14,21 @@
       It syncs the watch with Garmin Connect and installs software updates, maps,
       Connect IQ apps and music.
     </p>
-    <p xml:lang="pl">
-      openExpress to nieoficjalna aplikacja dla Linuksa do zegarków Garmin podłączonych
-      kablem USB. Synchronizuje zegarek z Garmin Connect oraz instaluje aktualizacje
-      oprogramowania, mapy, aplikacje Connect IQ i muzykę.
-    </p>
     <ul>
       <li>Upload activities, sleep, HRV and other health data to Garmin Connect</li>
-      <li xml:lang="pl">Wysyłanie aktywności, snu, HRV i innych danych zdrowotnych do Garmin Connect</li>
       <li>Send courses, workouts and apps queued in Garmin Connect to the watch</li>
-      <li xml:lang="pl">Przesyłanie na zegarek kursów, treningów i aplikacji z kolejki Garmin Connect</li>
       <li>Install watch software updates and free maps such as TopoActive</li>
-      <li xml:lang="pl">Instalacja aktualizacji oprogramowania i darmowych map, np. TopoActive</li>
       <li>Install, update and remove Connect IQ apps and watch faces</li>
-      <li xml:lang="pl">Instalacja, aktualizacja i usuwanie aplikacji oraz tarcz Connect IQ</li>
       <li>Copy music, podcasts, audiobooks and playlists</li>
-      <li xml:lang="pl">Kopiowanie muzyki, podcastów, audiobooków i playlist</li>
       <li>See each activity's track on a map, with its charts, laps, heart-rate zones and training effect</li>
-      <li xml:lang="pl">Podgląd każdej aktywności: trasa na mapie, wykresy, okrążenia, strefy tętna i efekt treningu</li>
       <li>Sync automatically in the background when the watch is connected</li>
-      <li xml:lang="pl">Automatyczna synchronizacja w tle po podłączeniu zegarka</li>
       <li>No telemetry</li>
-      <li xml:lang="pl">Bez telemetrii</li>
     </ul>
     <p>
       The one-time setup reads the data needed to talk to Garmin's servers from your own copy
       of the official Garmin Express installer for Windows. openExpress is not affiliated with,
       endorsed by or supported by Garmin Ltd. Garmin, fēnix, Garmin Connect and Garmin Express
       are trademarks of Garmin Ltd. or its subsidiaries.
-    </p>
-    <p xml:lang="pl">
-      Jednorazowa konfiguracja odczytuje dane potrzebne do komunikacji z serwerami Garmina
-      z Twojej kopii oficjalnego instalatora Garmin Express dla Windows. openExpress nie jest
-      powiązany z Garmin Ltd., nie jest przez nią zatwierdzony ani wspierany. Garmin, fēnix,
-      Garmin Connect i Garmin Express są znakami towarowymi Garmin Ltd. lub jej spółek
-      zależnych.
     </p>
   </description>
   <launchable type="desktop-id">io.github.tomaszbojanowski.OpenExpress.desktop</launchable>
@@ -63,42 +42,34 @@
   <screenshots>
     <screenshot type="default">
       <caption>The page of an activity: its track on a map coloured by elevation, and its elevation profile</caption>
-      <caption xml:lang="pl">Strona aktywności: trasa na mapie w kolorach wysokości i profil wysokości</caption>
       <image>https://raw.githubusercontent.com/TomaszBojanowski/openExpress/main/docs/screenshots/activity.png</image>
     </screenshot>
     <screenshot>
       <caption>The start page: the devices connected and those seen before, with labels such as Update available</caption>
-      <caption xml:lang="pl">Strona startowa: podłączone urządzenia i te widziane wcześniej, z etykietami takimi jak „Dostępna aktualizacja”</caption>
       <image>https://raw.githubusercontent.com/TomaszBojanowski/openExpress/main/docs/screenshots/start.png</image>
     </screenshot>
     <screenshot>
       <caption>Software updates offered for the device</caption>
-      <caption xml:lang="pl">Aktualizacje oprogramowania dostępne dla urządzenia</caption>
       <image>https://raw.githubusercontent.com/TomaszBojanowski/openExpress/main/docs/screenshots/updates.png</image>
     </screenshot>
     <screenshot>
       <caption>Software updates, with a beta system update offered for the device</caption>
-      <caption xml:lang="pl">Aktualizacje oprogramowania, w tym testowa aktualizacja systemu dla urządzenia</caption>
       <image>https://raw.githubusercontent.com/TomaszBojanowski/openExpress/main/docs/screenshots/updates-beta.png</image>
     </screenshot>
     <screenshot>
       <caption>Maps on the device and free maps to install</caption>
-      <caption xml:lang="pl">Mapy na urządzeniu i darmowe mapy do zainstalowania</caption>
       <image>https://raw.githubusercontent.com/TomaszBojanowski/openExpress/main/docs/screenshots/maps.png</image>
     </screenshot>
     <screenshot>
       <caption>Connect IQ apps</caption>
-      <caption xml:lang="pl">Aplikacje Connect IQ</caption>
       <image>https://raw.githubusercontent.com/TomaszBojanowski/openExpress/main/docs/screenshots/apps.png</image>
     </screenshot>
     <screenshot>
       <caption>Music, podcasts and audiobooks</caption>
-      <caption xml:lang="pl">Muzyka, podcasty i audiobooki</caption>
       <image>https://raw.githubusercontent.com/TomaszBojanowski/openExpress/main/docs/screenshots/music.png</image>
     </screenshot>
     <screenshot>
       <caption>Activities of the device and of its backups, with their sport, time, distance and ascent</caption>
-      <caption xml:lang="pl">Aktywności urządzenia i jego kopii zapasowych, z dyscypliną, czasem, dystansem i przewyższeniem</caption>
       <image>https://raw.githubusercontent.com/TomaszBojanowski/openExpress/main/docs/screenshots/activities.png</image>
     </screenshot>
   </screenshots>
@@ -106,12 +77,12 @@
     <category>Utility</category>
   </categories>
   <keywords>
-    <keyword>Garmin</keyword>
-    <keyword>fenix</keyword>
-    <keyword>Garmin Connect</keyword>
-    <keyword>watch</keyword>
-    <keyword>sync</keyword>
-    <keyword>maps</keyword>
+    <keyword translate="no">Garmin</keyword>
+    <keyword translate="no">fenix</keyword>
+    <keyword translate="no">Garmin Connect</keyword>
+    <keyword translate="no">watch</keyword>
+    <keyword translate="no">sync</keyword>
+    <keyword translate="no">maps</keyword>
   </keywords>
   <requires>
     <display_length compare="ge">360</display_length>
@@ -124,7 +95,7 @@
   <content_rating type="oars-1.1"/>
   <releases>
     <release version="0.8.5" date="2026-11-05">
-      <description>
+      <description translate="no">
         <ul>
           <li>Clearer icons. The side panel's Device shows the kind of the device that is open (a watch,
           a cycling computer, a handheld, a bike light or radar), Activities a runner and Activity
@@ -153,7 +124,7 @@
       </description>
     </release>
     <release version="0.8.4" date="2026-11-05">
-      <description>
+      <description translate="no">
         <ul>
           <li>New: the Activity profiles page, read only. It lists the device's sport profiles, those
           of its newest activities first. A profile's page shows each data screen drawn as the device
@@ -184,7 +155,7 @@
       </description>
     </release>
     <release version="0.8.3" date="2026-11-04">
-      <description>
+      <description translate="no">
         <ul>
           <li>A device that is not on your Garmin account is refused with clearer words:
           registering the product on garmin.com does not add it to Garmin Connect; add it with
@@ -201,7 +172,7 @@
       </description>
     </release>
     <release version="0.8.2" date="2026-11-03">
-      <description>
+      <description translate="no">
         <ul>
           <li>New: the page of an activity. A click on an activity of the Activities page opens
           it: its distance, time, pace or speed, heart rate and ascent; the map of its track,
@@ -223,7 +194,7 @@
       </description>
     </release>
     <release version="0.8.1" date="2026-11-02">
-      <description>
+      <description translate="no">
         <ul>
           <li>A FIT file the device writes while it is connected over MTP, such as a Garmin Coach
           plan, could be read cut short (gvfs keeps the size a file had when it was first looked
@@ -241,7 +212,7 @@
       </description>
     </release>
     <release version="0.8.0" date="2026-11-01">
-      <description>
+      <description translate="no">
         <ul>
           <li>New: an Activities page lists the activities of the connected device and of its
           backups, with their sport, start, time, distance and ascent, the newest 30 first and
@@ -269,7 +240,7 @@
       </description>
     </release>
     <release version="0.7.14" date="2026-11-01">
-      <description>
+      <description translate="no">
         <ul>
           <li>The sync of a device connected as a USB drive is now confirmed on a real watch, an
           Instinct 2S.</li>
@@ -288,7 +259,7 @@
       </description>
     </release>
     <release version="0.7.13" date="2026-10-31">
-      <description>
+      <description translate="no">
         <ul>
           <li>New and experimental: devices that connect as a USB drive (mass storage mode, such
           as watches without music and older Edge bike computers) are synced too, in the window
@@ -312,7 +283,7 @@
       </description>
     </release>
     <release version="0.7.12" date="2026-10-30">
-      <description>
+      <description translate="no">
         <ul>
           <li>Fewer requests to Garmin's servers: what the servers answer is kept for a while, as
           Garmin Express does. Opening a device again, its pages, and a command run a moment
@@ -349,7 +320,7 @@
       </description>
     </release>
     <release version="0.7.11" date="2026-10-30">
-      <description>
+      <description translate="no">
         <ul>
           <li>Files still being written: a file the device was still writing while it was
           connected (for example a Garmin Coach plan) is no longer uploaded cut short. It waits
@@ -368,7 +339,7 @@
       </description>
     </release>
     <release version="0.7.10" date="2026-10-29">
-      <description>
+      <description translate="no">
         <p>This release focuses on reliability: what openExpress writes to a device is checked,
         a stop at the wrong moment leaves nothing half done, and a question in the window can
         always be cancelled.</p>
@@ -414,7 +385,7 @@
       </description>
     </release>
     <release version="0.7.9" date="2026-10-28">
-      <description>
+      <description translate="no">
         <ul>
           <li>Get Picture From Account on the page of a device that is not on your account, when
           Garmin's update server has no picture of it: only that click asks your account for the
@@ -434,7 +405,7 @@
       </description>
     </release>
     <release version="0.7.8" date="2026-10-27">
-      <description>
+      <description translate="no">
         <ul>
           <li>A device's page comes at once: its diagnostic files are read in the background
           after it (a Venu 2 took 4–5 s before its page appeared, now under a second), and files
@@ -465,7 +436,7 @@
       </description>
     </release>
     <release version="0.7.7" date="2026-10-27">
-      <description>
+      <description translate="no">
         <ul>
           <li>TrueUp waits as Garmin Express does: the whole delay Garmin Connect asks for when it
           is under five minutes, 90 s otherwise, at most three times. The window and the command
@@ -483,7 +454,7 @@
       </description>
     </release>
     <release version="0.7.6" date="2026-10-27">
-      <description>
+      <description translate="no">
         <ul>
           <li>Updating a Wellness or Vivomove device warns that the update erases the data stored
           on it and says to sync it first.</li>
@@ -501,7 +472,7 @@
       </description>
     </release>
     <release version="0.7.5" date="2026-10-27">
-      <description>
+      <description translate="no">
         <ul>
           <li>Removing a Connect IQ app from a watch that hides its app folder (e.g. fēnix 8) now
           always removes the app, and its settings file with it. Before, when the watch showed
@@ -529,7 +500,7 @@
       </description>
     </release>
     <release version="0.7.4" date="2026-10-26">
-      <description>
+      <description translate="no">
         <ul>
           <li>USB-drive devices (e.g. Forerunner 55, Varia) appear on the start page on their
           own, also when another device is open or the drive shows up late (KDE); no refresh
@@ -545,7 +516,7 @@
       </description>
     </release>
     <release version="0.7.3" date="2026-10-26">
-      <description>
+      <description translate="no">
         <ul>
           <li>"openexpress sync" now runs the same sync as the window: the same steps, errors
           and log lines. A file written to the device but not confirmed by Garmin Connect is
@@ -564,7 +535,7 @@
       </description>
     </release>
     <release version="0.7.2" date="2026-10-26">
-      <description>
+      <description translate="no">
         <ul>
           <li>Fixed: after opening a USB-drive device from its "Not mounted" tile, the other
           connected devices showed up as remembered until the list was refreshed.</li>
@@ -580,7 +551,7 @@
       </description>
     </release>
     <release version="0.7.1" date="2026-10-25">
-      <description>
+      <description translate="no">
         <ul>
           <li>A Garmin device connected as a USB drive now shows up on the start page before
           the system mounts it, and can be mounted from the app (seen on KDE, #19).</li>
@@ -594,7 +565,7 @@
       </description>
     </release>
     <release version="0.7.0" date="2026-10-25">
-      <description>
+      <description translate="no">
         <ul>
           <li>The app now describes a device the same way everywhere: one wording for
           software updates, free space, USB mode and the account on the tiles, the device
@@ -624,7 +595,7 @@
       </description>
     </release>
     <release version="0.6.20" date="2026-10-25">
-      <description>
+      <description translate="no">
         <ul>
           <li>Devices connected as a USB drive now say that sync, apps, maps and music are
           not supported in this mode, instead of suggesting they don't apply to the
@@ -638,7 +609,7 @@
       </description>
     </release>
     <release version="0.6.19" date="2026-10-24">
-      <description>
+      <description translate="no">
         <ul>
           <li>The device page shows the last update found right away, without waiting for
           the server and without the page shifting.</li>
@@ -648,7 +619,7 @@
       </description>
     </release>
     <release version="0.6.18" date="2026-10-24">
-      <description>
+      <description translate="no">
         <ul>
           <li>The start page menu has a "View" section: Automatic, Grid or List.</li>
           <li>The device list on the start page now shows the same chips as the tiles.</li>
@@ -658,7 +629,7 @@
       </description>
     </release>
     <release version="0.6.17" date="2026-10-24">
-      <description>
+      <description translate="no">
         <ul>
           <li>Devices page: tiles show chips for what the tile does not say otherwise:
           "Update available", "To sync" (activities on the device not uploaded yet, counted
@@ -675,7 +646,7 @@
       </description>
     </release>
     <release version="0.6.16" date="2026-10-24">
-      <description>
+      <description translate="no">
         <ul>
           <li>When the system has no MTP support in gvfs (gvfs-mtp missing), the app says so
           right away with the install command, instead of waiting 45 s and pointing at the
@@ -696,7 +667,7 @@
       </description>
     </release>
     <release version="0.6.15" date="2026-10-23">
-      <description>
+      <description translate="no">
         <ul>
           <li>Preferences → Storage: the cache is split into maps, software updates, pictures
           and temporary files, each with its size and its own clear button;
@@ -716,7 +687,7 @@
       </description>
     </release>
     <release version="0.6.14" date="2026-10-23">
-      <description>
+      <description translate="no">
         <ul>
           <li>"Last sync" details no longer pile up after each sync (a bug since 0.6.6) and
           no longer show a line from the previous sync.</li>
@@ -724,7 +695,7 @@
       </description>
     </release>
     <release version="0.6.13" date="2026-10-23">
-      <description>
+      <description translate="no">
         <ul>
           <li>Installing a map no longer freezes the window while the free space is checked;
           the Maps and Music pages read the free space in the background.</li>
@@ -739,7 +710,7 @@
       </description>
     </release>
     <release version="0.6.12" date="2026-10-22">
-      <description>
+      <description translate="no">
         <ul>
           <li>When the system language isn't installed in the Flatpak, the app now falls back
           to C.UTF-8 instead of crashing at the login window (#10).</li>
@@ -752,7 +723,7 @@
       </description>
     </release>
     <release version="0.6.11" date="2026-10-22">
-      <description>
+      <description translate="no">
         <ul>
           <li>Device pictures stored on Garmin's Amazon S3 storage are shown (#8).</li>
           <li>Course and workout names no longer appear in the log attached to reports, and
@@ -766,7 +737,7 @@
       </description>
     </release>
     <release version="0.6.10" date="2026-10-21">
-      <description>
+      <description translate="no">
         <ul>
           <li>Software updates are written the way Garmin Express does it: a leftover update
           file in another letter case and GUPDATE.TMP are removed first, and the file is saved
@@ -780,7 +751,7 @@
       </description>
     </release>
     <release version="0.6.9" date="2026-10-21">
-      <description>
+      <description translate="no">
         <ul>
           <li>Fixed: devices that connect as a USB drive (e.g. inReach Mini 2, Varia) are
           ejected after an update is copied, and openExpress only says the cable can be
@@ -794,7 +765,7 @@
       </description>
     </release>
     <release version="0.6.8" date="2026-10-21">
-      <description>
+      <description translate="no">
         <ul>
           <li>Added: when the Garmin sign-in page stops working, the window says so, offers Try
           Again and shows the command for signing in without it.</li>
@@ -807,7 +778,7 @@
       </description>
     </release>
     <release version="0.6.7" date="2026-10-21">
-      <description>
+      <description translate="no">
         <ul>
           <li>Changed: tiles on the start page share out the width of the window — three
           columns where they fit, one full-width column in a narrow window — and stand centred
@@ -821,7 +792,7 @@
       </description>
     </release>
     <release version="0.6.6" date="2026-10-20">
-      <description>
+      <description translate="no">
         <ul>
           <li>Changed: plugging in or unplugging another device no longer takes you away from
           the device or remembered-device view you're on; signing in or out keeps you where you
@@ -843,7 +814,7 @@
       </description>
     </release>
     <release version="0.6.5" date="2026-10-20">
-      <description>
+      <description translate="no">
         <ul>
           <li>Fixed: a stale "could not read" tile could appear after unplugging one of several
           devices (the list was read twice at once).</li>
@@ -858,7 +829,7 @@
       </description>
     </release>
     <release version="0.6.4" date="2026-10-18">
-      <description>
+      <description translate="no">
         <ul>
           <li>Devices in mass-storage mode, such as the Varia RTL515, now work in the Flatpak:
           the sandbox can see removable drives under /run/media and /media (new permission,
@@ -879,7 +850,7 @@
       </description>
     </release>
     <release version="0.6.3" date="2026-10-18">
-      <description>
+      <description translate="no">
         <ul>
           <li>Remembered and account-only devices show their picture (or a kind icon) on the
           device page instead of the app icon.</li>
@@ -898,7 +869,7 @@
       </description>
     </release>
     <release version="0.6.2" date="2026-10-17">
-      <description>
+      <description translate="no">
         <p>The sign-in page, request headers and the Connect IQ store now follow the system
         language instead of being fixed to Polish; a language chosen in Preferences takes
         precedence (reported in #5). While the program waits for Garmin's servers during a
@@ -907,7 +878,7 @@
       </description>
     </release>
     <release version="0.6.1" date="2026-10-17">
-      <description>
+      <description translate="no">
         <p>A failed write over MTP no longer deletes the previous firmware or map file on the
         device when the copy failed before the device was touched, for example because the
         device was busy or opened in a file manager. The file is removed only with evidence
@@ -915,7 +886,7 @@
       </description>
     </release>
     <release version="0.6.0" date="2026-10-17">
-      <description>
+      <description translate="no">
         <ul>
           <li>A start page lists your devices as tiles: those connected now, those seen on
           this computer before and those on your Garmin account, each with its picture, or an
@@ -943,7 +914,7 @@
       </description>
     </release>
     <release version="0.5.2" date="2026-10-16">
-      <description>
+      <description translate="no">
         <ul>
           <li>On the command line, the plan of a map installation (without --apply) lists the
           files in the order they are written: smallest first.</li>
@@ -955,7 +926,7 @@
       </description>
     </release>
     <release version="0.5.1" date="2026-10-16">
-      <description>
+      <description translate="no">
         <ul>
           <li>When the device refuses a map's unlock file, writing it is tried up to six
           times in all, five seconds apart, as Garmin Express does; if it still fails, the
@@ -971,7 +942,7 @@
       </description>
     </release>
     <release version="0.5.0" date="2026-10-16">
-      <description>
+      <description translate="no">
         <ul>
           <li>Maps are written to the device smallest first, as Garmin Express does; a file
           that other maps share is never deleted after a failed write.</li>
@@ -984,7 +955,7 @@
       </description>
     </release>
     <release version="0.4.14" date="2026-10-15">
-      <description>
+      <description translate="no">
         <ul>
           <li>The progress bar now moves while maps and software updates download, not only
           while they are copied to the device.</li>
@@ -992,7 +963,7 @@
       </description>
     </release>
     <release version="0.4.13" date="2026-10-15">
-      <description>
+      <description translate="no">
         <ul>
           <li>The last sync is remembered for each device; syncing a second device no longer
           hides the first one's.</li>
@@ -1004,7 +975,7 @@
       </description>
     </release>
     <release version="0.4.12" date="2026-10-15">
-      <description>
+      <description translate="no">
         <ul>
           <li>Unplugging the device right after installing or removing an app is now noticed
           at once.</li>
@@ -1013,7 +984,7 @@
       </description>
     </release>
     <release version="0.4.11" date="2026-10-15">
-      <description>
+      <description translate="no">
         <ul>
           <li>The Flatpak can install, update and remove Connect IQ apps on devices that hide
           their app folder (e.g. the fēnix 8), over a direct USB connection, with the new
@@ -1026,7 +997,7 @@
       </description>
     </release>
     <release version="0.4.10" date="2026-10-15">
-      <description>
+      <description translate="no">
         <ul>
           <li>The device page no longer reloads a moment after the window opens: a mount
           event of the device that is open already is ignored, so every request to Garmin is
@@ -1039,7 +1010,7 @@
       </description>
     </release>
     <release version="0.4.9" date="2026-10-15">
-      <description>
+      <description translate="no">
         <ul>
           <li>"Last sync": the row and the details count the same way (new files, files
           already in Connect with how they were recognised, files rejected by Garmin, errors),
@@ -1053,7 +1024,7 @@
       </description>
     </release>
     <release version="0.4.8" date="2026-10-14">
-      <description>
+      <description translate="no">
         <ul>
           <li>Reporting a device: "Open on GitHub" in "Report a Device or Problem" opens the
           GitHub form with the report filled in and a title with the name of the device. An
@@ -1067,7 +1038,7 @@
       </description>
     </release>
     <release version="0.4.7" date="2026-10-14">
-      <description>
+      <description translate="no">
         <ul>
           <li>Software updates: a system update is recognised by its file as well as by what
           the server says, which does not always mark it. The Updates page starts with a
@@ -1086,7 +1057,7 @@
       </description>
     </release>
     <release version="0.4.6" date="2026-10-14">
-      <description>
+      <description translate="no">
         <ul>
           <li>Flatpak: the progress bar now moves while a file is copied to the device (maps,
           maps of your own, music). Until now it stood still and jumped to the end.</li>
@@ -1098,7 +1069,7 @@
       </description>
     </release>
     <release version="0.4.5" date="2026-10-13">
-      <description>
+      <description translate="no">
         <ul>
           <li>Maps of your own: map files that are not from Garmin (.img, e.g. made from
           OpenStreetMap data) are listed on the Maps page with the name stored in the file.
@@ -1116,7 +1087,7 @@
       </description>
     </release>
     <release version="0.4.4" date="2026-10-13">
-      <description>
+      <description translate="no">
         <ul>
           <li>Installing a Connect IQ app no longer leaves a request in your Garmin account
           when the device has no room for it: the free app slots and the app memory are
@@ -1139,7 +1110,7 @@
       </description>
     </release>
     <release version="0.4.3" date="2026-10-13">
-      <description>
+      <description translate="no">
         <ul>
           <li>A device that is not on the signed-in Garmin account now gets its picture
           too.</li>
@@ -1153,7 +1124,7 @@
       </description>
     </release>
     <release version="0.4.2" date="2026-10-13">
-      <description>
+      <description translate="no">
         <ul>
           <li>Fixed: the report dialog added in 0.4.1 stayed in memory after it was closed,
           and the window could occasionally crash afterwards.</li>
@@ -1166,7 +1137,7 @@
       </description>
     </release>
     <release version="0.4.1" date="2026-10-13">
-      <description>
+      <description translate="no">
         <ul>
           <li>The window and the command-line tool warn not to unplug the device while it is
           in use.</li>
@@ -1178,7 +1149,7 @@
       </description>
     </release>
     <release version="0.4.0" date="2026-10-12">
-      <description>
+      <description translate="no">
         <ul>
           <li>Connect IQ apps can be installed, updated and removed on devices that hide their
           app folder (e.g. fēnix 8) over a direct USB connection; the order of widgets is kept.
@@ -1194,7 +1165,7 @@
       </description>
     </release>
     <release version="0.3.8" date="2026-10-12">
-      <description>
+      <description translate="no">
         <ul>
           <li>Devices that report a name over USB (e.g. Edge 1050) are now detected.</li>
           <li>The Music page and the music command show only what the device supports.</li>
@@ -1204,42 +1175,42 @@
       </description>
     </release>
     <release version="0.3.7" date="2026-10-11">
-      <description>
+      <description translate="no">
         <p>Sync and Connect IQ now refuse a watch that is not registered to the signed-in
         Garmin account.</p>
         <p>New application icon.</p>
       </description>
     </release>
     <release version="0.3.6" date="2026-10-11">
-      <description>
+      <description translate="no">
         <p>Fixes "Operation not supported" when writing courses, workouts, maps, apps or
         music to the watch from the Flatpak.</p>
       </description>
     </release>
     <release version="0.3.5" date="2026-10-11">
-      <description>
+      <description translate="no">
         <p>The window opens without flickering: the watch picture is shown at once from the
         cache instead of being downloaded every time.</p>
       </description>
     </release>
     <release version="0.3.4" date="2026-10-11">
-      <description>
+      <description translate="no">
         <p>The window remembers its size and whether it was maximized.</p>
       </description>
     </release>
     <release version="0.3.3" date="2026-10-11">
-      <description>
+      <description translate="no">
         <p>Fixes "not authorized (HTTP 401)" when uploading new activities.</p>
       </description>
     </release>
     <release version="0.3.2" date="2026-10-11">
-      <description>
+      <description translate="no">
         <p>New "Report a Device or Problem" window and openexpress report command: a report
         for GitHub without serial numbers or other identifiers.</p>
       </description>
     </release>
     <release version="0.3.1" date="2026-10-11">
-      <description>
+      <description translate="no">
         <p>Reliability release with about 50 fixes from a code review, among others:</p>
         <ul>
           <li>A damaged activity file no longer stops every sync</li>
@@ -1251,7 +1222,7 @@
       </description>
     </release>
     <release version="0.3.0" date="2026-10-11">
-      <description>
+      <description translate="no">
         <ul>
           <li>New layout with a sidebar that adapts to narrow windows</li>
           <li>Watch overview with a picture of the watch, storage, last sync and software status</li>
@@ -1261,12 +1232,12 @@
       </description>
     </release>
     <release version="0.2.1" date="2026-10-11">
-      <description>
+      <description translate="no">
         <p>Running openExpress without a command opens the application window.</p>
       </description>
     </release>
     <release version="0.2.0" date="2026-10-11">
-      <description>
+      <description translate="no">
         <ul>
           <li>Flatpak package</li>
           <li>Background sync can be turned on in the window</li>
@@ -1274,7 +1245,7 @@
       </description>
     </release>
     <release version="0.1.0" date="2026-10-11">
-      <description>
+      <description translate="no">
         <p>First public release.</p>
       </description>
     </release>

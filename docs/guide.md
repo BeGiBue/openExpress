@@ -24,7 +24,8 @@ should work, but are untested – reports are welcome. Developed on Fedora/GNOME
 - Backups; showing and setting the primary training device and the primary wearable;
   copies of the device's diagnostic files, kept on this computer.
 - GTK 4 / libadwaita window, command-line tool and background sync with notifications.
-- No telemetry. English and Polish, translatable with gettext.
+- No telemetry. English and Polish; other languages are welcome
+  ([Help translate](../README.md#help-translate)).
 
 <p align="center">
   <img src="screenshots/updates.png" width="800"

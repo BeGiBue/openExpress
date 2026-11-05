@@ -355,7 +355,7 @@ class Preferences:
 
         g = Adw.PreferencesGroup(title=_("Language"))
         codes = [""] + i18n.available_languages()
-        names = [_("System default")] + [i18n.LANGUAGE_NAMES.get(c, c) for c in codes[1:]]
+        names = [_("System default")] + [i18n.language_name(c) for c in codes[1:]]
         current = load_ui_language()
         combo = Adw.ComboRow(title=_("Interface language"), model=Gtk.StringList.new(names))
         combo.set_selected(codes.index(current) if current in codes else 0)

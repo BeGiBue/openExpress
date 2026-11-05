@@ -45,7 +45,16 @@ def available_languages() -> list[str]:
     return langs
 
 
-LANGUAGE_NAMES = {"en": "English", "pl": "Polski"}
+def language_name(code: str) -> str:
+    """The name of a language in that language, as its own catalog gives it ("Polski");
+    English for English, the code itself for a language without a catalog."""
+    if code == SOURCE_LANGUAGE:
+        return "English"
+    catalog = gettext.translation(DOMAIN, LOCALE_DIR, languages=[code], fallback=True)
+    # TRANSLATORS: the name of your language in your language ("Polski", "Deutsch",
+    # "Français"), as the list of languages in the Preferences shows it
+    name = catalog.pgettext("language name", "English")
+    return code if name == "English" else name
 
 
 def _configured_language() -> str | None:

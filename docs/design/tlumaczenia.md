@@ -1,8 +1,9 @@
 # Design: opening openExpress to translators
 
-Status: accepted with the recommended option of each decision of section 4; nothing of it is in
-the code yet. It is carried out after the words of Garmin Connect are taken into the English and
-Polish texts.
+Status: accepted with the recommended option of each decision of section 4. Of section 3, items
+1–5, 7 and 8 are in the code (the template and its merge apart, `po/LINGUAS` and `po/POTFILES`,
+the language names, the metainfo through gettext, the catalogs built at the build, hard spaces
+per language, the tests); item 6 (the pass over the `TRANSLATORS` comments) comes next.
 
 ## 1. Where translations stand
 

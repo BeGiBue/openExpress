@@ -23,9 +23,11 @@ Requirements:
   installer). Optional: `mutagen` (music tags), `libusb-1.0` (Connect IQ apps on devices
   that hide their app folder, and their hidden crash logs; usually installed), libshumate
   1.1+ (the map on the page of an activity; without libshumate the page says so and has no
-  map, and with an older one the track has no streets under it).
-  - Fedora: `sudo dnf install python3-requests python3-gobject gtk4 libadwaita webkitgtk6.0 gvfs-mtp python3-mutagen p7zip-plugins libusb1 libshumate`
-  - Debian/Ubuntu: `sudo apt install python3-requests python3-gi gir1.2-gtk-4.0 gir1.2-adw-1 gir1.2-webkit-6.0 gvfs-backends python3-mutagen 7zip libusb-1.0-0 gir1.2-shumate-1.0`
+  map, and with an older one the track has no streets under it). GNU gettext (`msgfmt`)
+  builds the translations, which are not kept compiled in the repository; without it
+  openExpress runs in English.
+  - Fedora: `sudo dnf install python3-requests python3-gobject gtk4 libadwaita webkitgtk6.0 gvfs-mtp python3-mutagen p7zip-plugins libusb1 libshumate gettext`
+  - Debian/Ubuntu: `sudo apt install python3-requests python3-gi gir1.2-gtk-4.0 gir1.2-adw-1 gir1.2-webkit-6.0 gvfs-backends python3-mutagen 7zip libusb-1.0-0 gir1.2-shumate-1.0 gettext`
 - Watch connected with a USB cable. GNOME (gvfs-mtp) mounts it automatically, and
   openexpress uses the same connection, so the file manager can stay open.
 - The official Garmin Express installer for Windows (`GarminExpress.exe`, free download from
@@ -37,6 +39,7 @@ First run:
 ```bash
 git clone https://github.com/TomaszBojanowski/openExpress.git
 cd openExpress
+python3 -m openexpress.catalogs      # the translations (gettext); install-desktop builds them too
 pip install --user .                 # or run without installing: python3 -m openexpress …
                                      # (where pip refuses with "externally-managed-environment")
 

@@ -111,8 +111,10 @@ def test_every_name_is_translated_and_each_number_named_once():
     numbers = [k.value for k in names.keys]
     assert len(numbers) == len(set(numbers)) > 150
     words = [v.args[1].value for v in names.values]
-    with open(ROOT / "openexpress" / "locale" / "pl" / "LC_MESSAGES" / "openexpress.mo",
-              "rb") as f:
+    from openexpress import i18n
+
+    # The Polish catalog as the tests built it (none is kept in the repository).
+    with open(i18n.LOCALE_DIR / "pl" / "LC_MESSAGES" / "openexpress.mo", "rb") as f:
         catalog = gettext.GNUTranslations(f)
     missing = [w for w in words if catalog.pgettext("data field", w) == w
                and w not in SAME_IN_POLISH]

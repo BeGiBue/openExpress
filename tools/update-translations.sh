@@ -1,38 +1,27 @@
 #!/usr/bin/env bash
-# Extracts translatable strings, updates every .po file and compiles .mo files.
+# Every language of po/LINGUAS merged with the template (msgmerge; texts no code uses any more
+# dropped), then the compiled catalogs and the translated metainfo built for running from
+# source (msgfmt; they are never committed). The template itself: tools/update-template.sh.
 #
-#   tools/update-translations.sh          update the template and all languages
+#   tools/update-translations.sh          merge and build every language
 #   tools/update-translations.sh de       also start a new language (here: German)
 set -euo pipefail
 cd "$(dirname "$0")/.."
 
-DOMAIN=openexpress
-LOCALE=openexpress/locale
-POT=po/$DOMAIN.pot
-VERSION=$(python3 -c "import openexpress; print(openexpress.__version__)")
+POT=po/openexpress.pot
 
-mkdir -p po
-find openexpress -name '*.py' | sort | xargs xgettext \
-    --language=Python --from-code=UTF-8 \
-    --keyword=_ --keyword=N_ --keyword=ngettext:1,2 --keyword=pgettext:1c,2 \
-    --add-comments=TRANSLATORS \
-    --package-name=openexpress --package-version="$VERSION" \
-    --output="$POT"
+for lang in "$@"; do
+    if [[ ! -f po/$lang.po ]]; then
+        msginit --no-translator --locale="$lang" --input="$POT" --output-file="po/$lang.po"
+    fi
+    grep -qw "$lang" po/LINGUAS || echo "$lang" >> po/LINGUAS
+done
 
-if [[ $# -gt 0 ]]; then
-    for lang in "$@"; do
-        if [[ ! -f po/$lang.po ]]; then
-            msginit --no-translator --locale="$lang" --input="$POT" --output-file="po/$lang.po"
-        fi
-    done
-fi
-
-for po in po/*.po; do
-    lang=$(basename "$po" .po)
+for lang in $(sed 's/#.*//' po/LINGUAS); do
+    po=po/$lang.po
     msgmerge --quiet --update --backup=none "$po" "$POT"
     # Texts no code uses any more are dropped, not kept as "#~" (msgmerge has no option for it)
     msgattrib --no-obsolete --output-file="$po" "$po"
-    mkdir -p "$LOCALE/$lang/LC_MESSAGES"
-    msgfmt --check --output-file="$LOCALE/$lang/LC_MESSAGES/$DOMAIN.mo" "$po"
     echo "$lang: $(msgfmt --statistics --output-file=/dev/null "$po" 2>&1)"
 done
+python3 -m openexpress.catalogs
