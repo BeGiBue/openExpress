@@ -356,7 +356,8 @@ def built_in_row(win, profile_file, screen, subtitle: str, state: str | None = N
     """A built-in screen: its icon and name, under it `subtitle`; a click opens its page."""
     profile = profile_file.profile
     row = _row(screen_title(profile, screen), subtitle, state)
-    row.add_prefix(Gtk.Image(icon_name=built_in_icon(screen.code)))
+    known = names.built_in_known(screen, edge_shaped(profile))
+    row.add_prefix(Gtk.Image(icon_name=built_in_icon(screen.code) if known else PAGE_ICON))
     row.set_activatable(True)
     row.connect("activated", lambda _r: open_screen(win, profile_file, screen))
     return row
