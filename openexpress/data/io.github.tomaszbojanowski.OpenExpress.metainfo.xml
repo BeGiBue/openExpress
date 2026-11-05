@@ -123,6 +123,37 @@
   </supports>
   <content_rating type="oars-1.1"/>
   <releases>
+    <release version="0.8.4" date="2026-11-05">
+      <description>
+        <ul>
+          <li>New: the Activity profiles page, read only. It lists the device's sport profiles, those
+          of its newest activities first. A profile's page shows each data screen drawn as the device
+          shows it, beside its fields, numbered and named in Garmin's words, with its place in the
+          order the device scrolls through its screens; then the built-in screens it always scrolls
+          through, as rows with an icon of each kind; those an Edge shows only when they are
+          needed (a workout, a segment, a climb, a group ride, a power plan), folded apart; and the
+          screens turned off or hidden. An Edge's own backups of its profiles are said in one line.
+          On the command line: "openexpress profiles" and "openexpress profiles show NAME". On a
+          watch the fields have the Edge's numbers with a few of their own; a built-in screen or a
+          layout not named yet is shown by its number. Nothing is written to the device.</li>
+          <li>Polish speaks Garmin Connect's words: on the activity page ("Suma kalorii", "bpm"), for
+          sports ("Bieganie", "Kolarstwo", "Chodzenie", "Piesze wędrówki") and around syncs and
+          updates ("Dostępna aktualizacja", "Synchronizacja zakończona", "Wersja oprogramowania").
+          The names of sport profiles stay exactly as the device shows them. English says "Sign In"
+          and "Sign Out", as Garmin Connect does.</li>
+          <li>Uploads: a file Garmin Connect has no consent for (HTTP 412) no longer stops the upload:
+          that file waits for the next sync. When Garmin Connect asks for fewer uploads (HTTP 429),
+          only that kind of files waits.</li>
+          <li>Maps: a device that declares no maps (such as a Venu 2) is said to have none, instead
+          of "not supported yet".</li>
+          <li>Add to Account worked with Garmin's servers for the first time (a Venu 2). It stays
+          experimental until another user confirms it.</li>
+          <li>Thanks to skinnie (Sommet) and fullcarbonbike (Activity Profile Editor), whose work
+          described the files of sport profiles; the names of the data fields follow Activity
+          Profile Editor's table.</li>
+        </ul>
+      </description>
+    </release>
     <release version="0.8.3" date="2026-11-04">
       <description>
         <ul>
