@@ -1,5 +1,5 @@
 """One language for what the window says of a device: the state of the updates, the version
-("Software X"), the free space, the USB mode ("USB drive", "MTP"), the reason a device cannot
+("Software X"), the free space, the USB mode ("USB Drive", "MTP"), the reason a device cannot
 be used with the account (only in the banner), "Last seen" and a version known only from the
 account. All data here is made up."""
 
@@ -28,7 +28,7 @@ NB = "\u00a0"
 
 
 def _row_text(items, drive=False):
-    """What the row "Device software" of the device page says of these updates."""
+    """What the row "Device Software" of the device page says of these updates."""
     win, MainWindow = _overview(drive=drive)
     MainWindow._set_update_state(win, updates.pending(items), updates.staged(items))
     return win.update_row.get_subtitle()
@@ -133,7 +133,7 @@ def test_the_music_page_says_the_space_in_the_same_words(free, said):
     win.choose_music = win.choose_playlist = win.remove_music = lambda *a, **kw: None
     window_methods(win, ["show_music"])
     win.show_music(([], []), free=free)
-    (add,) = [g for g in section.groups if g.get_title() == "Add to the device"]
+    (add,) = [g for g in section.groups if g.get_title() == "Add to the Device"]
     assert add.get_description() == said
 
 
@@ -171,7 +171,7 @@ def test_the_question_before_a_map_says_the_space_in_the_same_words(monkeypatch)
 
 
 def test_mass_storage_mode_is_named_only_in_the_sentence_that_explains_it():
-    """Every text for the user that names the mode: "USB drive" (and "MTP"); "mass storage
+    """Every text for the user that names the mode: "USB Drive" (and "MTP"); "mass storage
     mode" only in the explanation under the title of the device page's group."""
     pot = (Path(__file__).resolve().parents[1] / "po" / "openexpress.pot").read_text(
         encoding="utf-8")
@@ -257,7 +257,7 @@ def test_the_device_page_of_a_drive_says_usb_drive():
     _win, section = _device_page(mass_storage=True,
                                  drive_refusal=(service.NO_UPLOAD_TYPES, ""))
     texts = _texts(section)
-    assert ("USB drive", service.drive_sync_refusal_text(service.NO_UPLOAD_TYPES)) in texts
+    assert ("USB Drive", service.drive_sync_refusal_text(service.NO_UPLOAD_TYPES)) in texts
     assert not any(title == "Mass storage mode" for title, _sub in texts)
 
 
@@ -266,7 +266,7 @@ def test_the_sync_button_and_the_notice_of_a_drive_say_usb_drive():
 
     win = stand_in(session=types.SimpleNamespace(mass_storage=True,
                                                  drive_refusal=("no-upload-types", "")))
-    assert MainWindow._sync_blocked(win) == "USB drive"
+    assert MainWindow._sync_blocked(win) == "USB Drive"
 
 
 # --- the reason a device cannot be used with the account, only in the banner -------------
@@ -279,8 +279,8 @@ def test_the_reason_is_only_in_the_banner():
     error = NotAccountDevice("This device is not registered to the Garmin account of x.")
     _win, section = _device_page(logged_in=True, ownership_error=error)
     texts = _texts(section)
-    (sync,) = [i for i, (title, _sub) in enumerate(texts) if title == "Sync with Garmin Connect"]
-    assert texts[sync + 1] == ("Last sync", "Not available")
+    (sync,) = [i for i, (title, _sub) in enumerate(texts) if title == "Sync With Garmin Connect"]
+    assert texts[sync + 1] == ("Last Sync", "Not available")
     assert not any(str(error) in sub or str(error) in title for title, sub in texts)
 
 

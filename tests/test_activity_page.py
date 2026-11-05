@@ -127,7 +127,7 @@ def test_a_row_opens_the_page_of_its_activity_and_reads_it():
     page = open_page(win, read_of())
     assert page is not the_list and page.get_tag() == "activity"
     (call,) = win.run_task.calls
-    assert call.title == "Reading the activity…" and call.in_page and call.device
+    assert call.title == "Reading the Activity…" and call.in_page and call.device
     title = next(w for w in descendants(page) if isinstance(w, Adw.WindowTitle))
     assert title.get_title() == "Hiking" and title.get_subtitle()
     texts = labels(page)
@@ -205,9 +205,10 @@ def test_what_a_file_still_being_written_a_damaged_one_and_one_without_a_summary
     if state == "damaged":  # its tiles, and that the file is damaged
         assert "Damaged file" in labels(page) and "12.40 km" in labels(page)
     else:
-        said = {"still being written": "Still being written: disconnect and reconnect the device",
-                "no summary": "This activity has no summary"}[state]
-        assert said in status_texts(page)
+        said = {"still being written": ["Still Being Written",
+                                        "Disconnect and reconnect the device"],
+                "no summary": ["No Summary", "This activity has no summary"]}[state]
+        assert status_texts(page) == said
 
 
 def test_while_another_task_runs_no_page_opens():
@@ -550,7 +551,7 @@ def test_the_yes_is_taken_back_in_preferences(no_tile_server):
     page = open_page(win, read_of(sport=WALKING))
     group = maps_group(win)
     (row,) = [w for w in descendants(group) if isinstance(w, Adw.SwitchRow)]
-    assert row.get_title() == "Streets and terrain from OpenStreetMap" and row.get_active()
+    assert row.get_title() == "Streets and Terrain From OpenStreetMap" and row.get_active()
     assert row.get_subtitle() == ("The OpenStreetMap server learns the area of each activity "
                                   "you open")
     row.set_active(False)
@@ -1363,8 +1364,8 @@ def test_the_buttons_of_the_map_zoom_it_by_a_whole_level():
     try:
         viewport = shown.map.get_viewport()
         buttons = [w for w in descendants(shown) if isinstance(w, Gtk.Button)
-                   and w.get_tooltip_text() in ("Zoom in", "Zoom out")]
-        zoom_in, zoom_out = sorted(buttons, key=lambda b: b.get_tooltip_text() != "Zoom in")
+                   and w.get_tooltip_text() in ("Zoom In", "Zoom Out")]
+        zoom_in, zoom_out = sorted(buttons, key=lambda b: b.get_tooltip_text() != "Zoom In")
         viewport.set_zoom_level(14.4)
         zoom = 14
         zoom_in.emit("clicked")
@@ -1450,13 +1451,13 @@ def test_the_tiles_have_the_icons_of_their_kind_in_the_sport_s_colour(monkeypatc
         win.toplevel.destroy()
 
 
-# --- heart-rate zones ------------------------------------------------------------------------
+# --- heart rate zones ------------------------------------------------------------------------
 
 ZONE_BOUNDS = (120, 140, 155, 165, 178, 190)  # made-up
 
 
 def zoned(data, times=(2190, 300, 0, 0, 0, 0)):
-    """The activity with heart-rate zones as a device keeps them (made-up)."""
+    """The activity with heart rate zones as a device keeps them (made-up)."""
     import dataclasses
 
     from openexpress import fit
@@ -1483,7 +1484,7 @@ def test_the_heart_rate_zones_under_the_laps(monkeypatch):
     shown = zone_section(page)
     assert shown is not None and order_of(shown) > order_of(lap_list(page))
     texts = labels(page)
-    assert "Heart-rate zones" in texts
+    assert "Heart Rate Zones" in texts
     assert "Bounds from the device: % of lactate threshold (165 bpm)" in texts
     rows = shown.rows
     assert [r.name for r in rows] == ["Zone 5", "Zone 4", "Zone 3", "Zone 2", "Zone 1",
@@ -1507,7 +1508,7 @@ def test_each_zone_s_colour_reads_on_the_cards_of_both_styles():
 
 def test_no_zones_without_them_in_the_file(monkeypatch):
     _win, page = page_of(monkeypatch, lapped_walk())
-    assert zone_section(page) is None and "Heart-rate zones" not in labels(page)
+    assert zone_section(page) is None and "Heart Rate Zones" not in labels(page)
 
 
 def with_effect(data, aerobic=1.6, anaerobic=0.0, load=28.4):
@@ -1534,7 +1535,7 @@ def test_the_training_effect_under_the_zones(monkeypatch):
                                                   anaerobic=1.2))
     shown = effect_section(page)
     assert shown is not None and order_of(shown) > order_of(zone_section(page))
-    assert "Training effect" in labels(page)
+    assert "Training Effect" in labels(page)
     rows = shown.rows
     assert [r.name for r in rows] == ["Aerobic", "Anaerobic", "Training load"]
     assert [r.value_text for r in rows] == ["2.4\u00a0· Maintaining", "1.2\u00a0· Minor benefit",
@@ -1550,7 +1551,7 @@ def test_a_row_of_the_training_effect_not_in_the_file_is_left_out(monkeypatch):
 
 def test_no_training_effect_without_it_in_the_file(monkeypatch):
     _win, page = page_of(monkeypatch, zoned(lapped_walk()))
-    assert effect_section(page) is None and "Training effect" not in labels(page)
+    assert effect_section(page) is None and "Training Effect" not in labels(page)
 
 
 def plateaus():

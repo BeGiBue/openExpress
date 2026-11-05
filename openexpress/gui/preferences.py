@@ -49,8 +49,11 @@ def diagnostics_group(win) -> Adw.PreferencesGroup:
     at each connection, off unless chosen (settings.json; the same as `setup
     --diagnostics-copy`). A change that cannot be saved puts the switch back."""
     g = Adw.PreferencesGroup(title=_("Diagnostics"))
-    sw = Adw.SwitchRow(title=_("Keep a copy of the device's diagnostic files on this computer"),
-                       subtitle=_("They stay on this computer; openExpress never sends them"),
+    # TRANSLATORS: switch in the preferences: a copy of the device's diagnostic files at each
+    # connection
+    sw = Adw.SwitchRow(title=_("Keep Diagnostic Files"),
+                       subtitle=_("A copy of the device's diagnostic files stays on this "
+                                  "computer; openExpress never sends them"),
                        active=diagnostics.copy_on())
 
     def toggled(row, _pspec):
@@ -73,13 +76,13 @@ def diagnostics_group(win) -> Adw.PreferencesGroup:
 
 
 def maps_group(win) -> Adw.PreferencesGroup:
-    """The "Activity maps" group: OpenStreetMap's tiles under the track of an activity, off
+    """The "Activity Maps" group: OpenStreetMap's tiles under the track of an activity, off
     until the yes (here or on the page, gui.json); taken back or given here, the map shown now
     follows."""
     # TRANSLATORS: group in the preferences: the street map from OpenStreetMap under the track of an
     # activity
-    g = Adw.PreferencesGroup(title=_("Activity maps"))
-    sw = Adw.SwitchRow(title=_("Streets and terrain from OpenStreetMap"),
+    g = Adw.PreferencesGroup(title=_("Activity Maps"))
+    sw = Adw.SwitchRow(title=_("Streets and Terrain From OpenStreetMap"),
                        subtitle=_("The OpenStreetMap server learns the area of each activity "
                                   "you open"),
                        active=activity_map.tiles_on())
@@ -117,27 +120,47 @@ def render_account_row(win) -> None:
     auth = logged_in_auth()
     row.set_subtitle("")
     if auth is None and not has_consumer():
-        row.set_title(_("Not signed in"))
-        # TRANSLATORS: under "Not signed in" in the preferences, before the installer is
+        row.set_title(_("Not Signed In"))
+        # TRANSLATORS: under "Not Signed In" in the preferences, before the installer is
         # chosen (the button beside it: Choose Installer…)
         row.set_subtitle(_("First choose the Garmin Express installer for Windows: openExpress "
                            "reads the application key from it"))
         button.set_label(_("Choose Installer…"))
     elif auth is None:
-        row.set_title(_("Not signed in"))
+        row.set_title(_("Not Signed In"))
         button.set_label(_("Sign In"))
     else:
         row.set_title(GLib.markup_escape_text(auth.display))
         button.set_label(_("Sign Out"))
 
 
+# The parts of the cache as rows of the preferences, in the window's words (the command line
+# lists them with cache.CATEGORY_NAMES).
+CACHE_ROW_TITLES = {
+    # TRANSLATORS: rows of the cache in the preferences: downloaded maps
+    "maps": N_("Maps"),
+    # TRANSLATORS: row of the cache in the preferences: downloaded device software
+    "updates": N_("Software Updates"),
+    # TRANSLATORS: row of the cache in the preferences: downloaded pictures of devices and icons
+    # of apps
+    "pictures": N_("Pictures and Icons"),
+    # TRANSLATORS: row of the cache in the preferences: answers of Garmin's servers kept for a
+    # while
+    "answers": N_("Garmin Server Responses"),
+    # TRANSLATORS: row of the cache in the preferences: OpenStreetMap tiles under the maps of
+    # activities
+    "tiles": N_("Activity Map Tiles"),
+    # TRANSLATORS: row of the cache in the preferences: files on their way to the device
+    "temp": N_("Temporary Files"),
+}
+
 # The question before a part of the cache is cleared: only for those that take long to download
 # again; pictures and temporary files go at once.
 CACHE_QUESTIONS = {
-    "maps": (N_("Clear the downloaded maps?"),
+    "maps": (N_("Clear the Downloaded Maps?"),
              N_("This deletes the downloaded maps ({size}). They will have to be downloaded "
                 "again.")),
-    "updates": (N_("Clear the downloaded updates?"),
+    "updates": (N_("Clear the Downloaded Updates?"),
                 N_("This deletes the downloaded software updates ({size}). They are downloaded "
                    "again when needed.")),
 }
@@ -206,11 +229,11 @@ def clear_cache(win, names: list[str] | None, button) -> None:
 
     def failed(e):
         if isinstance(e, cache.CacheError):
-            win.error(_("The cache was not cleared"), str(e))
+            win.error(_("Cache Not Cleared"), str(e))
             return True
         return False
 
-    win.run_task(_("Clearing the cache…"), work, done, failed, device=False, button=button)
+    win.run_task(_("Clearing the Cache…"), work, done, failed, device=False, button=button)
 
 
 def cache_toast(win, text: str) -> None:
@@ -287,7 +310,7 @@ class Preferences:
                 if self.session is not None:
                     self.show_overview()
             else:
-                self.error(_("Background sync"), error or _("The change failed."))
+                self.error(_("Background Sync"), error or _("The change failed."))
             if on_result:
                 on_result(ok)
 
@@ -300,7 +323,8 @@ class Preferences:
     def _auto_sync_row(self) -> Adw.SwitchRow:
         """The background sync, on or off as it is, from the device page (the same as in
         Preferences): a change that fails puts the switch back."""
-        row = Adw.SwitchRow(title=_("Sync automatically when connected"),
+        row = Adw.SwitchRow(title=_("Background Sync"),
+                            subtitle=_("Sync automatically when connected"),
                             active=self._background_enabled())
 
         def toggled(switch, _pspec):
@@ -333,9 +357,9 @@ class Preferences:
         dialog.connect("closed", lambda _d: (setattr(self, "_account_row", None),
                                              setattr(self, "_storage", None),
                                              setattr(self, "_preferences", None)))
-        g = Adw.PreferencesGroup(title=_("Sync with Garmin Connect"))
+        g = Adw.PreferencesGroup(title=_("Sync With Garmin Connect"))
         sw = Adw.SwitchRow(
-            title=_("Sync in the background"),
+            title=_("Background Sync"),
             subtitle=_("Starts at login and syncs whenever the device is connected, "
                        "also when this window is closed"),
             active=self._background_enabled())
@@ -359,10 +383,10 @@ class Preferences:
 
         g = Adw.PreferencesGroup(title=_("Language"))
         codes = [""] + i18n.available_languages()
-        # TRANSLATORS: first choice under "Interface language": the language of the system
+        # TRANSLATORS: first choice under "Interface Language": the language of the system
         names = [_("System default")] + [i18n.language_name(c) for c in codes[1:]]
         current = load_ui_language()
-        combo = Adw.ComboRow(title=_("Interface language"), model=Gtk.StringList.new(names))
+        combo = Adw.ComboRow(title=_("Interface Language"), model=Gtk.StringList.new(names))
         combo.set_selected(codes.index(current) if current in codes else 0)
 
         def language_changed(r, _p):
@@ -387,7 +411,7 @@ class Preferences:
         # application key is read from
         g = Adw.PreferencesGroup(title=_("Setup"))
         row = Adw.ActionRow(
-            title=_("Garmin Express installer for Windows"),
+            title=_("Garmin Express Installer for Windows"),
             subtitle=_("GarminExpress.exe from garmin.com: the application key is read from it "
                        "again, nothing is installed"))
         row.add_suffix(self._button(_("Choose File…"), self.choose_dll))
@@ -400,9 +424,9 @@ class Preferences:
         dialog.present(self)
 
     def _account_group(self) -> Adw.PreferencesGroup:
-        """The "Garmin Connect account" group of the preferences: one row, who is logged in
+        """The "Garmin Connect Account" group of the preferences: one row, who is logged in
         with Log out, or nobody with Log In; drawn again when the account changes."""
-        g = Adw.PreferencesGroup(title=_("Garmin Connect account"))
+        g = Adw.PreferencesGroup(title=_("Garmin Connect Account"))
         row = Adw.ActionRow()
         button = self._button("", self._account_action)
         row.add_suffix(button)
@@ -439,11 +463,11 @@ class Preferences:
         for name in cache.CATEGORIES:
             # TRANSLATORS: subtitle of a row of the cache in the preferences while its size is
             # counted
-            row = Adw.ActionRow(title=_(cache.CATEGORY_NAMES[name]), subtitle=_("Counting…"))
+            row = Adw.ActionRow(title=_(CACHE_ROW_TITLES[name]), subtitle=_("Counting…"))
             trash = Gtk.Button(icon_name="user-trash-symbolic", valign=Gtk.Align.CENTER,
                                # TRANSLATORS: tooltip of the trash button of a part of the cache in
                                # the preferences
-                               tooltip_text=_("Delete these files"), sensitive=False)
+                               tooltip_text=_("Delete These Files"), sensitive=False)
             trash.add_css_class("flat")
             # The handler gets its button from the signal and holds none.
             trash.connect("clicked", lambda button, name=name: ask_clear_cache_part(
@@ -452,7 +476,7 @@ class Preferences:
             g.add(row)
             parts[name] = (row, trash)
         # TRANSLATORS: the last row of the cache in the preferences, with "Clear All…"
-        everything = Adw.ActionRow(title=_("All of the cache"), subtitle=_("Counting…"))
+        everything = Adw.ActionRow(title=_("Entire Cache"), subtitle=_("Counting…"))
         # TRANSLATORS: button that clears every part of the cache
         button = Gtk.Button(label=_("Clear All…"), valign=Gtk.Align.CENTER, sensitive=False)
         button.connect("clicked", self._ask_clear_cache)
@@ -484,7 +508,7 @@ class Preferences:
             body = _("This deletes the files of the cache ({size}). They are downloaded again "
                      "when needed. The pictures of the devices openExpress remembers stay."
                      ).format(size=human_size(other))
-        ask_to_clear(self, _("Clear the cache?"), body, None)
+        ask_to_clear(self, _("Clear the Cache?"), body, None)
 
     def show_shortcuts(self) -> None:
         """The window of shortcuts: each as the first of the keys App.do_startup binds."""
@@ -497,7 +521,7 @@ class Preferences:
 
     def choose_dll(self) -> None:
         dialog = Gtk.FileDialog(
-            title=_("Select the Garmin Express installer for Windows (GarminExpress.exe)"))
+            title=_("Select the Garmin Express Installer for Windows (GarminExpress.exe)"))
 
         def read(path: Path):
             from openexpress.installer import consumer_from_installer, refuse_macos_installer
@@ -526,7 +550,7 @@ class Preferences:
                 self.toast(_("Application key saved"))
                 account_changed(self)
 
-            self.run_task(_("Reading the installer…"), lambda: read(path), saved, device=False)
+            self.run_task(_("Reading the Installer…"), lambda: read(path), saved, device=False)
 
         dialog.open(self, None, chosen)
 
@@ -537,7 +561,7 @@ class Preferences:
             log.info("login: no OAuth1 consumer key (consumer.json missing or damaged): the "
                      "installer asked for first")
             confirm(self, "login-needs-installer",
-                    _("Choose the Garmin Express installer first"),
+                    _("Choose the Garmin Express Installer First"),
                     _("openExpress signs in to Garmin Connect with the application key of "
                       "Garmin Express, which it reads from the Garmin Express installer for "
                       "Windows (GarminExpress.exe, a free download from garmin.com); the "
@@ -579,7 +603,7 @@ class Preferences:
             def start():
                 if self.busy:
                     return True  # the ticket expires only after minutes: wait for the task
-                self.run_task(_("Signing in…"), work, done, device=False)
+                self.run_task(_("Signing In…"), work, done, device=False)
                 return False
 
             def first():

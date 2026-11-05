@@ -47,7 +47,7 @@ class MusicPage:
             sec.show("error")
             return
         # The free space too: asked of the device here, never as the page is drawn.
-        self._load("music", _("Reading music on the device…"),
+        self._load("music", _("Reading Music on the Device…"),
                    lambda: (music.list_device(s.device, s.storage),
                             music.list_playlists(s.device, s.storage), s.storage.free_space()),
                    lambda r: self.show_music(r[:2], free=r[2]))
@@ -64,7 +64,7 @@ class MusicPage:
         # The row "Music" of the device page says it from now on.
         note_music_count(self, len(items), sum(i.size for i in items))
         kinds = music.supported_kinds(self.session.device)
-        g = sec.group(_("Add to the device"), space_text(free))
+        g = sec.group(_("Add to the Device"), space_text(free))
         for kind in kinds:
             row = Adw.ActionRow(title=_(music.KIND_NAMES[kind]))
             # TRANSLATORS: button beside Music, Podcasts or Audiobooks: chooses folders to copy to
@@ -74,8 +74,8 @@ class MusicPage:
             # device
             row.add_suffix(self._button(_("Files…"), lambda k=kind: self.choose_music(k, False)))
             g.add(row)
-        on_watch = {"track": _("Music on the device"), "podcast": _("Podcasts on the device"),
-                    "audiobook": _("Audiobooks on the device")}
+        on_watch = {"track": _("Music on the Device"), "podcast": _("Podcasts on the Device"),
+                    "audiobook": _("Audiobooks on the Device")}
         for kind in kinds:
             files = [i for i in items if i.kind == kind]
             n = len(files)
@@ -84,7 +84,7 @@ class MusicPage:
                     count=n, size=human_size(sum(f.size for f in files)))))
             if not files:
                 continue
-            exp = Adw.ExpanderRow(title=ngettext("Show {count} file", "Show {count} files",
+            exp = Adw.ExpanderRow(title=ngettext("Show {count} File", "Show {count} Files",
                                                  n).format(count=n))
             g.add(exp)
             for f in files:
@@ -101,7 +101,7 @@ class MusicPage:
                 g.add(row)
 
     def choose_music(self, kind: str, folders: bool) -> None:
-        dialog = Gtk.FileDialog(title=_("Choose music to copy to the device"))
+        dialog = Gtk.FileDialog(title=_("Choose Music to Copy to the Device"))
 
         def chosen(dlg, res):
             try:
@@ -131,7 +131,7 @@ class MusicPage:
 
         def copy(p):
             self.run_task(
-                _("Copying music…"),
+                _("Copying Music…"),
                 writes_to_device(lambda: music.copy(p, s.storage, progress=self.progress)),
                 lambda written: (self.toast(ngettext("Copied {count} file", "Copied {count} files",
                                                      len(written)).format(count=len(written))),
@@ -144,15 +144,15 @@ class MusicPage:
                 return
             n = len(p.to_copy)
             confirm(self, "music-copy",
-                    ngettext("Copy {count} file?", "Copy {count} files?", n).format(count=n),
+                    ngettext("Copy {count} File?", "Copy {count} Files?", n).format(count=n),
                     self._copy_summary(p),
                     # TRANSLATORS: button
                     Answer("ok", _("Copy"), lambda: copy(p), look="suggested"))
 
-        self.run_task(_("Scanning files…"), plan, ask_copy)
+        self.run_task(_("Scanning Files…"), plan, ask_copy)
 
     def choose_playlist(self) -> None:
-        dialog = Gtk.FileDialog(title=_("Choose a playlist to add to the device"))
+        dialog = Gtk.FileDialog(title=_("Choose a Playlist to Add to the Device"))
         only = Gtk.FileFilter()
         only.set_name(_("Playlists (.m3u, .m3u8)"))
         for pattern in ("*.m3u", "*.m3u8", "*.M3U", "*.M3U8"):
@@ -227,7 +227,7 @@ class MusicPage:
 
         def add(plan):
             self.run_task(
-                _("Copying music…"),
+                _("Copying Music…"),
                 writes_to_device(lambda: music.add_playlist(
                     plan, s.device, s.storage, progress=self.progress)),
                 lambda _path: (self.toast(_("Playlist “{name}” added").format(name=plan.name)),
@@ -237,14 +237,16 @@ class MusicPage:
         def ask_add(plan):
             summary = self._playlist_summary(plan, in_flatpak())
             if not plan.device_paths:
-                self.error(_("The playlist has no tracks that can be added."), summary)
+                # TRANSLATORS: heading of the message when no track of a playlist can be added
+                self.error(_("No Tracks to Add"),
+                           _("The playlist has no tracks that can be added.") + "\n\n" + summary)
                 return
-            confirm(self, "playlist-add", _("Add the playlist “{name}”?").format(name=plan.name),
+            confirm(self, "playlist-add", _("Add the Playlist “{name}”?").format(name=plan.name),
                     summary,
                     # TRANSLATORS: button that adds the playlist to the device
                     Answer("ok", _("Add"), lambda: add(plan), look="suggested"))
 
-        self.run_task(_("Reading the playlist…"),
+        self.run_task(_("Reading the Playlist…"),
                       lambda: music.plan_playlist(path, s.device, s.storage), ask_add)
 
     def remove_music(self, device_paths) -> None:

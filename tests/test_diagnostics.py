@@ -590,11 +590,11 @@ def test_the_row_says_the_crash_with_the_copy_off():
     group = Adw.PreferencesGroup()
     device_error_row(win, group)
     assert _rows(win) == [
-        ("Device error log", "RTL Trap\u00a0· 2026-10-20 22:24"),
-        ("What the device logged", "error 0x003\u00a0· at 0x10000abc\u00a0· screen 2301", []),
-        ("Crash logs", ("Hidden from the file manager. While they are copied, the device "
+        ("Device Error Log", "RTL Trap\u00a0· 2026-10-20 22:24"),
+        ("Error Details", "error 0x003\u00a0· at 0x10000abc\u00a0· screen 2301", []),
+        ("Crash Logs", ("Hidden from the file manager. While they are copied, the device "
                         "leaves it for a moment"), ["Copy Crash Logs"]),
-        ("Memory dumps", "1 dump\u00a0· 8.1\u00a0MB\u00a0· encrypted", ["Copy Memory Dumps"])]
+        ("Memory Dumps", "1 dump\u00a0· 8.1\u00a0MB\u00a0· encrypted", ["Copy Memory Dumps"])]
 
 
 @pytest.mark.needs_display
@@ -611,7 +611,7 @@ def test_no_row_without_a_recent_crash_and_no_buttons_that_do_not_apply():
     assert win.device_error_row is None
     win = _window(_found(hidden_logs=False, dumps=[]))
     device_error_row(win, Adw.PreferencesGroup())
-    assert [r[0] for r in _rows(win)] == ["Device error log", "What the device logged"]
+    assert [r[0] for r in _rows(win)] == ["Device Error Log", "Error Details"]
 
 
 @pytest.mark.needs_display
@@ -629,7 +629,7 @@ def test_no_crash_logs_found_takes_the_button_away(monkeypatch):
     copy_crash_logs(win)
     assert win.toasts == ["The device has no hidden crash logs"]
     assert not found.hidden_logs
-    assert "Crash logs" not in [r[0] for r in _rows(win)]
+    assert "Crash Logs" not in [r[0] for r in _rows(win)]
     monkeypatch.setattr(diagnostics, "copy_crash_logs",
                         lambda device, storage, progress=None: diagnostics.Copied(
                             new=2, saved=True))
@@ -659,7 +659,7 @@ def test_the_preferences_switch_turns_the_copy_on_and_off():
     win = stand_in(error=lambda title, text: pytest.fail(text))
     group = diagnostics_group(win)
     switch = next(w for w in descendants(group) if isinstance(w, Adw.SwitchRow))
-    assert switch.get_title() == "Keep a copy of the device's diagnostic files on this computer"
+    assert switch.get_title() == "Keep Diagnostic Files"
     assert not switch.get_active() and not diagnostics.copy_on()
     switch.set_active(True)
     assert diagnostics.copy_on() and Settings.load().diagnostics_copy
@@ -741,7 +741,7 @@ def test_the_row_in_polish():
         i18n.setup("en")
     assert rows == [
         ("Dziennik błędów urządzenia", "RTL Trap\u00a0· 20.10.2026 o\u00a022:24"),
-        ("Co zapisało urządzenie", "błąd 0x003\u00a0· adres 0x10000abc\u00a0· ekran 2301", []),
+        ("Szczegóły błędu", "błąd 0x003\u00a0· adres 0x10000abc\u00a0· ekran 2301", []),
         ("Dzienniki awarii", ("Ukryte przed menedżerem plików. Podczas kopiowania urządzenie "
                               "na chwilę z\u00a0niego zniknie"), ["Skopiuj dzienniki awarii"]),
         ("Zrzuty pamięci", "1 zrzut\u00a0· 8,1\u00a0MB\u00a0· zawartość zaszyfrowana",

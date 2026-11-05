@@ -49,7 +49,7 @@ def _session(device, drive=False):
                                     capacity=lambda: 64_000_000_000)
     client = types.SimpleNamespace(auth=types.SimpleNamespace(display="name@example.com"),
                                    consumer=object(), http=None)
-    # On the account, its primary wearable: the row "Primary wearable" is measured too
+    # On the account, its primary wearable: the row "Primary Wearable" is measured too
     # (in Polish its title is long).
     account = [{"unitid": device.unit_id, "primaryactivitytrackersettingcapable": True,
                 "primaryactivitytrackerindicator": True}]
@@ -60,7 +60,7 @@ def _session(device, drive=False):
 
 def _device_errors():
     """A crash the device logged lately, its hidden crash logs and five memory dumps: the row
-    "Device error log" with both buttons."""
+    "Device Error Log" with both buttons."""
     from datetime import datetime
 
     from openexpress import diagnostics
@@ -248,7 +248,7 @@ def _fill(win, page: str) -> str:
         win.account_picture_offer = win.session
     win.update_state = "ready" if page == "device-update-copied" else "available"
     win.update_count = 1
-    # The one update to install: the longest name of a component ("Device software").
+    # The one update to install: the longest name of a component ("Device Software").
     win.update_only = _updates(copied=False)[2]
     win.map_state, win.map_update_count = "available", 1
     sync.SyncState(UNIT).save()  # synced here before
@@ -449,7 +449,7 @@ def test_the_row_of_the_primary_wearable_fits_the_narrowest_window(narrow_window
     win.navigation.push(win.device_view)
     win.select_section("watch")
     _iterate(0.3)
-    title = {"en": "Primary wearable", "pl": "Podstawowe urządzenie typu wearable"}[language]
+    title = {"en": "Primary Wearable", "pl": "Podstawowe urządzenie typu wearable"}[language]
     assert title in [w.get_title() for w in descendants(win.device_view)
                      if isinstance(w, Adw.ActionRow)]
     assert _min_width(win.device_view) <= NARROWEST
@@ -550,7 +550,7 @@ def test_the_page_of_an_activity_fits_the_narrowest_window(narrow_window, monkey
                                                            sport, tiles):
     """Its tiles two by two, the damaged file said under them, the map with its note and
     button (or its attribution), the chart with its switch and the value at its cursor, its
-    kilometres, its heart-rate zones and training effect, its details open (their longest
+    kilometres, its heart rate zones and training effect, its details open (their longest
     values), its sport and start in the header bar with the GPX button."""
     from fakes import RunNow
     from gi.repository import Adw, Gtk
@@ -624,7 +624,7 @@ def test_the_device_error_log_fits_the_narrowest_window(narrow_window, language)
     win.select_section("watch")
     win.device_error_row.set_expanded(True)
     _iterate(0.3)
-    assert win.device_error_row.get_title() == {"en": "Device error log",
+    assert win.device_error_row.get_title() == {"en": "Device Error Log",
                                                  "pl": "Dziennik błędów urządzenia"}[language]
     assert _min_width(win.device_view) <= NARROWEST
 

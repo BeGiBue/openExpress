@@ -36,7 +36,7 @@ watch names two numbers its own way (77, 97); one field of the Edge 1050 the tab
     SOFTWARE.
 
 Garmin's manuals give one "Time in Zone" field for every zone; the table has one number for
-each heart-rate and power zone, named here with its zone."""
+each heart rate and power zone, named here with its zone."""
 
 from __future__ import annotations
 

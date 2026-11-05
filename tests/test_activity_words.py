@@ -158,7 +158,7 @@ def test_the_tiles_by_their_kind_for_their_icons():
 
 
 ZONES = {
-    "en": {"title": "Heart-rate zones", "below": "Below zone 1", "zone": "Zone 3",
+    "en": {"title": "Heart Rate Zones", "below": "Below zone 1", "zone": "Zone 3",
            "share": "36:30 · 88%",
            "threshold": "Bounds from the device: % of lactate threshold (165 bpm)",
            "max": "Bounds from the device: % of maximum heart rate (190 bpm)",
@@ -191,7 +191,7 @@ def test_the_words_of_the_heart_rate_zones(language):
 
 
 EFFECT = {
-    "en": {"title": "Training effect", "aerobic": "Aerobic", "anaerobic": "Anaerobic",
+    "en": {"title": "Training Effect", "aerobic": "Aerobic", "anaerobic": "Anaerobic",
            "load": "Training load",
            "words": ["No benefit", "No benefit", "Minor benefit", "Minor benefit", "Maintaining",
                      "Maintaining", "Improving", "Improving", "Highly improving",

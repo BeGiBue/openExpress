@@ -29,7 +29,7 @@ def _texture():
 
 
 
-# The arrow of the row "Last sync" (an expander row): not the device's image.
+# The arrow of the row "Last Sync" (an expander row): not the device's image.
 EXPANDER_ARROW = "adw-expander-arrow-symbolic"
 
 

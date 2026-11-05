@@ -1,5 +1,5 @@
 """The states of the updates said the same way everywhere: "ready" for an update copied, waiting
-for the device to install it (chip, row "Device software", Updates page, tile), and the last check
+for the device to install it (chip, row "Device Software", Updates page, tile), and the last check
 that answered, kept with the device, for the page of a remembered device ("· checked {when}",
 "Not checked since {when}"). All devices and updates are made up."""
 
@@ -331,7 +331,7 @@ def test_a_second_system_update_is_listed_while_one_is_ready():
     _win, status, groups, _buttons = _updates_page(items + other)
     assert status["texts"][0][0] == f"{READY}{NB}· 1 more available"
     (available, *_rest) = groups
-    assert [r.get_title() for r in available.rows] == ["System software"]
+    assert [r.get_title() for r in available.rows] == ["System Software"]
     assert "Install" not in [label for label, _s in status["buttons"]]
 
 
@@ -421,7 +421,7 @@ def test_the_page_of_a_device_only_on_the_account_asks_to_connect_it():
 @pytest.mark.needs_display
 def test_the_page_of_a_remembered_device_is_told_against_now_once_a_minute(monkeypatch,
                                                                          clock):
-    """As on the start page and the device view: "Last seen", "Last sync" and the check of
+    """As on the start page and the device view: "Last seen", "Last Sync" and the check of
     updates drawn again once a minute, only where the words changed; the timer runs while
     the page is shown."""
     from gi.repository import GLib

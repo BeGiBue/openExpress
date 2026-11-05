@@ -2,7 +2,7 @@
 on the command line: every request sent to Garmin Connect exactly (method, the whole address,
 the body byte for byte, its type, signed), what each call gives back and what the user reads.
 And the rules of the window's list: when a tile has the chip "Primary" and when the device page
-has the row "Primary wearable". All devices, keys and logins are made up."""
+has the row "Primary Wearable". All devices, keys and logins are made up."""
 
 import dataclasses
 import json
@@ -369,7 +369,7 @@ def test_the_command_line_says_why_it_changes_nothing_and_exits_with_1(account, 
     assert account.sent == sent
 
 
-# --- the window's list: the chip "Primary" and the row "Primary wearable" --------------------
+# --- the window's list: the chip "Primary" and the row "Primary Wearable" --------------------
 
 
 def entry(unit, name="Watch", capable=True, primary=False, **more):

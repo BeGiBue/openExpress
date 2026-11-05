@@ -20,7 +20,7 @@
       <li>Install watch software updates and free maps such as TopoActive</li>
       <li>Install, update and remove Connect IQ apps and watch faces</li>
       <li>Copy music, podcasts, audiobooks and playlists</li>
-      <li>See each activity's track on a map, with its charts, laps, heart-rate zones and training effect</li>
+      <li>See each activity's track on a map, with its charts, laps, heart rate zones and training effect</li>
       <li>Sync automatically in the background when the watch is connected</li>
       <!-- TRANSLATORS: a feature in the description for software centres: the program sends no
            usage data -->
@@ -179,7 +179,7 @@
           <li>New: the page of an activity. A click on an activity of the Activities page opens
           it: its distance, time, pace or speed, heart rate and ascent; the map of its track,
           coloured by heart rate, elevation or pace; a chart of heart rate, elevation and pace or
-          speed with its cursor marked on the map; its laps (or each kilometre), heart-rate
+          speed with its cursor marked on the map; its laps (or each kilometre), heart rate
           zones, training effect and load, and its details. Streets and terrain come from
           OpenStreetMap only after you turn them on. Checked on a fēnix 8 over MTP.</li>
           <li>A device over MTP that stops responding in the middle of a read no longer leaves

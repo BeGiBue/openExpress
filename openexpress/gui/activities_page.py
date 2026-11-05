@@ -185,7 +185,7 @@ class ActivitiesPage:
             found = activities.DeviceActivities(s.device, s.storage, paths.default_backup_dir())
         # Read again (Refresh): as many as were shown, what was read before kept.
         count = max(activities.PAGE, len(found.read))
-        self._load("activities", _("Reading activities…"),
+        self._load("activities", _("Reading Activities…"),
                    lambda: _read(found, count, self.progress), self.show_activities)
 
     def show_activities(self, found) -> None:
@@ -242,5 +242,5 @@ def _read_more(win, button: Gtk.Button) -> None:
         _show_more_button(win, found)
         log.info("activities page: %d shown, %d more to read", len(found.read), found.left)
 
-    win.run_task(_("Reading activities…"), lambda: found.read_next(progress=win.progress),
+    win.run_task(_("Reading Activities…"), lambda: found.read_next(progress=win.progress),
                  shown, button=button)

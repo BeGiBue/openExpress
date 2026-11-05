@@ -92,7 +92,7 @@ APP = types.SimpleNamespace(name="Face It", app_id=uuid.UUID(int=7), has_files=T
 
 
 @pytest.mark.parametrize(("words", "done"), [
-    ("Remove", ["remove"]), ("Remove and forget", ["owner", "remove", "forget"]),
+    ("Remove", ["remove"]), ("Remove and Forget", ["owner", "remove", "forget"]),
     ("Cancel", []), (ESCAPE, [])])
 def test_removing_an_app(click, app_calls, words, done):
     from openexpress.gui.app import MainWindow
@@ -104,7 +104,7 @@ def test_removing_an_app(click, app_calls, words, done):
 
 
 @pytest.mark.parametrize(("words", "done"), [
-    ("Remove from Account", ["owner", "forget"]), ("Cancel", []), (ESCAPE, [])])
+    ("Remove From Account", ["owner", "forget"]), ("Cancel", []), (ESCAPE, [])])
 def test_removing_an_app_from_the_account(click, app_calls, words, done):
     from openexpress.gui.app import MainWindow
 
@@ -159,7 +159,7 @@ def _update():
 
 
 @pytest.mark.parametrize(("words", "tasks"), [
-    ("Accept and install", ["Installing update…"]), ("Cancel", [])])
+    ("Accept and Install", ["Installing Update…"]), ("Cancel", [])])
 def test_installing_an_update_of_a_device_that_loses_its_data(click, words, tasks):
     from openexpress.gui.app import MainWindow
 
@@ -179,7 +179,7 @@ def test_ejecting_after_a_sync_wrote_to_the_drive(click, words, ejected):
     win = _window(eject_device=lambda s, bike_accessory=False, button=None, files=False:
                   asked.append(files))
     MainWindow.ask_to_eject(win, win.session)
-    assert click.shown[-1].get_heading() == "Files saved on the device"
+    assert click.shown[-1].get_heading() == "Files Saved on the Device"
     click(words, until=lambda: asked == ejected and not click.shown[-1].get_mapped())
 
 
@@ -240,7 +240,7 @@ def test_making_the_device_the_primary_training_device(click, words, changed):
 
 
 @pytest.mark.parametrize(("words", "started"), [
-    ("New data only", ["baseline"]), ("Upload everything", ["all"]), ("Cancel", []),
+    ("New Data Only", ["baseline"]), ("Upload Everything", ["all"]), ("Cancel", []),
     (ESCAPE, [])])
 def test_choosing_the_first_sync(click, words, started):
     from openexpress.gui.app import MainWindow
@@ -262,7 +262,7 @@ def test_clearing_a_part_of_the_cache(click, words, cleared, in_the_window):
     in_the_window("clear_cache", lambda win, names, button: got.append(names))
     win = _window(_storage=types.SimpleNamespace(parts={"maps": (None, object())},
                                                  everything=(None, object())))
-    ask_to_clear(win, "Clear the downloaded maps?", "They take 1 GB.", ["maps"])
+    ask_to_clear(win, "Clear the Downloaded Maps?", "They take 1 GB.", ["maps"])
     click(words, until=lambda: got == cleared and not click.shown[-1].get_mapped())
 
 
@@ -316,7 +316,7 @@ def test_closing_while_a_task_runs_asks_to_wait(click):
 
 INFORMS = {"close-busy", "order-none-differs", "ejected", "error", "backup-incomplete",
            "add-to-account-refused", "added-not-listed", "added-not-checked"}
-AFTER_ESCAPE = {"ejected": [("error", "Finish the update")]}  # a bike accessory's last step
+AFTER_ESCAPE = {"ejected": [("error", "Finish the Update")]}  # a bike accessory's last step
 
 
 def _escape_window(ctx, **kw):
@@ -522,7 +522,7 @@ def _cache_clear(ctx):
     ctx.in_the_window("clear_cache", _note(ctx, "clear_cache"))
     win = _escape_window(ctx, _storage=types.SimpleNamespace(parts={"maps": (None, object())},
                                                              everything=(None, object())))
-    ask_to_clear(win, "Clear the downloaded maps?", "They take 1 GB.", ["maps"])
+    ask_to_clear(win, "Clear the Downloaded Maps?", "They take 1 GB.", ["maps"])
 
 
 def _update_install(ctx):

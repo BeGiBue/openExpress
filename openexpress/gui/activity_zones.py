@@ -1,4 +1,4 @@
-"""The heart-rate zones of an activity's page, under its laps, as its device worked them out
+"""The heart rate zones of an activity's page, under its laps, as its device worked them out
 (fit.HeartRateZones): zone 5 on top, then 4 to 1 and the time below zone 1, each with its
 bounds, its time and share, and a bar of its share in the zone's colour; under the title how
 the bounds were worked out. The zones' colours read on the cards of the light style and of the

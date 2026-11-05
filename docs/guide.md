@@ -19,7 +19,7 @@ should work, but are untested – reports are welcome. Developed on Fedora/GNOME
 - Music, podcasts and audiobooks with playlists.
 - Activities of the watch and of its backups, each with its own page: the track on a map
   (streets from OpenStreetMap once you turn them on) coloured by heart rate, pace or elevation,
-  charts, laps, heart-rate zones, training effect and details; exported as GPX; what a FIT
+  charts, laps, heart rate zones, training effect and details; exported as GPX; what a FIT
   file holds (`openexpress fit inspect`).
 - Backups; showing and setting the primary training device and the primary wearable;
   copies of the device's diagnostic files, kept on this computer.
@@ -79,7 +79,7 @@ update copied to the connected device, which installs it once unplugged; **Eject
 for a USB drive), **To sync** (activities on the device not uploaded yet) or **Never synced**
 (by this installation: [each keeps its own](install.md#the-flatpak-and-the-version-from-source);
 the version from source counts the Flatpak's syncs too),
-**USB drive**, **Primary** (the account's **Primary wearable**, as Garmin Connect names it:
+**USB drive**, **Primary** (the account's **Primary Wearable**, as Garmin Connect names it:
 steps and sleep come from this device), **Not on your account** and,
 when nothing else needs saying, **Synced** (synced before, nothing new to upload). **To
 sync** and **Synced** are there at once, as the last count found them (at most 7 days ago,
@@ -89,7 +89,7 @@ with the same sign-in). While you are not signed in the tiles show neither these
 **To sync**, **Never synced** or **Synced**, and a sentence under the tiles says so; it also
 says when the list could not be read (the tiles then keep what was known before). The device page shows **Update available** or
 **Update ready** under the software version too, and, under the account's **Primary training
-device**, its **Primary wearable** (only for a device that can be one; **Set as Primary**
+device**, its **Primary Wearable** (only for a device that can be one; **Set as Primary**
 makes it this device, after a question). Its
 **Apps** and **Music** rows lead to their pages, as **Maps** does, and say how many there are
 once those pages have read them; **Backup** says when the last backup was made and how many
@@ -102,7 +102,7 @@ disconnect and reconnect the device and make it again.
 A device seen before and not connected opens read-only: what was known of it when it was
 last seen, its last sync with its details, what the last check of its updates found and
 when (*Not checked since …* when that check is older than 30 days), and, while the
-account's list is known, its **Primary wearable**. **Forget Device…** at the bottom of that
+account's list is known, its **Primary Wearable**. **Forget Device…** at the bottom of that
 page removes what this installation keeps of it (what was uploaded from it, its last sync, the maps of your own
 copied to it and the copies of its diagnostic files); connected again, it is a new device, and its first sync asks again whether to
 upload everything or new data only. While files of it are not uploaded yet, it is forgotten
@@ -118,9 +118,8 @@ systemctl --user daemon-reload
 systemctl --user enable --now openexpress-watch.service
 ```
 
-This is for the version from source. In the Flatpak, turn on **Sync in the background** in
-Preferences, or **Sync automatically when connected** on the device page; `install-desktop`
-does nothing there.
+This is for the version from source. In the Flatpak, turn on **Background Sync** in Preferences
+or on the device page; `install-desktop` does nothing there.
 
 The background service syncs the watch every time it is connected and shows a notification.
 Until you sign in it does nothing, and until the device's first sync (in the window, or with
@@ -191,7 +190,7 @@ connected device; no login is needed.
   be unplugged only once that has worked; when the system refuses (a program still uses the
   drive), it says why and offers to try again. Some of these devices install an update only
   after a clean eject. Until it is unplugged, the window does not open a drive it ejected
-  again. With more than one update for such a device, **Install all** copies all of them (one
+  again. With more than one update for such a device, **Install All** copies all of them (one
   file of the device at a time) and ejects the drive once.
 
 <p align="center">
@@ -254,13 +253,13 @@ is stored in the file.
   order are those of the newest copy; of copies with the same apps in the same order only the
   newest is kept, and the 10 newest copies of a device are kept: a new one takes the place of
   the oldest (full backups keep their newest 3 the same way).
-- `openexpress apps order` (in the window: **Restore the order from a copy** on the Apps
+- `openexpress apps order` (in the window: **Restore the Order From a Copy** on the Apps
   page, which lists only the copies in another order than now) lists these copies, each with
   how many apps would have to be moved, and puts the apps and widgets back in the order of
   the chosen one, for example after another program rearranged the widgets. It only reorders: the same
   apps, the same settings.
 - An app that already waits in Garmin's queue for the device is not requested a second time.
-- **Remove and forget** in the window (`apps remove --forget`) also removes the app from your
+- **Remove and Forget** in the window (`apps remove --forget`) also removes the app from your
   Garmin account's app list; **Remove** leaves it there.
 - A device that has no app list yet (`GARMIN/APPS/OUT.BIN`, before its first app) shows *No
   Connect IQ apps on the device*; its apps are only queued in Garmin Connect ([#14](https://github.com/TomaszBojanowski/openExpress/issues/14)).
@@ -313,7 +312,7 @@ until then the track is drawn on a plain background. Ctrl + scroll or the button
 zoom it. The chart shows heart rate, elevation and pace or speed, one at a time, and the place
 of its cursor is marked on the map. Under it come the laps (the watch's, or each kilometre
 when the watch kept no laps): choose one to see it on the map and on the chart. Then the
-heart-rate zones as the watch worked them out, with the time in each; the training effect and
+heart rate zones as the watch worked them out, with the time in each; the training effect and
 training load; and, in a row that opens, the details: elapsed and moving time, descent,
 elevation, best pace, cadence, steps, heart rate, temperature and more, only those the file
 gives. The moving time, the average moving pace, the temperatures with their decimal, the rest
@@ -343,7 +342,7 @@ fēnix 8 over MTP.
 
 ## Activity profiles
 
-The **Activity profiles** page and `openexpress profiles` show the sport profiles of the
+The **Activity Profiles** page and `openexpress profiles` show the sport profiles of the
 connected device (its `Sports` folder) and their data screens, read only: nothing is written to
 the device. The profiles of its newest activities come first, then every profile by name, with
 a search; a profile whose file gives no name goes by the file's name. A profile's page shows its
@@ -414,7 +413,7 @@ known yet and are shown as numbers.
   short is not uploaded: the summary says so, and the next sync reads it again. If the device
   is not mounted again, the sync stops and says to unplug it and plug it in again. A device
   connected as a USB drive needs none of this.
-- **Last sync** on the Device page, `openexpress sync` and the notification of the
+- **Last Sync** on the Device page, `openexpress sync` and the notification of the
   background sync use the same words for how many new files the device had, how many were
   uploaded and how many came from Garmin Connect; the row on the Device page also says when
   it was. On the Device page and in `openexpress status` it ends, apart from what that sync

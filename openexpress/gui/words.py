@@ -26,7 +26,7 @@ def updates_available(count: int, only=None) -> str:
     known), how many."""
     if count == 1 and only is not None and only.is_system:
         # TRANSLATORS: the one update to install is of the device's system software (the row
-        # "Device software" and the top of the Updates page)
+        # "Device Software" and the top of the Updates page)
         return _("Version {version} available").format(version=only.version)
     if count == 1 and only is not None:
         # TRANSLATORS: the one update to install, of another part of the device (its name and
@@ -56,7 +56,7 @@ def copied_update_text(u) -> str | None:
 
 def update_state_text(state: str | None, count: int = 0, only=None,
                       mass_storage: bool = False) -> str:
-    """The state of the device's updates in one text, for the row "Device software" and the
+    """The state of the device's updates in one text, for the row "Device Software" and the
     top of the Updates page: "available" (updates_available), "ready" (copied, waiting for
     the device to be disconnected, or ejected: `mass_storage`; it wins over the `count` still
     to install, told after it), "current", "failed", or None (not known yet)."""
@@ -95,7 +95,7 @@ def not_checked_since(at: float) -> str:
 
 
 def remembered_update_text(entry, now: datetime | None = None) -> str:
-    """The row "Device software" of a device not connected (`entry`, its KnownDevice; None:
+    """The row "Device Software" of a device not connected (`entry`, its KnownDevice; None:
     not remembered here): what the last check kept with it found, and when, while it is
     recent and of the software the device had when last seen; "Not checked since …" for an
     older check; "Connect the device to check" without one, or after an update copied."""
@@ -123,7 +123,7 @@ def never_synced() -> str:
     """A device never synced here (sync.synced_here: no state.json of this installation, nor,
     from source, of the Flatpak): on its tile and on its page, the same words."""
     # TRANSLATORS: a chip on the tile of a connected device that openExpress on this
-    # computer has never synced, and the subtitle of "Last sync" on its page
+    # computer has never synced, and the subtitle of "Last Sync" on its page
     return pgettext("chip", "Never synced")
 
 
@@ -134,10 +134,10 @@ def never_synced_tooltip() -> str:
 
 
 def no_sync_record() -> str:
-    """"Last sync" of a device synced here before (its state.json) without a record of its
+    """"Last Sync" of a device synced here before (its state.json) without a record of its
     last sync: its files marked as uploaded alone (baseline), or a sync of a version that
     kept no record."""
-    # TRANSLATORS: the subtitle of "Last sync" after the files of the device were marked as
+    # TRANSLATORS: the subtitle of "Last Sync" after the files of the device were marked as
     # uploaded without a sync (or synced by an old version)
     return _("No record of the last sync; the next sync uploads new data only")
 
@@ -146,7 +146,7 @@ def to_upload_text(count: int) -> str:
     """After the numbers of the last sync of a connected device: how many activities it has
     now that openExpress has not uploaded yet (the number of the chip "To sync"), said apart
     from what that sync found."""
-    # TRANSLATORS: at the end of the subtitle of "Last sync" of a connected device (and of
+    # TRANSLATORS: at the end of the subtitle of "Last Sync" of a connected device (and of
     # `openexpress status`), after what the last sync found ("nothing to upload")
     return ngettext("now to upload: {count} activity", "now to upload: {count} activities",
                     count).format(count=count)
@@ -155,7 +155,7 @@ def to_upload_text(count: int) -> str:
 def with_activities_to_upload(text: str, record: dict | None, to_sync) -> str:
     """`text` (the last sync, or that none is recorded), then the activities the connected
     device has to upload now (`to_sync`: sync.ActivitiesToSync, the count of the chip "To
-    sync"), unless that sync could not upload (no chip then): the row "Last sync" of the
+    sync"), unless that sync could not upload (no chip then): the row "Last Sync" of the
     device page and the line of `openexpress status`."""
     count = to_sync.count if to_sync is not None else None
     if count and (not record or service.not_uploaded(record) is None):
@@ -164,8 +164,8 @@ def with_activities_to_upload(text: str, record: dict | None, to_sync) -> str:
 
 
 def primary_wearable_text(wearable) -> str:
-    """The subtitle of "Primary wearable" (devicelist.PrimaryWearable), in the words of
-    "Primary training device"."""
+    """The subtitle of "Primary Wearable" (devicelist.PrimaryWearable), in the words of
+    "Primary Training Device"."""
     if not wearable.set:
         return _("Not set")
     if wearable.is_this_device:
@@ -240,13 +240,13 @@ def activity_time_text(seconds: float) -> str:
 
 def activity_title(read) -> str:
     """The title of an activity's row (activities.Read): its sport, "Activity" when the file
-    does not say, "Unreadable file" for one that is no FIT file."""
+    does not say, "Unreadable File" for one that is no FIT file."""
     from openexpress.activities import sport_name
 
     if read.summary is None:
         # TRANSLATORS: title of the row of an activity whose file is not a FIT file, in place of its
         # sport
-        return _("Unreadable file")
+        return _("Unreadable File")
     return sport_name(read.summary.sport)
 
 
@@ -289,9 +289,16 @@ def activity_caption(read) -> str:
 
 
 def still_being_written_text() -> str:
-    """An activity whose file its device was still writing when it was connected: in its row
-    and as the title of its page."""
+    """An activity whose file its device was still writing when it was connected, in its row."""
     return _("Still being written: disconnect and reconnect the device")
+
+
+def still_being_written_title() -> tuple[str, str]:
+    """The title and the description of the page of an activity whose file its device was
+    still writing when it was connected."""
+    # TRANSLATORS: title of the page of an activity whose file the device was still writing when
+    # it was connected
+    return _("Still Being Written"), _("Disconnect and reconnect the device")
 
 
 def damaged_file_text() -> str:
@@ -305,19 +312,23 @@ def activity_file_error() -> str:
     return _("The file of this activity could not be read.")
 
 
-def activity_not_read_title() -> str:
-    """The title of the page of an activity whose file could not be read again."""
-    return _("The file of this activity could not be read")
+def activity_not_read_title() -> tuple[str, str]:
+    """The title and the description of the page of an activity whose file could not be read
+    again."""
+    # TRANSLATORS: title of the page of an activity whose file could not be read
+    return _("Activity Not Read"), _("The file of this activity could not be read")
 
 
-def no_summary_title() -> str:
-    """The title of the page of an activity whose file has no summary (no session)."""
-    return _("This activity has no summary")
+def no_summary_title() -> tuple[str, str]:
+    """The title and the description of the page of an activity whose file has no summary (no
+    session)."""
+    # TRANSLATORS: title of the page of an activity whose file has no summary (no tiles to show)
+    return _("No Summary"), _("This activity has no summary")
 
 
 def reading_activity_text() -> str:
     """The page of an activity while its file is read again: its title, and the task's."""
-    return _("Reading the activity…")
+    return _("Reading the Activity…")
 
 
 def activities_count_text(count: int, only_in_backups: int) -> str:
@@ -670,12 +681,12 @@ def lap_caption(lap, sport: int | None) -> str:
     return caption(*(part for part in parts if part))
 
 
-# --- the heart-rate zones of an activity ---------------------------------------------------------
+# --- the heart rate zones of an activity ---------------------------------------------------------
 
 
 def zones_title() -> str:
-    # TRANSLATORS: the title of the section of the heart-rate zones on the page of an activity
-    return _("Heart-rate zones")
+    # TRANSLATORS: the title of the section of the heart rate zones on the page of an activity
+    return _("Heart Rate Zones")
 
 
 def zone_name(number: int) -> str:
@@ -683,7 +694,7 @@ def zone_name(number: int) -> str:
     if number == 0:
         # TRANSLATORS: the row of the time below zone 1 of the heart rate
         return _("Below zone 1")
-    # TRANSLATORS: a heart-rate zone ("Zone 3")
+    # TRANSLATORS: a heart rate zone ("Zone 3")
     return _("Zone {number}").format(number=number)
 
 
@@ -705,7 +716,7 @@ def zone_range(bounds, number: int) -> str:
 def zone_share(seconds: float, total: float) -> str:
     """The time in a zone and its share of the time in all: "36:30 · 88%"."""
     percent = round(seconds / total * 100) if total else 0
-    # TRANSLATORS: the time in a heart-rate zone and its share ("36:30 · 88%")
+    # TRANSLATORS: the time in a heart rate zone and its share ("36:30 · 88%")
     return _("{time} · {percent}%").format(time=activity_clock(seconds), percent=percent)
 
 
@@ -714,25 +725,25 @@ def zones_method_text(zones) -> str | None:
     None when it does not say, or not the heart rate it says they come from."""
     method = zones.method
     if method == "max" and zones.max_heart_rate:
-        # TRANSLATORS: under the title of the heart-rate zones ("… (190 bpm)")
+        # TRANSLATORS: under the title of the heart rate zones ("… (190 bpm)")
         return _("Bounds from the device: % of maximum heart rate ({bpm})").format(
             bpm=heart_rate_text(zones.max_heart_rate))
     if method == "threshold" and zones.threshold_heart_rate:
-        # TRANSLATORS: under the title of the heart-rate zones ("… (165 bpm)")
+        # TRANSLATORS: under the title of the heart rate zones ("… (165 bpm)")
         return _("Bounds from the device: % of lactate threshold ({bpm})").format(
             bpm=heart_rate_text(zones.threshold_heart_rate))
     if method == "reserve":
-        # TRANSLATORS: under the title of the heart-rate zones
+        # TRANSLATORS: under the title of the heart rate zones
         return _("Bounds from the device: % of heart rate reserve")
     if method == "custom":
-        # TRANSLATORS: under the title of the heart-rate zones: set by the user
+        # TRANSLATORS: under the title of the heart rate zones: set by the user
         return _("Bounds from the device: your own")
     return None
 
 
 def effect_title() -> str:
     # TRANSLATORS: the title of the section of the training effect on the page of an activity
-    return _("Training effect")
+    return _("Training Effect")
 
 
 def effect_name(kind: str) -> str:

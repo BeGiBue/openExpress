@@ -123,7 +123,7 @@ def test_the_window_says_it_in_a_message_after_its_toast(device_root, tmp_path, 
                    progress=lambda message: None, backup_row=None)
     MainWindow.backup(win)
     assert told[0].startswith("Copied 342 files to ")
-    assert told[1] == ("backup-incomplete", "Not everything was backed up", TEXT)
+    assert told[1] == ("backup-incomplete", "Backup Incomplete", TEXT)
 
 
 def test_the_log_of_a_backup_names_no_file(device_root, tmp_path, caplog):

@@ -190,11 +190,11 @@ def format_when(ts: float) -> str:
     now = datetime.now()
     clock = when.strftime("%H:%M")
     if when.date() == now.date():
-        # TRANSLATORS: tooltip of "Last sync": when the sync was, today; {time}: the hour, e.g.
+        # TRANSLATORS: tooltip of "Last Sync": when the sync was, today; {time}: the hour, e.g.
         # 23:41
         return _("Today at {time}").format(time=clock)
     if when.date() == (now - timedelta(days=1)).date():
-        # TRANSLATORS: tooltip of "Last sync": when the sync was, yesterday; {time}: the hour, e.g.
+        # TRANSLATORS: tooltip of "Last Sync": when the sync was, yesterday; {time}: the hour, e.g.
         # 23:41
         return _("Yesterday at {time}").format(time=clock)
     return when.strftime("%x %H:%M")

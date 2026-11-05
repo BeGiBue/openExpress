@@ -992,8 +992,8 @@ class ActivityMap(Gtk.Box):
         zoom = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, halign=Gtk.Align.END,
                        valign=Gtk.Align.START, margin_top=6, margin_end=6)
         zoom.add_css_class("linked")
-        for icon, tooltip, handler in (("zoom-in-symbolic", _("Zoom in"), _zoom_in),
-                                       ("zoom-out-symbolic", _("Zoom out"), _zoom_out)):
+        for icon, tooltip, handler in (("zoom-in-symbolic", _("Zoom In"), _zoom_in),
+                                       ("zoom-out-symbolic", _("Zoom Out"), _zoom_out)):
             button = Gtk.Button(icon_name=icon, tooltip_text=tooltip)
             button.add_css_class("osd")
             button.connect("clicked", handler)

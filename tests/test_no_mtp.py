@@ -19,7 +19,7 @@ from test_detection import (  # noqa: F401 - the fixture
 from openexpress import i18n
 from openexpress.device import gio_storage
 
-NO_MTP_TITLE = "No MTP support in the system (gvfs-mtp)"
+NO_MTP_TITLE = "No MTP Support in the System (gvfs-mtp)"
 NO_MTP_TEXT = ("openExpress reads the device over MTP through gvfs, and gvfs on this system "
                "has no MTP support. Install it (Fedora: sudo dnf install gvfs-mtp; Arch: sudo "
                "pacman -S gvfs-mtp; Debian and Ubuntu: sudo apt install gvfs-backends), log "
@@ -93,7 +93,7 @@ def test_the_window_says_it_at_once_and_logs_it_once(plugged, monkeypatch, caplo
 def test_with_mtp_the_window_says_the_device_is_starting():
     from openexpress.gui.app import MainWindow
 
-    assert MainWindow._usb_notice(gio_storage.PRESENT, 10)[0] == "The device is starting…"
+    assert MainWindow._usb_notice(gio_storage.PRESENT, 10)[0] == "Device Starting…"
 
 
 def test_no_mtp_in_polish(monkeypatch):
@@ -125,7 +125,7 @@ def test_the_page_not_ready_names_other_programs(normal_s, replug):
     pin = gio_storage.not_ready_text(gio_storage.PRESENT)
     expected = f"{pin} {REPLUG_HINT_AFTER_PIN} {HELD}" if replug else f"{pin} {HELD}"
     assert MainWindow._usb_notice(gio_storage.PRESENT, 46, normal_s) == (
-        "The device is not ready", expected, False)
+        "Device Not Ready", expected, False)
 
 
 def test_other_programs_in_polish():
@@ -202,7 +202,7 @@ def test_the_readme_names_the_same_packages_and_words():
     for command in ("sudo dnf install gvfs-mtp", "sudo pacman -S gvfs-mtp",
                     "sudo apt install gvfs-backends"):
         assert command in NO_MTP_TEXT and f"`{command}`" in section
-    assert f"**{NO_MTP_TITLE}**" in section and "**The device is not ready**" in section
+    assert f"**{NO_MTP_TITLE}**" in section and "**Device Not Ready**" in section
     assert "Dolphin" in section and "kiod6" in section
     # KDE's kmtpd keeps the device after Dolphin is closed and takes it back when it is plugged
     # in again (kio-extras): only quitting kiod6 frees it.

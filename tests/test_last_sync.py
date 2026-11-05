@@ -1,4 +1,4 @@
-"""The last sync in words: the row under "Last sync" and the details count the same way, in
+"""The last sync in words: the row under "Last Sync" and the details count the same way, in
 the window, on the command line and in the notification of the background sync."""
 
 from pathlib import Path
@@ -224,7 +224,7 @@ def test_what_went_wrong_is_a_warning():
 
 @pytest.mark.needs_display
 def test_the_window_marks_the_warnings(xdg):
-    """Under "Last sync": the details as one row of a few lines, the warnings with an icon
+    """Under "Last Sync": the details as one row of a few lines, the warnings with an icon
     and in the colour of warnings, the other lines as they are; the full date in the row's
     tooltip."""
     import types
@@ -241,7 +241,7 @@ def test_the_window_marks_the_warnings(xdg):
         uploaded=1, errors=["download: HTTP 404"],
         lines=[service.new_files_step([types.SimpleNamespace(datatype="FIT_TYPE_4")] * 3),
                service.uploads_step(_report(uploaded=1, checked=1, rejected=1))]))
-    row = Adw.ExpanderRow(title="Last sync")
+    row = Adw.ExpanderRow(title="Last Sync")
     win = stand_in(
         last_sync_row=row, _last_sync_children=[],
         session=types.SimpleNamespace(ownership_error=None,
@@ -278,7 +278,8 @@ def test_the_device_page_switches_the_automatic_sync(enabled):
     win = stand_in(_background_enabled=lambda: enabled,
                    set_background=lambda on, result: asked.append((on, result)))
     row = MainWindow._auto_sync_row(win)
-    assert row.get_title() == "Sync automatically when connected"
+    assert row.get_title() == "Background Sync"
+    assert row.get_subtitle() == "Sync automatically when connected"
     assert row.get_active() is enabled and asked == []
     row.set_active(not enabled)
     ((wanted, result),) = asked

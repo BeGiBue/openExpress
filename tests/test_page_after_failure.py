@@ -75,7 +75,7 @@ def _install(win, name):
 
 
 def _on_the_device(section) -> dict:
-    (group,) = [g for g in section.groups if g.get_title() == "On the device"]
+    (group,) = [g for g in section.groups if g.get_title() == "On the Device"]
     return {r.get_title(): r.get_subtitle() for r in _rows(group)}
 
 
@@ -209,7 +209,7 @@ def restore_order(win, monkeypatch):
 
     monkeypatch.setattr(ciq, "restore_order", win.fails)
     MainWindow.restore_order(win, types.SimpleNamespace(state=None))
-    return "apps", "Restoring the order…"
+    return "apps", "Restoring the Order…"
 
 
 def install_apps(win, monkeypatch):
@@ -218,7 +218,7 @@ def install_apps(win, monkeypatch):
     _account(monkeypatch)
     monkeypatch.setattr(ciq, "install_apps", win.fails)
     MainWindow.install_apps(win, [APP])
-    return "apps", "Installing apps…"
+    return "apps", "Installing Apps…"
 
 
 def remove_app(win, monkeypatch):
@@ -268,7 +268,7 @@ def copy_music(win, monkeypatch):
     monkeypatch.setattr(music, "plan_copy", lambda tracks, device, storage: plan)
     monkeypatch.setattr(music, "copy", win.fails)
     MainWindow.add_music(win, [Path("one.mp3")], "track")
-    return "music", "Copying music…"
+    return "music", "Copying Music…"
 
 
 def add_playlist(win, monkeypatch):
@@ -278,7 +278,7 @@ def add_playlist(win, monkeypatch):
     monkeypatch.setattr(music, "plan_playlist", lambda path, device, storage: plan)
     monkeypatch.setattr(music, "add_playlist", win.fails)
     MainWindow.add_playlist(win, Path("Morning run.m3u8"))
-    return "music", "Copying music…"
+    return "music", "Copying Music…"
 
 
 def remove_music(win, monkeypatch):
@@ -380,4 +380,4 @@ def test_music_copied_in_part_reads_the_music_page_again(iq_device, library, mon
     songs = [library.parent / "one.mp3", library.parent / "sub" / "two.mp3"]
     MainWindow.add_music(win, songs, "track")
     assert win.reads == [("music", ["one.mp3"])]
-    assert win.errors == [("Copying music…", GONE)]
+    assert win.errors == [("Copying Music…", GONE)]

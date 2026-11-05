@@ -124,7 +124,7 @@ software of their own projects; Crowdin and Transifex are proprietary services.
 ## 5. Garmin Connect's words for translators
 
 Garmin Connect's words matter most on the activity page (summary tiles, details, charts and
-their axes, laps, heart-rate zones, training effect, pace and speed, elevation, temperature,
+their axes, laps, heart rate zones, training effect, pace and speed, elevation, temperature,
 cadence, steps, strength sets), for sport names and for data fields. Garmin Connect on the web
 (connect.garmin.com) comes first; its app for phones only for a word the web does not show. The
 names of sport profiles stay those the device shows. A table of openExpress's

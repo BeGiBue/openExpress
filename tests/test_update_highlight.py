@@ -1,5 +1,5 @@
 """An update to install stands out on the device page: the tile's chip ("Update available",
-warning), and the row "Device software" in the warning colour, naming the update as the Updates
+warning), and the row "Device Software" in the warning colour, naming the update as the Updates
 page does, or how many; copied already, "Update ready" (test_update_states). With none, or a
 failed check: as the other rows. All devices and updates are made up."""
 

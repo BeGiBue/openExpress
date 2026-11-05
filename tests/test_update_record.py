@@ -158,7 +158,7 @@ def _page(device_root, answer, software="23.39"):
 
 
 def _shown(win):
-    """The chip under the version (shown or not), the subtitle of "Device software" and
+    """The chip under the version (shown or not), the subtitle of "Device Software" and
     whether it is in the warning colour."""
     return (win.update_chip.get_visible(), win.update_row.get_subtitle(),
             "warning" in _subtitle_classes(win.update_row))

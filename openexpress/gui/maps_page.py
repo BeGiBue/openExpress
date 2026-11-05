@@ -101,7 +101,7 @@ class MapsPage:
             self.map_cleanup = r[4]  # for the questions before a map is installed or removed
             self.show_maps(r[0], r[1], space=r[2], map_update_type=r[3], no_maps=r[5])
 
-        self._load("maps", _("Checking maps…"), work, done, on_error=failed)
+        self._load("maps", _("Checking Maps…"), work, done, on_error=failed)
 
     def show_maps(self, result, own=None, space=(None, None),
                   map_update_type: str | None = None, no_maps: bool = False) -> None:
@@ -138,7 +138,7 @@ class MapsPage:
         # Also a map partly on the device (to be installed again).
         installed = sorted((m for m in all_maps if m.listed or m.waiting),
                            key=lambda m: (m.map_type, m.name))
-        g = sec.group(_("On the device"))
+        g = sec.group(_("On the Device"))
         # The list is what Garmin's server said when the page was opened; a device that has
         # just been plugged in may not have named all its map files yet.
         g.set_header_suffix(self._button(
@@ -217,12 +217,15 @@ class MapsPage:
             return  # no device, or one without a folder for maps
         g = self.sections["maps"].group(
             # TRANSLATORS: heading of the group of maps the user added, not from Garmin
-            _("Own maps"), _("Maps not from Garmin, e.g. from OpenStreetMap"))
+            _("Own Maps"), _("Maps not from Garmin, e.g. from OpenStreetMap"))
         g.set_header_suffix(self._button(_("Add Map…"), self.choose_map))
         if overview.unreadable:
-            g.add(Adw.ActionRow(title=_("The map folder could not be read")))
+            # TRANSLATORS: title of the row of the device's folder of own maps, when it could
+            # not be read
+            g.add(Adw.ActionRow(title=_("Map Folder"),
+                                subtitle=_("The map folder could not be read")))
         elif not overview.maps:
-            g.add(Adw.ActionRow(title=_("No maps of your own on the device")))
+            g.add(Adw.ActionRow(title=_("No Own Maps on the Device")))
         for m in overview.maps:
             ours, foreign = m.filename in overview.removable, m.filename in overview.foreign
             row = Adw.ActionRow(title=GLib.markup_escape_text(m.title or m.filename),
@@ -258,7 +261,7 @@ class MapsPage:
         return True
 
     def choose_map(self) -> None:
-        dialog = Gtk.FileDialog(title=_("Choose a map file (.img)"))
+        dialog = Gtk.FileDialog(title=_("Choose a Map File (.img)"))
         only_maps = Gtk.FileFilter(name=_("Garmin map files (*.img)"))
         only_maps.add_pattern("*.img")
         only_maps.add_pattern("*.IMG")
@@ -297,7 +300,7 @@ class MapsPage:
         garmin_maps = self.maps_cache or []
 
         def refused(e):
-            return self._own_map_refused(e, _("Cannot add the map"))
+            return self._own_map_refused(e, _("Cannot Add the Map"))
 
         def written(real, plan):
             self.toast(_("Wrote {path} ({size}).").format(path=real, size=human_size(plan.size)))
@@ -305,18 +308,18 @@ class MapsPage:
 
         def copy(plan):
             self.run_task(
-                _("Copying the map…"),
+                _("Copying the Map…"),
                 writes_to_device(lambda: ownmaps.add(plan, s.device, s.storage,
                                                      progress=self.progress)),
                 lambda real: written(real, plan), read_again_after_failure(self, "maps", refused))
 
         def ask_copy(plan):
             # Wide: room for the name of a map on one line.
-            confirm(self, "own-map-add", _("Copy this map to the device?"),
+            confirm(self, "own-map-add", _("Copy This Map to the Device?"),
                     self._add_map_text(plan),
                     Answer("ok", _("Copy"), lambda: copy(plan), look="suggested"), wide=True)
 
-        self.run_task(_("Checking maps…"),
+        self.run_task(_("Checking Maps…"),
                       lambda: ownmaps.plan_add(s.device, s.storage, garmin_maps, path),
                       ask_copy, refused)
 
@@ -337,7 +340,7 @@ class MapsPage:
             return plan
 
         def refused(e):
-            return self._own_map_refused(e, _("Cannot remove the map"))
+            return self._own_map_refused(e, _("Cannot Remove the Map"))
 
         def removed(plan):
             if plan.on_device:
@@ -385,13 +388,13 @@ class MapsPage:
 
         if not mp.can_install(m):
             # Refused before anything is asked or promised, as on the command line.
-            self.error(_("Cannot install the map"), mp.cannot_install_message(m))
+            self.error(_("Cannot Install the Map"), mp.cannot_install_message(m))
             return
         s = self.session
         if not (s.client.consumer and s.client.consumer.url_salt):
             # TRANSLATORS: heading of an error: the one-time setup (files read from Garmin Express)
             # is not done
-            self.error(_("Setup missing"),
+            self.error(_("Setup Missing"),
                        _("Downloading maps requires the Utilities.dll file from Garmin Express.\n"
                          "Run: openexpress setup --utilities-dll /path/to/Utilities.dll"))
             return
@@ -414,7 +417,7 @@ class MapsPage:
             return self.session is not s  # gone meanwhile: the window says so already
 
         # TRANSLATORS: progress while the free space on the device is read before a map is installed
-        self.run_task(_("Checking the space…"), work, done, failed, button=button)
+        self.run_task(_("Checking the Space…"), work, done, failed, button=button)
 
     def _ask_install_map(self, m, need: int, free: int | None, removing: list[str]) -> None:
         """The question before a map is installed, with the space it needs and the space
@@ -466,7 +469,7 @@ class MapsPage:
         confirm(self, "map-install", heading, body,
                 # TRANSLATORS: button that accepts the license agreement and installs the map or
                 # update
-                Answer("ok", _("Accept and install"), install, look="suggested"))
+                Answer("ok", _("Accept and Install"), install, look="suggested"))
 
     def confirm_remove(self, m) -> None:
         from openexpress import maps as mp

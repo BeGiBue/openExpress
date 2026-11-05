@@ -136,7 +136,7 @@ def test_run_sync_plans_and_syncs_under_the_lock(device_root, xdg, monkeypatch):
 @pytest.mark.parametrize("by", ["window", "command line"])
 def test_a_first_sync_stopped_after_its_uploads_keeps_its_choice(by, device_root, xdg,
                                                                  monkeypatch, capsys):
-    """"Upload everything" (sync --apply --all) on a first sync, nothing uploaded (no
+    """"Upload Everything" (sync --apply --all) on a first sync, nothing uploaded (no
     consent), then Garmin Connect's queue cannot be read: the choice was made, so the next
     sync is not a first sync again (state.json is written before the queue is read)."""
     import requests

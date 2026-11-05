@@ -16,7 +16,7 @@ ROW = {"en": "First choose the Garmin Express installer for Windows: openExpress
              "application key from it",
        "pl": "Najpierw wskaż instalator Garmin Express dla Windows: openExpress odczyta "
              "z niego klucz aplikacji"}
-HEADING = {"en": "Choose the Garmin Express installer first",
+HEADING = {"en": "Choose the Garmin Express Installer First",
            "pl": "Najpierw wskaż instalator Garmin Express"}
 NO_KEY_IN_CONNECT = {"en": "No key needs to be created in Garmin Connect.",
                      "pl": "W Garmin Connect nie trzeba tworzyć żadnego klucza."}
@@ -50,7 +50,7 @@ def _account_row():
 @pytest.mark.needs_display
 def test_until_the_installer_is_chosen_the_account_row_offers_it(language):
     row, button, calls = _account_row()
-    assert row.get_title() == {"en": "Not signed in", "pl": "Nie zalogowano"}[language]
+    assert row.get_title() == {"en": "Not Signed In", "pl": "Nie zalogowano"}[language]
     assert row.get_subtitle() == ROW[language]
     assert button.get_label() == CHOOSE[language]
     button.emit("clicked")
@@ -62,7 +62,7 @@ def test_with_the_key_the_account_row_offers_log_in():
     _key_saved()
     row, button, calls = _account_row()
     assert (row.get_title(), row.get_subtitle() or "", button.get_label()) == (
-        "Not signed in", "", "Sign In")
+        "Not Signed In", "", "Sign In")
     button.emit("clicked")
     assert calls == ["login"]
 

@@ -410,7 +410,7 @@ def test_removed_safely_the_window_says_drive_not_starting(drives, monkeypatch, 
 
     _removed_safely(drives, monkeypatch)
     title, text, busy = MainWindow._usb_notice(gio_storage.usb_state(), waited_s)
-    assert (title, busy) == ("USB drive", False)
+    assert (title, busy) == ("USB Drive", False)
     assert text == gio_storage.drive_not_mounted_text()
     assert "drive is not mounted" in text and "plug it in again" in text
     assert "starting" not in title + text
@@ -485,7 +485,7 @@ def test_ejected_the_watch_comes_back_as_0003_and_the_window_says_it_is_in_garmi
          "after its drive was ejected, to be plugged in again")]
     for waited_s in (0.0, 16.0, 50.0):
         assert MainWindow._usb_notice(gio_storage.usb_state(), waited_s) == (
-            "USB drive", DRIVE_OFF_TEXT, False)
+            "USB Drive", DRIVE_OFF_TEXT, False)
 
 
 def test_ejected_the_command_line_says_it_at_once(drives, monkeypatch):
@@ -555,11 +555,11 @@ def test_0003_without_a_drive_before_is_a_device_starting(drives, monkeypatch, c
     starting = "This takes a moment after the cable is plugged in"
     for waited_s in (5.0, 19.0, 24.9):
         assert MainWindow._usb_notice(gio_storage.STARTING, waited_s) == (
-            "The device is starting…", starting, True)
+            "Device Starting…", starting, True)
     assert MainWindow._usb_notice(gio_storage.STARTING, 25.0) == (
-        "The device is starting…", f"{starting}. {REPLUG_HINT}", True)
+        "Device Starting…", f"{starting}. {REPLUG_HINT}", True)
     assert MainWindow._usb_notice(gio_storage.STARTING, 50.0) == (
-        "The device is not ready", gio_storage.not_ready_text(gio_storage.STARTING), False)
+        "Device Not Ready", gio_storage.not_ready_text(gio_storage.STARTING), False)
 
 
 def test_a_device_in_its_normal_mode_at_that_place_forgets_the_drive(drives, monkeypatch):

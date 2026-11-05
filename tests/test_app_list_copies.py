@@ -177,7 +177,7 @@ def test_old_copies_are_removed_with_the_same_rule_as_the_backups():
     assert backup.keep_newest(folders, 0, remove=removed.append) == []  # 0: keep all
 
 
-# --- the dialog "Restore the order from a copy" lists only copies that change something --------
+# --- the dialog "Restore the Order From a Copy" lists only copies that change something --------
 
 
 class _Dialog:
@@ -265,7 +265,7 @@ def test_without_a_copy_that_differs_one_sentence_and_close(iq_device, device_ro
     _copy_folder(backups, dev, "11.00.00", out_bin(APPS))
     (dialog,), errors = _dialog_of(monkeypatch, st, dev, backups)
     assert errors == [] and dialog.extra is None
-    assert dialog.kw == {"heading": "Restore the order from a copy",
+    assert dialog.kw == {"heading": "Restore the Order From a Copy",
                          "body": "No copy differs from the current order"}
     assert dialog.responses == [("ok", "Close")]
 

@@ -573,13 +573,13 @@ NOT_UPLOADED_WHY = {
     SYNC_OFF: N_("device sync is turned off in the Garmin account"),
     NOT_CHECKED: N_("the upload consent could not be checked. Try again later"),
 }
-# … and in its row, short (under "Last sync", first in the numbers of the command line).
+# … and in its row, short (under "Last Sync", first in the numbers of the command line).
 NOT_UPLOADED_ROW = {
-    # TRANSLATORS: under "Last sync": nothing was uploaded, and why
+    # TRANSLATORS: under "Last Sync": nothing was uploaded, and why
     NO_CONSENT: N_("nothing uploaded: no consent in the account"),
-    # TRANSLATORS: under "Last sync": nothing was uploaded, and why
+    # TRANSLATORS: under "Last Sync": nothing was uploaded, and why
     SYNC_OFF: N_("nothing uploaded: device sync is off in the account"),
-    # TRANSLATORS: under "Last sync": nothing was uploaded, and why
+    # TRANSLATORS: under "Last Sync": nothing was uploaded, and why
     NOT_CHECKED: N_("nothing uploaded: the consent could not be checked"),
 }
 
@@ -1029,7 +1029,7 @@ def _describe_step(line) -> list[tuple[str, bool]]:
         if not types:
             return []
         n = sum(types.values())
-        # TRANSLATORS: a line of the details of "Last sync": files of Garmin Connect's queue
+        # TRANSLATORS: a line of the details of "Last Sync": files of Garmin Connect's queue
         # written to the device, and their types (as "Files from the device: …" names them)
         return [(ngettext("{count} file from Garmin Connect: {types}",
                           "{count} files from Garmin Connect: {types}", n).format(
@@ -1070,7 +1070,7 @@ def _describe_step(line) -> list[tuple[str, bool]]:
                           "Marked {count} existing files as already uploaded",
                           n).format(count=n), False)]
     if kind == "still_written" and (n := _count(line)) is not None:
-        # TRANSLATORS: a line of the details of "Last sync" (and of the command line): FIT
+        # TRANSLATORS: a line of the details of "Last Sync" (and of the command line): FIT
         # files the device was still writing when they were read, cut short; not uploaded
         return [(ngettext(
             "{count} file was still being written by the device – disconnect and reconnect "
@@ -1102,11 +1102,11 @@ def _describe_step(line) -> list[tuple[str, bool]]:
     if kind == "trueup":
         return [(_("TrueUp: daily totals aligned with your other Garmin devices"), False)]
     if kind == "trueup_stopped":
-        # TRANSLATORS: a line of the details of "Last sync" and of the end of
+        # TRANSLATORS: a line of the details of "Last Sync" and of the end of
         # `openexpress sync --apply`
         return [(_("TrueUp: waiting stopped; it comes with the next sync"), False)]
     if kind == "ecg_not_uploaded" and (n := _count(line)):
-        # TRANSLATORS: a line of the details of "Last sync" and of the end of
+        # TRANSLATORS: a line of the details of "Last Sync" and of the end of
         # `openexpress sync --apply`
         return [(ngettext(
             "{count} ECG recording was not uploaded: ECG recordings need a Garmin Health "
@@ -1250,7 +1250,7 @@ def _new_files(data: dict) -> int:
 def describe_counts(data: dict) -> str:
     """The numbers of a sync in one line: the new files on the device and how many were
     uploaded, then what came from Garmin Connect's queue, if anything ("8 new files, 6
-    uploaded · 2 received"). The window shows it under "Last sync" after when it was; the
+    uploaded · 2 received"). The window shows it under "Last Sync" after when it was; the
     command line and the notification put it before the details."""
     files, uploaded = _new_files(data), data.get("uploaded", 0)
     # Its files, TrueUp and the Connect IQ apps written (a record of an older version counts
@@ -1260,17 +1260,17 @@ def describe_counts(data: dict) -> str:
     skipped = any(isinstance(line, dict) and line.get("kind") == "upload_skipped"
                   for line in data.get("lines") or [])
     if skipped:
-        # TRANSLATORS: under "Last sync": the uploads were not looked at (sync --download-only)
+        # TRANSLATORS: under "Last Sync": the uploads were not looked at (sync --download-only)
         parts = [_("upload skipped")]
     elif blocked is not None:
         # Nothing was uploaded, and why; a reason of a newer version: only that.
         row = NOT_UPLOADED_ROW.get(blocked.get("reason"))
-        # TRANSLATORS: under "Last sync": nothing was uploaded
+        # TRANSLATORS: under "Last Sync": nothing was uploaded
         parts = [_(row) if row else _("nothing uploaded")]
     elif files:
         # TRANSLATORS: files found on the device, e.g. "8 new files, 6 uploaded"
         found = ngettext("{count} new file", "{count} new files", files).format(count=files)
-        # TRANSLATORS: under "Last sync", after "8 new files, ": how many of them were uploaded to
+        # TRANSLATORS: under "Last Sync", after "8 new files, ": how many of them were uploaded to
         # Garmin Connect
         sent = (ngettext("{count} uploaded", "{count} uploaded", uploaded).format(
             count=uploaded) if uploaded
@@ -1283,12 +1283,12 @@ def describe_counts(data: dict) -> str:
     only = next((line.get("types") for line in data.get("lines") or [] if isinstance(line, dict)
                  and line.get("kind") == "only_types"), None)
     if only and not skipped and blocked is None:
-        # TRANSLATORS: under "Last sync": a sync of only these data types (sync --type), e.g.
+        # TRANSLATORS: under "Last Sync": a sync of only these data types (sync --type), e.g.
         # "activities only: 3 new files, 3 uploaded"
         parts[0] = _("{types} only: {numbers}").format(
             types=_describe_types({datatype: 1 for datatype in only}), numbers=parts[0])
     if received:
-        # TRANSLATORS: under "Last sync", after " · ": files, TrueUp and apps from Garmin Connect
+        # TRANSLATORS: under "Last Sync", after " · ": files, TrueUp and apps from Garmin Connect
         # written to the device
         parts.append(ngettext("{count} received", "{count} received", received).format(
             count=received))
@@ -1296,7 +1296,7 @@ def describe_counts(data: dict) -> str:
 
 
 def test_drive_text() -> str:
-    # TRANSLATORS: a line of the details of "Last sync" and of a sync's dry run: a USB drive
+    # TRANSLATORS: a line of the details of "Last Sync" and of a sync's dry run: a USB drive
     # taken for a Garmin drive for testing carries the files of a real device
     return _("A test drive: Garmin Connect's queue and TrueUp are left to the device it "
              "stands in for")
@@ -1308,7 +1308,7 @@ def other_install_text(at: float) -> str:
         day = time.strftime(_("%Y-%m-%d"), time.localtime(at))
     except (ValueError, OverflowError, OSError):
         day = "?"
-    # TRANSLATORS: a line of the details of "Last sync" and of a sync's dry run: the Flatpak
+    # TRANSLATORS: a line of the details of "Last Sync" and of a sync's dry run: the Flatpak
     # of openExpress synced the device after the version from source; {date} as %Y-%m-%d
     return _("This device was also synced by openExpress (Flatpak), last on {date}; files it "
              "sent are not sent again").format(date=day)
@@ -1401,13 +1401,13 @@ def run_sync(
         raise
     except KeyboardInterrupt as e:
         log.info("sync: interrupted after %.1f s (Ctrl+C)", time.monotonic() - started)
-        # TRANSLATORS: under "Last sync", in its details: Ctrl+C on the command line
+        # TRANSLATORS: under "Last Sync", in its details: Ctrl+C on the command line
         _keep_stopped(s, e, _("The sync was interrupted before the end (Ctrl+C)"))
         raise
     except Exception as e:
         log.warning("sync: stopped after %.1f s: %s: %s", time.monotonic() - started,
                     type(e).__name__, e, extra=applog.TOLD)  # the caller tells why
-        # TRANSLATORS: under "Last sync", in its details: the error that stopped the sync
+        # TRANSLATORS: under "Last Sync", in its details: the error that stopped the sync
         _keep_stopped(s, e, _("The sync stopped before the end: {error}").format(
             error=_stop_text(e)))
         raise
@@ -1652,7 +1652,7 @@ def _stop_text(error: Exception) -> str:
 
 def _keep_stopped(s: DeviceSession, error: BaseException, why: str) -> None:
     """Keeps the record of a sync stopped after its uploads: what it did (done_before), with
-    `why` it stopped as one of its errors, so that "Last sync" and the tiles tell this sync,
+    `why` it stopped as one of its errors, so that "Last Sync" and the tiles tell this sync,
     whose files are in Garmin Connect. Stopped before its uploads, nothing was done and the
     record of the sync before stays."""
     done = done_before(error)

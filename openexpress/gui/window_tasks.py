@@ -228,7 +228,7 @@ def read_space(storage, capacity: int | None = None) -> tuple[int | None, int | 
 
 
 def render_space(win) -> None:
-    """The subtitle (and the bar) of "Device storage" from the space the session holds, in
+    """The subtitle (and the bar) of "Device Storage" from the space the session holds, in
     the words of every page (space_text): "Reading…" until it is read, "Unknown" when the
     device does not say. Nothing is asked of the device."""
     row, bar = win.storage_row, win.storage_bar
@@ -249,7 +249,7 @@ def render_space(win) -> None:
 
 def refresh_space(win, s) -> None:
     """The free space of the device of session `s` read again in the background (its
-    capacity only while it is not known), then the subtitle of "Device storage" alone put
+    capacity only while it is not known), then the subtitle of "Device Storage" alone put
     right. An answer that comes after the device was unplugged, or another one opened, is
     dropped."""
     if s is None:

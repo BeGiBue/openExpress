@@ -224,7 +224,7 @@ def test_maps_command_without_own_maps_has_no_own_maps_section(maps_cli, capsys)
     (maps_cli / "GARMIN" / "gmaptz.img").write_bytes(img_header(b"Time zones"))
     assert main(["--path", str(maps_cli), "maps"]) == 0
     out = capsys.readouterr().out.splitlines()
-    assert out[-1].startswith("Free space on the device:") and "Own maps" not in "\n".join(out)
+    assert out[-1].startswith("Free space on the device:") and "Own Maps" not in "\n".join(out)
 
 
 def test_maps_command_lists_own_maps_with_their_names(maps_cli, capsys):
@@ -662,7 +662,7 @@ def test_remove_own_apply_deletes_the_file_and_then_the_entry(added, my_map, cap
     capsys.readouterr()
     assert state_of(added) == []
     assert main(["--path", str(added), "maps"]) == 0
-    assert "Own maps" not in capsys.readouterr().out  # the section is gone
+    assert "Own Maps" not in capsys.readouterr().out  # the section is gone
 
 
 class KeepsFiles(LocalStorage):
@@ -894,7 +894,7 @@ def test_own_maps_group_shows_names_sizes_and_who_copied_them():
                               ("what.img", 9, None),
                               removable=["ours.img"], foreign=["by-hand.img"]))
     (group,) = section.groups
-    assert group.get_title() == "Own maps"
+    assert group.get_title() == "Own Maps"
     assert group.get_description().startswith("Maps not from Garmin")
     assert rows_of(group) == [
         ("Sometown &lt;cyclemap&gt;", "ours.img\u00a0· 51.0\u00a0MB", True),  # ours: a remove button
@@ -909,8 +909,8 @@ def test_own_maps_group_shows_names_sizes_and_who_copied_them():
 
 @pytest.mark.needs_display
 @pytest.mark.parametrize("view, rows", [
-    (view_of(), [("No maps of your own on the device", "", False)]),
-    (view_of(unreadable=True), [("The map folder could not be read", "", False)]),
+    (view_of(), [("No Own Maps on the Device", "", False)]),
+    (view_of(unreadable=True), [("Map Folder", "The map folder could not be read", False)]),
 ])
 def test_own_maps_group_without_maps_still_offers_to_add_one(view, rows):
     win, section = own_maps_window()
@@ -934,7 +934,7 @@ def test_reloading_the_page_keeps_one_add_button_and_greys_it_while_busy():
     win, section = own_maps_window()
     view = view_of(("ours.img", 2000, "Mine"), removable=["ours.img"])
     for _n in range(3):
-        win._load("maps", "Checking maps…", lambda: view, win.show_own_maps)
+        win._load("maps", "Checking Maps…", lambda: view, win.show_own_maps)
         assert sorted(b.get_label() or "trash" for b in win._action_buttons) == ["Add Map…", "trash"]
         assert all(b.get_root() is win.toplevel and b.get_sensitive() for b in win._action_buttons)
     win.busy = True  # another task runs while the page is drawn again
@@ -987,12 +987,12 @@ def test_window_adds_a_map_after_a_confirmation(window_device, my_map, monkeypat
     my_map.rename(target)
     win.add_own_map(target)
     assert win.shown == [
-        ("task", "Checking maps…"),
-        ("ask", "Copy this map to the device?",
+        ("task", "Checking Maps…"),
+        ("ask", "Copy This Map to the Device?",
          ("Sometown cyclemap/latin1 Example.org\n\n"  # the name of the map on its own
           "new-map.img\u00a0· 2.0\u00a0kB\n"
           "Space on the device: 12.4\u00a0GB free (the map takes 2.0\u00a0kB)"), "Copy", False),
-        ("task", "Copying the map…"),
+        ("task", "Copying the Map…"),
         ("toast", "Wrote Garmin/new-map.img (2.0\u00a0kB)."),
     ]
     assert win.reloads == [("maps", True)]
@@ -1037,7 +1037,7 @@ def test_window_reads_the_page_again_after_a_failed_copy(window_device, my_map, 
     win.load_section = lambda key, force=False: win.reloads.append((key, force, page_list(win)))
     win.add_own_map(target)
     kind, title, text = win.shown[-1]
-    assert (kind, title) == ("error", "Cannot add the map")
+    assert (kind, title) == ("error", "Cannot Add the Map")
     assert text.startswith("Writing Garmin/new-map.img failed")
     assert len(win.reloads) == 1
     ((key, force, (shown, ours)),) = win.reloads
@@ -1071,7 +1071,7 @@ def test_window_shows_a_refusal_with_its_own_hint(window_device, my_map, name, m
     win, dev, root = window_device
     before = tree(root / "Garmin")
     win.add_own_map(my_map.rename(my_map.with_name(name)))
-    assert win.shown == [("task", "Checking maps…"), ("error", "Cannot add the map", message)]
+    assert win.shown == [("task", "Checking Maps…"), ("error", "Cannot Add the Map", message)]
     assert "--" not in message
     assert tree(root / "Garmin") == before and ownmaps.recorded(dev) == [] and win.reloads == []
 
@@ -1083,7 +1083,7 @@ def test_window_says_when_the_file_is_not_a_map(window_device, tmp_path):
     photo.write_bytes(b"\xff\xd8\xff" + b"\0" * 2000)
     win.add_own_map(photo)
     assert win.shown[-1] == (
-        "error", "Cannot add the map", "photo.img is not a Garmin map file (.img).")
+        "error", "Cannot Add the Map", "photo.img is not a Garmin map file (.img).")
 
 
 @pytest.mark.needs_display
@@ -1121,7 +1121,7 @@ def test_window_removal_can_be_cancelled_and_refused(window_device, my_map):
     win.load_section = lambda key, force=False: win.reloads.append((key, force, page_list(win)))
     win.confirm_remove_own(ours)
     kind, title, text = win.shown[-1]
-    assert (kind, title) == ("error", "Cannot remove the map") and "not the same file" in text
+    assert (kind, title) == ("error", "Cannot Remove the Map") and "not the same file" in text
     assert (root / "Garmin" / "ours.img").exists() and len(ownmaps.recorded(dev)) == 1
     assert win.reloads == [("maps", True, before)]
 
@@ -1139,7 +1139,7 @@ def test_window_reads_the_page_again_after_a_failed_removal(window_device, my_ma
     before = page_list(win)
     win.load_section = lambda key, force=False: win.reloads.append((key, force, page_list(win)))
     win.confirm_remove_own(ours)
-    assert win.shown[-1] == ("error", "Cannot remove the map",
+    assert win.shown[-1] == ("error", "Cannot Remove the Map",
                              ("Garmin/ours.img is still on the device; nothing was taken off "
                               "the list."))
     assert len(ownmaps.recorded(dev)) == 1
@@ -1183,9 +1183,9 @@ def test_maps_page_loads_garmins_maps_and_own_maps_in_one_task(map_folder, xdg):
     # The server lists no map here, so every file not named like Garmin's counts as own.
     assert drawn == [("maps", ([], 0)),
                      ("own", ["broken.img", "Listed.img", "Old.img", "osm-test.img"])]
-    assert win.shown == [("task", "Checking maps…")]  # one task for both, nothing asked
+    assert win.shown == [("task", "Checking Maps…")]  # one task for both, nothing asked
     (group,) = section.groups
-    assert group.get_title() == "Own maps" and len(rows_of(group)) == 4
+    assert group.get_title() == "Own Maps" and len(rows_of(group)) == 4
 
 
 @pytest.mark.needs_display
@@ -1218,7 +1218,7 @@ def test_maps_page_shows_own_maps_whatever_service_serves_garmins_maps(map_folde
     assert drawn == [("maps", None),
                      ("own", ["broken.img", "Listed.img", "Old.img", "osm-test.img"])]
     (group,) = section.groups
-    assert group.get_title() == "Own maps" and len(rows_of(group)) == 4
+    assert group.get_title() == "Own Maps" and len(rows_of(group)) == 4
 
 
 @pytest.mark.needs_display
@@ -1232,7 +1232,7 @@ def test_own_maps_show_under_the_message_that_map_updates_are_not_supported():
         free_space=lambda: 12_400_000_000, capacity=lambda: 31_100_000_000))
     win._set_map_state = lambda result, no_maps=False: None
     MainWindow.show_maps(win, None, view_of(("mine.img", 2000, "Mine")))
-    assert [g.get_title() for g in section.groups] == ["", "Own maps"]
+    assert [g.get_title() for g in section.groups] == ["", "Own Maps"]
     assert "Map updates for this device aren't supported yet" in _texts(section.groups[0])
 
 
@@ -1332,16 +1332,16 @@ def test_own_maps_come_right_under_the_installed_maps():
     other.update(displayname="TopoActive Elsewhere", installationstate=0, isreinstall=False)
     answer["maps"].append(other)  # one installed, one to download
     view = view_of(("mine.img", 2000, "Mine"), removable=["mine.img"])
-    assert page_with_garmins_and_own_maps(view, answer) == ["On the device", "Own maps", "Available"]
+    assert page_with_garmins_and_own_maps(view, answer) == ["On the Device", "Own Maps", "Available"]
     # Without a map folder there is no such group, and nothing else moves.
     assert page_with_garmins_and_own_maps(view_of(folder=None), answer) == [
-        "On the device", "Available"]
+        "On the Device", "Available"]
 
 
 @pytest.mark.needs_display
 def test_own_maps_show_under_the_message_of_a_device_without_garmins_maps():
     titles = page_with_garmins_and_own_maps(view_of(("mine.img", 2000, "Mine")), {"maps": []})
-    assert titles == ["", "Own maps"]  # the message "No maps are available…", then the group
+    assert titles == ["", "Own Maps"]  # the message "No maps are available…", then the group
 
 
 def test_confirmation_keeps_a_date_in_the_name_together(tmp_path):
@@ -1369,7 +1369,7 @@ def test_a_refusal_is_titled_by_what_could_not_be_done(window_device, my_map):
     win, dev, root = window_device
     st = win.session.storage
     win.add_own_map(my_map)  # osm-test.img is on the made-up device already
-    assert win.shown[-1][:2] == ("error", "Cannot add the map")
+    assert win.shown[-1][:2] == ("error", "Cannot Add the Map")
 
     ownmaps.add(ownmaps.plan_add(dev, st, win.maps_cache, my_map, "ours.img"), dev, st)
     (root / "Garmin" / "ours.img").write_bytes(b"another file")
@@ -1379,7 +1379,7 @@ def test_a_refusal_is_titled_by_what_could_not_be_done(window_device, my_map):
     finally:
         i18n.setup("en")
     assert win.shown[-1][:2] == ("error", "Nie można usunąć mapy")
-    assert not any(title in ("Own maps", "Własne mapy") for _kind, title, *_r in win.shown
+    assert not any(title in ("Own Maps", "Własne mapy") for _kind, title, *_r in win.shown
                    if _kind == "error")
 
 
@@ -1471,7 +1471,7 @@ def test_a_foreign_map_that_changed_since_it_was_shown_is_not_removed(window_dev
     own, _view = shown_on_the_page(win, "osm-test.img")
     (root / "Garmin" / "osm-test.img").write_bytes(now_on_the_device)
     win.confirm_remove_own(own, foreign=True)
-    assert win.shown[-1] == ("error", "Cannot remove the map", CHANGED.format("osm-test.img"))
+    assert win.shown[-1] == ("error", "Cannot Remove the Map", CHANGED.format("osm-test.img"))
     assert (root / "Garmin" / "osm-test.img").read_bytes() == now_on_the_device
     assert win.reloads == [("maps", True)]  # the page is drawn again: it was out of date
 
@@ -1482,7 +1482,7 @@ def test_a_foreign_map_that_is_gone_is_only_reported(window_device):
     own, _view = shown_on_the_page(win, "osm-test.img")
     (root / "Garmin" / "osm-test.img").unlink()
     win.confirm_remove_own(own, foreign=True)
-    assert win.shown[-1] == ("error", "Cannot remove the map",
+    assert win.shown[-1] == ("error", "Cannot Remove the Map",
                              "osm-test.img is no longer on the device.")
     assert win.reloads == [("maps", True)]
 

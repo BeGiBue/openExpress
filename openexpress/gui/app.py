@@ -81,27 +81,27 @@ class MainWindow(TaskRunner, DeviceDetection, StartWindow, DevicePage, MapsPage,
         self.sections = {s.key: s for s in (
             # Its icon follows the kind of the device open (device_page.device_view_icon).
             Section("watch", pgettext("tab", "Device"), SMALL_DEVICE_ICON,
-                    _("Detecting the device…")),
+                    _("Detecting the Device…")),
             # TRANSLATORS: tab title
             Section("updates", pgettext("tab", "Updates"), "software-update-available-symbolic",
-                    _("Checking for updates…")),
+                    _("Checking for Updates…")),
             # TRANSLATORS: tab title
             Section("maps", pgettext("tab", "Maps"), "mark-location-symbolic",
-                    _("Checking maps…")),
+                    _("Checking Maps…")),
             # TRANSLATORS: tab title (Connect IQ apps)
             Section("apps", pgettext("tab", "Apps"), "view-app-grid-symbolic",
-                    _("Loading Connect IQ apps…")),
+                    _("Loading Connect IQ Apps…")),
             # TRANSLATORS: tab title
             Section("music", pgettext("tab", "Music"), "audio-x-generic-symbolic",
-                    _("Reading music on the device…")),
+                    _("Reading Music on the Device…")),
             # TRANSLATORS: tab title
             Section("activities", pgettext("tab", "Activities"), ACTIVITIES_ICON,
-                    _("Reading activities…")),
+                    _("Reading Activities…")),
             # TRANSLATORS: tab title (the sport profiles of the device and their data screens)
-            Section("profiles", pgettext("tab", "Activity profiles"), PROFILES_ICON,
+            Section("profiles", pgettext("tab", "Activity Profiles"), PROFILES_ICON,
                     # TRANSLATORS: shown while the device's activity (sport) profiles are read, not
                     # user profiles
-                    _("Reading profiles…")),
+                    _("Reading Profiles…")),
         )}
         for sec in self.sections.values():
             sec.retry.connect("clicked", lambda _b, k=sec.key: self.load_section(k, force=True))
@@ -144,7 +144,7 @@ class MainWindow(TaskRunner, DeviceDetection, StartWindow, DevicePage, MapsPage,
         self.update_state: str | None = None
         self.update_count = 0
         self.update_only = None  # the update to install when it is the only one
-        # When the check whose answer "Device software" shows was, when it is not a check of
+        # When the check whose answer "Device Software" shows was, when it is not a check of
         # now (a record, its check failed); None: an answer of now, or checking.
         self.update_checked_at: float | None = None
         self._update_record_at: float | None = None  # the time of the record shown
@@ -434,9 +434,9 @@ class MainWindow(TaskRunner, DeviceDetection, StartWindow, DevicePage, MapsPage,
         if s is None:
             # The words the pages show now: no device, a device that is starting, or one
             # that is not ready.
-            return self._usb_title or _("Connect your device")
+            return self._usb_title or _("Connect Your Device")
         if getattr(s, "drive_refusal", None) is not None:
-            return _("USB drive")  # a drive that is not synced; the device page says why
+            return _("USB Drive")  # a drive that is not synced; the device page says why
         if not s.logged_in:
             return _("Not signed in to Garmin Connect")
         if s.ownership_error is not None:
@@ -514,7 +514,7 @@ class MainWindow(TaskRunner, DeviceDetection, StartWindow, DevicePage, MapsPage,
             return False
         if self._close_dialog is None:
             self._close_dialog = inform(
-                self, "close-busy", _("An operation is in progress"),
+                self, "close-busy", _("Operation in Progress"),
                 _("Wait until it finishes before closing openExpress, so that no files "
                   "on the device are left half-written."),
                 then=lambda: setattr(self, "_close_dialog", None))

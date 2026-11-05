@@ -102,7 +102,7 @@ def test_the_list_of_the_profiles(root):
     win, section = profiles_window(root)
     win.load_profiles()
     assert [t for t, v in _groups(section) if v] == [
-        "", "Used recently", "All profiles", "Files that are no profile"]
+        "", "Used Recently", "All Profiles", "Other Files"]
     recent = section.groups[1]
     assert [t for t, _s in _titles(recent)] == ["Hike", "Run"]  # the newest activity first
     every = section.groups[2]
@@ -184,7 +184,7 @@ def test_an_empty_folder_of_profiles_says_so(tmp_path):
     (tmp_path / "GARMIN" / "Sports").mkdir(parents=True)
     win, section = profiles_window(tmp_path)
     win.load_profiles()
-    assert "No activity profiles" in _section_labels(section)
+    assert "No Activity Profiles" in _section_labels(section)
 
 
 def test_files_that_are_no_profile_alone(tmp_path):
@@ -195,8 +195,8 @@ def test_files_that_are_no_profile_alone(tmp_path):
     win, section = profiles_window(tmp_path)
     win.load_profiles()
     labels = _section_labels(section)
-    assert "No activity profiles" in labels
-    assert [t for t, v in _groups(section) if v] == ["", "Files that are no profile"]
+    assert "No Activity Profiles" in labels
+    assert [t for t, v in _groups(section) if v] == ["", "Other Files"]
     assert not any(t.startswith("Search") for t in labels)
 
 
@@ -219,7 +219,7 @@ def test_the_device_s_backups_of_profiles_in_one_line(root):
               if isinstance(w, Gtk.Label)]
     day = datetime.fromtimestamp(1_700_000_000).strftime("%Y-%m-%d")
     assert f"The device keeps backups of its profiles from {day}" in labels
-    unreadable = [g for g in section.groups if g.get_title() == "Files that are no profile"]
+    unreadable = [g for g in section.groups if g.get_title() == "Other Files"]
     assert [t for t, _s in _titles(unreadable[0])] == ["Broken.fit"]
 
 
@@ -239,8 +239,8 @@ def test_a_watch_profile_s_page(monkeypatch):
     profiles_page.open_profile(win, found)
     page, rows, labels = _page_texts(win)
     assert page.get_tag() == "profile" and page.get_title() == "Run"
-    assert _groups_of(page) == ["Data screens", "Built-in screens in the scrolling order",
-                                "Off and hidden", "Details"]
+    assert _groups_of(page) == ["Data Screens", "Built-In Screens in the Scrolling Order",
+                                "Off and Hidden", "Details"]
     # Each data screen: its place in the scrolling order, its fields numbered, legible.
     assert "No. 1 in the scrolling order\u00a0· 4 fields\u00a0· Layout “Stack”" in labels
     numbered = [t for t in labels if t[:3] in ("1. ", "2. ", "3. ", "4. ")]
@@ -264,7 +264,7 @@ def test_an_edge_profile_s_page():
     win, found = navigated((("Road", 2), ROAD, "edge"))
     profiles_page.open_profile(win, found)
     page, rows, labels = _page_texts(win)
-    assert _groups_of(page) == ["Data screens", "Off and hidden", "Details"]
+    assert _groups_of(page) == ["Data Screens", "Off and Hidden", "Details"]
     assert "No. 1 in the scrolling order\u00a0· 3 fields\u00a0· Layout A" in labels
     numbered = [t for t in labels if t[:3] in ("1. ", "2. ", "3. ")]
     assert numbered[:3] == ["1. Speed", "2. Distance", "3. Timer"]
@@ -330,12 +330,12 @@ def test_a_screen_s_page():
     profiles_page.open_screen(win, found, found.profile.screens[0])
     page, rows, _labels = _page_texts(win)
     assert page.get_tag() == "profile-screen" and page.get_title() == "Screen 1"
-    assert rows[:2] == [("Layout", "Layout “Stack”"), ("Number of fields", "4")]
+    assert rows[:2] == [("Layout", "Layout “Stack”"), ("Number of Fields", "4")]
     # "Field" names a data field only (one without a name by its number); its place is a place
     assert [r for r in rows if r[1].startswith("Place ")] == [
         ("Timer", "Place 1\u00a0· number 56"), ("Distance", "Place 2\u00a0· number 6"),
         ("Field 999", "Place 3\u00a0· number 999"), ("%Max Heart Rate", "Place 4\u00a0· number 16")]
-    assert ("Code of the screen", "0") in rows
+    assert ("Screen Code", "0") in rows
 
 
 def test_the_pages_go_with_the_device_view():

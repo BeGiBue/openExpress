@@ -158,7 +158,7 @@ have no order to keep.
   "Refreshing the device's files…" (Polish: "Odświeżanie plików urządzenia…"). A file read
   whole after the refresh is uploaded or copied as any other; one still cut short gives today's
   step `still_written` in the sync and today's count of files left out in the backup. The row
-  "Last sync" does not change, so no new pattern in `tests/data/last_sync/`.
+  "Last Sync" does not change, so no new pattern in `tests/data/last_sync/`.
 - **4b. Also a line of the summary**, e.g. "1 file read again after the device was mounted
   again".
   - − A new pattern of the row, with its words in English and Polish.

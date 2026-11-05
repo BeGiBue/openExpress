@@ -4,7 +4,7 @@ gui/sports.py, but in a narrow window), the tiles of what its sessions say (the 
 gui/words.py, an icon of their kind in the same colour), the map of its track
 (gui/activity_map.py) with the place of the chart's cursor, the chart of its records
 (gui/activity_chart.py), its laps or kilometres (gui/activity_laps.py; one chosen shown on the
-chart and the map), its heart-rate zones (gui/activity_zones.py), training effect
+chart and the map), its heart rate zones (gui/activity_zones.py), training effect
 (gui/activity_effect.py) and details (gui/activity_details.py, closed), and what a file that
 could not be read, one still being written and one without a summary say. Its file is read
 again each time it opens, in a task (fit.activity_data), from the device or from a copy in a
@@ -43,7 +43,7 @@ from openexpress.gui.words import (  # noqa: E402
     no_chart_text,
     no_summary_title,
     reading_activity_text,
-    still_being_written_text,
+    still_being_written_title,
     tile_name,
 )
 from openexpress.i18n import _  # noqa: E402
@@ -150,7 +150,7 @@ def open_activity(win, read) -> None:
     def failed(_error) -> bool:
         # Said on the page, no error dialog (a stall: the banner, and the page goes with the
         # device); the log has why.
-        view.say(activity_not_read_title())
+        view.say(*activity_not_read_title())
         return True
 
     win.run_task(reading_activity_text(), lambda: _prepared(_data(found, read.activity)),
@@ -224,9 +224,11 @@ class ActivityView:
             sized.add_breakpoint(narrow)
         self.page = Adw.NavigationPage(title=title, tag=TAG, child=sized)
 
-    def say(self, text: str, icon: str = "dialog-warning-symbolic") -> None:
+    def say(self, text: str, description: str = "",
+            icon: str = "dialog-warning-symbolic") -> None:
         self.message.set_icon_name(icon)
         self.message.set_title(text)
+        self.message.set_description(description or None)
         self.stack.set_visible_child_name("message")
 
     def show(self, data, series, track=None, moving=None) -> None:
@@ -239,11 +241,11 @@ class ActivityView:
         from openexpress import fit
 
         if data.state is fit.FileState.STILL_BEING_WRITTEN:
-            self.say(still_being_written_text())
+            self.say(*still_being_written_title())
             return
         tiles = activity_tile_kinds(data)
         if not tiles:
-            self.say(no_summary_title(), PAGE_ICON)
+            self.say(*no_summary_title(), PAGE_ICON)
             return
         # All of them in one line on a wide window, sharing its width; two by two on a narrow one.
         flow = Gtk.FlowBox(homogeneous=True, selection_mode=Gtk.SelectionMode.NONE,

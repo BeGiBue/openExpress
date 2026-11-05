@@ -75,7 +75,7 @@ same), a file from Garmin Connect the Flatpak wrote to the device but could not 
 received is only reported, and a device the Flatpak synced needs no first-sync choice. While
 the Flatpak syncs, a sync from source does not start: "openExpress (Flatpak) is syncing a
 device now; try again when it is done." When the Flatpak synced the device after it, the sync
-says so once: in the details of **Last sync** and in the dry run of `openexpress sync`. The
+says so once: in the details of **Last Sync** and in the dry run of `openexpress sync`. The
 Flatpak cannot see the files of the version from source and works as before.
 
 ## Building the Flatpak yourself

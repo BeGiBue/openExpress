@@ -27,7 +27,7 @@ log = logging.getLogger(__name__)
 
 
 def order_list_at_its_top(box) -> bool:
-    """The list of copies of "Restore the order from a copy", once shown: no row chosen
+    """The list of copies of "Restore the Order From a Copy", once shown: no row chosen
     (Next waits for the user's choice) and scrolled to its top, its first row whole. Run
     when the window is idle after the dialog is shown: the list chooses its first row as it
     takes the focus then. False: once."""
@@ -103,7 +103,7 @@ class AppsPage:
             updates = api.updates(s.device, state.store_apps, locale)
             return state, account, updates
 
-        self._load("apps", _("Loading Connect IQ apps…"), work, self.show_apps)
+        self._load("apps", _("Loading Connect IQ Apps…"), work, self.show_apps)
 
     def show_apps(self, result) -> None:
         if self.session is None:
@@ -124,10 +124,10 @@ class AppsPage:
         # No app list yet: none on the device; the account's apps can be installed.
         space = ciq.no_apps_text() if state.no_app_list else self._apps_space(state)
         # TRANSLATORS: heading above the apps, or the maps, installed on the device
-        g = sec.group(_("On the device"), f"{space}\n{refused}" if refused else space)
+        g = sec.group(_("On the Device"), f"{space}\n{refused}" if refused else space)
         if updates:
             # TRANSLATORS: button above the apps on the device: installs every available app update
-            b = self._button(_("Update all"), lambda: self.install_apps(updates),
+            b = self._button(_("Update All"), lambda: self.install_apps(updates),
                              "suggested-action")
             g.set_header_suffix(b)
         for a in state.store_apps:
@@ -171,7 +171,7 @@ class AppsPage:
         g = sec.group(_("Order"))
         blocked = self._order_blocked(state)
         row = Adw.ActionRow(
-            title=_("Restore the order from a copy"),
+            title=_("Restore the Order From a Copy"),
             subtitle=GLib.markup_escape_text(
                 blocked or _("A copy of the app list is made before every change")))
         # TRANSLATORS: button that restores the order of the apps from a copy (opens a list of
@@ -185,7 +185,7 @@ class AppsPage:
         installed = {a.app_id for a in state.apps}
         missing = [a for a in account if a.app_id not in installed]
         g = sec.group(
-            _("In your Garmin account"),
+            _("In Your Garmin Account"),
             _("Apps you added in the Connect IQ store (website or phone).") if missing
             else _("Add apps in the Connect IQ store (website or phone); "
                    "they will show up here."))
@@ -204,7 +204,7 @@ class AppsPage:
         builtin = sorted((a for a in state.apps if a.preloaded), key=lambda a: a.name)
         if not builtin:
             return  # none known (no app list): no group of none
-        g = sec.group(_("Built-in activities and apps"),
+        g = sec.group(_("Built-In Activities and Apps"),
                       _("Changes take effect after you disconnect the device."))
         # TRANSLATORS: placeholder of the search field above the device's built-in activities
         # (sports) and apps
@@ -212,7 +212,7 @@ class AppsPage:
         g.add(search)
         # TRANSLATORS: expander row that opens the list of built-in activities and apps ({count}:
         # how many)
-        exp = Adw.ExpanderRow(title=ngettext("Show {count} item", "Show {count} items",
+        exp = Adw.ExpanderRow(title=ngettext("Show {count} Item", "Show {count} Items",
                                              len(builtin)).format(count=len(builtin)))
         listbox = Gtk.ListBox(selection_mode=Gtk.SelectionMode.NONE)
         listbox.add_css_class("boxed-list")
@@ -352,10 +352,10 @@ class AppsPage:
             state, choices, note = result
             blocked = self._order_blocked(state)
             if blocked:
-                self.error(_("Restore the order from a copy"), blocked)
+                self.error(_("Restore the Order From a Copy"), blocked)
                 return
             if not choices:
-                self.error(_("Restore the order from a copy"),
+                self.error(_("Restore the Order From a Copy"),
                            _("There are no copies of the app list yet. A copy is made before "
                              "every change of the apps on the device."))
                 return
@@ -363,7 +363,7 @@ class AppsPage:
             rows = [(row, choice) for row, choice in zip(self._order_rows(choices), choices)
                     if row[2]]
             if not rows:
-                inform(self, "order-none-differs", _("Restore the order from a copy"),
+                inform(self, "order-none-differs", _("Restore the Order From a Copy"),
                        _("No copy differs from the current order"), label=_("Close"))
                 return
             box = Gtk.ListBox(selection_mode=Gtk.SelectionMode.SINGLE)
@@ -394,14 +394,14 @@ class AppsPage:
                     self.confirm_order(*picked["choice"], note)
 
             box.connect("row-selected", selected)
-            confirm(self, "order-choose", _("Restore the order from a copy"),
+            confirm(self, "order-choose", _("Restore the Order From a Copy"),
                     _("Choose the copy of the app list to take the order from."),
                     # TRANSLATORS: button that leads to the summary of the change
                     Answer("next", _("Next"), chosen, enabled=False),
                     extra=scroller, keep_as="_order_dialog")
             GLib.idle_add(order_list_at_its_top, box)
 
-        self.run_task(_("Reading the copies of the app list…"), work, show, button=button)
+        self.run_task(_("Reading the Copies of the App List…"), work, show, button=button)
 
     def confirm_order(self, copy, plan, note: str) -> None:
         """`note`: what happens before the change (ciq.copy_note), told by choose_order with
@@ -410,7 +410,7 @@ class AppsPage:
 
         # TRANSLATORS: heading of the question before the order of the apps on the device is
         # restored from a copy
-        confirm(self, "order-restore", _("Restore this order?"),
+        confirm(self, "order-restore", _("Restore This Order?"),
                 ciq.copy_title(copy) + "\n\n" + self._order_summary(plan, note),
                 # TRANSLATORS: answer that restores the order of the apps from the chosen copy
                 Answer("ok", _("Restore the Order"), lambda: self.restore_order(copy),
@@ -429,7 +429,7 @@ class AppsPage:
             self.load_section("apps", force=True)
 
         # TRANSLATORS: shown while the order of the apps on the device is restored from a copy
-        self.run_task(_("Restoring the order…"),
+        self.run_task(_("Restoring the Order…"),
                       writes_to_device(lambda: ciq.restore_order(s.device, s.storage,
                                                                  copy.state)), done,
                       read_again_after_failure(self, "apps"))
@@ -505,7 +505,7 @@ class AppsPage:
                 self.toast(_("Queued; it will be installed on the next sync"))
             self.load_section("apps", force=True)
 
-        self.run_task(_("Installing apps…"), writes_to_device(work), done,
+        self.run_task(_("Installing Apps…"), writes_to_device(work), done,
                       read_again_after_failure(self, "apps"))
 
     @staticmethod
@@ -569,7 +569,7 @@ class AppsPage:
         confirm(self, "app-forget", _("Remove {name}?").format(name=app.name),
                 # TRANSLATORS: answer: removes the app only from the account's list of apps, not
                 # from the device
-                self._forget_text(app), Answer("forget", _("Remove from Account"), forget))
+                self._forget_text(app), Answer("forget", _("Remove From Account"), forget))
 
     def confirm_remove_app(self, app) -> None:
         from openexpress import ciq
@@ -608,7 +608,7 @@ class AppsPage:
         confirm(self, "app-remove", _("Remove {name}?").format(name=app.name), body,
                 # TRANSLATORS: answer: removes the app from the device and also from the account's
                 # list of apps
-                Answer("forget", _("Remove and forget"), lambda: remove(True)),
+                Answer("forget", _("Remove and Forget"), lambda: remove(True)),
                 # TRANSLATORS: button that removes an app, map or music file from the device; also
                 # the tooltip of a trash button
                 Answer("ok", _("Remove"), lambda: remove(False), look="destructive"))

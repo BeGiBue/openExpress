@@ -345,9 +345,10 @@ def test_window_add_playlist_without_usable_tracks_only_reports(iq_device, libra
                    run_task=run_task, _playlist_summary=MainWindow._playlist_summary,
                    error=lambda title, text: events.append((title, text)))
     MainWindow.add_playlist(win, library)
-    assert events[0] == "Reading the playlist…" and len(events) == 2
+    assert events[0] == "Reading the Playlist…" and len(events) == 2
     title, text = events[1]
-    assert title == "The playlist has no tracks that can be added."
+    assert title == "No Tracks to Add"
+    assert text.startswith("The playlist has no tracks that can be added.\n\n")
     assert "• gone.mp3 (file not found)" in text
     assert music.list_playlists(dev, st) == [] and music.list_device(dev, st) == []
 
@@ -2638,7 +2639,7 @@ def test_window_restores_the_order_through_the_shared_function(order_device):
         load_section=lambda key, force=False: loads.append((key, force)),
         run_task=RunNow(on_call=lambda call: tasks.append(call.title)))
     MainWindow.restore_order(win, copy)
-    assert tasks == ["Restoring the order…"] and loads == [("apps", True)]
+    assert tasks == ["Restoring the Order…"] and loads == [("apps", True)]
     assert toasts == [("Wrote the new order to the device; it takes effect after the device is "
                        "unplugged.")]
     written = ciq.parse_in_bin(st.read("GARMIN/APPS/IN.BIN"))
@@ -2910,7 +2911,7 @@ def test_window_notes_an_update_that_waits(hidden_update):
         "Will be removed after the device is unplugged")
     offered = MainWindow._updates_to_offer(
         [store_app(FACE, "Face It"), store_app(STORE_ID, "Connect IQ Store")], {FACE})
-    assert [u.name for u in offered] == ["Connect IQ Store"]  # "Update all" skips Face It
+    assert [u.name for u in offered] == ["Connect IQ Store"]  # "Update All" skips Face It
     assert MainWindow._updates_to_offer([store_app(FACE, "Face It")], {FACE}) == []
 
 

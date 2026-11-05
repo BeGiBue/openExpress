@@ -211,13 +211,13 @@ def test_the_apps_page_says_there_are_none_and_offers_the_account(no_list):
     state = ciq.read_installed(dev, st)
     win, section = _apps_page(state, [store_app(FACE, "Face It")])
     groups = _groups(section)
-    assert groups["On the device"][0] == "No Connect IQ apps on the device"
-    (row,) = groups["In your Garmin account"][1]
+    assert groups["On the Device"][0] == "No Connect IQ apps on the device"
+    (row,) = groups["In Your Garmin Account"][1]
     assert row.get_title() == "Face It"
     (install,) = [w for w in descendants(row) if isinstance(w, Gtk.Button)]
     install.emit("clicked")
     assert [[a.name for a in apps] for apps in win.installed] == [["Face It"]]
-    assert "Built-in activities and apps" not in groups  # none known without the list
+    assert "Built-In Activities and Apps" not in groups  # none known without the list
 
 
 @pytest.mark.needs_display

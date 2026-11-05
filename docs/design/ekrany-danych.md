@@ -27,7 +27,7 @@ design adds them to openExpress in two stages.
 
 **Stage 1, read only:**
 
-1. A section "Activity profiles" in the device view: every profile of the device, the recently
+1. A section "Activity Profiles" in the device view: every profile of the device, the recently
    used first, with a search (D1, D2).
 2. A profile's page: its data screens in the order the device scrolls through them, each drawn in
    the shape of the device's screen (round for a watch, a rectangle for an Edge) with its fields
@@ -129,7 +129,7 @@ step 0); nothing written to the device for it:
 
 ### 2.5 Personal values
 
-Message 13 holds personal values (heart-rate and power zones, FTP, weight and more, as settings
+Message 13 holds personal values (heart rate and power zones, FTP, weight and more, as settings
 of a profile). openExpress never reads them: the reader asks message 13 for the listed toggles
 only and skips every other field without decoding it (D13). The log names counts and kinds, never
 a value; the tests use made-up files; a test on real files reads its expected values from the
@@ -161,16 +161,16 @@ and narrow (360 px), light and dark, in Polish; the texts are in section 4.8.
 
 ### 4.1 Where it opens
 
-A section of the device view, after Activities: "Activity profiles", an icon of a grid. Like the
+A section of the device view, after Activities: "Activity Profiles", an icon of a grid. Like the
 other sections it reads when it is first opened, keeps what it read, and Refresh reads again
 (D1, D3). Devices without a `Sports` folder do not show it.
 
 ### 4.2 The list of profiles
 
 - On top a search ("Search 113 profiles"): by name, letter case and diacritics aside.
-- **Used recently**: the profiles of the newest activities on the device, newest first, at most
+- **Used Recently**: the profiles of the newest activities on the device, newest first, at most
   five (D2); none read yet: the group is not shown.
-- **All profiles**, A to Z.
+- **All Profiles**, A to Z.
 - A row: the profile's colour as a dot (from message 12), its name, and "3 data screens · Map,
   Compass" (the built-in screens shown, at most two named, "+2" after them).
 - 113 rows are one `Gtk.ListBox` with a filter; no paging.
@@ -180,7 +180,7 @@ other sections it reads when it is first opened, keeps what it read, and Refresh
 Pushed onto the window's navigation, as an activity's page: the back arrow, the profile's name
 and the device as the title.
 
-- **Data screens**, "In the order they scroll on the watch": a card for every screen shown, in
+- **Data Screens**, "In the order they scroll on the watch": a card for every screen shown, in
   the carousel's order, built-in screens among them (a card with the screen's sign and "Built-in
   screen"). A card of one's own draws the screen in the device's shape with its fields in their
   places (D5), "4 fields · layout A" under it. Two cards a row on a narrow window, four on a wide
@@ -198,7 +198,7 @@ and the device as the title.
 ### 4.4 A screen's page
 
 Pushed from a card. The screen drawn large, the chosen field in the accent colour. **Layout**:
-"Number of fields" (a spin button from 1 to what the model allows) and "Variant" (toggle buttons
+"Number of Fields" (a spin button from 1 to what the model allows) and "Variant" (toggle buttons
 with a small drawing of each variant, A, B, C, only those the model has for that number).
 **Fields**, "Top to bottom, left to right": a row a field, "Place 1" under its name. Changes go
 straight into the window's copy of the profile; the back arrow returns to the profile, where the
@@ -274,12 +274,12 @@ The names of the fields and categories are about 350 more texts (D4).
 
 ### D1: where the profiles open — chosen: 1a
 
-- **1a. A section of the device view (recommended; chosen):** "Activity profiles" in the sidebar after
+- **1a. A section of the device view (recommended; chosen):** "Activity Profiles" in the sidebar after
   Activities; a profile's page and a screen's page pushed onto the navigation, as an activity's
   page.
   - \+ The place of every other kind of thing on the device; Refresh and Sync as elsewhere.
   - − One section more in the sidebar (seven).
-- **1b. A row on the Device page** ("Activity profiles", with a count) that pushes the list.
+- **1b. A row on the Device page** ("Activity Profiles", with a count) that pushes the list.
   - \+ The sidebar stays as it is.
   - − A list of 113 behind a row, one level deeper than everything else.
 
@@ -299,7 +299,7 @@ The names of the fields and categories are about 350 more texts (D4).
 
 - **3a. All of them when the section opens (recommended; chosen):** the `Sports` folder listed, every file
   read (113 × 5.7 KB ≈ 650 KB), kept by name, size and time of change, as the activities'
-  summaries; progress "Reading profiles… 40 of 113".
+  summaries; progress "Reading Profiles… 40 of 113".
   - \+ The list shows the count of screens; the search and the pages need nothing more.
   - − The time of 113 small reads over MTP, to be measured (expected below ten seconds).
 - **3b. One file when its profile opens:** the list needs the names, which are inside the files,

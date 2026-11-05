@@ -171,7 +171,7 @@ class Watcher(Gio.Application):
                 summary = service.run_sync(s, progress=nothing)
             finally:
                 self._session = None
-            # The words of the row under "Last sync", as last_sync.describe tells them.
+            # The words of the row under "Last Sync", as last_sync.describe tells them.
             body = last_sync.describe(summary.record(s.device.unit_id)).notification
             GLib.idle_add(self.notify, _("Sync finished"), body)
         except service.SyncBusy:

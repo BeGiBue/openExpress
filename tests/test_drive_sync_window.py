@@ -47,7 +47,7 @@ def test_the_sync_button_of_a_drive_that_is_not_synced_says_usb_drive(device_roo
     from openexpress.gui.app import MainWindow
 
     s, _account = checked(device_root, answer)
-    assert MainWindow._sync_blocked(stand_in(session=s, busy=False)) == "USB drive"
+    assert MainWindow._sync_blocked(stand_in(session=s, busy=False)) == "USB Drive"
 
 
 def test_the_window_syncs_a_drive_both_ways(device_root):
@@ -67,7 +67,7 @@ def test_the_window_syncs_a_drive_both_ways(device_root):
 
 
 def test_the_first_sync_of_a_drive_in_the_window_offers_new_data_only(device_root):
-    """As over MTP: the choice is asked; "New data only" marks the files, uploads none."""
+    """As over MTP: the choice is asked; "New Data Only" marks the files, uploads none."""
     from openexpress.gui.app import MainWindow
 
     s, account = checked(device_root)
@@ -116,7 +116,7 @@ def test_the_window_syncs_a_device_over_mtp_with_its_choice_alone(device_root, m
 @pytest.mark.parametrize(("refusal", "counted"), [(None, True),
                                                   (("connect-disabled", ""), False)])
 def test_the_open_drive_is_counted_when_it_may_sync(refusal, counted):
-    """Its activities not uploaded yet, for "Last sync" and its tile, as over MTP."""
+    """Its activities not uploaded yet, for "Last Sync" and its tile, as over MTP."""
     import types
 
     from openexpress.gui.device_page import count_open_activities
@@ -165,7 +165,7 @@ def test_no_question_to_eject_a_device_over_mtp(device_root, monkeypatch):
 
 @pytest.mark.needs_display
 def test_a_page_a_drive_has_not_got_says_so_as_information_not_as_an_error():
-    """Maps, Apps, Music: the page's own icon, its title and the sentence, no "Try again"."""
+    """Maps, Apps, Music: the page's own icon, its title and the sentence, no "Try Again"."""
     from openexpress.device.gio_storage import mass_storage_text
     from openexpress.gui.device_page import Section, show_not_for_mass_storage
 

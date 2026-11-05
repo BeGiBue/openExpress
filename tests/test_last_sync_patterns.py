@@ -1,4 +1,4 @@
-"""The row "Last sync" and its details, from the file to the screen, on records of real syncs
+"""The row "Last Sync" and its details, from the file to the screen, on records of real syncs
 and on shapes older versions wrote (tests/data/last_sync/, unit IDs made up): the exact
 English and Polish words, no line twice, none against the row.
 

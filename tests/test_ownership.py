@@ -1168,7 +1168,7 @@ def test_window_set_primary_training(device_root, device):
                    show_overview=lambda: events.append("overview"))
     MainWindow.set_primary_training(win)
     assert account.current == UNIT and len(account.puts) == 1
-    assert events == ["Changing the primary training device…",
+    assert events == ["Changing the Primary Training Device…",
                       "Primary training device changed", "overview"]
     # The window checks ownership anew for the change: list at detection, list again, …
     assert account.client.http.paths()[:2] == [DEVICES_PATH, DEVICES_PATH]
@@ -1390,7 +1390,7 @@ def test_the_row_offers_set_as_primary_only_when_it_can(device):
 
     win, wearable, _calls = _wearable_window(FakeWearables(OTHER), device)
     row = primary_wearable_row(win, wearable)
-    assert (row.get_title(), row.get_subtitle()) == ("Primary wearable", "Other watch")
+    assert (row.get_title(), row.get_subtitle()) == ("Primary Wearable", "Other watch")
     assert buttons(row) == ["Set as Primary"]
     another_account()
     win, wearable, _calls = _wearable_window(FakeWearables(UNIT), device)
@@ -1409,7 +1409,7 @@ def test_set_as_primary_wearable_asks_first_then_sets(device, monkeypatch):
     win, wearable, calls = _wearable_window(account, device)
     confirm_primary_wearable(win, wearable)
     (question,) = asked
-    assert question.get_heading() == "Change the primary wearable?"
+    assert question.get_heading() == "Change the Primary Wearable?"
     assert question.get_body() == ("Steps and sleep in Garmin Connect come from the primary "
                                    "wearable.\n\nCurrent: Other watch\nNew: Test watch")
     assert question.get_default_response() == "cancel"
@@ -1418,7 +1418,7 @@ def test_set_as_primary_wearable_asks_first_then_sets(device, monkeypatch):
     confirm_primary_wearable(win, wearable)
     asked[-1].emit("response", "set")
     assert account.puts == [("true", "application/json", True)]
-    assert win.run_task.titles == ["Changing the primary wearable…"]
+    assert win.run_task.titles == ["Changing the Primary Wearable…"]
     assert calls["toasts"] == ["Primary wearable changed"] and calls["overviews"] == 1
     (devices,) = calls["accounts"]  # the tiles' chip "Primary" from the list read back
     assert next(d for d in devices if d["unitid"] == UNIT)["primaryactivitytrackerindicator"]

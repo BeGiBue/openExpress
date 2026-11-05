@@ -1,5 +1,5 @@
 """What a sync writes to the device from Garmin's queue counts as received: the files of the
-queue, TrueUp and the Connect IQ apps written, so that the row "Last sync" does not say "nothing
+queue, TrueUp and the Connect IQ apps written, so that the row "Last Sync" does not say "nothing
 to upload" alone when something came; an app left in the queue (not written) is not. All answers
 here are made up."""
 

@@ -257,7 +257,7 @@ def tile_picture(part: str, url: str | None, source: str | None = None):
 
 
 def last_sync_more(unit_id) -> tuple[str | None, list]:
-    """The tooltip and the details of "Last sync" of a device not connected, as its page
+    """The tooltip and the details of "Last Sync" of a device not connected, as its page
     when it is: the full date and last_sync.describe's lines; "Never synced …" and none for
     a device never synced here."""
     if not unit_id or not sync.synced_here(unit_id):
@@ -275,7 +275,7 @@ def account_rows(win, unit_id) -> list[tuple[str, str]]:
     wearable = devicelist.primary_wearable(win._account, unit_id)
     if wearable is None:
         return []
-    return [(_("Primary wearable"), primary_wearable_text(wearable))]
+    return [(_("Primary Wearable"), primary_wearable_text(wearable))]
 
 
 def show_remembered_more(win, unit_id) -> None:
@@ -334,11 +334,11 @@ class StartWindow:
             sec.clear()
             # TRANSLATORS: title of the device pages when several devices are connected and none is
             # open; also why Sync cannot start
-            sec.set_empty(_("Choose a device"),
+            sec.set_empty(_("Choose a Device"),
                           _("Several Garmin devices are connected. Choose one on the "
                             "Device page."), False)
             sec.show("empty")
-        self._usb_title = _("Choose a device")  # the Sync button says the same
+        self._usb_title = _("Choose a Device")  # the Sync button says the same
         self._update_banner()
         self._update_actions()
         resolve_account(self)
@@ -585,7 +585,7 @@ class StartWindow:
     def _refresh_relative_texts(self) -> bool:
         """Once a minute: the texts told against now drawn again where they changed: the
         tiles of the start page (all of them, once), the row of the last sync (its words),
-        "Device software" when it says when its check was; the view of a device not
+        "Device Software" when it says when its check was; the view of a device not
         connected (_refresh_remembered_texts)."""
         visible = self.navigation.get_visible_page()
         if visible is self.start.page:

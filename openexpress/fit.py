@@ -624,7 +624,7 @@ class Lap:
 
 @dataclass(frozen=True)
 class HeartRateZones:
-    """The heart-rate zones of an activity as its device worked them out: the time in each
+    """The heart rate zones of an activity as its device worked them out: the time in each
     (seconds: below zone 1, zones 1-5, the time above the top bound in zone 5), their bounds
     as the device keeps them (beats a minute, the same six: each the first beat of the zone
     above it, the last the top of zone 5), how they were worked out ("max", "reserve",
@@ -879,7 +879,7 @@ def _zones(found: list[dict[int, Value]]) -> HeartRateZones | None:
 
 def activity_data(data: bytes) -> ActivityData:
     """What the activity file `data` holds for its page: its records with a time, its laps,
-    what its sessions say together (its temperature that of the records), its heart-rate
+    what its sessions say together (its temperature that of the records), its heart rate
     zones and the time of its rest sets. Of a file cut short (the device was still writing it)
     or damaged, what reads up to where it breaks off, with its state. FitError for what is no
     FIT file, as summary."""

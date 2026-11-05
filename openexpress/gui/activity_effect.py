@@ -1,4 +1,4 @@
-"""The training effect of an activity's page, under its heart-rate zones, as its device worked
+"""The training effect of an activity's page, under its heart rate zones, as its device worked
 it out (fit.ActivityData): the aerobic and the anaerobic effect, each its value with the word of
 the public scale (gui/words.py) and a bar over 0-5 in the desktop's accent colour, and the
 training load as a whole number. A row the file does not give is left out; with none of them, no

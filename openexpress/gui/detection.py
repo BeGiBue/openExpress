@@ -541,38 +541,38 @@ class DeviceDetection:
             # The PIN (not_ready_text, which names the device), then plugging it in again
             # (after REPLUG_HINT_S in its normal mode), then other programs.
             replug = f" {_(REPLUG_HINT_AFTER_PIN)}" if normal_s >= REPLUG_HINT_S else ""
-            return (_("The device is not ready"),
+            return (_("Device Not Ready"),
                     f"{not_ready_text(state)}{replug} {held_elsewhere_text()}", False)
         if state == PRESENT and normal_s >= REPLUG_HINT_S:
             # One sentence becomes two: each with its full stop.
             text = _("This takes a moment after the cable is plugged in.")
-            return _("The device is starting…"), f"{text} {_(REPLUG_HINT)}", True
+            return _("Device Starting…"), f"{text} {_(REPLUG_HINT)}", True
         if state == DRIVE_OFF:
             # TRANSLATORS: a device connected as a USB drive, not over MTP
-            return _("USB drive"), drive_off_text(), False
+            return _("USB Drive"), drive_off_text(), False
         if state == STARTING and STARTING_REPLUG_HINT_S <= waited_s < WAIT_FOR_DEVICE_S:
             # Still in its transitional mode: one sentence becomes two, as above.
             text = _("This takes a moment after the cable is plugged in.")
-            return _("The device is starting…"), f"{text} {_(REPLUG_HINT)}", True
+            return _("Device Starting…"), f"{text} {_(REPLUG_HINT)}", True
         if state == ABSENT:
             # TRANSLATORS: title when no device is plugged in: plug it in with a USB cable
             # ("connect", not Garmin Connect)
-            return (_("Connect your device"),
+            return (_("Connect Your Device"),
                     _("Connect your Garmin device with a USB cable. "
                       "It will be detected automatically."), False)
         if state == MASS_STORAGE:
             if ejected_drive_waits():
                 # TRANSLATORS: title while a drive ejected by openExpress is still plugged in
-                return _("Device ejected"), ejected_text(), False
+                return _("Device Ejected"), ejected_text(), False
             # The window opens such a drive once the system mounts it, so with none open it
             # is not mounted - or, in the Flatpak, mounted where the sandbox cannot see.
             text = drive_notice_text()
             # TRANSLATORS: a device connected as a USB drive, not over MTP
-            return _("USB drive"), text, False
+            return _("USB Drive"), text, False
         if waited_s < WAIT_FOR_DEVICE_S:
-            return (_("The device is starting…"),
+            return (_("Device Starting…"),
                     _("This takes a moment after the cable is plugged in"), True)
-        return _("The device is not ready"), not_ready_text(state), False
+        return _("Device Not Ready"), not_ready_text(state), False
 
     def _poll_usb(self, clock=time.monotonic) -> bool:
         """Every few seconds: while no device is open, is a Garmin device on USB that gvfs
@@ -715,7 +715,7 @@ class DeviceDetection:
             self.sections["watch"].show("loading")
         # A Garmin device in mass storage mode too, when no MTP device is there or on its way;
         # several different devices give a list to choose from.
-        self.run_task(_("Detecting the device…"),
+        self.run_task(_("Detecting the Device…"),
                       lambda: with_space(detect_devices(current_uri)), done, failed)
 
     def open_choice(self, found, tile: int | None = None) -> None:
@@ -755,12 +755,12 @@ class DeviceDetection:
         def failed(e):
             opened()
             # Unplugged meanwhile, or not readable: said, and the devices detected again.
-            self.error(_("Could not open the device"), str(e) or type(e).__name__)
+            self.error(_("Could Not Open the Device"), str(e) or type(e).__name__)
             self.connected.stop_choosing()
             self.refresh_device(cause=Cause.CHOICE_FAILED)
             return True
 
-        self.run_task(_("Opening the device…"),
+        self.run_task(_("Opening the Device…"),
                       lambda: with_space(service.check_session(service.open_session(
                           found=found))), done, failed)
 

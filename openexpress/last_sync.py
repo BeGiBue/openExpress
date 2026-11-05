@@ -1,6 +1,6 @@
 """The last sync in words: describe() alone puts a record of a sync (last_sync.json, as
 service.save_last_sync writes it, and as older versions wrote it) into words, and every
-caller shows what it gives as it is: the row "Last sync" of the device page (subtitle,
+caller shows what it gives as it is: the row "Last Sync" of the device page (subtitle,
 tooltip, details), the tiles of the start page, the numbers at the end of `openexpress sync`
 and the notification of the background sync.
 
@@ -45,7 +45,7 @@ class Told:
         return [*self.steps, *((error, True) for error in self.errors)]
 
     def row(self, now: datetime | None = None) -> str:
-        """The row under "Last sync" of the window: when, told against now, then the
+        """The row under "Last Sync" of the window: when, told against now, then the
         numbers (a hard space before each "·")."""
         when = datetime.fromtimestamp(self.when)
         return i18n.caption(i18n.relative_time(when, now or datetime.now()), self.counts)
@@ -59,7 +59,7 @@ class Told:
     def sentence(self) -> str:
         """The numbers as a sentence of their own, for the end of `openexpress sync
         --apply`: a capital letter first, a full stop at the end ("Nothing to upload.").
-        The row under "Last sync" keeps them as a part of it."""
+        The row under "Last Sync" keeps them as a part of it."""
         counts = self.counts
         return counts[:1].upper() + counts[1:] + ("" if counts.endswith(".") else ".")
 

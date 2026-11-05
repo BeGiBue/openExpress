@@ -173,7 +173,7 @@ def test_what_the_cases_tell_apart(device_root, tmp_path, monkeypatch):
                                   if case.synced_before or case.choice])
 def test_the_command_line_says_each_step_in_the_words_of_the_window(
         name, device_root, tmp_path, monkeypatch, capsys):
-    """After `sync --apply`: each step of the sync as the details under "Last sync" say it,
+    """After `sync --apply`: each step of the sync as the details under "Last Sync" say it,
     each error, then the numbers of the row as a sentence."""
     kept = run("cli", CASES[name], by_the_command_line, device_root, tmp_path, monkeypatch,
                monkeypatch)
@@ -262,7 +262,7 @@ def test_the_command_line_has_the_steps_of_the_window(name, words, device_root, 
 def test_the_numbers_after_a_sync_are_a_sentence_of_their_own(
         lang, numbers, nothing, row, done, device_root, xdg, monkeypatch, capsys):
     """The end of `sync --apply`: the numbers of the sync as a sentence (a capital letter, a
-    full stop), before "Done."; the row under "Last sync" keeps them as it showed them."""
+    full stop), before "Done."; the row under "Last Sync" keeps them as it showed them."""
     from openexpress import i18n
 
     account = SyncAccount(messages=[COURSE], verified_unit_id=None)

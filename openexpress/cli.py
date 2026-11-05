@@ -1196,7 +1196,7 @@ def _queue_file_words(found, makers=None) -> str:
 
 
 def _print_sync_steps(summary, unit_id: int):
-    """The steps of a sync in the words of the details under "Last sync", its errors and
+    """The steps of a sync in the words of the details under "Last Sync", its errors and
     the uploads Connect did not confirm. Its words (last_sync.Told)."""
     from openexpress import last_sync
 
@@ -1212,7 +1212,7 @@ def _print_sync_steps(summary, unit_id: int):
 
 
 def _print_sync_result(summary, unit_id: int) -> int:
-    """What `sync --apply` did: its steps in the words of the details under "Last sync",
+    """What `sync --apply` did: its steps in the words of the details under "Last Sync",
     its errors, then the numbers of the row as a sentence. 1 with errors, as the window
     says "Sync finished with errors"."""
     told = _print_sync_steps(summary, unit_id)

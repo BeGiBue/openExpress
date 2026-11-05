@@ -346,7 +346,7 @@ def update_available() -> str:
 
 def update_ready() -> str:
     """The words of the chip of an update copied already, under the software version on the
-    device page (the row "Device software" says what to do)."""
+    device page (the row "Device Software" says what to do)."""
     # TRANSLATORS: a chip under the software version on the device page: an update is copied
     # to the device, which installs it once disconnected
     return _("Update ready")
@@ -487,7 +487,7 @@ class StartPage:
 
         self.stack = Gtk.Stack(transition_type=Gtk.StackTransitionType.CROSSFADE)
         # Until the first detection finishes it is not known which devices are connected.
-        loading = Adw.StatusPage(title=_("Detecting the device…"))
+        loading = Adw.StatusPage(title=_("Detecting the Device…"))
         if hasattr(Adw, "SpinnerPaintable"):
             loading.set_paintable(Adw.SpinnerPaintable.new(loading))
         self.stack.add_named(loading, "loading")
@@ -517,7 +517,7 @@ class StartPage:
             REMEMBERED: _Section(_("Remembered"), on_open),
             # TRANSLATORS: heading above the tiles of the devices of the Garmin account that
             # were never connected to this computer
-            ON_ACCOUNT: _Section(_("On the account"), on_open),
+            ON_ACCOUNT: _Section(_("On the Account"), on_open),
         }
         for section in self._sections.values():
             box.append(section.title)
@@ -690,22 +690,22 @@ class RememberedPage:
         hero.add(box)
         content.add(hero)
 
-        group = Adw.PreferencesGroup(title=_("Sync with Garmin Connect"))
+        group = Adw.PreferencesGroup(title=_("Sync With Garmin Connect"))
         # With its details, as on the page of a connected device.
-        self.last_sync_row = Adw.ExpanderRow(title=_("Last sync"), enable_expansion=False)
+        self.last_sync_row = Adw.ExpanderRow(title=_("Last Sync"), enable_expansion=False)
         self._last_sync_details = None
         group.add(self.last_sync_row)
         content.add(group)
 
         # What the account's list in memory says of it, read only (set_account_rows).
-        self.account_group = Adw.PreferencesGroup(title=_("Garmin Connect account"),
+        self.account_group = Adw.PreferencesGroup(title=_("Garmin Connect Account"),
                                                   visible=False)
         self.account_rows: list = []
         content.add(self.account_group)
 
         group = Adw.PreferencesGroup(title=pgettext("tab", "Updates"))
         check = _("Connect the device to check")
-        self.update_row = Adw.ActionRow(title=_("Device software"), subtitle=check,
+        self.update_row = Adw.ActionRow(title=_("Device Software"), subtitle=check,
                                         sensitive=False)
         self.map_row = Adw.ActionRow(title=pgettext("tab", "Maps"), subtitle=check,
                                      sensitive=False)
@@ -714,7 +714,7 @@ class RememberedPage:
         content.add(group)
 
         self.tools_group = Adw.PreferencesGroup(title=_("Tools"))
-        self.part_row = Adw.ActionRow(title=_("Part number"), subtitle_selectable=True)
+        self.part_row = Adw.ActionRow(title=_("Part Number"), subtitle_selectable=True)
         self.tools_group.add(self.part_row)
         content.add(self.tools_group)
 
@@ -760,7 +760,7 @@ class RememberedPage:
                 row.set_subtitle(text)
 
     def set_last_sync_details(self, tooltip: str | None, details) -> None:
-        """The tooltip of "Last sync" (the full date; "Never synced …") and its details
+        """The tooltip of "Last Sync" (the full date; "Never synced …") and its details
         ((text, warning) of last_sync.describe), drawn once whatever came before."""
         self.last_sync_row.set_tooltip_text(tooltip)
         if self._last_sync_details is not None:

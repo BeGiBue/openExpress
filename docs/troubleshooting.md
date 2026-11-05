@@ -16,7 +16,7 @@
   sometimes already when it is unplugged, so to keep it, turn on **Preferences → Diagnostics
   → Keep a copy of the device's diagnostic files on this computer** (what is copied and when:
   [Privacy and security](privacy.md#privacy-and-security)). After such an error the device
-  page shows a row **Device error log** (under **Backup**) for 30 days, whether the copy is on
+  page shows a row **Device Error Log** (under **Backup**) for 30 days, whether the copy is on
   or not.
 - **The watch is not found after the computer slept.** Watches (seen on a fēnix 8 and a Venu
   2) lose their USB connection when the computer sleeps: unplug the cable and plug it in
@@ -42,7 +42,7 @@
 from kio-extras, in the `kiod6` process), not through gvfs. Once started, the service keeps
 every MTP device it has opened, also after Dolphin is closed, and takes a device back as soon
 as its cable is plugged in again, so gvfs cannot offer it; after 45 seconds the window says
-**The device is not ready**. To free the device, close Dolphin, run `kquitapp6 kiod6`, then
+**Device Not Ready**. To free the device, close Dolphin, run `kquitapp6 kiod6`, then
 unplug the cable and plug it back in. Open the device in openExpress rather than in Dolphin;
 if you open it in Dolphin again, repeat these steps.
 

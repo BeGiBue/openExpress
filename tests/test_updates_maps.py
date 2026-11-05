@@ -474,7 +474,7 @@ def test_maps_page_with_maps_that_cannot_be_read(device_root):
 
     win, _reloads = _maps_window(LocalStorage(device_root))
     MainWindow.show_maps(win, maps.read_maps({"maps": [{"displayname": "X"}]}))
-    assert [g.title for g in win.sections["maps"].groups] == ["On the device"]
+    assert [g.title for g in win.sections["maps"].groups] == ["On the Device"]
 
 
 def test_maps_command_on_a_device_without_maps(device_root, xdg, monkeypatch, capsys):
@@ -598,7 +598,7 @@ def test_maps_page_without_maps(device_root):
     win, reloads = _maps_window(LocalStorage(device_root))
     MainWindow.show_maps(win, maps.read_maps(lower_keys(NO_MAPS)))
     assert win.maps_cache == []
-    (group,) = win.sections["maps"].groups  # no "On the device", no storage bar
+    (group,) = win.sections["maps"].groups  # no "On the Device", no storage bar
     assert group.title == ""
     (box,) = group.rows
     labels = [c.get_label() for c in _children(box) if isinstance(c, Gtk.Label)]
@@ -616,7 +616,7 @@ def test_maps_page_with_maps_keeps_the_groups(server, device_root):
     win, _reloads = _maps_window(LocalStorage(device_root))
     MainWindow.show_maps(win, maps.read_maps(maps_response(server)))
     on_device, available = win.sections["maps"].groups
-    assert on_device.title == "On the device" and available.title == "Available"
+    assert on_device.title == "On the Device" and available.title == "Available"
     titles = [row.get_title() for row in on_device.rows]
     assert titles[-2:] == ["TopoActive East", "TopoActive West"]
 
@@ -1064,7 +1064,7 @@ def test_maps_page_with_maps_can_check_again(server, device_root):
     MainWindow.show_maps(win, maps.read_maps(maps_response(server)))
     on_device, _available = win.sections["maps"].groups
     button = on_device.header
-    assert on_device.title == "On the device" and button.get_label() == "Check Again"
+    assert on_device.title == "On the Device" and button.get_label() == "Check Again"
     assert not button.has_css_class("suggested-action")  # "Update" of a map stays the one
     assert button in win._action_buttons and button.get_sensitive()
     button.emit("clicked")
@@ -1695,7 +1695,7 @@ def test_the_window_refuses_before_it_asks_to_install(server, device_root, monke
         session=types.SimpleNamespace(storage=storage, client=types.SimpleNamespace(
             consumer=types.SimpleNamespace(url_salt="salt"))))
     app.MainWindow.confirm_map(win, japan)
-    assert said == [("Cannot install the map", text)] and asked == []
+    assert said == [("Cannot Install the Map", text)] and asked == []
 
 
 def test_firmware_without_an_md5_is_not_downloaded(server, device_root, xdg):

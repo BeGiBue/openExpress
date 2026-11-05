@@ -826,7 +826,7 @@ def test_status_with_a_system_update():
         "buttons": [("Install", True), ("Check Again", False)]}
     # Below: only the other updates.
     (available,) = groups
-    assert available.title == "Available updates"
+    assert available.title == "Available Updates"
     assert [(r.get_title(), r.get_subtitle()) for r in available.rows] == [
         ("Test Font", "23.40\u00a0· 4\u00a0B\u00a0· Recommended\u00a0· 006-D0000-00.fnt")]
     install.emit("clicked")
@@ -853,7 +853,7 @@ def test_a_second_system_update_is_listed_as_system_software():
     assert status["texts"][2][0] == "Test Bundle\u00a0· Recommended\u00a0· GUPDATE.GSP"  # the first on top
     (available,) = groups
     assert [(r.get_title(), r.get_subtitle()) for r in available.rows] == [
-        ("System software", "Test Software\u00a0· 23.40\u00a0· 2\u00a0B\u00a0· Recommended\u00a0· GUPDATE.GCD")]
+        ("System Software", "Test Software\u00a0· 23.40\u00a0· 2\u00a0B\u00a0· Recommended\u00a0· GUPDATE.GCD")]
 
 
 @pytest.mark.needs_display
@@ -1109,7 +1109,7 @@ def test_the_license_is_a_link_above_the_warning(monkeypatch):
     dialog = _dialog(monkeypatch, "006-V0000-00", _with_license(url))
     link, warning = _below(dialog)  # the warning last, right above the buttons
     assert isinstance(link, Gtk.LinkButton)
-    assert (link.get_uri(), link.get_label()) == (url, "License agreement (EULA)")
+    assert (link.get_uri(), link.get_label()) == (url, "License Agreement (EULA)")
     assert warning.get_label() == WARNING_EN
     assert "License" not in dialog.get_body() and url not in dialog.get_body()
 
@@ -1401,7 +1401,7 @@ def test_status_of_a_waiting_update_lists_what_is_still_to_install():
 
 
 def _overview(items=None, drive=False):
-    """The "Device software" row and the software label of the device page; `drive`: the
+    """The "Device Software" row and the software label of the device page; `drive`: the
     device is in mass storage mode."""
     from gi.repository import Adw, Gtk
 
@@ -1496,7 +1496,7 @@ def test_after_copying_the_page_says_ready_without_asking_again(monkeypatch):
         setattr(win, name, types.MethodType(getattr(MainWindow, name), win))
     MainWindow.confirm_update(win, items[1])
     (dialog,) = asked
-    dialog.emit("response", "ok")  # as if "Accept and install" was pressed
+    dialog.emit("response", "ok")  # as if "Accept and Install" was pressed
     assert [u.part_number for u in copied[0]] == ["006-V0000-00"] and win.shown == ["Done"]
     status, groups, _buttons = _read_page(win)
     assert status["texts"][0][0] == (
@@ -1629,7 +1629,7 @@ def test_the_window_gives_the_download_its_bar(device_root, monkeypatch):
 
     def run_task(title, fn, done=None, failed=None, button=None):
         tasks.append(fn)
-        if title == "Checking the space…":  # the question of the map comes after it
+        if title == "Checking the Space…":  # the question of the map comes after it
             done(fn())
 
     win.run_task = run_task
@@ -1931,7 +1931,7 @@ MAP_DATA = _entry("006-D0002-00", "Test Map Data", "Etyp", "Garmin\\SID", "DA002
 ], ids=["drive", "one-update", "mtp"])
 def test_install_all_is_offered_for_a_drive_with_more_than_one_update(drive, entries, offered):
     _win, status, _groups, _buttons = _updates_page(_items(*entries), drive=drive)
-    assert (("Install all", True) in status["buttons"]) is offered
+    assert (("Install All", True) in status["buttons"]) is offered
 
 
 @pytest.mark.needs_display
@@ -1945,7 +1945,7 @@ def test_install_all_copies_every_update_then_ejects_the_drive_once(monkeypatch,
 
     items = _items(BUNDLE_ENTRY, FONT_ENTRY, MAP_DATA)
     win, status, _groups, buttons = _updates_page(items, drive=True)
-    assert status["buttons"] == [("Install", True), ("Install all", False),
+    assert status["buttons"] == [("Install", True), ("Install All", False),
                                  ("Check Again", False)]
     given = []
     monkeypatch.setattr(updates, "install", lambda chosen, storage, **kw: given.append(
@@ -1962,10 +1962,10 @@ def test_install_all_copies_every_update_then_ejects_the_drive_once(monkeypatch,
     win.eject_device = lambda *a, **kw: win.ejected.append(a)
     for name in ("show_updates", "_show_installed"):
         setattr(win, name, types.MethodType(getattr(MainWindow, name), win))
-    (install_all,) = [b for b in buttons if b.get_label() == "Install all"]
+    (install_all,) = [b for b in buttons if b.get_label() == "Install All"]
     install_all.emit("clicked")
     (question,) = asked
-    assert question.get_heading() == "Install updates?"
+    assert question.get_heading() == "Install Updates?"
     assert question.get_body().splitlines()[:4] == [
         f"Test Bundle {VERSIONS}", "Test Font 23.40", "Test Map Data 23.40", ""]
     question.emit("response", "ok")

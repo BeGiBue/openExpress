@@ -201,7 +201,7 @@ def test_a_long_activity_is_read_in_a_few_seconds():
     assert took < 5.0, f"{took:.2f} s"
 
 
-# --- heart-rate zones ------------------------------------------------------------------------
+# --- heart rate zones ------------------------------------------------------------------------
 
 # time_in_zone: timestamp, the message it refers to and its index, the time in each zone (an
 # array of 7: below zone 1, zones 1-5, above the top bound), the zones' high bounds (6), how

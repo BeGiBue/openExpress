@@ -81,7 +81,7 @@ def test_the_rows_apps_and_music_go_to_their_pages_as_maps_does():
         assert win.went[-1] == key
     group = rows["Apps"].get_ancestor(_preferences_group())
     assert group is rows["Music"].get_ancestor(_preferences_group())
-    assert group.get_title() == "Apps and music"
+    assert group.get_title() == "Apps and Music"
 
 
 def _preferences_group():
@@ -115,11 +115,11 @@ def test_a_drive_that_may_sync_has_the_sync_group_without_the_background_row():
     sync (the background service never syncs a drive)."""
     _win, section = _page(mass_storage=True, drive_refusal=None)
     groups = _groups(section)
-    assert "USB drive" not in groups
-    assert groups["Sync with Garmin Connect"].get_description() == DRIVE_SYNC_NOTE
+    assert "USB Drive" not in groups
+    assert groups["Sync With Garmin Connect"].get_description() == DRIVE_SYNC_NOTE
     assert "Sync automatically when connected" not in _rows(section)
     _win, section = _page()  # a device over MTP: the row, no line
-    assert not _groups(section)["Sync with Garmin Connect"].get_description()
+    assert not _groups(section)["Sync With Garmin Connect"].get_description()
     assert "Sync automatically when connected" in _rows(section)
 
 
@@ -132,8 +132,8 @@ def test_a_drive_that_is_not_synced_says_why_in_place_of_the_sync(reason, error)
 
     _win, section = _page(mass_storage=True, drive_refusal=(reason, error))
     groups = _groups(section)
-    assert "Sync with Garmin Connect" not in groups
-    assert groups["USB drive"].get_description() == service.drive_sync_refusal_text(reason,
+    assert "Sync With Garmin Connect" not in groups
+    assert groups["USB Drive"].get_description() == service.drive_sync_refusal_text(reason,
                                                                                     error)
 
 
@@ -448,7 +448,7 @@ def test_the_page_of_a_remembered_device_says_what_the_account_says():
     page = win.remembered
     assert page.account_group.get_visible()
     assert [(r.get_title(), r.get_subtitle()) for r in page.account_rows] == [
-        ("Primary wearable", "Venu 2")]
+        ("Primary Wearable", "Venu 2")]
     win._account = None
     win._show_remembered(known)
     assert not page.account_group.get_visible()
@@ -468,4 +468,4 @@ def test_a_device_only_on_the_account_says_it_too():
     win._account = [entry]
     win._show_account(entry)
     assert [(r.get_title(), r.get_subtitle()) for r in win.remembered.account_rows] == [
-        ("Primary wearable", "This device")]
+        ("Primary Wearable", "This device")]

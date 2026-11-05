@@ -1,6 +1,6 @@
 """The states of the sync said the same way everywhere: "Never synced" (no state.json here) on
 tile and page, "Synced" only with a sync recorded, the count of "To sync" at the end of "Last
-sync", "Primary training device" when it cannot be read, and the start page without the
+sync", "Primary Training Device" when it cannot be read, and the start page without the
 account's list. All devices and files are made up."""
 
 import types
@@ -57,13 +57,13 @@ def test_synced_here_is_whether_the_device_has_its_state():
 
 
 def _last_sync_row(to_sync=None, ownership_error=None):
-    """The row "Last sync" of the device page as the window fills it."""
+    """The row "Last Sync" of the device page as the window fills it."""
     from gi.repository import Adw
 
     from openexpress.gui.app import MainWindow
 
     win = stand_in(
-        last_sync_row=Adw.ExpanderRow(title="Last sync"), _last_sync_children=[],
+        last_sync_row=Adw.ExpanderRow(title="Last Sync"), _last_sync_children=[],
         session=types.SimpleNamespace(device=types.SimpleNamespace(unit_id=UNIT),
                                       ownership_error=ownership_error, to_sync=to_sync))
     MainWindow._show_last_sync(win)
@@ -283,14 +283,14 @@ def _page_texts(**session):
     return _texts(section)
 
 
-def _primary(texts, title="Primary training device"):
+def _primary(texts, title="Primary Training Device"):
     return [sub for row, sub in texts if row == title]
 
 
 @pytest.mark.needs_display
 def test_not_logged_in_the_row_says_to_log_in():
     texts = _page_texts(logged_in=False)
-    assert ("Garmin Connect account", "") in texts
+    assert ("Garmin Connect Account", "") in texts
     assert _primary(texts) == ["Sign in to see"]
 
 

@@ -50,7 +50,7 @@ new permission for it); the version from source can read the Flatpak's.
 - **D5 (recommended).** What is said: when the Flatpak's last sync of the device is newer than
   this install's, the sync says once (the window's summary, the command line):
   "This device was also synced by openExpress (Flatpak), last on {date}; files it sent are not
-  sent again" (a line of the details, without a full stop). The row "Last sync" of the device page stays this install's own (a change of it
+  sent again" (a line of the details, without a full stop). The row "Last Sync" of the device page stays this install's own (a change of it
   needs its own patterns and words; left for later).
 - An acknowledgement Garmin Connect answers with 404 (the message is gone) counts as done, in
   either install, so that a message both installs know is not tried for ever.

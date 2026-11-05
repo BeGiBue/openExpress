@@ -382,7 +382,7 @@ def open_profile(win, profile_file) -> None:
     if data:
         # TRANSLATORS: heading on the page of an activity profile: the device's data screens (pages
         # of data fields)
-        group = Adw.PreferencesGroup(title=_("Data screens"),
+        group = Adw.PreferencesGroup(title=_("Data Screens"),
                                      description=_("The fields in their order on the screen"))
         cards = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, spacing=12)
         for place, screen in data:
@@ -391,7 +391,7 @@ def open_profile(win, profile_file) -> None:
         box.append(group)
     built_in = [(n, s) for n, s in enumerate(always, 1) if not s.own]
     if built_in:
-        group = Adw.PreferencesGroup(title=_("Built-in screens in the scrolling order"))
+        group = Adw.PreferencesGroup(title=_("Built-In Screens in the Scrolling Order"))
         for place, screen in built_in:
             known = names.built_in_known(screen, edge)
             group.add(built_in_row(win, profile_file, screen, caption(
@@ -408,8 +408,8 @@ def open_profile(win, profile_file) -> None:
         group.add(folded)
         box.append(group)
     if not always and not needed:
-        group = Adw.PreferencesGroup(title=_("Data screens"))
-        group.add(_row(_("No data screen is shown")))
+        group = Adw.PreferencesGroup(title=_("Data Screens"))
+        group.add(_row(_("No Data Screens Shown")))
         box.append(group)
     off_built_in = [s for s in profile.built_in()
                     if not s.shown and s.code != profiles.RESERVED_CODE]
@@ -417,7 +417,7 @@ def open_profile(win, profile_file) -> None:
     if off_built_in or off_own:
         # TRANSLATORS: heading of the data screens of a profile that are turned off or hidden on the
         # device
-        group = Adw.PreferencesGroup(title=_("Off and hidden"))
+        group = Adw.PreferencesGroup(title=_("Off and Hidden"))
         for screen in off_built_in:
             known = names.built_in_known(screen, edge)
             # The state only where it tells hidden from off.
@@ -457,7 +457,7 @@ def open_screen(win, profile_file, screen) -> None:
         layout = Adw.PreferencesGroup(title=_("Layout"))
         layout.add(_row(_("Layout"), names.layout_name(screen.variant, edge)))
         # TRANSLATORS: row on the page of a data screen: how many data fields it shows
-        layout.add(_row(_("Number of fields"), str(len(screen.fields))))
+        layout.add(_row(_("Number of Fields"), str(len(screen.fields))))
         box.append(layout)
         # TRANSLATORS: heading of the data fields of a data screen, in their order
         fields = Adw.PreferencesGroup(title=_("Fields"),
@@ -475,7 +475,7 @@ def open_screen(win, profile_file, screen) -> None:
             fields.add(_row(names.field_name(number, edge), sub))
         box.append(fields)
     details = Adw.PreferencesGroup(title=_("Details"))
-    details.add(_row(_("Code of the screen"), str(screen.code)))
+    details.add(_row(_("Screen Code"), str(screen.code)))
     # TRANSLATORS: row on the page of a data screen: whether it is on, off or hidden on the device
     # (not a country's state)
     details.add(_row(_("State"), state_text(screen)))
@@ -502,7 +502,7 @@ def _no_profiles(sec) -> None:
     box = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, spacing=8, halign=Gtk.Align.CENTER,
                   margin_top=24, margin_bottom=24)
     box.append(Gtk.Image(icon_name=PAGE_ICON, pixel_size=64))
-    words = Gtk.Label(label=_("No activity profiles"), wrap=True,
+    words = Gtk.Label(label=_("No Activity Profiles"), wrap=True,
                       justify=Gtk.Justification.CENTER, css_classes=["title-2"])
     box.append(words)
     sec.group().add(box)
@@ -524,11 +524,11 @@ def _profile_groups(win, sec, readable, recent) -> int:
     if recent_files:
         # TRANSLATORS: heading above the activity profiles used by the newest activities on the
         # device
-        g = sec.group(_("Used recently"), _("From the newest activities on the device"))
+        g = sec.group(_("Used Recently"), _("From the newest activities on the device"))
         groups.append(g)
         for f in recent_files:
             rows.append((g, profile_row(win, g, f), f.title))
-    g = sec.group(_("All profiles"))
+    g = sec.group(_("All Profiles"))
     groups.append(g)
     for f in readable:
         rows.append((g, profile_row(win, g, f), f.title))
@@ -569,7 +569,7 @@ class ProfilesPage:
         acts = self.activities
         if acts is not None and acts.storage is not s.storage:
             acts = None
-        self._load("profiles", _("Reading profiles…"),
+        self._load("profiles", _("Reading Profiles…"),
                    lambda: _read(found, acts, s.device, s.storage, self.progress),
                    lambda result: self.show_profiles(found, *result))
 
@@ -589,7 +589,7 @@ class ProfilesPage:
             _no_profiles(sec)
         unreadable = [f for f in files if f.profile is None]
         if unreadable:
-            g = sec.group(_("Files that are no profile"))
+            g = sec.group(_("Other Files"))
             for f in unreadable:
                 g.add(_row(f.name, f.error or ""))
         backup_time = getattr(found, "backup_time", None)  # none read: no list of them

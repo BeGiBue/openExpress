@@ -640,15 +640,15 @@ def test_the_group_shows_each_part_and_all_of_it(prefs, cache, tmp_path, monkeyp
     rows = _counted(prefs, group)
     assert [(t, s) for t, s, _b in rows] == [
         ("Maps", "1.8\u00a0kB\u00a0· 2 files"),
-        ("Software updates", "0\u00a0B\u00a0· 0 files"),
-        ("Pictures and icons", "30\u00a0B\u00a0· 1 file"),
-        ("Answers of Garmin's servers", "0\u00a0B\u00a0· 0 files"),
-        ("Activity map tiles", "0\u00a0B\u00a0· 0 files"),
-        ("Temporary files", "0\u00a0B\u00a0· 0 files"),
-        ("All of the cache", "1.8\u00a0kB\u00a0· 3 files")]
+        ("Software Updates", "0\u00a0B\u00a0· 0 files"),
+        ("Pictures and Icons", "30\u00a0B\u00a0· 1 file"),
+        ("Garmin Server Responses", "0\u00a0B\u00a0· 0 files"),
+        ("Activity Map Tiles", "0\u00a0B\u00a0· 0 files"),
+        ("Temporary Files", "0\u00a0B\u00a0· 0 files"),
+        ("Entire Cache", "1.8\u00a0kB\u00a0· 3 files")]
     assert [b.get_sensitive() for _t, _s, b in rows] == [True, False, True, False, False, False,
                                                          True]
-    assert _button(group, "All of the cache").get_label() == "Clear All…"
+    assert _button(group, "Entire Cache").get_label() == "Clear All…"
 
 
 @pytest.mark.needs_display
@@ -680,8 +680,8 @@ def test_the_sizes_are_counted_off_the_window_thread(prefs, cache, monkeypatch):
 
 
 @pytest.mark.needs_display
-@pytest.mark.parametrize(("part", "title", "freed"), [("pictures", "Pictures and icons", "30\u00a0B"),
-                                                     ("temp", "Temporary files", "119\u00a0B")])
+@pytest.mark.parametrize(("part", "title", "freed"), [("pictures", "Pictures and Icons", "30\u00a0B"),
+                                                     ("temp", "Temporary Files", "119\u00a0B")])
 def test_pictures_and_temporary_files_go_without_a_question(prefs, cache, tmp_path, part, title,
                                                            freed):
     """The trash of pictures or of temporary files: no question; only that part goes, from
@@ -693,7 +693,7 @@ def test_pictures_and_temporary_files_go_without_a_question(prefs, cache, tmp_pa
     trash = _button(group, title)
     trash.emit("clicked")
     assert prefs.dialogs == []
-    assert prefs.tasks == [("Clearing the cache…", False, trash)]
+    assert prefs.tasks == [("Clearing the Cache…", False, trash)]
     assert prefs.toasts == [f"Freed {freed}."] and prefs.errors == []
     left = _left(cache)
     for name in PARTS[part]:
@@ -706,9 +706,9 @@ def test_pictures_and_temporary_files_go_without_a_question(prefs, cache, tmp_pa
 
 @pytest.mark.needs_display
 @pytest.mark.parametrize(("title", "heading", "body"), [
-    ("Maps", "Clear the downloaded maps?",
+    ("Maps", "Clear the Downloaded Maps?",
      "This deletes the downloaded maps (1.8\u00a0kB). They will have to be downloaded again."),
-    ("Software updates", "Clear the downloaded updates?",
+    ("Software Updates", "Clear the Downloaded Updates?",
      ("This deletes the downloaded software updates (4.0\u00a0kB). They are downloaded "
       "again when needed.")),
 ])
@@ -731,7 +731,7 @@ def test_maps_and_updates_ask_first(prefs, cache, tmp_path, title, heading, body
     _button(group, title).emit("clicked")
     prefs.dialogs[1].emit("response", "clear")
     (task,) = prefs.tasks
-    assert task == ("Clearing the cache…", False, _button(group, title))
+    assert task == ("Clearing the Cache…", False, _button(group, title))
     folder = "maps" if title == "Maps" else "software"
     left = _left(cache)
     assert left[folder] == [] and all(left[k] == v for k, v in before.items() if k != folder)
@@ -744,9 +744,9 @@ def test_clear_all_asks_with_the_total_and_clears_everything(prefs, cache, tmp_p
     stay = filled(cache, tmp_path)
     group = prefs._cache_group()
     _counted(prefs, group)
-    _button(group, "All of the cache").emit("clicked")
+    _button(group, "Entire Cache").emit("clicked")
     (question,) = prefs.dialogs
-    assert question.get_heading() == "Clear the cache?"
+    assert question.get_heading() == "Clear the Cache?"
     assert question.get_body() == ("This deletes the downloaded maps (1.8\u00a0kB) and the other "
                                    "files of the cache (4.2\u00a0kB). The maps will have to be "
                                    "downloaded again. The pictures of the devices openExpress "
@@ -765,7 +765,7 @@ def test_clear_all_without_maps_says_so(prefs, cache):
     fill(cache, {"images/p.png": 30})
     group = prefs._cache_group()
     _counted(prefs, group)
-    _button(group, "All of the cache").emit("clicked")
+    _button(group, "Entire Cache").emit("clicked")
     (question,) = prefs.dialogs
     assert question.get_body() == ("This deletes the files of the cache (30\u00a0B). They are "
                                    "downloaded again when needed. The pictures of the devices "
@@ -782,12 +782,12 @@ def test_clearing_while_the_cache_is_in_use(prefs, cache):
     group = prefs._cache_group()
     _counted(prefs, group)
     with oe_cache.using():
-        _button(group, "Pictures and icons").emit("clicked")
+        _button(group, "Pictures and Icons").emit("clicked")
     assert prefs.errors == [("The cache is in use (a download or an install is running). "
                              "Try again later.")]
     assert (cache / "images" / "p.png").exists()
     rows = dict((t, (s, b.get_sensitive())) for t, s, b in storage_rows(group))
-    assert rows["Pictures and icons"] == ("30\u00a0B\u00a0· 1 file", True)
+    assert rows["Pictures and Icons"] == ("30\u00a0B\u00a0· 1 file", True)
     assert prefs.toasts == []
 
 
@@ -802,7 +802,7 @@ def test_the_toast_goes_to_the_open_preferences(prefs, cache):
     fill(cache, {"images/p.png": 30})
     group = prefs._cache_group()
     _counted(prefs, group)
-    _button(group, "Pictures and icons").emit("clicked")
+    _button(group, "Pictures and Icons").emit("clicked")
     assert shown == ["Freed 30\u00a0B."] and prefs.toasts == []
     assert Adw.Toast  # (the real kind is built)
 
@@ -837,15 +837,15 @@ def test_preferences_have_the_storage_group(cache, monkeypatch):
                         lambda page, group: titles.append(group.get_title()) or add(page, group))
     MainWindow.show_preferences(win)
     (dialog,) = shown
-    assert titles == ["Garmin Connect account", "Sync with Garmin Connect", "Language", "Setup",
-                      "Storage", "Diagnostics", "Activity maps"]
+    assert titles == ["Garmin Connect Account", "Sync With Garmin Connect", "Language", "Setup",
+                      "Storage", "Diagnostics", "Activity Maps"]
     assert isinstance(dialog, Gtk.Widget)
 
 
 @pytest.mark.needs_display
 def test_the_preferences_show_the_account_and_log_in_or_out(monkeypatch, in_the_window):
-    """The group "Garmin Connect account", first in the preferences: who is logged in with
-    Log out, or "Not signed in" with Log In (the application key saved, a made-up one). The
+    """The group "Garmin Connect Account", first in the preferences: who is logged in with
+    Log out, or "Not Signed In" with Log In (the application key saved, a made-up one). The
     button goes the way of the device view (MainWindow.logout / login, which decide where the
     user goes), and the row follows a change of account while the preferences are open."""
     import types
@@ -876,7 +876,7 @@ def test_the_preferences_show_the_account_and_log_in_or_out(monkeypatch, in_the_
     monkeypatch.setattr(Adw.PreferencesPage, "add",
                         lambda page, group: groups.append(group) or add(page, group))
     MainWindow.show_preferences(win)
-    assert groups[0].get_title() == "Garmin Connect account"
+    assert groups[0].get_title() == "Garmin Connect Account"
     (row,) = [w for w in descendants(groups[0]) if isinstance(w, Adw.ActionRow)]
     (button,) = [w for w in descendants(row) if isinstance(w, Gtk.Button)]
     assert (row.get_title(), button.get_label()) == ("someone", "Sign Out")
@@ -884,7 +884,7 @@ def test_the_preferences_show_the_account_and_log_in_or_out(monkeypatch, in_the_
     assert calls == ["logout"]
     client.auth = None  # logged out: the window tells of the change of account
     account_changed(win, Cause.LOGGED_OUT)
-    assert (row.get_title(), button.get_label()) == ("Not signed in", "Sign In")
+    assert (row.get_title(), button.get_label()) == ("Not Signed In", "Sign In")
     button.emit("clicked")
     assert calls == ["logout", "login"]
     shown[0].emit("closed")  # the preferences closed: the window keeps no widget of them
@@ -969,7 +969,7 @@ def test_clear_all_in_the_window_says_the_pictures_stay(prefs, cache):
     kept = _remembered_with_pictures(cache)
     group = prefs._cache_group()
     _counted(prefs, group)
-    _button(group, "All of the cache").emit("clicked")
+    _button(group, "Entire Cache").emit("clicked")
     (question,) = prefs.dialogs
     assert question.get_body() == (
         "This deletes the downloaded maps (100\u00a0B) and the other files of the cache "
@@ -978,8 +978,8 @@ def test_clear_all_in_the_window_says_the_pictures_stay(prefs, cache):
     question.emit("response", "clear")
     assert kept.exists() and prefs.toasts == ["Freed 150\u00a0B."]
     rows = dict((t, (s, b.get_sensitive())) for t, s, b in storage_rows(group))
-    assert rows["Pictures and icons"] == ("10\u00a0B\u00a0· 1 file", True)  # its trash still
-    assert rows["All of the cache"] == ("10\u00a0B\u00a0· 1 file", False)  # nothing more to clear
+    assert rows["Pictures and Icons"] == ("10\u00a0B\u00a0· 1 file", True)  # its trash still
+    assert rows["Entire Cache"] == ("10\u00a0B\u00a0· 1 file", False)  # nothing more to clear
 
 
 @pytest.mark.needs_display
@@ -990,7 +990,7 @@ def test_clear_all_without_maps_in_the_window_says_the_pictures_stay(prefs, cach
     fill(cache, {"images/device-006-B0007-00.png": 10, "images/p.png": 30})
     group = prefs._cache_group()
     _counted(prefs, group)
-    _button(group, "All of the cache").emit("clicked")
+    _button(group, "Entire Cache").emit("clicked")
     (question,) = prefs.dialogs
     assert question.get_body() == ("This deletes the files of the cache (30\u00a0B). They are "
                                    "downloaded again when needed. The pictures of the devices "

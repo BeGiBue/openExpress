@@ -9,7 +9,7 @@ workout) is put off, an idea for later. The scope in section 1 is set: what it d
 not added. Steps 1 to 5 of section 8 and steps 6 to 12 of section 10.5, which replace steps 6–7
 of section 8, are implemented: the data of an activity (`fit.activity_data`), the words of its
 page (`gui/words.py`), the page with its tiles (`gui/activity_page.py`), the chart
-(`gui/activity_chart.py`), the map (`gui/activity_map.py`), the laps, the look, the heart-rate
+(`gui/activity_chart.py`), the map (`gui/activity_map.py`), the laps, the look, the heart rate
 zones, the training effect, the colours of the track, the details and the documentation.
 
 ## 1. Scope
@@ -25,7 +25,7 @@ as GPX. This design adds what a user sees of one activity, in the same window:
 5. **Its laps**, as the device recorded them; a lap chosen is highlighted on the map and on the
    chart, chosen again it is not (D7, D20); kilometres from the records where the device kept no
    laps (D16).
-6. **Its heart-rate zones**, as the device worked them out, and their bounds behind the chart of
+6. **Its heart rate zones**, as the device worked them out, and their bounds behind the chart of
    heart rate (D14, D19b).
 7. **Its training effect and load** (D15).
 8. **Its details**, in a row that opens (D17).
@@ -314,7 +314,7 @@ its height and narrows; the lap rows wrap.
   - \+ "Activities are read, not kept" stays true; nothing to clean up.
   - − 1–2 s over MTP for a long activity, each time.
   - Its progress, as implemented in step 3: reading a file again tells no bytes, so the page
-    shows a spinner with "Reading the activity…" in its place until the file is read (1–2 s over
+    shows a spinner with "Reading the Activity…" in its place until the file is read (1–2 s over
     MTP); a file that cannot be read is said there, without an error dialog.
   - What follows from it: an activity's page is seen only while its device is connected, as the
     list today: it opens from the Activities page of the open device, which also lists the
@@ -378,7 +378,7 @@ its height and narrows; the lap rows wrap.
 | `gui/activity_chart.py` (new) | The chart widget (D5, D6): series, axes, cursor, keyboard, highlighted lap. |
 | `gui/activity_map.py` (new) | libshumate around the track (D2–D4): tiles or not, the marker, the highlighted lap, the attribution, the User-Agent, the cache folder. |
 | `gui/activity_laps.py` (new, step 6 of 10.5) | The laps' rows, the kilometres of D16, the lap chosen told to the chart and the map. |
-| `gui/activity_zones.py` (new, step 8 of 10.5) | The section of the heart-rate zones (D14): its rows and bars, the zones' colours. |
+| `gui/activity_zones.py` (new, step 8 of 10.5) | The section of the heart rate zones (D14): its rows and bars, the zones' colours. |
 | `gui/activity_effect.py` (new, step 9 of 10.5) | The section of the training effect and load (D15): its rows, the effects' bars. |
 | `gui/activity_colours.py` (new, step 10 of 10.5) | The track's colours by the chart's series (D13): the scale, its ends, each point's colour, the legend and its switch. |
 | `gui/activity_details.py` (new, step 11 of 10.5) | The closed row of the details (D17) and its rows. |
@@ -482,7 +482,7 @@ FIT profile (FIT SDK 21.218); a field it does not describe is not used.
 | Candidate | Where in the file | In the fēnix 8's files |
 |---|---|---|
 | Colours of the track by a series | records: heart rate, altitude, speed | heart rate in all; the others with GPS |
-| Heart-rate zones | `time_in_zone` (216) for the session: time in each zone, the zones' high bounds, how they are worked out (% of max, of reserve, of threshold), the max, resting and threshold heart rate | in all; 7 times and 6 bounds (below zone 1, zones 1–5, above the top bound); the times add up to the timer time |
+| Heart Rate Zones | `time_in_zone` (216) for the session: time in each zone, the zones' high bounds, how they are worked out (% of max, of reserve, of threshold), the max, resting and threshold heart rate | in all; 7 times and 6 bounds (below zone 1, zones 1–5, above the top bound); the times add up to the timer time |
 | Training effect | session: aerobic (24) and anaerobic (137), scale 10, 0.0–5.0 | in all |
 | Training load | session: `training_load_peak` (168), scale 65536 | in all |
 | Recovery time, primary benefit | not in the public profile (fields it does not describe) | – |
@@ -505,7 +505,7 @@ track would paint a walk in one colour (D13).
 
 The header bar (back, a dot of the sport's colour before the title, GPX), the tiles with their
 icons, the map with its legend under it (with positions), the chart, the laps (or kilometres),
-the heart-rate zones, the training effect and load, the details
+the heart rate zones, the training effect and load, the details
 (closed). Each part only when the file has its data; a section without data is not shown, not
 empty.
 
@@ -522,7 +522,7 @@ empty.
  Laps
    Lap 1   1.00 km · 12:42 · 12:41 /km · 110 bpm
    Lap 2   1.00 km · 12:20 · 12:20 /km · 101 bpm         ✓
- Heart-rate zones        Bounds from the device: % of lactate threshold (… bpm)
+ Heart Rate Zones        Bounds from the device: % of lactate threshold (… bpm)
    Zone 5  above … bpm                              0:00 · 0%
    ▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬
    …
@@ -576,10 +576,10 @@ empty.
   Each stretch between two points is in the colour of the point it starts at, and a faded track
   (the rest of a lap chosen) has its colours laid on together, blended once.
 
-#### D14: heart-rate zones — chosen: 14a
+#### D14: heart rate zones — chosen: 14a
 
-- **14a. As the device worked them out, from the file (recommended; chosen):** a section "Heart-rate
-  zones": zone 5 on top, then 4–1 and "Below zone 1", each with its bounds in bpm, its time and
+- **14a. As the device worked them out, from the file (recommended; chosen):** a section "Heart Rate
+  Zones": zone 5 on top, then 4–1 and "Below zone 1", each with its bounds in bpm, its time and
   share, and a bar in the zone's colour (grey, blue, green, yellow, orange, red; the time above
   the top bound counted in zone 5); under the title how the bounds are worked out and from what
   ("% of lactate threshold (… bpm)", "% of maximum heart rate (… bpm)", "% of heart rate reserve",
@@ -751,7 +751,7 @@ empty.
   - Put off: the watch often names an exercise wrongly and it is corrected in Garmin
     Connect; the file on the watch keeps the wrong names. An idea for later: the sets as Garmin
     Connect keeps them, corrected. Until then nothing stands in their place on the page.
-- **19b. The bounds of the heart-rate zones as faint bands behind the heart-rate chart
+- **19b. The bounds of the heart rate zones as faint bands behind the heart-rate chart
   (recommended; chosen):** with D14; the zone of each part of the line seen at once.
 - As implemented in step 8: bands of zones 1–5 only, in the zones' colours of D14 at about an
   eighth of their strength; none below zone 1, which is no zone (a walk's chart stays mostly
@@ -807,7 +807,7 @@ Accepted, but for those of the sets (D19a put off), which are not added.
 |---|---|
 | Laps / Kilometres | Okrążenia / Kilometry |
 | Kilometre {number} | Kilometr {number} |
-| Heart-rate zones | Strefy tętna |
+| Heart Rate Zones | Strefy tętna |
 | Zone {number} / Below zone 1 | Strefa {number} / Poniżej strefy 1 |
 | {low}–{high} bpm / below {rate} bpm / above {rate} bpm (corrected in step 8: a zone's bounds as Garmin Connect shows them, D14) | {low}–{high} bpm / poniżej {rate} bpm / powyżej {rate} bpm |
 | {time} · {percent}% | {time} · {percent}% |
@@ -855,7 +855,7 @@ lines of code and of tests.
 7. **The look (D18).** The sport's colour (a dot before the title, the tiles' icons) and the
    icons. Failing tests: the colour by sport, the icon by tile, the narrow window. About 60 and
    50; no text.
-8. **Heart-rate zones (D14, D19b).** `fit`: the `time_in_zone` of the session (its arrays: today
+8. **Heart rate zones (D14, D19b).** `fit`: the `time_in_zone` of the session (its arrays: today
    `fit` reads an array field as missing), the zones' bands behind the chart. Failing tests: a
    made-up file with zones (each way of working them out), one without (no section), the time
    above the top bound in zone 5, the words, the bands where the bounds are. About 180 and 200;

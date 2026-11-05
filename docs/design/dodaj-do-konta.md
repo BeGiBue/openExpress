@@ -7,7 +7,7 @@ change: the window names the account as it does elsewhere (its user name, else i
 address), the command line masks the account's name, its user name as well as an e-mail
 address, since its output is pasted into reports (and so do its other commands).
 The feature is marked experimental (section 4.7). One detail differs from 4.3 as first written:
-the row "On the account" is shown only for a device off the account, so a device added loses it
+the row "On the Account" is shown only for a device off the account, so a device added loses it
 (its group then shows what any device of the account shows).
 
 ## 1. Scope
@@ -126,8 +126,8 @@ not be read), while logged in, and for a device that syncs (MTP, or a USB drive 
 either):
 
 - the banner gets the button **Add to Account…**;
-- the Device page gets a group **Garmin account**: the row "On the account" – "Not on the account
-  {account}" with the same button, above "Primary training device".
+- the Device page gets a group **Garmin account**: the row "On the Account" – "Not on the account
+  {account}" with the same button, above "Primary Training Device".
 
 ### 4.2 The question and the work
 
@@ -148,7 +148,7 @@ its user name, else its e-mail address. The command line masks it: a user name a
 e-mail address as `t…@b…` (D3). The question ends with "This is an experimental feature."
 (4.7).
 
-Then, as a task with the button busy (`run_task`), "Adding to the account {account}…" in the
+Then, as a task with the button busy (`run_task`), "Adding to the Account {account}…" in the
 row: the list asked anew (the device may have been added meanwhile: then nothing is sent), the
 request, the status changed for a retired device (D6), the list asked anew.
 
@@ -156,22 +156,23 @@ request, the status changed for a retired device (D6), the list asked anew.
 
 - **Added**: the toast "Added to your Garmin account" (one line, at 360 px too; the account is
   on the page); the device checked again, so
-  the banner and the row "On the account" go, Sync, Apps and the primary training device come
+  the banner and the row "On the Account" go, Sync, Apps and the primary training device come
   back. Nothing is synced by itself.
 - **Already on the account** (the list read before the request holds it): the same, without a
   request.
-- **On another account (409)**: `inform()` "This device is on another Garmin account": "Garmin
+- **On another account (409)**: `inform()` "Device on Another Account": "Garmin
   refused: the device is registered to another account. If it is your other account, log in to
   it in openExpress. If it was someone else's, they have to remove it from their account in
   Garmin Connect; then add it here. Nothing was changed." The row: "On another Garmin account".
-- **Another account's subscription (409, subcode 4091)**: "…another Garmin account has an
-  active subscription on this device; its owner has to end it first. Nothing was changed."
+- **Another account's subscription (409, subcode 4091)**: "Subscription on Another Account":
+  "…another Garmin account has an active subscription on this device; its owner has to end it
+  first. Nothing was changed."
 - **Not accepted (400)**, **not allowed (403)**: "Garmin did not accept the description of this
   device" / "Garmin does not allow adding this device to an account"; "Nothing was changed".
   A 403 with the computer's clock off: the clock's usual message.
-- **Accepted, not on the list yet**: "Garmin accepted the device, but the account's list does not
-  show it yet. Refresh in a few minutes; if it is still missing, check the account's devices in
-  Garmin Connect."
+- **Accepted, not on the list yet**: "Device Not Listed Yet": "Garmin accepted the device, but the
+  account's list does not show it yet. Refresh in a few minutes; if it is still missing, check
+  the account's devices in Garmin Connect."
 - **Network error or no answer**: whether Garmin added it is not known; the list is asked again
   on Refresh, the request is never repeated by itself.
 
@@ -326,7 +327,7 @@ your Garmin account (experimental; trial run without --apply)", its trial run en
 ### D10: the rest of Garmin Express's chain — chosen: 10a
 
 - **10a. Not done (recommended; chosen):** no profile, e-mail, phone, nickname, Wi-Fi or time zone written,
-  no preferred activity tracker set; after adding, the row "Primary training device" offers Set
+  no preferred activity tracker set; after adding, the row "Primary Training Device" offers Set
   as Primary as for any device of the account.
   - \+ Each of them is a change of its own, on the device or the account, with its own question
     where openExpress has it already.

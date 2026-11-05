@@ -111,7 +111,7 @@ def test_what_a_file_still_being_written_a_damaged_and_an_unreadable_one_say():
     assert texts(rows[2]) == ("Activity", SEP.join([
         "2026-10-28 06:00", "Still being written: disconnect and reconnect the device"]))
     assert texts(rows[3])[1].endswith(f"{SEP}Device{SEP}Damaged file")
-    assert texts(rows[4]) == ("Unreadable file", "Device")
+    assert texts(rows[4]) == ("Unreadable File", "Device")
 
 
 def test_the_button_to_export_is_there_only_for_what_can_be_exported():
@@ -164,7 +164,7 @@ def test_thirty_then_show_more(tmp_path):
     assert len(rows_of(section)) == 32
     assert not [w for w in descendants(section.page) if isinstance(w, Gtk.Button)
                 and (w.get_label() or "").startswith("Show")]
-    assert win.run_task.titles == ["Reading activities…", "Reading activities…"]
+    assert win.run_task.titles == ["Reading Activities…", "Reading Activities…"]
 
 
 def test_the_steps_of_the_reading_go_to_the_shared_bar(tmp_path):
@@ -267,7 +267,7 @@ def test_the_export_button_asks_where_then_a_task_writes_the_gpx(tmp_path, in_th
     [asked] = dialog.made
     name = "2026-09-01 00.00 Running.gpx"
     assert asked.properties["initial_name"] == name
-    assert win.run_task.titles == ["Reading activities…", "Exporting as GPX…"]
+    assert win.run_task.titles == ["Reading Activities…", "Exporting as GPX…"]
     assert win.run_task.calls[1].button is button
     root = ET.fromstring((tmp_path / name).read_bytes())
     assert root.get("creator") == "openExpress"

@@ -618,7 +618,7 @@ def test_warning_goes_away_after_a_failed_task_too(monkeypatch):
         seen.append(win.unplug_label.visible)
         raise RuntimeError("the device went away")
 
-    win.run_task("Copying music…", fail, on_error=lambda e: True)
+    win.run_task("Copying Music…", fail, on_error=lambda e: True)
     assert seen == [True] and win.unplug_label.visible is False and win.busy is False
 
 
@@ -627,7 +627,7 @@ def test_no_warning_for_a_task_that_does_not_touch_a_device(monkeypatch, session
     _run_now(monkeypatch)
     win = _busy_window(session=session)  # e.g. logging in, or no device is open
     during = []
-    win.run_task("Signing in…", lambda: during.append(win.unplug_label.visible), device=device)
+    win.run_task("Signing In…", lambda: during.append(win.unplug_label.visible), device=device)
     assert during == [False] and win.action_bar.visible is False
 
 
@@ -799,7 +799,7 @@ def test_updates_page_with_several_updates(monkeypatch):
 
     status, available, advanced = win.sections["updates"].groups  # the status on top
     assert states == [3] and win.updates_cache == items
-    assert available.title == "Available updates"
+    assert available.title == "Available Updates"
     assert [(r.get_title(), r.get_subtitle()) for r in available.rows] == [
         # The server only repeats the type: a readable name, the file name tells them apart.
         ("Map support file", "2.70\u00a0· 2.0\u00a0kB\u00a0· Recommended\u00a0· 006-D0001-00.sid"),
@@ -1670,7 +1670,7 @@ def test_a_rebuilt_page_leaves_no_removed_buttons_in_the_list(key):
     win, section = page_window(key)
 
     def show(result):
-        group = section.group("On the device")
+        group = section.group("On the Device")
         group.set_header_suffix(win._button("Check Again", lambda: None))
         group.add(win._trash("Remove", lambda: None))
 
@@ -1737,8 +1737,8 @@ def test_about_links_to_the_support_page(monkeypatch):
     (about,) = dialogs
     assert about.props["website"] == "https://openexpress.bojanowski.me"
     assert about.props["issue_url"] == "https://github.com/TomaszBojanowski/openExpress/issues"
-    assert about.links == [("Source code", "https://github.com/TomaszBojanowski/openExpress"),
-                           ("Support the project", "https://buymeacoffee.com/sojer2005")]
+    assert about.links == [("Source Code", "https://github.com/TomaszBojanowski/openExpress"),
+                           ("Support the Project", "https://buymeacoffee.com/sojer2005")]
 
 
 # --- names from the server never lead out of the picture cache --------------------------------

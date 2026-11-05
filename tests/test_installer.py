@@ -326,7 +326,7 @@ def test_the_choice_of_the_file_says_which_installer(in_the_window):
 
     in_the_window("Gtk", types.SimpleNamespace(FileDialog=FileDialog))
     app.MainWindow.choose_dll(stand_in())
-    assert titles == ["Select the Garmin Express installer for Windows (GarminExpress.exe)"]
+    assert titles == ["Select the Garmin Express Installer for Windows (GarminExpress.exe)"]
 
 
 @pytest.mark.needs_display
@@ -351,6 +351,6 @@ def test_the_preferences_say_which_installer(monkeypatch):
     (setup,) = [g for g in groups if g.get_title() == "Setup"]
     rows = [(w.get_title(), w.get_subtitle()) for w in descendants(setup)
             if isinstance(w, Adw.ActionRow)]
-    assert rows == [("Garmin Express installer for Windows",
+    assert rows == [("Garmin Express Installer for Windows",
                      ("GarminExpress.exe from garmin.com: the application key is read from it "
                       "again, nothing is installed"))]

@@ -92,7 +92,7 @@ def test_a_page_that_cannot_be_drawn_says_so_and_loads_anew(log_file, monkeypatc
     win.load_apps = lambda: win._load("apps", "Reading the apps…", lambda: "the apps", broken)
     MainWindow.load_section(win, "apps")
     assert sec.stack.get_visible_child_name() == "error" and sec.loaded is False
-    assert sec.error.get_title() == "Something went wrong"
+    assert sec.error.get_title() == "Something Went Wrong"
     assert sec.error.get_description() == ("This page could not be shown. Try again; if it "
                                            "happens again, report the problem with the log "
                                            "attached.")

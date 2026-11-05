@@ -185,9 +185,9 @@ class ReportDialog:
                        "trademarks of Garmin Ltd. or its subsidiaries."),
         )
         # TRANSLATORS: a link in "About openExpress" to the program's code on GitHub
-        about.add_link(_("Source code"), "https://github.com/TomaszBojanowski/openExpress")
+        about.add_link(_("Source Code"), "https://github.com/TomaszBojanowski/openExpress")
         # TRANSLATORS: a link in "About openExpress" to the page where one can support it
-        about.add_link(_("Support the project"), "https://buymeacoffee.com/sojer2005")
+        about.add_link(_("Support the Project"), "https://buymeacoffee.com/sojer2005")
         # TRANSLATORS: replace with your name(s) in the translated version
         credits = _("translator-credits")
         if credits != "translator-credits":

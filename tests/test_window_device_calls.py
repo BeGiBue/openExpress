@@ -104,7 +104,7 @@ def map_window(device_root, monkeypatch):
 
 
 def test_the_space_for_a_map_is_checked_off_the_window_thread(map_window, device_root):
-    """After a short "Checking the space…": the question with the download, space and files."""
+    """After a short "Checking the Space…": the question with the download, space and files."""
     from openexpress import maps as mp
     from openexpress.gui import app
     from openexpress.i18n import human_size
@@ -116,7 +116,7 @@ def test_the_space_for_a_map_is_checked_off_the_window_thread(map_window, device
     free = plain.free_space()
     app.MainWindow.confirm_map(win, m)
     assert storage.on_gtk == [] and storage.elsewhere  # asked, but not on GTK's thread
-    assert win.tasks.titles == ["Checking the space…"]
+    assert win.tasks.titles == ["Checking the Space…"]
     (asked,) = Question.asked
     assert asked["heading"] == "Install Test Map?"
     assert asked["body"].startswith(
@@ -234,7 +234,7 @@ def test_the_button_spins_and_the_text_waits_half_a_second(map_window, monkeypat
     assert seen and all(not clickable and spins for _out, _text, clickable, spins in seen)
     shown = [text for out, text, _clickable, _spins in seen if out]
     assert (shown != []) is text_shown
-    assert set(shown) <= {"Checking the space…"}
+    assert set(shown) <= {"Checking the Space…"}
     assert button.get_label() == "Install" and button.get_sensitive()
     assert not _spinning(button)
     assert not win.action_bar.get_reveal_child() and not win.busy
@@ -414,7 +414,7 @@ def _rows(group):
 @pytest.mark.needs_display
 def test_the_maps_page_reads_the_space_with_the_maps(server, device_root):
     """The free space and the size of the device are read with the maps, in the task: the
-    page shows them under "On the device" and asks the device nothing as it is drawn."""
+    page shows them under "On the Device" and asks the device nothing as it is drawn."""
     from openexpress.i18n import human_size
 
     win, section, _asked = _real_maps_page([maps_response(server)], device_root)
@@ -425,7 +425,7 @@ def test_the_maps_page_reads_the_space_with_the_maps(server, device_root):
     title = f"{human_size(plain.free_space())} free of {human_size(plain.capacity())}"
     win.load_section("maps")
     assert storage.on_gtk == [] and "free_space" in storage.elsewhere
-    (on_device,) = [g for g in section.groups if g.get_title() == "On the device"]
+    (on_device,) = [g for g in section.groups if g.get_title() == "On the Device"]
     assert title in [r.get_title() for r in _rows(on_device)]
 
 
@@ -452,7 +452,7 @@ def test_the_music_page_reads_the_free_space_with_the_music(iq_device):
     free = human_size(LocalStorage(st.root).free_space())
     win.load_music()
     assert storage.on_gtk == [] and "free_space" in storage.elsewhere
-    (add,) = [g for g in section.groups if g.get_title() == "Add to the device"]
+    (add,) = [g for g in section.groups if g.get_title() == "Add to the Device"]
     assert add.get_description() == f"{free} free"  # as on the device page
 
 
@@ -530,7 +530,7 @@ def _storage_subtitle(section) -> str:
     stack = [section.page]
     while stack:
         w = stack.pop()
-        if isinstance(w, Adw.ActionRow) and w.get_title() == "Device storage":
+        if isinstance(w, Adw.ActionRow) and w.get_title() == "Device Storage":
             return w.get_subtitle()
         c = w.get_first_child()
         while c is not None:
@@ -674,10 +674,10 @@ def test_the_detection_and_the_choice_read_the_space_in_their_thread(iq_device, 
 
 
 # The tasks of the window that write to the device: after each, its free space is read again.
-WRITING = {"Syncing…", "Installing update…", "Installing updates…", "Copying the map…",
+WRITING = {"Syncing…", "Installing Update…", "Installing Updates…", "Copying the Map…",
            "Installing {name}…",
-           "Removing {name}…", "Restoring the order…", "Installing apps…", "Saving…",
-           "Copying music…", "Removing…"}
+           "Removing {name}…", "Restoring the Order…", "Installing Apps…", "Saving…",
+           "Copying Music…", "Removing…"}
 
 
 def test_every_task_that_writes_to_the_device_says_so():
@@ -778,7 +778,7 @@ def test_the_command_line_report_still_asks_the_device(iq_device):
 @pytest.mark.parametrize(("language", "device_page", "preferences"), [
     ("en", "Storage", "Storage"), ("pl", "Pamięć", "Miejsce na dysku")])
 def test_storage_is_named_for_what_it_is(iq_device, language, device_page, preferences):
-    """The group of "Device storage" on the device page is about the device ("Pamięć"); the
+    """The group of "Device Storage" on the device page is about the device ("Pamięć"); the
     group of the cache in the preferences about the disk of the computer ("Miejsce na
     dysku"): in English both are "Storage", in Polish each has its own name."""
     from openexpress import i18n
@@ -876,7 +876,7 @@ def test_restore_order_spins_its_button(order_device, monkeypatch, delay, text_s
     button = Gtk.Button(label="Restore…")
     app.MainWindow.choose_order(win, button)
     seen = _while_busy(win, button)
-    _spun(seen, button, "Restore…", "Reading the copies of the app list…", text_shown)
+    _spun(seen, button, "Restore…", "Reading the Copies of the App List…", text_shown)
     assert len(Dialog.made) == 1 and win.errors == []
 
 
@@ -930,7 +930,7 @@ PRIMARY = types.SimpleNamespace(unit_id=3000000009, is_this_device=False, name="
 @pytest.mark.parametrize(("delay", "text_shown"), DELAYS)
 def test_set_as_primary_spins_its_button(monkeypatch, delay, text_shown):
     """Set as Primary asks first; once Set is chosen, the button spins while the account is
-    changed, and "Changing the primary training device…" waits 500 ms."""
+    changed, and "Changing the Primary Training Device…" waits 500 ms."""
     import time
 
     from gi.repository import Adw, Gtk
@@ -954,7 +954,7 @@ def test_set_as_primary_spins_its_button(monkeypatch, delay, text_shown):
     (question,) = questions
     question.emit("response", "set")
     seen = _while_busy(win, button)
-    _spun(seen, button, "Set as Primary", "Changing the primary training device…", text_shown)
+    _spun(seen, button, "Set as Primary", "Changing the Primary Training Device…", text_shown)
     assert win.toasts == ["Primary training device changed"] and overviews == [True]
 
 
@@ -1007,7 +1007,7 @@ def test_set_as_primary_hands_its_own_button_on(monkeypatch):
 @pytest.mark.parametrize(("delay", "text_shown"), DELAYS)
 def test_eject_spins_its_button(monkeypatch, delay, text_shown, in_the_window):
     """Eject on the Updates page of a drive: the button spins from the click while the
-    system ejects it, "Ejecting the device…" waits 500 ms; then the dialog "Done"."""
+    system ejects it, "Ejecting the Device…" waits 500 ms; then the dialog "Done"."""
     import time
 
     from gi.repository import Adw, Gtk
@@ -1022,7 +1022,7 @@ def test_eject_spins_its_button(monkeypatch, delay, text_shown, in_the_window):
     button = Gtk.Button(label="Eject")
     app.MainWindow.eject_device(win, s, button=button)
     seen = _while_busy(win, button)
-    _spun(seen, button, "Eject", "Ejecting the device…", text_shown)
+    _spun(seen, button, "Eject", "Ejecting the Device…", text_shown)
     assert [d.get_heading() for d in dialogs] == ["Done"]
 
 
@@ -1047,7 +1047,7 @@ def test_a_refused_eject_gives_the_button_back(monkeypatch, in_the_window):
     button = Gtk.Button(label="Eject")
     app.MainWindow.eject_device(win, s, button=button)
     _while_busy(win, button)
-    assert [d.get_heading() for d in dialogs] == ["The device was not ejected"]
+    assert [d.get_heading() for d in dialogs] == ["Device Not Ejected"]
     assert button.get_label() == "Eject" and button.get_sensitive() and not _spinning(button)
 
 

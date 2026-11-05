@@ -89,14 +89,14 @@ log = logging.getLogger(__name__)
 
 
 def last_sync_words(data: dict, now: datetime | None = None) -> str:
-    """The row under "Last sync": when, told against now ("yesterday, 23:41"), and the
+    """The row under "Last Sync": when, told against now ("yesterday, 23:41"), and the
     numbers of that sync (last_sync.describe). Now is the window's clock."""
     return last_sync.describe(data).row(now or datetime.now())
 
 
 def last_sync_subtitle(unit_id, data: dict | None, to_sync=None,
                        now: datetime | None = None, test_drive: bool = False) -> str:
-    """The subtitle of "Last sync": "Never synced" when the device was never synced here
+    """The subtitle of "Last Sync": "Never synced" when the device was never synced here
     (sync.synced_here, the one source of it, as on the tile; a test drive: by its own record);
     else the last sync (`data`, last_sync.json) or that none is recorded, then the new
     activities to upload (`to_sync`, the count of the chip "To sync"), unless that sync could
@@ -128,7 +128,7 @@ remember_sync_count = tile_facts.note_count
 
 
 def refresh_last_sync_subtitle(win) -> None:
-    """The subtitle of "Last sync" of the device page drawn again where its words changed:
+    """The subtitle of "Last Sync" of the device page drawn again where its words changed:
     once a minute (its time told against now), and when the count of activities to upload
     comes or changes."""
     row, s = win.last_sync_row, win.session
@@ -189,7 +189,7 @@ def tell_left_out(win, result) -> None:
     from openexpress.backup import incomplete_text
 
     if result.incomplete:
-        inform(win, "backup-incomplete", _("Not everything was backed up"),
+        inform(win, "backup-incomplete", _("Backup Incomplete"),
                incomplete_text(result.incomplete))
 
 
@@ -204,7 +204,7 @@ def show_backups(win) -> None:
 
 
 def device_error_text(entry) -> str:
-    """The subtitle of "Device error log": the kind of the error, as the device names it, and
+    """The subtitle of "Device Error Log": the kind of the error, as the device names it, and
     when it logged it."""
     return caption(entry.kind, i18n.full_time(entry.at)) if entry.at else entry.kind
 
@@ -225,7 +225,7 @@ def device_error_details(entry) -> str:
 
 
 def device_error_row(win, group=None) -> None:
-    """The row "Device error log" under "Backup": only when the device logged an "RTL Trap"
+    """The row "Device Error Log" under "Backup": only when the device logged an "RTL Trap"
     in the last 30 days (read when it was opened, the copy on or off).
     Inside, where they apply: Copy Crash Logs (a device that hides its event logs) and Copy
     Memory Dumps. Drawn again in its place when that changes."""
@@ -242,10 +242,12 @@ def device_error_row(win, group=None) -> None:
     rows = []
     details = device_error_details(crash)
     if details:
-        rows.append(Adw.ActionRow(title=_("What the device logged"),
+        # TRANSLATORS: title of the row with what the device wrote in its error log (error
+        # number, address, screen)
+        rows.append(Adw.ActionRow(title=_("Error Details"),
                                   subtitle=GLib.markup_escape_text(details)))
     if found.hidden_logs:
-        r = Adw.ActionRow(title=_("Crash logs"), subtitle=_(
+        r = Adw.ActionRow(title=_("Crash Logs"), subtitle=_(
             "Hidden from the file manager. While they are copied, the device leaves it for a "
             "moment"))
         r.add_suffix(win._button(_("Copy Crash Logs"),
@@ -253,8 +255,8 @@ def device_error_row(win, group=None) -> None:
         rows.append(r)
     if found.dumps:
         size = sum(n for _p, n in found.dumps)
-        r = Adw.ActionRow(title=_("Memory dumps"), subtitle=caption(
-            # TRANSLATORS: subtitle of "Memory dumps": how many memory dump files the device holds
+        r = Adw.ActionRow(title=_("Memory Dumps"), subtitle=caption(
+            # TRANSLATORS: subtitle of "Memory Dumps": how many memory dump files the device holds
             ngettext("{count} dump", "{count} dumps", len(found.dumps)).format(
                 count=len(found.dumps)), human_size(size),
             # TRANSLATORS: of the memory dumps of the device: only Garmin can read them
@@ -264,11 +266,11 @@ def device_error_row(win, group=None) -> None:
         rows.append(r)
     subtitle = GLib.markup_escape_text(device_error_text(crash))
     if rows:
-        row = Adw.ExpanderRow(title=_("Device error log"), subtitle=subtitle)
+        row = Adw.ExpanderRow(title=_("Device Error Log"), subtitle=subtitle)
         for r in rows:
             row.add_row(r)
     else:
-        row = Adw.ActionRow(title=_("Device error log"), subtitle=subtitle)
+        row = Adw.ActionRow(title=_("Device Error Log"), subtitle=subtitle)
     group.add(row)
     win.device_error_row = row
 
@@ -295,16 +297,16 @@ def show_device_name(win, s) -> None:
 
 
 def primary_wearable_row(win, wearable):
-    """The row "Primary wearable" of the group of the account (devicelist.PrimaryWearable,
+    """The row "Primary Wearable" of the group of the account (devicelist.PrimaryWearable,
     from the account's list the ownership check read), with Set as Primary when this device
     is not the one (the list gives one only for a device that can be it)."""
     # TRANSLATORS: Garmin Connect's name of the setting (in Polish "Podstawowe urządzenie typu
     # wearable")
-    row = Adw.ActionRow(title=_("Primary wearable"),
+    row = Adw.ActionRow(title=_("Primary Wearable"),
                         subtitle=GLib.markup_escape_text(primary_wearable_text(wearable)))
     if not wearable.is_this_device:
         row.add_suffix(win._button(
-            # TRANSLATORS: button beside "Primary wearable" or "Primary training device": makes this
+            # TRANSLATORS: button beside "Primary Wearable" or "Primary Training Device": makes this
             # device the account's primary one
             _("Set as Primary"), lambda button: confirm_primary_wearable(win, wearable, button),
             with_button=True))
@@ -312,12 +314,12 @@ def primary_wearable_row(win, wearable):
 
 
 def confirm_primary_wearable(win, wearable, button=None) -> None:
-    """Set as Primary on the row "Primary wearable": asked first; once Set is chosen, the
+    """Set as Primary on the row "Primary Wearable": asked first; once Set is chosen, the
     change runs from `button`, which spins meanwhile."""
     s = win.session
     if s is None:
         return
-    confirm(win, "primary-wearable", _("Change the primary wearable?"),
+    confirm(win, "primary-wearable", _("Change the Primary Wearable?"),
             _("Steps and sleep in Garmin Connect come from the primary wearable.\n\n"
               "Current: {old}\nNew: {new}").format(old=primary_wearable_text(wearable),
                                                   new=device_name(s)),
@@ -340,7 +342,7 @@ def set_primary_wearable(win, button=None) -> None:
             win._set_account(change.devices)
             win.show_overview()
 
-    win.run_task(_("Changing the primary wearable…"),
+    win.run_task(_("Changing the Primary Wearable…"),
                  lambda: service.set_primary_wearable(s.client, s.device, apply=True), done,
                  device=False, button=button)
 
@@ -357,10 +359,10 @@ def offers_account_picture(s) -> bool:
 
 
 def account_picture_row(win, s):
-    """The row "Device picture" of the group of the account, with Get Picture From Account:
+    """The row "Device Picture" of the group of the account, with Get Picture From Account:
     shown once the picture work found none (show_account_picture_offer)."""
     row = Adw.ActionRow(
-        title=_("Device picture"),
+        title=_("Device Picture"),
         subtitle=_("Garmin's update server has none. Getting it sends the Unit ID of this "
                    "device to your Garmin Connect account."),
         visible=win.account_picture_offer is s)
@@ -427,10 +429,10 @@ def get_picture_from_account(win, button=None) -> None:
         # The server's own words are no help here; the button stays for a later try.
         log.info("device picture: the account refused, asked on request (HTTP %s)",
                  e.status if e.status is not None else "none")
-        win.error(_("Device picture"), account_picture_refused_text(e.status))
+        win.error(_("Device Picture"), account_picture_refused_text(e.status))
         return True
 
-    win.run_task(_("Getting the picture…"), work, done, failed, device=False, button=button)
+    win.run_task(_("Getting the Picture…"), work, done, failed, device=False, button=button)
 
 
 def account_picture_refused_text(status: int | None) -> str:
@@ -444,7 +446,7 @@ def account_picture_refused_text(status: int | None) -> str:
 def read_diagnostics(win) -> None:
     """Reads in the background what the open device logged as errors, and copies its
     diagnostic files when the copy is on (diagnostics.at_open: once per connection, never a
-    session of our own); leaves them in `session.diagnostics` and draws "Device error log".
+    session of our own); leaves them in `session.diagnostics` and draws "Device Error Log".
     `session.diagnostics_reading` is set once done: tasks that write to the device wait for
     it (window_tasks.wait_for_the_diagnostics)."""
     s = win.session
@@ -490,7 +492,7 @@ def copy_crash_logs(win, button=None) -> None:
             s.diagnostics.hidden_logs = False
         device_error_row(win)
 
-    win.run_task(_("Copying the crash logs…"), work, done, button=button)
+    win.run_task(_("Copying the Crash Logs…"), work, done, button=button)
 
 
 def copy_dumps(win, button=None) -> None:
@@ -517,22 +519,22 @@ def copy_dumps(win, button=None) -> None:
                                                size=human_size(diagnostics.LIMIT)))
         win.toast(text)
 
-    win.run_task(_("Copying the memory dumps…"), work, done, button=button)
+    win.run_task(_("Copying the Memory Dumps…"), work, done, button=button)
 
 
 def primary_training_unknown(s) -> str:
-    """The subtitle of "Primary training device" before (or instead of) asking the account:
+    """The subtitle of "Primary Training Device" before (or instead of) asking the account:
     "Sign in to see" while not signed in, "Not available" for a device off the account (why,
     the banner says), "Could not check" when its check against the account failed;
     "Checking…" while it is asked."""
     if not s.logged_in:
-        # TRANSLATORS: subtitle of "Primary training device" while not logged in
+        # TRANSLATORS: subtitle of "Primary Training Device" while not logged in
         return _("Sign in to see")
     if isinstance(s.ownership_error, NotAccountDevice):
-        # TRANSLATORS: subtitle of "Primary training device" of a device off the account
+        # TRANSLATORS: subtitle of "Primary Training Device" of a device off the account
         return pgettext("primary training device", "Not available")
     if s.ownership_error is not None or s.account_devices is None:
-        # TRANSLATORS: subtitle of "Primary training device" when the account could not be asked
+        # TRANSLATORS: subtitle of "Primary Training Device" when the account could not be asked
         return _("Could not check")
     # TRANSLATORS: subtitle of a row (Device software, Maps, Primary training device) while Garmin's
     # server is asked
@@ -586,7 +588,7 @@ remember_update_found = tile_facts.note_update_check
 
 
 def show_update_record(win) -> bool:
-    """Sets the state of "Device software" and its chip from the last check of updates
+    """Sets the state of "Device Software" and its chip from the last check of updates
     recorded for the open device (devices.json), if recent and for its software now: "ready"
     (an update copied; `update_count` still to install) or "available"; returns whether there
     was one. Only shown: the Updates page, its buttons and the installs use only the server's
@@ -670,7 +672,7 @@ class Section:
         self.loaded = False
         self.stack = Gtk.Stack(transition_type=Gtk.StackTransitionType.CROSSFADE)
         self.empty = Adw.StatusPage(
-            icon_name=APP_ID, title=_("Connect your device"),
+            icon_name=APP_ID, title=_("Connect Your Device"),
             description=_("Connect your Garmin device with a USB cable. "
                           "It will be detected automatically."))
         self._empty_notice = None
@@ -678,7 +680,7 @@ class Section:
         if hasattr(Adw, "SpinnerPaintable"):
             self.loading.set_paintable(Adw.SpinnerPaintable.new(self.loading))
         self.error = Adw.StatusPage(icon_name="dialog-warning-symbolic")
-        self.retry = Gtk.Button(label=_("Try again"), halign=Gtk.Align.CENTER)
+        self.retry = Gtk.Button(label=_("Try Again"), halign=Gtk.Align.CENTER)
         self.retry.add_css_class("pill")
         self.error.set_child(self.retry)
         self.info = Adw.StatusPage()
@@ -707,7 +709,7 @@ class Section:
         self.stack.set_visible_child_name(name)
 
     def show_error(self, text: str) -> None:
-        self.error.set_title(_("Something went wrong"))
+        self.error.set_title(_("Something Went Wrong"))
         self.error.set_description(GLib.markup_escape_text(text))
         self.show("error")
 
@@ -723,7 +725,7 @@ class Section:
         return g
 
 
-# A page whose drawing failed (an error of the program): under "Something went wrong", with
+# A page whose drawing failed (an error of the program): under "Something Went Wrong", with
 # Try again.
 PAGE_NOT_SHOWN = N_("This page could not be shown. Try again; if it happens again, report the "
                     "problem with the log attached.")
@@ -954,7 +956,7 @@ class DevicePage:
         # wrote to it): the page asks the device nothing.
         # TRANSLATORS: group on the device page: the device's own storage
         g = sec.group(_("Storage"))
-        self.storage_row = Adw.ActionRow(title=_("Device storage"))
+        self.storage_row = Adw.ActionRow(title=_("Device Storage"))
         self.storage_bar = Gtk.LevelBar(min_value=0, max_value=1, valign=Gtk.Align.CENTER,
                                         width_request=120, visible=False)
         self.storage_bar.add_offset_value("low", 0.75)
@@ -971,20 +973,20 @@ class DevicePage:
         mass_storage = getattr(s, "mass_storage", False)
         refused = getattr(s, "drive_refusal", None)
         if refused is not None:
-            sec.group(_("USB drive"), service.drive_sync_refusal_text(*refused))
+            sec.group(_("USB Drive"), service.drive_sync_refusal_text(*refused))
         else:
-            # TRANSLATORS: under "Sync with Garmin Connect" on the page of a device connected
+            # TRANSLATORS: under "Sync With Garmin Connect" on the page of a device connected
             # as a USB drive, which has no row of the background sync
-            g = sec.group(_("Sync with Garmin Connect"), _(
+            g = sec.group(_("Sync With Garmin Connect"), _(
                 "A device connected as a USB drive is synced with the Sync button only, never "
                 "in the background.") if mass_storage else "")
             if s.ownership_error is not None:
                 # Why, the banner says; not here again.
-                # TRANSLATORS: subtitle of "Last sync" of a device that cannot be synced
-                g.add(Adw.ActionRow(title=_("Last sync"), subtitle=pgettext("sync",
+                # TRANSLATORS: subtitle of "Last Sync" of a device that cannot be synced
+                g.add(Adw.ActionRow(title=_("Last Sync"), subtitle=pgettext("sync",
                                                                             "Not available")))
             else:
-                self.last_sync_row = Adw.ExpanderRow(title=_("Last sync"))
+                self.last_sync_row = Adw.ExpanderRow(title=_("Last Sync"))
                 self._last_sync_children = []
                 g.add(self.last_sync_row)
                 self._show_last_sync()
@@ -994,7 +996,7 @@ class DevicePage:
 
         g = sec.group(pgettext("tab", "Updates"))
         # TRANSLATORS: row of the device's own software (firmware) and its updates
-        self.update_row = Adw.ActionRow(title=_("Device software"), activatable=True)
+        self.update_row = Adw.ActionRow(title=_("Device Software"), activatable=True)
         self.update_row.add_suffix(Gtk.Image(icon_name="go-next-symbolic"))
         self.update_row.connect("activated", lambda *_a: self.select_section("updates"))
         g.add(self.update_row)
@@ -1017,7 +1019,7 @@ class DevicePage:
             # As "Maps": to their pages; how many only once those pages have read them
             # (note_apps_count, note_music_count), never a read of their own.
             # TRANSLATORS: group on the device page with the rows "Apps" and "Music"
-            g = sec.group(_("Apps and music"))
+            g = sec.group(_("Apps and Music"))
             self.apps_row = Adw.ActionRow(title=pgettext("tab", "Apps"), activatable=True)
             self.apps_row.add_suffix(Gtk.Image(icon_name="go-next-symbolic"))
             self.apps_row.connect("activated", lambda *_a: self.select_section("apps"))
@@ -1034,7 +1036,7 @@ class DevicePage:
                 note_music_count(self, *(count or (None, None)))
 
         if s.logged_in or not mass_storage:
-            g = sec.group(_("Garmin Connect account"))
+            g = sec.group(_("Garmin Connect Account"))
         if s.logged_in:
             row = Adw.ActionRow(title=GLib.markup_escape_text(s.client.auth.display))
             row.add_suffix(self._button(_("Sign Out"), self.logout))
@@ -1046,7 +1048,7 @@ class DevicePage:
             self.primary_row = Adw.ActionRow(
                 # TRANSLATORS: title of the row with the Garmin account's primary training
                 # device (the main source of performance and training data)
-                title=_("Primary training device"),
+                title=_("Primary Training Device"),
                                              subtitle=primary_training_unknown(s))
             g.add(self.primary_row)
             if s.logged_in and s.ownership_error is None and s.account_devices is not None:
@@ -1070,7 +1072,7 @@ class DevicePage:
         g.add(self.backup_row)
         device_error_row(self, g)  # only when the device logged an error lately
         # TRANSLATORS: row with the device's Garmin part number, a product code such as 006-B1234-00
-        row = Adw.ActionRow(title=_("Part number"), subtitle=d.part_number,
+        row = Adw.ActionRow(title=_("Part Number"), subtitle=d.part_number,
                             subtitle_selectable=True)
         g.add(row)
         sec.loaded = True
@@ -1079,14 +1081,14 @@ class DevicePage:
     @staticmethod
     def _primary_training_text(status) -> str:
         if status.unit_id is None:
-            # TRANSLATORS: subtitle of "Primary training device" or "Primary wearable": the account
+            # TRANSLATORS: subtitle of "Primary Training Device" or "Primary Wearable": the account
             # has none set
             return _("Not set")
         if status.is_this_device:
-            # TRANSLATORS: subtitle of "Primary training device" or "Primary wearable": it is the
+            # TRANSLATORS: subtitle of "Primary Training Device" or "Primary Wearable": it is the
             # device shown
             return _("This device")
-        # TRANSLATORS: subtitle of "Primary training device" or "Primary wearable": another device
+        # TRANSLATORS: subtitle of "Primary Training Device" or "Primary Wearable": another device
         # of the account, its name not known
         return status.name or _("Another device")
 
@@ -1119,7 +1121,7 @@ class DevicePage:
         if s is None:
             return
         current = self._primary_training_text(status)
-        confirm(self, "primary-training", _("Change the primary training device?"),
+        confirm(self, "primary-training", _("Change the Primary Training Device?"),
                 _("The primary training device is the main source of performance and "
                   "training data in Garmin Connect.\n\nCurrent: {old}\nNew: {new}").format(
                     old=current, new=s.device.description),
@@ -1138,7 +1140,7 @@ class DevicePage:
             if self.session is s:
                 self.show_overview()
 
-        self.run_task(_("Changing the primary training device…"),
+        self.run_task(_("Changing the Primary Training Device…"),
                       lambda: service.set_primary_training(s.client, s.device, apply=True), done,
                       device=False, button=button)
 
@@ -1228,7 +1230,7 @@ class DevicePage:
         self.in_background(work, done)
 
     def _render_update_state(self) -> None:
-        """Shows self.update_state in the overview: the "Device software" row, the chip under
+        """Shows self.update_state in the overview: the "Device Software" row, the chip under
         the version (_highlight_update) and the software label."""
         if self.session is None or self.update_row is None:
             return
@@ -1251,7 +1253,7 @@ class DevicePage:
     def _highlight_update(self, chip: str | None) -> None:
         """An update to install, or one copied already, stands out on the device page: a
         chip under the version with these words ("Update available" as on its tile, "Update
-        ready") and the subtitle of "Device software" in the warning colour. Otherwise (none,
+        ready") and the subtitle of "Device Software" in the warning colour. Otherwise (none,
         checking, failed: None) as the other rows. The side panel stays as it is."""
         if chip is not None:
             self.update_chip.set_label(chip)
@@ -1470,7 +1472,7 @@ class DevicePage:
             return
         # Closing the window stops it, and its unfinished copy is removed.
         self.run_task(
-            _("Creating backup…"),
+            _("Creating Backup…"),
             lets_the_window_close(
                 lambda: run_backup(s.device, s.storage, paths.default_backup_dir(),
                                    progress=stop_when_closed(self, self.progress))),
@@ -1521,15 +1523,15 @@ class DevicePage:
 
     def ask_first_sync(self) -> None:
         # TRANSLATORS: heading of the question before the first sync of a device
-        confirm(self, "first-sync", _("First sync"),
+        confirm(self, "first-sync", _("First Sync"),
                 _("If the device also syncs via your phone, most data is already "
                   "in Garmin Connect. You can mark the current files as uploaded "
                   "and upload only new ones, or upload everything (Connect skips duplicates)."),
-                # TRANSLATORS: button of the question "First sync": uploads every activity file on
+                # TRANSLATORS: button of the question "First Sync": uploads every activity file on
                 # the device
-                Answer("all", _("Upload everything"), lambda: self.start_sync("all")),
-                # TRANSLATORS: button of the question "First sync": marks the files on the device as
+                Answer("all", _("Upload Everything"), lambda: self.start_sync("all")),
+                # TRANSLATORS: button of the question "First Sync": marks the files on the device as
                 # uploaded and uploads only new ones
-                Answer("baseline", _("New data only"), lambda: self.start_sync("baseline"),
+                Answer("baseline", _("New Data Only"), lambda: self.start_sync("baseline"),
                        look="suggested"),
                 default="baseline")

@@ -131,7 +131,7 @@ def test_the_question_names_the_device_and_the_account(device_root, asked):
     win, run_task, seen = a_window(s)
     add_to_account.confirm_add_to_account(win)
     (q,) = asked
-    assert q.heading == "Add Test watch to your Garmin account?"
+    assert q.heading == "Add Test watch to Your Garmin Account?"
     assert ACCOUNT in q.body and "GarminDevice.xml" in q.body and "unit ID" in q.body
     assert "same account" in q.body and "only in Garmin Connect" in q.body
     assert q.body.endswith("This is an experimental feature.")
@@ -140,7 +140,7 @@ def test_the_question_names_the_device_and_the_account(device_root, asked):
     assert q.kw.get("default") == "cancel"
     assert run_task.calls == [] and s.client.http.paths() == [DEVICES_PATH]  # asked only
     answer.run()
-    assert run_task.titles == [f"Adding to the account {ACCOUNT}…"]
+    assert run_task.titles == [f"Adding to the Account {ACCOUNT}…"]
 
 
 def test_not_asked_for_a_device_on_the_account(device_root, asked):
@@ -181,16 +181,16 @@ def test_accepted_but_not_on_the_list_yet(device_root, informed):
     add_to_account.add_to_account(win)
     assert [(n, h) for n, h, _b in informed] == [
         ("added-not-listed",
-         "Garmin accepted the device, but the account's list does not show it yet")]
+         "Device Not Listed Yet")]
     assert seen["toasts"] == [] and len(seen["refreshed"]) == 1
 
 
 @pytest.mark.parametrize("answer, heading, said", [
-    (response(409, {"error": {"code": 409}}), "This device is on another Garmin account",
+    (response(409, {"error": {"code": 409}}), "Device on Another Account",
      "registered to another Garmin account"),
     (response(409, {"error": {"code": 409, "subcode": 4091}}),
-     "Another Garmin account has a subscription on this device", "active subscription"),
-    (response(400, b""), "This device was not added",
+     "Subscription on Another Account", "active subscription"),
+    (response(400, b""), "Device Not Added",
      "did not accept the description of this device"),
 ])
 def test_a_refusal_is_said_and_nothing_else(device_root, informed, answer, heading, said):
@@ -235,7 +235,7 @@ def test_the_row_of_the_page_offers_it(asked):
         device=types.SimpleNamespace(description="Test watch", unit_id=None))
     group = Adw.PreferencesGroup()
     group.add(add_to_account.add_to_account_row(win, win.session))
-    assert _row_texts(group) == [("On the account", f"Not on the account {ACCOUNT}")]
+    assert _row_texts(group) == [("On the Account", f"Not on the account {ACCOUNT}")]
     (button,) = [w for w in descendants(group) if isinstance(w, Gtk.Button)
                  and w.get_label() == "Add to Account…"]
     button.emit("clicked")

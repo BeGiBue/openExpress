@@ -1592,7 +1592,7 @@ def held_elsewhere_text() -> str:
 
 def no_mtp_title() -> str:
     # TRANSLATORS: title while a Garmin device is on USB and gvfs has no MTP support
-    return _("No MTP support in the system (gvfs-mtp)")
+    return _("No MTP Support in the System (gvfs-mtp)")
 
 
 def no_mtp_text() -> str:

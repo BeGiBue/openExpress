@@ -1,4 +1,4 @@
-"""The details of "Last sync" in the language they are shown in, not that of the sync: a sync
+"""The details of "Last Sync" in the language they are shown in, not that of the sync: a sync
 keeps each line as a kind and its numbers or names, put into words when shown, so a sync in
 Polish does not show TrueUp in Polish in an English window. All data here is made up."""
 

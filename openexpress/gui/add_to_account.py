@@ -43,9 +43,9 @@ def _model(s) -> str:
 
 
 def add_to_account_row(win, s) -> Adw.ActionRow:
-    """The row "On the account" of the group of the account on the Device page, with Add to
+    """The row "On the Account" of the group of the account on the Device page, with Add to
     Account…, for a device offers_adding allows."""
-    row = Adw.ActionRow(title=_("On the account"), subtitle=GLib.markup_escape_text(
+    row = Adw.ActionRow(title=_("On the Account"), subtitle=GLib.markup_escape_text(
         _("Not on the account {account}").format(account=_account(s))))
     row.add_suffix(win._button(_("Add to Account…"),
                                lambda button: confirm_add_to_account(win, button),
@@ -60,7 +60,7 @@ def confirm_add_to_account(win, button=None) -> None:
     if not offers_adding(s):
         return
     confirm(win, "add-to-account",
-            _("Add {model} to your Garmin account?").format(model=_model(s)),
+            _("Add {model} to Your Garmin Account?").format(model=_model(s)),
             _("openExpress sends Garmin the description of the device (its GarminDevice.xml, "
               "with its unit ID) and adds it to the account {account} as an active device. "
               "Then a sync uploads its activities and health data to this account.\n\n"
@@ -87,11 +87,14 @@ def add_to_account(win, button=None) -> None:
             win.toast(_("On your Garmin account already"))
         elif result.listed is False:
             inform(win, "added-not-listed",
-                   _("Garmin accepted the device, but the account's list does not show it yet"),
-                   _("Refresh in a few minutes. If it is still missing, check the devices of "
-                     "your account in Garmin Connect."))
+                   # TRANSLATORS: heading of the message after Garmin accepted a device that the
+                   # account's list does not show yet
+                   _("Device Not Listed Yet"),
+                   _("Garmin accepted the device, but the account's list does not show it yet.")
+                   + " " + _("Refresh in a few minutes. If it is still missing, check the devices "
+                             "of your account in Garmin Connect."))
         elif result.listed is None:
-            inform(win, "added-not-checked", _("Garmin accepted the device"),
+            inform(win, "added-not-checked", _("Garmin Accepted the Device"),
                    _("The account's list could not be read to check it. Refresh in a few "
                      "minutes; if the device is still refused, check the devices of your "
                      "account in Garmin Connect."))
@@ -103,15 +106,19 @@ def add_to_account(win, button=None) -> None:
 
     def refused(e) -> bool:
         if isinstance(e, OtherOwner):
-            heading = (_("Another Garmin account has a subscription on this device")
-                       if e.subscription else _("This device is on another Garmin account"))
+            # TRANSLATORS: heading of the message when another Garmin account has an active
+            # subscription on the device (the text below says what to do)
+            heading = (_("Subscription on Another Account") if e.subscription
+                       # TRANSLATORS: heading of the message when the device is registered to
+                       # another Garmin account (the text below says what to do)
+                       else _("Device on Another Account"))
         elif isinstance(e, RegistrationRefused):
-            heading = _("This device was not added")
+            heading = _("Device Not Added")
         else:
             return False  # the window's usual error
         inform(win, "add-to-account-refused", heading, str(e))
         return True
 
-    win.run_task(_("Adding to the account {account}…").format(account=account),
+    win.run_task(_("Adding to the Account {account}…").format(account=account),
                  lambda: service.add_device(s.client, s.device, apply=True), done, refused,
                  device=False, button=button)

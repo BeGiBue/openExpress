@@ -4,7 +4,7 @@ record. A value not given and records that stop for a while (a pause) leave a ga
 so does a stop in the pace, never a slow climb. Pace is smoothed over about 30 s of moving and
 drawn with the faster on top, its axis from the pace of most of the moving records (a value
 beyond it drawn at its edge); the points are brought down to two a pixel column without losing a
-peak; the axes have round values. Heart rate has the bands of the heart-rate zones 1-5 behind
+peak; the axes have round values. Heart rate has the bands of the heart rate zones 1-5 behind
 it, in their colours (gui/activity_zones.py). A click, a drag or the keys place a cursor, its
 value said beside the switch. The numbers need no screen; the drawing is Cairo in a
 Gtk.DrawingArea.
@@ -594,7 +594,7 @@ class ChartArea(Gtk.DrawingArea):
         self.series = series
         self.cursor: float | None = None
         self.lap: tuple[float, float] | None = None  # the lap chosen, on the chart's time
-        self.zones = None  # the bounds of the heart-rate zones, their bands
+        self.zones = None  # the bounds of the heart rate zones, their bands
         self.drag_from = 0.0
         self.drawn = None  # the line brought down to the width last drawn
         self.set_draw_func(_draw)

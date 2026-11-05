@@ -78,7 +78,7 @@ def data_loss_text(session) -> str:
 
 def update_check_failed(win) -> None:
     """A check of updates for the open device failed: "Could not check for updates", or,
-    when "Device software" shows what the last check found (show_update_record), that with
+    when "Device Software" shows what the last check found (show_update_record), that with
     when it was."""
     if win.update_state is None:
         win.update_state = "failed"
@@ -108,7 +108,7 @@ def _below_the_question(s, chosen):
     for url in dict.fromkeys(u.eula_url for u in chosen if u.eula_url):
         if url.casefold().startswith("https://"):
             # GTK opens it (in the Flatpak through the portal); only a web address is a link.
-            below.append(Gtk.LinkButton(uri=url, label=_("License agreement (EULA)"),
+            below.append(Gtk.LinkButton(uri=url, label=_("License Agreement (EULA)"),
                                         halign=Gtk.Align.CENTER))
         else:
             below.append(Gtk.Label(label=_("License: {url}").format(url=url), wrap=True,
@@ -154,9 +154,9 @@ def _install_task(win, s, chosen):
         win.eject_device(s, bike_accessory)
 
     def failed(e) -> bool:
-        # Under a heading of its own, not the name of the task ("Installing update…").
+        # Under a heading of its own, not the name of the task ("Installing Update…").
         # TRANSLATORS: heading of the error message when installing an update failed
-        win.error(_("Update not installed"), str(e) or type(e).__name__)
+        win.error(_("Update Not Installed"), str(e) or type(e).__name__)
         return True
 
     return install, installed, failed
@@ -182,10 +182,10 @@ def confirm_install_all(win, items) -> None:
             + _("Size: {size}").format(size=human_size(sum(u.size or 0 for u in kept))))
     def install() -> None:
         work, done, failed = _install_task(win, s, chosen)
-        win.run_task(_("Installing updates…"), writes_to_device(work), done, failed)
+        win.run_task(_("Installing Updates…"), writes_to_device(work), done, failed)
 
-    confirm(win, "update-install-all", _("Install updates?"), body,
-            Answer("ok", _("Accept and install"), install, look="suggested"),
+    confirm(win, "update-install-all", _("Install Updates?"), body,
+            Answer("ok", _("Accept and Install"), install, look="suggested"),
             extra=_below_the_question(s, kept))
 
 
@@ -215,12 +215,12 @@ class UpdatesPage:
             return items, upd.beta_offered(answer)
 
         def failed(_e):
-            # The "Device software" row waited for this answer (show_device): it says so.
+            # The "Device Software" row waited for this answer (show_device): it says so.
             if self._update_check_session is s:
                 self._update_check_session = None
             update_check_failed(self)
 
-        self._load("updates", _("Checking for updates…"), work,
+        self._load("updates", _("Checking for Updates…"), work,
                    lambda result: self.show_updates(*result), on_error=failed)
 
     def show_updates(self, items, beta: bool = False) -> None:
@@ -246,7 +246,7 @@ class UpdatesPage:
                                           if u.device_path.casefold() not in waiting])
         rest = [u for u in new if u is not system]
         if rest:
-            g = sec.group(_("Available updates"))
+            g = sec.group(_("Available Updates"))
             for u in rest:
                 self._update_row(g, u, waits_for=waiting.get(u.device_path.casefold()))
         # A file the device already has is a reinstall, whatever the server calls it; but not
@@ -260,7 +260,7 @@ class UpdatesPage:
             exp = Adw.ExpanderRow(
                 # TRANSLATORS: title of an expandable row on the Updates page that lists components
                 # already on the device, each with a Reinstall button
-                title=_("Reinstall components"),
+                title=_("Reinstall Components"),
                 subtitle=ngettext("{count} component already on the device; useful for "
                                   "troubleshooting",
                                   "{count} components already on the device; useful for "
@@ -305,7 +305,7 @@ class UpdatesPage:
                                         lambda u=system: self.confirm_update(u),
                                         "suggested-action" if note is None else None))
         elif ready is not None:
-            # What to do is in the title (as on the row "Device software"), with how many are
+            # What to do is in the title (as on the row "Device Software"), with how many are
             # still to install (listed below); under it the versions.
             icon = "software-update-available-symbolic"
             title = update_state_text("ready", count, mass_storage=mass_storage)
@@ -329,7 +329,7 @@ class UpdatesPage:
             buttons.append(self._button(
                 # TRANSLATORS: button that installs every update offered to a device connected as a
                 # USB drive, then ejects it once
-                _("Install all"), lambda items=list(installable): confirm_install_all(self, items),
+                _("Install All"), lambda items=list(installable): confirm_install_all(self, items),
                 None if buttons else "suggested-action"))
         buttons.append(self._button(_("Check Again"), lambda: check_updates_again(self)))
         box = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, spacing=8,
@@ -400,7 +400,7 @@ class UpdatesPage:
         row = Adw.ActionRow(
             # TRANSLATORS: title of the row of an update of the device's own software (firmware), on
             # the Updates page
-            title=GLib.markup_escape_text(_("System software") if u.is_system else u.title),
+            title=GLib.markup_escape_text(_("System Software") if u.is_system else u.title),
             subtitle=GLib.markup_escape_text(subtitle),
         )
         if waits_for is None:
@@ -431,17 +431,17 @@ class UpdatesPage:
                 + ("\n\n" + _("This is a beta version.") if u.is_beta else ""))
         def install() -> None:
             work, done, failed = _install_task(self, s, chosen)
-            self.run_task(_("Installing update…"), writes_to_device(work), done, failed)
+            self.run_task(_("Installing Update…"), writes_to_device(work), done, failed)
 
-        confirm(self, "update-install", _("Install update?"), body,
-                Answer("ok", _("Accept and install"), install, look="suggested"),
+        confirm(self, "update-install", _("Install Update?"), body,
+                Answer("ok", _("Accept and Install"), install, look="suggested"),
                 extra=_below_the_question(s, [u]))
 
     def ask_to_eject(self, s) -> None:
         """After a sync wrote the files of Garmin Connect's queue to a Garmin drive: it is to
         be ejected first, so that the device takes them; that the cable can go out is said
         only once it is (eject_device). An update is ejected unasked (confirm_update)."""
-        confirm(self, "eject-ask", _("Files saved on the device"),
+        confirm(self, "eject-ask", _("Files Saved on the Device"),
                 _("Eject the device before you unplug the cable: until then it may not see "
                   "the files from Garmin Connect."),
                 # TRANSLATORS: button that ejects the device (its USB drive)
@@ -461,14 +461,14 @@ class UpdatesPage:
             inform(self, "ejected", _("Done"), ejected_text(),
                    # TRANSLATORS: heading of the message after a bike accessory was ejected, with
                    # the steps that finish its update
-                   then=(lambda: self.error(_("Finish the update"), bike_accessory_text()))
+                   then=(lambda: self.error(_("Finish the Update"), bike_accessory_text()))
                    if bike_accessory else None)
 
         def failed(e) -> bool:
             if isinstance(e, DriveNotMounted):
-                self.error(_("The device is not mounted"), str(e))
+                self.error(_("Device Not Mounted"), str(e))
                 return True
-            confirm(self, "eject-retry", _("The device was not ejected"),
+            confirm(self, "eject-retry", _("Device Not Ejected"),
                     f"{e}\n\n{not_ejected_text(files=files)}",
                     Answer("retry", _("Try Again"),
                            lambda: self.eject_device(s, bike_accessory, files=files),
@@ -476,7 +476,7 @@ class UpdatesPage:
                     cancel=_("Close"))
             return True
 
-        self.run_task(_("Ejecting the device…"), lambda: eject(s.storage), ejected, failed,
+        self.run_task(_("Ejecting the Device…"), lambda: eject(s.storage), ejected, failed,
                       button=button)
 
     def _show_installed(self, session, chosen) -> None:

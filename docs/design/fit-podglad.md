@@ -23,7 +23,7 @@ In scope, four parts:
 
 Not in scope (a closed list; each would be a project of its own):
 
-- charts, maps, laps, heart-rate zones, splits, records; sub-sports; statute units;
+- charts, maps, laps, heart rate zones, splits, records; sub-sports; statute units;
 - other exports (TCX, CSV, a copy of the FIT file); GPX of courses or of queue files;
 - changing or deleting anything on the device;
 - activities from the Garmin Connect account; multi-day activities (`FIT_TYPE_88`);
@@ -263,7 +263,7 @@ Shown for drives too (unlike Maps, Apps and Music); a device that declares no `F
 - **7b. The sync does not write a FIT file that fails the check:** the item counts as failed,
   stays unacknowledged and comes again at the next sync; one line in the log.
   - \+ A damaged file never reaches the device; the preview and the sync agree.
-  - − A change to the sync and its summary ("Last sync" words, a new pattern in
+  - − A change to the sync and its summary ("Last Sync" words, a new pattern in
     `tests/data/last_sync/`); a file Connect keeps sending damaged fails every sync.
 
 ### D8: the command line — chosen: 8a
@@ -394,7 +394,7 @@ with and without a display, and the program's folders unchanged by the tests.
 10. **The queue preview.** Failing tests with a made-up workout, course and schedule in the
     queue: the lines; `ack_message` never called; nothing written to the device; a failed
     download is a line, the dry run ends with 0. (With D6c: the row, the window, 360 px; with
-    D7b: the sync's check and its "Last sync" pattern.)
+    D7b: the sync's check and its "Last Sync" pattern.)
 11. **Docs:** `guide.md` "Activities", `privacy.md`, README's features. Live test of the whole
     (run by the maintainer): the page and export on an MTP watch and on a drive, a dry run with
     a course in the queue.
@@ -441,8 +441,8 @@ Sync in its header, the shared bar at the bottom of the page's column. Recommend
 - One `Adw.PreferencesGroup` with a description (how many, where), rows `Adw.ActionRow`: title
   the sport, subtitle the details joined by `caption()` (wrapping), suffix the export button.
   A damaged file adds "Damaged file" to its subtitle; a file that is no FIT file is a row
-  "Unreadable file" with its source.
-- While the first 30 are read: the page's own "Reading activities…" (as every page loads) and
+  "Unreadable File" with its source.
+- While the first 30 are read: the page's own "Reading Activities…" (as every page loads) and
   the bar with its steps. **Show 30 More** is a task on its button (the bar after half a
   second); the rows stay. Export: the file chooser, then a task on the row's button, then a
   toast "Saved as 2026-10-30 07.00 Running.gpx".

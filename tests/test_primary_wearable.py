@@ -1,6 +1,6 @@
-"""The account's primary wearable (in Garmin Connect "Primary wearable" / "Podstawowe
+"""The account's primary wearable (in Garmin Connect "Primary Wearable" / "Podstawowe
 urządzenie typu wearable": the device that steps and sleep come from), read only: the tooltip of
-the chip "Primary" and the row "Primary wearable" of the device page, from the account's list it
+the chip "Primary" and the row "Primary Wearable" of the device page, from the account's list it
 has already. Set as Primary with the account: test_ownership. All devices and accounts are made
 up."""
 
@@ -124,7 +124,7 @@ def _page(unit=FENIX, account=None, **session):
 
 def _rows(texts):
     return sorted((title, sub) for title, sub in texts
-                  if title in ("Primary training device", "Primary wearable"))
+                  if title in ("Primary Training Device", "Primary Wearable"))
 
 
 @pytest.mark.needs_display
@@ -132,15 +132,15 @@ def test_the_page_says_which_device_is_the_primary_wearable_under_the_training_d
     from gi.repository import Adw
 
     _win, section, texts = _page()
-    assert _rows(texts) == [("Primary training device", "Checking…"),
-                            ("Primary wearable", "This device")]
-    (group,) = [g for g in section.groups if g.get_title() == "Garmin Connect account"]
+    assert _rows(texts) == [("Primary Training Device", "Checking…"),
+                            ("Primary Wearable", "This device")]
+    (group,) = [g for g in section.groups if g.get_title() == "Garmin Connect Account"]
     titles = [w.get_title() for w in descendants(group) if isinstance(w, Adw.ActionRow)]
-    assert titles[-2:] == ["Primary training device", "Primary wearable"]  # just under it
+    assert titles[-2:] == ["Primary Training Device", "Primary Wearable"]  # just under it
     _win, _section, texts = _page(account=_account(VENU))
-    assert _rows(texts)[1] == ("Primary wearable", "Venu 2")
+    assert _rows(texts)[1] == ("Primary Wearable", "Venu 2")
     _win, _section, texts = _page(account=_account(None))
-    assert _rows(texts)[1] == ("Primary wearable", "Not set")
+    assert _rows(texts)[1] == ("Primary Wearable", "Not set")
 
 
 @pytest.mark.needs_display
@@ -149,7 +149,7 @@ def test_the_row_offers_set_as_primary_when_another_device_is_it():
 
     _win, section, _texts = _page(account=_account(VENU))
     (row,) = [w for g in section.groups for w in descendants(g)
-              if isinstance(w, Adw.ActionRow) and w.get_title() == "Primary wearable"]
+              if isinstance(w, Adw.ActionRow) and w.get_title() == "Primary Wearable"]
     assert not row.get_activatable()
     assert [w.get_label() for w in descendants(row) if isinstance(w, Gtk.Button)
             and w.get_label()] == ["Set as Primary"]
@@ -159,11 +159,11 @@ def test_the_row_offers_set_as_primary_when_another_device_is_it():
 def test_no_row_for_a_device_that_cannot_be_one_or_while_the_list_is_not_known():
     from openexpress import service
 
-    assert _rows(_page(unit=EDGE)[2]) == [("Primary training device", "Checking…")]
-    assert _rows(_page(logged_in=False)[2]) == [("Primary training device", "Sign in to see")]
+    assert _rows(_page(unit=EDGE)[2]) == [("Primary Training Device", "Checking…")]
+    assert _rows(_page(logged_in=False)[2]) == [("Primary Training Device", "Sign in to see")]
     off = service.NotAccountDevice("x")
     assert _rows(_page(unit=3000000099, ownership_error=off)[2]) == [
-        ("Primary training device", "Not available")]
+        ("Primary Training Device", "Not available")]
 
 
 @pytest.mark.needs_display

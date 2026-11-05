@@ -59,7 +59,7 @@ devices that connect over USB (MTP) should work too – reports are welcome.
 - Music, podcasts and audiobooks, with playlists.
 - Activities of the watch and of its backups, each with its own page: the track on a map
   (streets from OpenStreetMap after a yes) coloured by heart rate, pace or elevation, charts,
-  laps, heart-rate zones, training effect and details; exported as GPX, a look into any FIT
+  laps, heart rate zones, training effect and details; exported as GPX, a look into any FIT
   file and a look into what a sync will write to the watch (checked on a fēnix 8 over MTP).
 - The data screens of the device's activity profiles, read only: their fields in Garmin's
   words, their layouts and built-in screens.
@@ -141,13 +141,13 @@ MTP backend:
 - Debian, Ubuntu: `sudo apt install gvfs-backends`
 
 GNOME comes with it; KDE Plasma and other desktops often do not. Log out and back in after
-installing it. Without it, the window says **No MTP support in the system (gvfs-mtp)** as soon
+installing it. Without it, the window says **No MTP Support in the System (gvfs-mtp)** as soon
 as a device is plugged in, and the command line says the same. Devices in mass storage mode
 (such as the Varia RTL515) need no MTP.
 
 **KDE Plasma and Dolphin:** Dolphin opens MTP devices through KDE's own MTP service (kmtpd
 from kio-extras, in the `kiod6` process), which keeps the device, so the window says
-**The device is not ready**. Close Dolphin, run `kquitapp6 kiod6`, then unplug the cable and
+**Device Not Ready**. Close Dolphin, run `kquitapp6 kiod6`, then unplug the cable and
 plug it back in ([more](docs/troubleshooting.md#kde-plasma-and-dolphin)).
 
 ## Getting started
@@ -159,8 +159,7 @@ plug it back in ([more](docs/troubleshooting.md#kde-plasma-and-dolphin)).
 3. Connect the watch. On its page, click **Choose Installer…** in the banner and select the
    installer, then **Sign In**. No key needs to be created in Garmin Connect.
 4. Sync. The first sync asks whether to upload everything on the watch or new data only.
-5. To sync whenever the watch is connected, turn on **Sync automatically when connected** on
-   its page.
+5. To sync whenever the watch is connected, turn on **Background Sync** on its page.
 
 How the window works: [Usage](docs/guide.md).
 

@@ -347,7 +347,7 @@ def unplug_window(monkeypatch, usb):
     win.show_no_device = lambda: (win.built.append(win.session), real_show())
     # Opened while the device was starting: the last words the pages were given.
     for page in pages.values():
-        page.set_empty("The device is starting…", "", True)
+        page.set_empty("Device Starting…", "", True)
     return win
 
 
@@ -356,7 +356,7 @@ def test_after_an_unplug_the_pages_tell_the_usb_state_at_once(monkeypatch):
 
     win = unplug_window(monkeypatch, [gio_storage.ABSENT])
     connect = MainWindow._usb_notice(gio_storage.ABSENT, 0)[0]  # what no device on USB says
-    assert connect == "Connect your device"
+    assert connect == "Connect Your Device"
     MainWindow._on_mount_removed(win, None, FakeMount(NUMERIC))
     assert win.session is None
     for page in win.sections.values():  # before any later poll of USB
@@ -369,7 +369,7 @@ def test_a_device_still_starting_is_told_at_once_too(monkeypatch):
 
     win = unplug_window(monkeypatch, [gio_storage.STARTING])
     MainWindow._on_mount_removed(win, None, FakeMount(NUMERIC))
-    assert all(page.notices[-1] == "The device is starting…"
+    assert all(page.notices[-1] == "Device Starting…"
                for page in win.sections.values())
 
 
@@ -1901,10 +1901,10 @@ def test_device_page_of_a_garmin_drive(drive_window, monkeypatch):
     """Name, version, storage, the software check and the part number; no sync and no maps
     (and so no map check)."""
     texts, calls = _drive_device_page(drive_window, monkeypatch)
-    for text in ("Varia RTL515", "Software 3.36", "Device storage", "Device software",
-                 "Part number", "006-B3592-03"):
+    for text in ("Varia RTL515", "Software 3.36", "Device Storage", "Device Software",
+                 "Part Number", "006-B3592-03"):
         assert text in texts
-    for text in ("Sync with Garmin Connect", "Last sync", "Sync automatically when connected",
+    for text in ("Sync With Garmin Connect", "Last Sync", "Sync automatically when connected",
                  "Maps"):
         assert text not in texts
     assert calls == ["_show_device_picture", "_check_updates_quietly"]
@@ -1918,7 +1918,7 @@ def test_device_page_of_a_garmin_drive_says_what_applies(drive_window, monkeypat
 
     texts, _calls = _drive_device_page(drive_window, monkeypatch)
     assert "Backup" in texts
-    assert "USB drive" in texts
+    assert "USB Drive" in texts
     assert service.drive_sync_refusal_text(service.NO_UPLOAD_TYPES) in texts
     assert gio_storage.not_ready_text(gio_storage.MASS_STORAGE) not in texts
 
@@ -2048,7 +2048,7 @@ def test_flatpak_window_tells_it_does_not_open_a_garmin_drive(drive_window, monk
                     sections={"watch": types.SimpleNamespace(
                         set_empty=lambda *notice: shown.append(notice))})
     MainWindow._poll_usb(page, clock=win.world.clock)
-    assert shown == [("USB drive", FLATPAK_DRIVE_TEXT, False)]
+    assert shown == [("USB Drive", FLATPAK_DRIVE_TEXT, False)]
 
 
 def test_the_flatpak_says_what_the_source_version_says_unless_the_drive_is_hidden(
@@ -2064,7 +2064,7 @@ def test_the_flatpak_says_what_the_source_version_says_unless_the_drive_is_hidde
     monkeypatch.setattr(paths, "in_flatpak", lambda: True)
     monitor_with(monkeypatch)  # on USB, not mounted
     assert MainWindow._usb_notice(gio_storage.MASS_STORAGE, 0) == (
-        "USB drive", DRIVE_NOT_MOUNTED_TEXT, False)
+        "USB Drive", DRIVE_NOT_MOUNTED_TEXT, False)
     drive = drive_window.world.drive()
     monitor_with(monkeypatch, drive)  # mounted and visible: the window opens it
     assert not gio_storage.drive_hidden_in_sandbox()
@@ -2072,7 +2072,7 @@ def test_the_flatpak_says_what_the_source_version_says_unless_the_drive_is_hidde
     shutil.rmtree(drive.root.path)  # mounted, but out of the sandbox's sight
     assert gio_storage.drive_hidden_in_sandbox()
     assert MainWindow._usb_notice(gio_storage.MASS_STORAGE, 0) == (
-        "USB drive", FLATPAK_DRIVE_TEXT, False)
+        "USB Drive", FLATPAK_DRIVE_TEXT, False)
     assert "--path" not in FLATPAK_DRIVE_TEXT
 
 
@@ -2463,7 +2463,7 @@ def test_list_shows_names_and_never_addresses(monkeypatch):
         assert (title, subtitle) in rows
     assert not any("mtp://" in t or "0000abcdef" in t or "file:" in t for t in texts)
     assert not any("PIN" in t or "starting" in t for t in texts)
-    assert maps.empty.get_title() == "Choose a device"
+    assert maps.empty.get_title() == "Choose a Device"
     assert win.navigation.stack == [win.start.page]
 
 
@@ -2950,7 +2950,7 @@ def installed_on_a_drive(drive_window, monkeypatch, segment="fitness", refusal=N
 
 @pytest.mark.needs_display
 @pytest.mark.parametrize("segment, notes", [
-    ("bikeaccessory", [("Done", EJECTED_TEXT), ("Finish the update", BIKE_ACCESSORY_TEXT)]),
+    ("bikeaccessory", [("Done", EJECTED_TEXT), ("Finish the Update", BIKE_ACCESSORY_TEXT)]),
     ("fitness", [("Done", EJECTED_TEXT)]),
 ])
 def test_window_installs_an_update_on_a_garmin_drive(drive_window, monkeypatch, segment, notes):
@@ -2976,7 +2976,7 @@ def test_a_failed_eject_says_so_and_offers_to_try_again(drive_window, monkeypatc
     s, mount, dialogs, _asked = installed_on_a_drive(drive_window, monkeypatch,
                                                      refusal="Target is busy")
     (failed,) = dialogs[1:]
-    assert failed.get_heading() == "The device was not ejected"
+    assert failed.get_heading() == "Device Not Ejected"
     assert failed.get_body() == "Cannot eject the device: Target is busy\n\n" + NOT_EJECTED_TEXT
     assert [failed.get_response_label(r) for r in ("cancel", "retry")] == ["Close", "Try Again"]
     assert not gio_storage.ejected_by_us(s.storage.usb)
@@ -2990,7 +2990,7 @@ def test_a_failed_eject_says_so_and_offers_to_try_again(drive_window, monkeypatc
 @pytest.mark.needs_display
 def test_an_update_that_does_not_fit_says_so_under_its_own_heading(drive_window, monkeypatch):
     """The Varia's drive holds 1.3 MB: the room kept free is 5% of it, and a refusal says
-    what is needed, what is kept free and what is free, under "Update not installed" (not
+    what is needed, what is kept free and what is free, under "Update Not Installed" (not
     under the name of the task). Nothing comes to the drive."""
     from gi.repository import Adw
 
@@ -3016,7 +3016,7 @@ def test_an_update_that_does_not_fit_says_so_under_its_own_heading(drive_window,
     MainWindow.confirm_update(win, items[0])
     dialogs[0].emit("response", "ok")
     (refused,) = dialogs[1:]
-    assert refused.get_heading() == "Update not installed"
+    assert refused.get_heading() == "Update Not Installed"
     assert refused.get_body() == ("Not enough space on the device: 10.2\u00a0kB needed and 65.0\u00a0kB "
                                   "kept free, but only 50.0\u00a0kB free")
     assert drive_tree(s.storage.root) == before
@@ -3068,14 +3068,14 @@ def test_a_drive_ejected_by_openexpress_is_not_opened_again_until_unplugged(driv
     assert ("device: a Garmin drive (USB 091e:20ee) ejected by openExpress, skipped until it "
             "is unplugged") in messages
     assert MainWindow._usb_notice(gio_storage.MASS_STORAGE, 0) == (
-        "Device ejected", EJECTED_TEXT, False)
+        "Device Ejected", EJECTED_TEXT, False)
     assert gio_storage.not_ready_text(gio_storage.MASS_STORAGE) == EJECTED_TEXT
     shutil.rmtree(world.root / "1-4")  # unplugged
     assert not gio_storage.ejected_drive_waits()
     mass_storage_device(world.root, name="1-4")  # plugged in again
     assert [d.uri for d in gio_storage.find_ums_devices()] == [mount.root.get_uri()]
     assert MainWindow._usb_notice(gio_storage.MASS_STORAGE, 0)[:2] == (
-        "USB drive", DRIVE_NOT_MOUNTED_TEXT)
+        "USB Drive", DRIVE_NOT_MOUNTED_TEXT)
 
 
 def _drive_client(monkeypatch):
@@ -3258,7 +3258,7 @@ def test_pages_not_available_for_a_garmin_drive(drive_window, monkeypatch, force
 
 @pytest.mark.parametrize("logged_in", [False, True])
 def test_sync_is_grey_for_a_garmin_drive(drive_window, monkeypatch, logged_in):
-    """With its reason in the tooltip ("USB drive"); and no sync starts anyway."""
+    """With its reason in the tooltip ("USB Drive"); and no sync starts anyway."""
     from openexpress.gui.app import MainWindow
 
     s = drive_session(drive_window, monkeypatch)
@@ -3266,7 +3266,7 @@ def test_sync_is_grey_for_a_garmin_drive(drive_window, monkeypatch, logged_in):
         s.client.auth = object()
     win = _sync_window(s)
     win.update()
-    assert _looks(win) == (False, False, "USB drive", "USB drive")
+    assert _looks(win) == (False, False, "USB Drive", "USB Drive")
     started = []
     win.run_task = lambda *a, **kw: started.append(a)
     MainWindow.start_sync(win)
@@ -3275,7 +3275,7 @@ def test_sync_is_grey_for_a_garmin_drive(drive_window, monkeypatch, logged_in):
 
 @pytest.mark.parametrize("logged_in", [False, True])
 def test_no_banner_for_a_garmin_drive_that_is_not_synced(drive_window, monkeypatch, logged_in):
-    """Neither "Not signed in" nor the one-time setup: neither is needed for a drive that is
+    """Neither "Not Signed In" nor the one-time setup: neither is needed for a drive that is
     not synced (this Varia declares no data types)."""
     from openexpress.gui.app import MainWindow
 
@@ -4027,17 +4027,17 @@ def test_window_shows_a_starting_device_instead_of_an_empty_page(plugged, monkey
     clock = plugged.clock
     poll = lambda: MainWindow._poll_usb(win, clock=clock)  # noqa: E731
 
-    assert poll() is True and shown[-1][0] == "Connect your device" and shown[-1][2] is False
-    assert updates == ["Connect your device"]
+    assert poll() is True and shown[-1][0] == "Connect Your Device" and shown[-1][2] is False
+    assert updates == ["Connect Your Device"]
     poll()
-    assert updates == ["Connect your device"]  # nothing changed: the button is left alone
+    assert updates == ["Connect Your Device"]  # nothing changed: the button is left alone
     plugged.plug("0003")
     clock.now = 10
     poll()
-    assert shown[-1] == ("The device is starting…",
+    assert shown[-1] == ("Device Starting…",
                          "This takes a moment after the cable is plugged in", True)
     assert refreshed == []
-    assert updates[-1] == win._usb_title == "The device is starting…" and len(updates) == 2
+    assert updates[-1] == win._usb_title == "Device Starting…" and len(updates) == 2
     clock.now = 29
     plugged.plug("51b4")
     poll()
@@ -4047,27 +4047,27 @@ def test_window_shows_a_starting_device_instead_of_an_empty_page(plugged, monkey
     clock.now = 10 + 46
     poll()
     # 27 s in its normal mode by now: the advice to plug it in again is added (see below).
-    assert shown[-1] == ("The device is not ready",
+    assert shown[-1] == ("Device Not Ready",
                          f"{gio_storage.not_ready_text('present')} {REPLUG_HINT_AFTER_PIN} {HELD_HINT}",
                          False)
-    assert updates[-1] == "The device is not ready" and len(updates) == 3
+    assert updates[-1] == "Device Not Ready" and len(updates) == 3
     # Off the bus for a moment: the page stays; only a longer absence is an unplug.
     plugged.plug(None)
     poll()
-    assert shown[-1][0] == "The device is not ready"
+    assert shown[-1][0] == "Device Not Ready"
     clock.now += 2
     poll()
-    assert shown[-1][0] == "The device is not ready"
+    assert shown[-1][0] == "Device Not Ready"
     plugged.plug("51b4")
     poll()
-    assert shown[-1][0] == "The device is not ready" and refreshed == [1]
+    assert shown[-1][0] == "Device Not Ready" and refreshed == [1]
     plugged.plug(None)
     poll()
     clock.now += gio_storage.USB_GAP_S + 1
     poll()
-    assert shown[-1][0] == "Connect your device"
-    assert updates == ["Connect your device", "The device is starting…",
-                       "The device is not ready", "Connect your device"]
+    assert shown[-1][0] == "Connect Your Device"
+    assert updates == ["Connect Your Device", "Device Starting…",
+                       "Device Not Ready", "Connect Your Device"]
     # With a device open, or while a task runs, the page is left alone.
     count = len(shown)
     win.session = object()
@@ -4100,9 +4100,9 @@ def test_window_tells_a_garmin_in_mass_storage_mode(plugged, monkeypatch):
         assert refreshed == [Cause.PLUGGED]
         assert shown[-1][2] is False and "PIN" not in shown[-1][1]
         # The window opens such a drive once it is mounted: no advice about --path.
-        assert shown[-1] == ("USB drive", DRIVE_NOT_MOUNTED_TEXT, False)
+        assert shown[-1] == ("USB Drive", DRIVE_NOT_MOUNTED_TEXT, False)
         assert "--path" not in shown[-1][1]
-    assert updates == ["USB drive"]  # the Sync button says why, told once
+    assert updates == ["USB Drive"]  # the Sync button says why, told once
 
 
 REPLUG_HINT = "If the device isn't locked and isn't asking for anything, unplug the cable and plug it back in."
@@ -4149,14 +4149,14 @@ def test_a_device_in_its_normal_mode_without_mtp_for_15_s_is_to_be_plugged_in_ag
     clock = plugged.clock
     plugged.plug("5158")
     with caplog.at_level(logging.INFO, logger="openexpress.gui"):
-        for now, notice in ((100, ("The device is starting…", STARTING_TEXT, True)),
-                            (114.9, ("The device is starting…", STARTING_TEXT, True)),
-                            (115, ("The device is starting…", f"{STARTING_TEXT}. {REPLUG_HINT}",
+        for now, notice in ((100, ("Device Starting…", STARTING_TEXT, True)),
+                            (114.9, ("Device Starting…", STARTING_TEXT, True)),
+                            (115, ("Device Starting…", f"{STARTING_TEXT}. {REPLUG_HINT}",
                                    True)),
-                            (117, ("The device is starting…", f"{STARTING_TEXT}. {REPLUG_HINT}",
+                            (117, ("Device Starting…", f"{STARTING_TEXT}. {REPLUG_HINT}",
                                    True)),
                             (100 + gio_storage.WAIT_FOR_DEVICE_S + 1,
-                             ("The device is not ready",
+                             ("Device Not Ready",
                               f"{gio_storage.not_ready_text('present')} {REPLUG_HINT_AFTER_PIN} {HELD_HINT}",
                               False))):
             clock.now = now
@@ -4182,7 +4182,7 @@ def test_plugging_it_in_again_starts_the_15_s_anew(plugged, monkeypatch, caplog)
         poll()
         clock.now += gio_storage.USB_GAP_S + 1
         poll()
-        assert shown[-1][0] == "Connect your device"
+        assert shown[-1][0] == "Connect Your Device"
         plugged.plug("5158")  # and plugged in again
         for now, hint in ((40, False), (54, False), (55, True)):
             clock.now = now
@@ -4215,7 +4215,7 @@ def test_a_garmin_drive_gets_no_advice_to_plug_it_in_again(plugged, monkeypatch)
     for now in (0, 20, 60):
         plugged.clock.now = now
         MainWindow._poll_usb(win, clock=plugged.clock)
-        assert shown[-1] == ("USB drive", DRIVE_NOT_MOUNTED_TEXT, False)
+        assert shown[-1] == ("USB Drive", DRIVE_NOT_MOUNTED_TEXT, False)
 
 
 def test_the_flatpak_window_without_a_hidden_drive_speaks_as_from_source(plugged, monkeypatch):
@@ -4229,7 +4229,7 @@ def test_the_flatpak_window_without_a_hidden_drive_speaks_as_from_source(plugged
     monitor_with(monkeypatch)  # nothing mounted
     mass_storage_device(plugged.root)
     notice = MainWindow._usb_notice(gio_storage.MASS_STORAGE, 0)
-    assert notice == ("USB drive", DRIVE_NOT_MOUNTED_TEXT, False)
+    assert notice == ("USB Drive", DRIVE_NOT_MOUNTED_TEXT, False)
     assert "--path" not in notice[1]
 
 
@@ -4281,7 +4281,7 @@ def test_sync_is_only_enabled_with_an_open_device():
 
     win.update()                             # "connect your device" and "the device is starting"
     assert win.enabled == {"sync": False, "refresh": True}
-    assert _looks(win) == (False, False, "Connect your device", "Connect your device")
+    assert _looks(win) == (False, False, "Connect Your Device", "Connect Your Device")
 
     win.session = session
     win.update()
@@ -4316,7 +4316,7 @@ def test_sync_is_only_enabled_with_an_open_device():
     assert _looks(win) == (True, True, None, "Sync")
     win.session = None                       # unplugged again
     win.update()
-    assert _looks(win) == (False, False, "Connect your device", "Connect your device")
+    assert _looks(win) == (False, False, "Connect Your Device", "Connect Your Device")
 
 
 def test_sync_tooltip_uses_the_words_of_the_banner():
@@ -4343,12 +4343,12 @@ def test_sync_tooltip_uses_the_words_of_the_banner():
 
 def test_sync_tooltip_says_what_the_pages_say_while_no_device_is_open():
     """No device, a device that is starting, a device that is not ready: the button has the
-    title the pages show, not always "Connect your device"."""
+    title the pages show, not always "Connect Your Device"."""
     from openexpress.gui.app import MainWindow
 
     win = _sync_window()
     win.update()
-    assert _looks(win) == (False, False, "Connect your device", "Connect your device")
+    assert _looks(win) == (False, False, "Connect Your Device", "Connect Your Device")
 
     for state, waited in ((gio_storage.STARTING, 5), (gio_storage.PRESENT, 5),
                           (gio_storage.PRESENT, gio_storage.WAIT_FOR_DEVICE_S + 1),
@@ -4359,10 +4359,10 @@ def test_sync_tooltip_says_what_the_pages_say_while_no_device_is_open():
         assert _looks(win) == (False, False, title, title)
     assert {MainWindow._usb_notice(s, w)[0] for s, w in (
         (gio_storage.STARTING, 5), (gio_storage.PRESENT, 99), (gio_storage.ABSENT, 0))} == {
-        "The device is starting…", "The device is not ready", "Connect your device"}
+        "Device Starting…", "Device Not Ready", "Connect Your Device"}
 
     # With a device open the words kept from before do not matter.
-    win._usb_title = "The device is starting…"
+    win._usb_title = "Device Starting…"
     win.session = types.SimpleNamespace(logged_in=True, ownership_error=None)
     win.update()
     assert _looks(win) == (True, True, None, "Sync")
@@ -4551,7 +4551,7 @@ def test_several_devices_connected_show_the_start_page(start_window, monkeypatch
                                                        ("Edge 1050", True)]
     assert all(how.startswith("Software ") for _n, _on, how in tiles)
     assert notice is False
-    assert win.sections["maps"].empty[0] == "Choose a device"
+    assert win.sections["maps"].empty[0] == "Choose a Device"
 
 
 def test_a_tile_opens_its_device_and_back_keeps_it_open(start_window, monkeypatch, tmp_path,
@@ -4631,10 +4631,10 @@ def test_the_start_page_tells_the_usb_state(plugged, monkeypatch):
                    refresh_device=lambda: None, _update_actions=lambda: None)
     monkeypatch.setattr(GLib, "timeout_add", lambda ms, fn: fn())
     MainWindow._poll_usb(win, clock=plugged.clock)
-    assert start.notices[-1] == shown[-1] and shown[-1][0] == "Connect your device"
+    assert start.notices[-1] == shown[-1] and shown[-1][0] == "Connect Your Device"
     usb_device(plugged.root, "1-4", 1, 40, "091e", "0003")  # starting
     MainWindow._poll_usb(win, clock=plugged.clock)
-    assert start.notices[-1] == shown[-1] and shown[-1][0] == "The device is starting…"
+    assert start.notices[-1] == shown[-1] and shown[-1][0] == "Device Starting…"
 
 
 @pytest.mark.needs_display
@@ -5295,9 +5295,9 @@ def test_a_drive_left_that_is_not_mounted_is_looked_for_once(start_window, monke
         for _ in range(3):  # the poll goes on every few seconds
             win._poll_usb()
             win.timers.fire()
-    assert titles == ["Detecting the device…"] and win.session is None
+    assert titles == ["Detecting the Device…"] and win.session is None
     assert caplog.text.count("a Garmin drive is still connected, detecting in 2.5 s") == 1
-    assert win.start.notices[-1][0] == "USB drive"
+    assert win.start.notices[-1][0] == "USB Drive"
 
 
 # --- the navigation matrix of the start page ------------------------------------------------
@@ -5567,7 +5567,7 @@ def test_a_mount_removed_after_a_failed_choice_plans_no_detection(start_window, 
     real = win.run_task
 
     def run_task(title, fn, done, failed=None, device=True, in_page=False):
-        if title == "Detecting the device…":
+        if title == "Detecting the Device…":
             running.append((fn, done, failed))
             return None
         return real(title, fn, done, failed)
@@ -5614,7 +5614,7 @@ def test_the_mount_of_a_device_listed_without_details_is_detected(start_window, 
     MainWindow._on_mount_added(win, None, FakeMount(NAMED))
     assert ran == [] and len(win.timers.live) == 1  # planned, in 1.5 s
     win.timers.fire()
-    assert ran == ["Detecting the device…"]
+    assert ran == ["Detecting the Device…"]
     assert win.session is None and win.navigation.stack == ["start page"]
     assert [(name, how) for name, _on, how in drawn_tiles(win)] == [
         ("Test watch", "Software 23.39"),
@@ -5668,7 +5668,7 @@ def test_a_tile_clicked_right_after_the_start_opens_its_device(start_window, mon
     real = win.run_task
 
     def run_task(title, fn, done, failed=None, device=True, in_page=False):
-        if title == "Detecting the device…":
+        if title == "Detecting the Device…":
             win.busy = True
             running.append(done)
             return None
@@ -5705,7 +5705,7 @@ def login_finished(win, monkeypatch):
     real = win.run_task
 
     def run_task(title, fn, done, failed=None, device=True, in_page=False):
-        if title == "Signing in…":
+        if title == "Signing In…":
             return done((types.SimpleNamespace(display="someone"), True))
         return real(title, fn, done, failed)
 
@@ -5790,7 +5790,7 @@ def test_try_again_on_the_banner_in_the_device_view(start_window, monkeypatch):
     ran = detections(win)
     win._banner_kind = "recheck"
     MainWindow._banner_action(win)
-    assert ran == ["Detecting the device…"]
+    assert ran == ["Detecting the Device…"]
     assert win.session is not None and win.session is not first
     assert win.navigation.stack == ["start page", "device view"]
 
@@ -5827,7 +5827,7 @@ def test_a_device_mounted_on_an_empty_start_page_opens_its_view(start_window, mo
     MainWindow._on_mount_added(win, None, FakeMount(NUMERIC))
     assert ran == [] and len(win.timers.live) == 1  # planned, in 1.5 s
     win.timers.fire()
-    assert ran == ["Detecting the device…"]
+    assert ran == ["Detecting the Device…"]
     assert win.session is not None and win.session.device.description == "Test watch"
     assert win.navigation.stack == ["start page", "device view"]
 
@@ -6512,7 +6512,7 @@ def test_logging_out_on_the_view_of_a_remembered_device_keeps_it(start_window, m
 
 @pytest.mark.needs_display
 def test_the_account_section_adds_tiles_without_touching_the_others():
-    """The section "On the account" comes after the others, only with such tiles; adding it
+    """The section "On the Account" comes after the others, only with such tiles; adding it
     keeps the tiles of the other sections (the same widgets)."""
     from openexpress.devicelist import Tile
     from openexpress.gui.start import StartPage
@@ -6532,7 +6532,7 @@ def test_the_account_section_adds_tiles_without_touching_the_others():
                 (tile("Forerunner 965", False, None, on_account=True),
                  "Software 22.26 · Not seen on this computer")], False)
     assert start_section(start, "on-account").title.get_visible()
-    assert start_section(start, "on-account").title.get_label() == "On the account"
+    assert start_section(start, "on-account").title.get_label() == "On the Account"
     after = start.tiles()
     assert after[0] is before[0] and after[1] is before[1] and len(after) == 3
     assert after[2].get_parent() is start_section(start, "on-account").grid
@@ -6575,7 +6575,7 @@ def names_on_the_start_page(win):
 def test_one_device_at_the_start_asks_the_account_once(start_window, monkeypatch):
     """The window opens with one device connected and an account logged in: the device is
     opened, whose ownership check reads the account's list; the start page uses that
-    list instead of asking again. One request, and the section "On the account" all the
+    list instead of asking again. One request, and the section "On the Account" all the
     same."""
     win = start_window
     later = defer_background(win)
