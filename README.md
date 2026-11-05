@@ -217,6 +217,9 @@ your `GarminDevice.xml` or the files in `~/.config/openexpress`. When something 
   numbers of Activity Profile Editor's table. openExpress copies no code of Sommet
   (GPL-3.0-only); what it takes from Activity Profile Editor (MIT) keeps that project's notice
   and its author's name.
+- GNOME's [icon-development-kit](https://gitlab.gnome.org/Teams/Design/icon-development-kit)
+  (CC0 1.0) gave the shapes of two icons of the built-in screens (the heart and the stopwatch);
+  the other icons are drawn in the style of GNOME's symbolic icons.
 
 ## License
 

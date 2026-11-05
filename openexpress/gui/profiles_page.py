@@ -293,22 +293,33 @@ def _device_name(win) -> str:
     return device_name(win.session) if win.session is not None else ""
 
 
-# The icons of the built-in screens in their rows, by their codes (an Edge's and a watch's).
+# The icons of the built-in screens in their rows, by their codes (an Edge's and a watch's): one
+# for each kind of screen, drawn in packaging/icons (the program's folder of icons is on the
+# theme's search path); a kind the window shows elsewhere takes the theme's icon of it.
+
+
+def _screen_icon(kind: str) -> str:
+    return f"io.github.tomaszbojanowski.OpenExpress-screen-{kind}-symbolic"
+
+
+GROUP_ICON, CLOCK_ICON = "system-users-symbolic", "preferences-system-time-symbolic"
 BUILT_IN_ICONS = {
-    21: "preferences-system-time-symbolic", 22: "view-paged-symbolic",
-    25: "mark-location-symbolic", 26: "system-users-symbolic", 30: "audio-x-generic-symbolic",
-    35: "find-location-symbolic", 38: "media-playback-start-symbolic", 44: "go-up-symbolic",
-    56: "media-skip-forward-symbolic", 57: "system-users-symbolic", 58: "battery-symbolic",
-    63: "view-paged-symbolic", 74: "view-list-symbolic", 80: "view-list-ordered-symbolic",
-    95: "battery-symbolic", 100: "alarm-symbolic", 101: "object-rotate-right-symbolic",
-    104: "go-top-symbolic", 125: "power-profile-performance-symbolic",
-    127: "battery-good-symbolic", 128: "weather-clear-symbolic", 162: "system-users-symbolic",
-    221: "weather-clear-symbolic", 223: "network-wireless-signal-good-symbolic",
+    21: CLOCK_ICON, 22: _screen_icon("heart-rate-zone"), 25: _screen_icon("map"),
+    26: _screen_icon("virtual-partner"), 30: "audio-x-generic-symbolic",
+    35: _screen_icon("compass"), 38: _screen_icon("workout"), 44: _screen_icon("elevation"),
+    56: _screen_icon("segment"), 57: GROUP_ICON, 58: _screen_icon("ebike"),
+    63: _screen_icon("cycling-dynamics"), 74: _screen_icon("lap-summary"),
+    80: _screen_icon("set"), 95: _screen_icon("ebike"), 100: _screen_icon("regatta"),
+    101: _screen_icon("regatta"), 104: _screen_icon("climbpro"),
+    125: _screen_icon("power-guide"), 127: _screen_icon("stamina"),
+    128: "weather-clear-symbolic", 162: GROUP_ICON, 221: CLOCK_ICON, 223: _screen_icon("radar"),
 }
+# A built-in screen not known on this device (a screen with fields drawn, no kind).
+UNKNOWN_SCREEN_ICON = _screen_icon("unknown")
 
 
 def built_in_icon(code: int) -> str:
-    return BUILT_IN_ICONS.get(code, PAGE_ICON)
+    return BUILT_IN_ICONS.get(code, UNKNOWN_SCREEN_ICON)
 
 
 def place_text(place: int) -> str:
@@ -347,7 +358,8 @@ def built_in_row(win, profile_file, screen, subtitle: str, state: str | None = N
     profile = profile_file.profile
     row = _row(screen_title(profile, screen), subtitle, state)
     known = names.built_in_known(screen, edge_shaped(profile))
-    row.add_prefix(Gtk.Image(icon_name=built_in_icon(screen.code) if known else PAGE_ICON))
+    row.add_prefix(Gtk.Image(icon_name=built_in_icon(screen.code) if known
+                             else UNKNOWN_SCREEN_ICON))
     row.set_activatable(True)
     row.connect("activated", lambda _r: open_screen(win, profile_file, screen))
     return row

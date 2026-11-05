@@ -290,9 +290,9 @@ def test_a_data_screen_s_card_opens_its_page():
     assert win.navigation.get_visible_page().get_tag() == "profile-screen"
 
 
-def test_a_built_in_screen_not_known_has_the_plain_icon():
-    """A code known on an Edge but not on a watch (127, Stamina) gives a watch's row the plain
-    icon, not the Edge's."""
+def test_a_built_in_screen_not_known_has_the_icon_of_an_unknown_screen():
+    """A code known on an Edge but not on a watch (127, Stamina) gives a watch's row the icon
+    of a screen not known, not the Edge's."""
     from gi.repository import Gtk
 
     from openexpress.gui import profiles_page
@@ -303,7 +303,8 @@ def test_a_built_in_screen_not_known_has_the_plain_icon():
     row = next(r for r in descendants(page) if getattr(r, "get_title", None)
                and r.get_title() == "Built-in screen 127")
     icons = [w.get_icon_name() for w in descendants(row) if isinstance(w, Gtk.Image)]
-    assert profiles_page.PAGE_ICON in icons and "battery-good-symbolic" not in icons
+    assert profiles_page.UNKNOWN_SCREEN_ICON in icons
+    assert profiles_page.built_in_icon(127) not in icons
 
 
 def test_every_built_in_screen_s_icon_is_in_the_theme():
