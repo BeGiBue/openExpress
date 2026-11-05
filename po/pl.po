@@ -6,7 +6,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: openexpress\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-11-05 02:06+0100\n"
+"POT-Creation-Date: 2026-11-05 02:15+0100\n"
 "PO-Revision-Date: 2026-10-11 02:36+0200\n"
 "Last-Translator: Tomasz Bojanowski\n"
 "Language-Team: none\n"
@@ -1258,7 +1258,7 @@ msgstr "kopia z {date}"
 #: openexpress/cli.py:499 openexpress/cli.py:938 openexpress/cli.py:1088
 #: openexpress/cli.py:1096 openexpress/gui/words.py:267 openexpress/i18n.py:168
 #: openexpress/netstatus.py:209 openexpress/netstatus.py:240
-#: openexpress/profiles.py:261
+#: openexpress/profiles.py:266
 msgid "%Y-%m-%d"
 msgstr "%d.%m.%Y"
 
@@ -2194,7 +2194,7 @@ msgstr "Żadna aplikacja nie pasuje do „{query}”"
 msgid "Several entries match: {names}. Choose one with --type."
 msgstr "Pasuje kilka wpisów: {names}. Wybierz jeden opcją --type."
 
-#: openexpress/cli.py:1758 openexpress/maps.py:582
+#: openexpress/cli.py:1758 openexpress/maps.py:588
 #, python-brace-format
 msgid "Ambiguous name, matches: {names}"
 msgstr "Niejednoznaczna nazwa, pasują: {names}"
@@ -2710,7 +2710,7 @@ msgstr ""
 "Pola mają nazwy według numerów urządzeń Edge Garmina; kodów części układów "
 "i ekranów wbudowanych tego urządzenia openExpress jeszcze nie zna."
 
-#: openexpress/cli.py:2306 openexpress/gui/profiles_page.py:532
+#: openexpress/cli.py:2306 openexpress/gui/profiles_page.py:534
 msgid "This device keeps no activity profiles."
 msgstr "To urządzenie nie przechowuje profili aktywności."
 
@@ -3670,7 +3670,7 @@ msgstr "{what}: błąd sieci ({error})"
 #: openexpress/connect.py:247 openexpress/connect.py:369
 #: openexpress/connect.py:574 openexpress/connect.py:593
 #: openexpress/connect.py:606 openexpress/connect.py:645
-#: openexpress/connect.py:774 openexpress/maps.py:358
+#: openexpress/connect.py:774 openexpress/maps.py:364
 #: openexpress/service.py:701
 #, python-brace-format
 msgid "{what}: unexpected response from the server"
@@ -3720,7 +3720,7 @@ msgstr "Informacje o urządzeniu"
 msgid "Software update check"
 msgstr "Sprawdzanie aktualizacji oprogramowania"
 
-#: openexpress/connect.py:514 openexpress/maps.py:359
+#: openexpress/connect.py:514 openexpress/maps.py:365
 msgid "Map check"
 msgstr "Sprawdzanie map"
 
@@ -4575,7 +4575,7 @@ msgctxt "tab"
 msgid "Activity profiles"
 msgstr "Profile aktywności"
 
-#: openexpress/gui/app.py:100 openexpress/gui/profiles_page.py:541
+#: openexpress/gui/app.py:100 openexpress/gui/profiles_page.py:543
 msgid "Reading profiles…"
 msgstr "Odczyt profili…"
 
@@ -6196,7 +6196,7 @@ msgstr "Żaden ekran danych nie jest wyświetlany"
 msgid "Off and hidden"
 msgstr "Wyłączone i ukryte"
 
-#: openexpress/gui/profiles_page.py:411 openexpress/gui/profiles_page.py:453
+#: openexpress/gui/profiles_page.py:411 openexpress/gui/profiles_page.py:454
 msgid "Details"
 msgstr "Szczegóły"
 
@@ -6223,31 +6223,32 @@ msgstr "Pola danych"
 msgid "In their order on the screen"
 msgstr "W kolejności na ekranie"
 
-#. TRANSLATORS: the n-th place of a screen
-#: openexpress/gui/profiles_page.py:445 openexpress/gui/profiles_page.py:447
+#. TRANSLATORS: the n-th place of a data screen, where a field stands ("Field" is
+#. said only of a data field)
+#: openexpress/gui/profiles_page.py:445
 #, python-brace-format
-msgid "Field {place}"
-msgstr "Pole {place}"
+msgid "Place {place}"
+msgstr "Miejsce {place}"
 
 #. TRANSLATORS: the number of a data field in the profile file
-#: openexpress/gui/profiles_page.py:449
+#: openexpress/gui/profiles_page.py:450
 #, python-brace-format
 msgid "number {number}"
 msgstr "numer {number}"
 
-#: openexpress/gui/profiles_page.py:454
+#: openexpress/gui/profiles_page.py:455
 msgid "Code of the screen"
 msgstr "Kod ekranu"
 
-#: openexpress/gui/profiles_page.py:455
+#: openexpress/gui/profiles_page.py:456
 msgid "State"
 msgstr "Stan"
 
-#: openexpress/gui/profiles_page.py:478
+#: openexpress/gui/profiles_page.py:480
 msgid "No activity profiles"
 msgstr "Brak profili aktywności"
 
-#: openexpress/gui/profiles_page.py:490
+#: openexpress/gui/profiles_page.py:492
 #, python-brace-format
 msgid "Search {count} profile"
 msgid_plural "Search {count} profiles"
@@ -6255,24 +6256,24 @@ msgstr[0] "Szukaj wśród {count} profilu"
 msgstr[1] "Szukaj wśród {count} profili"
 msgstr[2] "Szukaj wśród {count} profili"
 
-#: openexpress/gui/profiles_page.py:496
+#: openexpress/gui/profiles_page.py:498
 msgid "Used recently"
 msgstr "Ostatnio używane"
 
-#: openexpress/gui/profiles_page.py:496
+#: openexpress/gui/profiles_page.py:498
 msgid "From the newest activities on the device"
 msgstr "Z najnowszych aktywności na urządzeniu"
 
-#: openexpress/gui/profiles_page.py:500
+#: openexpress/gui/profiles_page.py:502
 msgid "All profiles"
 msgstr "Wszystkie profile"
 
-#: openexpress/gui/profiles_page.py:561
+#: openexpress/gui/profiles_page.py:563
 msgid "Files that are no profile"
 msgstr "Pliki, które nie są profilami"
 
 #. TRANSLATORS: the copies an Edge keeps of its profiles itself; {date}: when made
-#: openexpress/gui/profiles_page.py:567
+#: openexpress/gui/profiles_page.py:569
 #, python-brace-format
 msgid "The device keeps backups of its profiles from {date}"
 msgstr "Urządzenie ma kopie zapasowe profili z {date}"
@@ -7538,46 +7539,46 @@ msgid "This device has no maps."
 msgstr "To urządzenie nie ma map."
 
 #. TRANSLATORS: subtitle of the row "Maps" and title of the Maps page, without a full stop
-#: openexpress/maps.py:247
+#: openexpress/maps.py:253
 msgid "This device has no maps"
 msgstr "To urządzenie nie ma map"
 
 #. TRANSLATORS: subtitle of the row "Maps" and title of the Maps page, without a full stop
-#: openexpress/maps.py:252
+#: openexpress/maps.py:258
 msgid "Map updates for this device aren't supported yet"
 msgstr "Aktualizacje map dla tego urządzenia nie są jeszcze obsługiwane"
 
 #. TRANSLATORS: {country} is the name of a country, e.g. South Korea
-#: openexpress/maps.py:334
+#: openexpress/maps.py:340
 #, python-brace-format
 msgid "Garmin does not offer this map in this country: {country}"
 msgstr "Garmin nie oferuje tej mapy w tym kraju: {country}"
 
-#: openexpress/maps.py:478
+#: openexpress/maps.py:484
 msgid "Old files Garmin asks to remove:"
 msgstr "Stare pliki, które Garmin zaleca usunąć:"
 
-#: openexpress/maps.py:479
+#: openexpress/maps.py:485
 msgid "openExpress does not remove these files yet."
 msgstr "openExpress na razie ich nie usuwa."
 
-#: openexpress/maps.py:496
+#: openexpress/maps.py:502
 msgid ""
 "Cannot be installed: Garmin does not offer this map in your account's country"
 msgstr "Nie można zainstalować: Garmin nie oferuje tej mapy w kraju konta"
 
-#: openexpress/maps.py:499
+#: openexpress/maps.py:505
 msgid ""
 "Cannot be installed: the server gave an invalid checksum for one of its files"
 msgstr ""
 "Nie można zainstalować: serwer podał nieprawidłową sumę kontrolną jednego "
 "z jej plików"
 
-#: openexpress/maps.py:501
+#: openexpress/maps.py:507
 msgid "Cannot be installed: the server did not provide all of its files"
 msgstr "Nie można zainstalować: serwer nie podał wszystkich jej plików"
 
-#: openexpress/maps.py:507
+#: openexpress/maps.py:513
 #, python-brace-format
 msgid ""
 "Map '{name}' cannot be installed: Garmin does not offer it in your account's "
@@ -7586,7 +7587,7 @@ msgstr ""
 "Nie można zainstalować mapy „{name}”: Garmin nie oferuje jej w kraju konta "
 "({country})."
 
-#: openexpress/maps.py:511
+#: openexpress/maps.py:517
 #, python-brace-format
 msgid ""
 "Map '{name}' cannot be installed: the server gave an invalid checksum for "
@@ -7595,19 +7596,19 @@ msgstr ""
 "Nie można zainstalować mapy „{name}”: serwer podał nieprawidłową sumę "
 "kontrolną jednego z jej plików."
 
-#: openexpress/maps.py:513
+#: openexpress/maps.py:519
 #, python-brace-format
 msgid ""
 "Map '{name}' cannot be installed: the server did not provide all of its files"
 msgstr ""
 "Nie można zainstalować mapy „{name}”: serwer nie podał wszystkich jej plików"
 
-#: openexpress/maps.py:581
+#: openexpress/maps.py:587
 #, python-brace-format
 msgid "No map named '{name}'"
 msgstr "Brak mapy o nazwie „{name}”"
 
-#: openexpress/maps.py:631
+#: openexpress/maps.py:637
 #, python-brace-format
 msgid ""
 "Map '{name}' is on the device already and will be loaded after the device is "
@@ -7616,17 +7617,17 @@ msgstr ""
 "Mapa {name} jest już na urządzeniu i zostanie wczytana po odłączeniu. "
 "Najpierw odłącz urządzenie."
 
-#: openexpress/maps.py:719
+#: openexpress/maps.py:725
 msgid "Activating the map on the Garmin server"
 msgstr "Aktywacja mapy na serwerze Garmin"
 
 #. TRANSLATORS: a step of a map install: files of an older version or of maps it
 #. replaces ("Removing old map files · 2 of 5")
-#: openexpress/maps.py:740
+#: openexpress/maps.py:746
 msgid "Removing old map files"
 msgstr "Usuwanie starych plików map"
 
-#: openexpress/maps.py:803
+#: openexpress/maps.py:809
 #, python-brace-format
 msgid ""
 "Cannot write {path}, which other maps on the device also use ({maps}). "
@@ -7635,7 +7636,7 @@ msgstr ""
 "Nie można zapisać {path}, którego używają też inne mapy na urządzeniu "
 "({maps}). Zainstaluj mapę ponownie."
 
-#: openexpress/maps.py:816
+#: openexpress/maps.py:822
 #, python-brace-format
 msgid ""
 "The map files are on the device, but its unlock file {path} could not be "
@@ -7646,7 +7647,7 @@ msgstr ""
 "odblokowania {path} ({error}). Urządzenie może mimo to wczytać mapę po "
 "odłączeniu; jeśli tego nie zrobi, uruchom ponownie openexpress maps."
 
-#: openexpress/maps.py:822
+#: openexpress/maps.py:828
 #, python-brace-format
 msgid ""
 "The map files are on the device, but its unlock file {path} could not be "
@@ -7657,18 +7658,18 @@ msgstr ""
 "odblokowania {path} ({error}). Urządzenie może mimo to wczytać mapę po "
 "odłączeniu; jeśli tego nie zrobi, wróć do tej strony."
 
-#: openexpress/maps.py:844
+#: openexpress/maps.py:850
 #, python-brace-format
 msgid "Writing the unlock file again ({attempt} of {tries})"
 msgstr "Ponawianie zapisu pliku odblokowującego ({attempt} z {tries})"
 
-#: openexpress/maps.py:865
+#: openexpress/maps.py:871
 #, python-brace-format
 msgid "Map '{name}' cannot be removed"
 msgstr "Nie można usunąć mapy „{name}”"
 
 #. TRANSLATORS: a step of a map removal; {name}: the map ("… · 2 of 5")
-#: openexpress/maps.py:877
+#: openexpress/maps.py:883
 #, python-brace-format
 msgid "Removing {name}"
 msgstr "Usuwanie {name}"
@@ -9322,7 +9323,7 @@ msgid "it ends too soon"
 msgstr "kończy się za wcześnie"
 
 #. TRANSLATORS: a step of a long task: the profile files read ("… · 2 of 30")
-#: openexpress/profiles.py:237
+#: openexpress/profiles.py:242
 msgid "Reading profiles"
 msgstr "Odczyt profili"
 

@@ -200,7 +200,7 @@ and the device as the title.
 Pushed from a card. The screen drawn large, the chosen field in the accent colour. **Layout**:
 "Number of fields" (a spin button from 1 to what the model allows) and "Variant" (toggle buttons
 with a small drawing of each variant, A, B, C, only those the model has for that number).
-**Fields**, "Top to bottom, left to right": a row a field, "Field 1" under its name. Changes go
+**Fields**, "Top to bottom, left to right": a row a field, "Place 1" under its name. Changes go
 straight into the window's copy of the profile; the back arrow returns to the profile, where the
 bar counts them. In stage 1 the same page without the controls.
 

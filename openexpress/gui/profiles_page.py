@@ -418,7 +418,7 @@ def open_profile(win, profile_file) -> None:
     log.info("profile page: %d screens always shown, %d when needed, %d off or hidden (%s)",
              len(always), len(needed), len(off_built_in) + len(off_own),
              "an Edge's" if edge else "a watch's")
-    win.navigation.push(_page(profile.name or profile_file.name, _device_name(win),
+    win.navigation.push(_page(profile_file.title, _device_name(win),
                               PROFILE_TAG, box))
 
 
@@ -440,11 +440,12 @@ def open_screen(win, profile_file, screen) -> None:
         fields = Adw.PreferencesGroup(title=_("Fields"),
                                       description=_("In their order on the screen"))
         for n, number in enumerate(screen.fields, 1):
+            # TRANSLATORS: the n-th place of a data screen, where a field stands ("Field" is
+            # said only of a data field)
+            place = _("Place {place}").format(place=n)
             if number is None:
-                # TRANSLATORS: the n-th place of a screen
-                sub = _("Field {place}").format(place=n)
+                sub = place
             else:
-                place = _("Field {place}").format(place=n)
                 # TRANSLATORS: the number of a data field in the profile file
                 said = _("number {number}").format(number=number)
                 sub = caption(place, said)
@@ -454,13 +455,14 @@ def open_screen(win, profile_file, screen) -> None:
     details.add(_row(_("Code of the screen"), str(screen.code)))
     details.add(_row(_("State"), state_text(screen)))
     box.append(details)
-    win.navigation.push(_page(screen_title(profile, screen), profile.name, SCREEN_TAG, box))
+    win.navigation.push(_page(screen_title(profile, screen), profile_file.title, SCREEN_TAG,
+                              box))
 
 
 def profile_row(win, group, profile_file) -> Adw.ActionRow:
     """A profile in the list: its colour, name and screens; activated, its page opens."""
     profile = profile_file.profile
-    row = Adw.ActionRow(title=GLib.markup_escape_text(profile.name or profile_file.name),
+    row = Adw.ActionRow(title=GLib.markup_escape_text(profile_file.title),
                         subtitle=GLib.markup_escape_text(profile_caption(profile)),
                         activatable=True)
     row.add_prefix(colour_dot(profile))
@@ -496,11 +498,11 @@ def _profile_groups(win, sec, readable, recent) -> int:
         g = sec.group(_("Used recently"), _("From the newest activities on the device"))
         groups.append(g)
         for f in recent_files:
-            rows.append((g, profile_row(win, g, f), f.profile.name))
+            rows.append((g, profile_row(win, g, f), f.title))
     g = sec.group(_("All profiles"))
     groups.append(g)
     for f in readable:
-        rows.append((g, profile_row(win, g, f), f.profile.name))
+        rows.append((g, profile_row(win, g, f), f.title))
 
     def changed(entry):
         wanted = profiles.sort_key(entry.get_text().strip())

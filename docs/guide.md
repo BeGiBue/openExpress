@@ -344,8 +344,9 @@ fēnix 8 over MTP.
 The **Activity profiles** page and `openexpress profiles` show the sport profiles of the
 connected device (its `Sports` folder) and their data screens, read only: nothing is written to
 the device. The profiles of its newest activities come first, then every profile by name, with
-a search. A profile's page shows its data screens, each drawn in the shape of the device's screen
-beside its fields, numbered in their order on the screen (where each field stands depends on
+a search; a profile whose file gives no name goes by the file's name. A profile's page shows its
+data screens, each drawn in the shape of the device's screen beside its fields, numbered in
+their order on the screen (where each field stands depends on
 the layout, which the drawing does not show), with its place in the order the device scrolls
 through its screens; then the built-in screens it always scrolls through (Map, Elevation,
 Stamina…), as rows with their place; then, folded, those an Edge shows only when they are needed

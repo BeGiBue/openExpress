@@ -330,9 +330,10 @@ def test_a_screen_s_page():
     page, rows, _labels = _page_texts(win)
     assert page.get_tag() == "profile-screen" and page.get_title() == "Screen 1"
     assert rows[:2] == [("Layout", "Layout “Stack”"), ("Number of fields", "4")]
-    assert [r for r in rows if r[1].startswith("Field ")] == [
-        ("Timer", "Field 1\u00a0· number 56"), ("Distance", "Field 2\u00a0· number 6"),
-        ("Field 999", "Field 3\u00a0· number 999"), ("%Max Heart Rate", "Field 4\u00a0· number 16")]
+    # "Field" names a data field only (one without a name by its number); its place is a place
+    assert [r for r in rows if r[1].startswith("Place ")] == [
+        ("Timer", "Place 1\u00a0· number 56"), ("Distance", "Place 2\u00a0· number 6"),
+        ("Field 999", "Place 3\u00a0· number 999"), ("%Max Heart Rate", "Place 4\u00a0· number 16")]
     assert ("Code of the screen", "0") in rows
 
 

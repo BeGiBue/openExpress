@@ -114,6 +114,17 @@ def test_the_name_of_a_profile(profiles_root, capsys, name, said):
         assert code == 1 and said in captured.err
 
 
+def test_a_profile_without_a_name_by_its_file(profiles_root, capsys):
+    """A profile whose file gives no name is called by its file, as in the window."""
+    sports = profiles_root / "GARMIN" / "Sports"
+    (sports / "Ride.fit").write_bytes(sport_file("", 2, screens=ROAD[:1], shape="edge"))
+    assert main(["--path", str(profiles_root), "profiles"]) == 0
+    listed = capsys.readouterr().out.splitlines()
+    assert "  Ride.fit · 1 data screen" in listed
+    assert main(["--path", str(profiles_root), "profiles", "show", "ride.fit"]) == 0
+    assert capsys.readouterr().out.splitlines()[0] == "Ride.fit"
+
+
 def test_a_device_without_profiles(device_root, capsys):
     assert main(["--path", str(device_root), "profiles"]) == 1
     assert "This device keeps no activity profiles." in capsys.readouterr().err

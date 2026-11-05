@@ -198,6 +198,11 @@ class ProfileFile:
     profile: Profile | None
     error: str | None = None
 
+    @property
+    def title(self) -> str:
+        """The profile's name, or the file's when the profile gives none."""
+        return (self.profile.name if self.profile else "") or self.name
+
 
 class ProfileList:
     """The sport profiles of a device, as its storage lists and reads them: the files of its
@@ -253,7 +258,7 @@ class ProfileList:
                      "backups of the device's own", len(keys), len(to_read),
                      time.monotonic() - started, applog.size(size), unreadable, len(backups))
         return sorted(self._kept.values(), key=lambda f: (
-            f.profile is None, sort_key(f.profile.name if f.profile else f.name)))
+            f.profile is None, sort_key(f.title)))
 
 
 def backup_day(ts: float) -> str:

@@ -2310,15 +2310,15 @@ def cmd_profiles(args) -> int:
     readable = [f for f in files if f.profile is not None]
     if args.profiles_cmd == "show":
         wanted = profiles.sort_key(args.name)
-        found = ([f for f in readable if profiles.sort_key(f.profile.name) == wanted]
-                 or [f for f in readable if wanted in profiles.sort_key(f.profile.name)])
+        found = ([f for f in readable if profiles.sort_key(f.title) == wanted]
+                 or [f for f in readable if wanted in profiles.sort_key(f.title)])
         if len(found) != 1:
-            names_found = ", ".join(f.profile.name for f in found)
+            names_found = ", ".join(f.title for f in found)
             _error(_("Profiles that match “{name}”: {names}").format(
                 name=args.name, names=names_found) if found
                 else _("No profile is named “{name}”.").format(name=args.name))
             return 1
-        print(found[0].profile.name)
+        print(found[0].title)
         print("\n".join(_profile_lines(found[0])))
         return 0
     print(ngettext("{count} profile:", "{count} profiles:", len(readable))
@@ -2330,7 +2330,7 @@ def cmd_profiles(args) -> int:
         built_in = names.built_in_summary(f.profile)
         if built_in:
             parts.append(built_in)
-        print(f"  {f.profile.name} · " + " · ".join(parts))
+        print(f"  {f.title} · " + " · ".join(parts))
     for f in files:
         if f.profile is None:
             print(_("  {file}: {error}").format(file=f.name, error=f.error))
