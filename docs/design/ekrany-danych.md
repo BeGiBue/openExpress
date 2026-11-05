@@ -227,6 +227,9 @@ keeps it as it is.
   the changes", with Restore Previous Version) (D12).
 - **Restore Previous Version** lists the copies of the profile, newest first, with their time;
   the one chosen is written back the same way, after a copy of the present file.
+- An Edge 1050 keeps copies of its profiles itself, in `Sports/Backups` (FIT type 57, written by
+  the device; the list of profiles leaves them out and says the day of the newest). A restore may
+  offer them besides the copies on this computer: to be decided with the rest of stage 2.
 - Leaving the page or the device with changes not saved asks: "Discard the changes to Run?".
 
 ### 4.7 The narrow window
