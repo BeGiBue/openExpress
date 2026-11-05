@@ -41,7 +41,7 @@ each heart-rate and power zone, named here with its zone."""
 from __future__ import annotations
 
 from openexpress.i18n import _, ngettext, pgettext
-from openexpress.profiles import SHOWN
+from openexpress.profiles import RESERVED_CODE, SHOWN
 
 # The number of a Connect IQ data field: which app it shows is said elsewhere in the file.
 CONNECT_IQ_FIELD = 216
@@ -320,8 +320,10 @@ def edge_shaped(profile) -> bool:
 
 
 def hidden_built_in(profile) -> int:
-    """How many of the profile's built-in screens are on but hidden on the device (an Edge's)."""
-    return sum(1 for s in profile.built_in() if s.hidden and s.state == SHOWN)
+    """How many of the profile's built-in screens are on but hidden on the device (an Edge's);
+    a place kept for later (RESERVED_CODE) is none."""
+    return sum(1 for s in profile.built_in()
+               if s.hidden and s.state == SHOWN and s.code != RESERVED_CODE)
 
 
 # The built-in screens an Edge shows only in their situation, and when it shows them.

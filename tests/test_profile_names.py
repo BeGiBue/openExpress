@@ -196,3 +196,18 @@ def test_a_watch_s_layouts_in_polish():
     finally:
         i18n.setup("en")
     assert said == ["Układ „stos”", "Układ „bez podpisów”"]
+
+
+def test_the_reserved_place_is_never_counted():
+    """A place an Edge keeps for later (code 32) is no built-in screen, hidden or not: the
+    count says what the page lists."""
+    from fakes import ScreenRecord, sport_file
+
+    from openexpress import profiles
+
+    data = sport_file("Road", 2, shape="edge", screens=(
+        ScreenRecord(place=0, code=0, order=0, fields=(6,), variant=0),
+        ScreenRecord(place=1, code=25, order=1),
+        ScreenRecord(place=2, code=32, order=2, hidden=1)))
+    said = profile_names.built_in_summary(profiles.read_profile(data))
+    assert said == "1 built-in screen"

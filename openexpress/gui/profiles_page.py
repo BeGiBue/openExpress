@@ -32,7 +32,6 @@ NARROWEST = (360, 200)  # a page's own least size (its breakpoints need one)
 CONTENT_WIDTH = 760
 # The activity files read for the profiles used lately when the Activities page has read none.
 RECENT_ACTIVITIES = 10
-# The code of a place an Edge keeps for later ("reserved"): never a screen of its own.
 
 
 edge_shaped, screen_title = names.edge_shaped, names.screen_title
