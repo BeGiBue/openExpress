@@ -136,11 +136,8 @@ term):
 
 - **Garmin Connect on the web**, with the account's language set to that language: the activity
   page, the lists and the settings, read on the screen.
-- **The Garmin Connect app for Android**: its texts are split by language, one file per language
-  (`split_config.<language>.apk`), which the Play Store installs only for the languages of the
-  phone. To get one: add the language to the phone's languages, let the store update the app,
-  pull the files again with adb (only the missing file comes), decode its resources and pair
-  its texts with the English ones by name, as for Polish.
+- **The Garmin Connect app on a phone**, with the phone's language set to that language: a word
+  the web does not show, read on the screen.
 - **Garmin's manuals**, published per language on Garmin's website: the names of data fields
   and of the device's screens as the device shows them.
 - **Garmin Express** for Windows and macOS carries its own texts in its languages: few terms of

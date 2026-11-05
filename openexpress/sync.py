@@ -582,7 +582,7 @@ def _upload_one(c, data, label, last, client, state, report, progress,
             continue
         elif res.status == 429:
             # Too many uploads: the other files of this kind wait for the next sync, the
-            # other kinds go on, as in Garmin Connect's app.
+            # other kinds go on.
             stop_types.add(c.datatype)
             ok, error = False, _("too many uploads; files of this kind wait for the next sync")
             break

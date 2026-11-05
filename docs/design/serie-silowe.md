@@ -34,7 +34,7 @@ watch's guess; the file keeps it when the exercise is corrected in Garmin Connec
 
 ## 3. What Garmin Connect does
 
-Facts of its Android app, read from its files (no request was made):
+Facts of its interface, not yet checked with a request:
 
 - **The sets of an activity:** `GET activity-service/activity/{activityId}/exerciseSets` answers
   `{activityId, exerciseSets: [...]}`; a set has `exercises` (a list of `{category, name,
@@ -62,8 +62,7 @@ Facts of its Android app, read from its files (no request was made):
 - The activity page, from the device's files and its backups (`activity_page.py`), and the
   reading of `set` (duration and type).
 - The duplicate check (`activity_matches`), today only whether Garmin Connect has each activity.
-- Its sign-in (OAuth1, as Garmin Express's; Garmin Connect's app uses another) reads the
-  activities and their sets.
+- Its sign-in (OAuth1, as Garmin Express's) reads the activities and their sets.
 - The answers of the servers kept a while (`answers.ANSWERS`), asked fresh before a write; the
   questions `confirm()` and `inform()`; the account's writes of Add to Account (asked, logged,
   experimental); the device's backup folder (the copies of app lists).
@@ -121,7 +120,7 @@ Anuluj / Zapisz (`confirm()`; closing and Escape mean Anuluj).
 
 ### 5.4 Texts (English, Polish)
 
-Garmin Connect's words where it has them (its app's; to be checked on connect.garmin.com):
+Garmin Connect's words where it has them (to be checked on connect.garmin.com):
 
 | English | Polish |
 |---|---|
@@ -187,9 +186,9 @@ second by another user (D8).
 ### D3: the names of the exercises — recommended: 3a
 
 - **3a. Garmin Connect's catalogue and names, read from Garmin's server in the window's language
-  and kept a week (`answers`), as its app does (recommended).** + The very words of Garmin
-  Connect; nothing of Garmin's in the repository. − A request; without it the keys are made
-  readable ("Barbell bench press").
+  and kept a week in `answers` (recommended).** + The very words of Garmin Connect; nothing of
+  Garmin's in the repository. − A request; without it the keys are made readable ("Barbell
+  bench press").
 - **3b. Our own names for the 53 categories.** − No exercise names; translations to keep.
 
 ### D4: the rows — recommended: 4a
@@ -206,10 +205,11 @@ second by another user (D8).
 
 ### D6: what is written — recommended: 6a
 
-- **6a. The whole list, as Garmin Connect's app writes it: the sets not changed as they came, a
+- **6a. The whole list, as a saving sends it (section 3): the sets not changed as they came, a
   set changed with only its changed fields different (recommended).** + The server gets what it
   knows. − Whether `messageIndex` survives a write is checked live first (section 8).
-- **6b. Everything the reading answered, changed where wanted.** − Fields the app never sends.
+- **6b. Everything the reading answered, changed where wanted.** − Fields a saving does not
+  send (section 3).
 
 ### D7: the copy and the restore — recommended: 7a
 

@@ -512,7 +512,7 @@ FIRST, SECOND = "2026-10-01-10-00-00.fit", "2026-10-02-10-00-00.fit"
 def test_a_412_leaves_out_that_file_alone(device_root, tmp_path):
     """412: Garmin Connect has no consent for this one file. It is left out as a refusing
     location's file is (no error, not marked: the next sync tries it again) and the upload goes
-    on with the next file, as Garmin Connect's app does."""
+    on with the next file."""
     st, dev, state = _setup(device_root, tmp_path)
     plan = sync.plan_uploads(dev, st, UPLOAD_CONFIG, state, only_types={"FIT_TYPE_4"})
     client = AnswersInTurn({ACT: [412]})
@@ -538,7 +538,7 @@ def test_a_412_is_not_undone_by_a_location_that_needs_a_consent(device_root, tmp
 
 def test_a_429_holds_back_the_rest_of_that_kind_only(device_root, tmp_path):
     """429: too many uploads. The file fails (the next sync tries it again) and the other files
-    of its kind wait for the next sync, as in Garmin Connect's app; the other kinds go on."""
+    of its kind wait for the next sync; the other kinds go on."""
     st, dev, state = _setup(device_root, tmp_path)
     plan = sync.plan_uploads(dev, st, UPLOAD_CONFIG, state,
                              only_types={"FIT_TYPE_4", "FIT_TYPE_32"})
