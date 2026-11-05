@@ -11,8 +11,9 @@
 </p>
 
 <p align="center">
-  <b>New:</b> the page of an activity, with its track on a map coloured by heart rate,
-  pace or elevation, its charts, laps, heart-rate zones and training effect.
+  <b>New:</b> activity profiles – each sport's data screens with their fields in Garmin's words.
+  Also new: clearer icons, and the version from source and the Flatpak share one computer
+  without uploading anything twice.
 </p>
 
 <p align="center">
@@ -49,9 +50,10 @@ are read from **your own copy** of the official installer during setup.
 devices that connect over USB (MTP) should work too – reports are welcome.
 
 - Sync with Garmin Connect: new activities, sleep, HRV and other data go up; courses,
-  workouts and Connect IQ apps queued in Connect come down to the watch; TrueUp.
-- Software updates and free maps (TopoActive, CourseView, Ski…), checked by MD5, and maps
-  of your own.
+  workouts and Connect IQ apps queued in Connect come down to the watch; TrueUp. A device not
+  yet on your account can be added from openExpress (experimental).
+- Software updates and free maps (TopoActive, CourseView, Ski…), installed and updated,
+  checked by MD5 before they are written, and maps of your own.
 - Connect IQ apps: install, update, remove, turn on or off, put back in order – also on
   watches that hide their app folder (e.g. the fēnix 8).
 - Music, podcasts and audiobooks, with playlists.
@@ -65,6 +67,13 @@ devices that connect over USB (MTP) should work too – reports are welcome.
   device and the primary wearable.
 - A GTK 4 / libadwaita window, a command-line tool and sync in the background.
 - No telemetry. English and Polish.
+
+<p align="center">
+  <picture>
+    <source media="(prefers-color-scheme: dark)" srcset="docs/screenshots/profile.png">
+    <img alt="The COMMUTE profile of an Edge 1050: two data screens drawn as the Edge shows them, beside their numbered fields, and the built-in screens Map, Elevation and Stamina" src="docs/screenshots/profile-light.png" width="700">
+  </picture>
+</p>
 
 <p align="center">
   <img src="docs/screenshots/activities.png" width="700"
@@ -113,6 +122,13 @@ Updates then come with `flatpak update`. The GNOME runtime comes from Flathub, h
 first line. If you added this repository earlier under the name `openexpress`, keep it: it is
 the same repository and keeps updating. Not using Flatpak, or installing offline:
 [Other ways to install](docs/install.md).
+
+### The Flatpak and the version from source
+
+They keep their own setup, sign-in and records. The version from source also reads what the
+Flatpak keeps of a device: a file the Flatpak uploaded is not uploaded again, and the two never
+sync at the same time. The Flatpak cannot see the version from source
+([more](docs/install.md#the-flatpak-and-the-version-from-source)).
 
 ### System requirements
 
