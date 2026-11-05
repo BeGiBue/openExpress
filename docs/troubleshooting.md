@@ -22,6 +22,12 @@
   2) lose their USB connection when the computer sleeps: unplug the cable and plug it in
   again.
 - **An Edge 1050 restarts each time it is unplugged.** It always does.
+- **Garmin Connect shows a heat or altitude acclimation you did not expect.** With two
+  devices on the account (for example a watch and an Edge), each keeps its own acclimation, and
+  the daily values in Garmin Connect come from the device that reported last: an Edge can keep
+  a high value from weeks ago while the watch shows 0. The acclimation on each device's own
+  screen tells which one it comes from. openExpress passes the devices' files on as they are
+  and changes no such value; an Edge 1050 has no reset of the acclimation alone.
 - **"This device is not registered to your Garmin account", although you registered it.**
   Registering the product on garmin.com does not add it to Garmin Connect, whose list of
   devices openExpress checks. Add the device in Garmin Connect (pair it with the Garmin
