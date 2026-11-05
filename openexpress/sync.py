@@ -877,7 +877,7 @@ def activities_to_sync(device: GarminDevice, storage: Storage) -> ActivitiesToSy
 def _activities_to_sync(device: GarminDevice, storage: Storage) -> ActivitiesToSync | None:
     if not device.unit_id:
         return None
-    if not SyncState(device.unit_id).file.exists():
+    if not synced_here(device.unit_id):
         log.info("activities: not counted, the device was never synced here")
         return ActivitiesToSync(device.unit_id)
     started = time.monotonic()

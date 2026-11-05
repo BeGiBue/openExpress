@@ -186,3 +186,11 @@ def test_the_flatpaks_message_numbers_never_go_into_this_installs_record(device_
     state = sync.state_of(UNIT)
     sync.run_downloads(sync.plan_downloads(dev, [COURSE]), st, SyncClient(), state=state)
     assert "999" not in state.unacked()
+
+
+def test_the_activities_of_a_device_the_flatpak_synced_are_counted(device_root):
+    """Its page and tile count what is left to upload, not "never synced here"."""
+    st = LocalStorage(device_root)
+    dev = parse(st.read("GARMIN/GarminDevice.xml"))
+    flatpak_keeps(state={"completed": SENT, "singleton_md5": {}})
+    assert sync.activities_to_sync(dev, st).count == 0
