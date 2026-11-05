@@ -192,13 +192,34 @@ def record(service: str, url: str, status: int | None, resp=None) -> None:
 
 # --- what the window shows ------------------------------------------------------------------
 
-# TRANSLATORS: state of Garmin's servers, at the bottom of the side panel
-STATE_TEXT = {UNKNOWN: N_("Status unknown"), ONLINE: N_("Online"),
-              OFFLINE: N_("No connection"), SERVER_PROBLEM: N_("Garmin server problem"),
-              SIGN_IN_EXPIRED: N_("Sign-in expired"), CLOCK_OFF: N_("Computer clock is off")}
-# TRANSLATORS: the parts of Garmin's servers, in the popover of the server state button
-SERVICE_NAME = {CONNECT: N_("Garmin Connect"), OMT: N_("Updates and maps"),
-                SIGN_IN: N_("Sign-in")}
+STATE_TEXT = {
+    # TRANSLATORS: state of Garmin's servers, at the bottom of the side panel
+    UNKNOWN: N_("Status unknown"),
+    # TRANSLATORS: state of Garmin's servers at the bottom of the side panel: they answer
+    ONLINE: N_("Online"),
+    # TRANSLATORS: state of Garmin's servers at the bottom of the side panel: nothing answered,
+    # the computer has no connection
+    OFFLINE: N_("No connection"),
+    # TRANSLATORS: state of Garmin's servers at the bottom of the side panel: a server error, or
+    # only some of the servers answer
+    SERVER_PROBLEM: N_("Garmin server problem"),
+    # TRANSLATORS: state of Garmin's servers at the bottom of the side panel: they refuse the
+    # sign-in, which must be renewed
+    SIGN_IN_EXPIRED: N_("Sign-in expired"),
+    # TRANSLATORS: state of Garmin's servers at the bottom of the side panel: they refuse the
+    # sign-in because the computer's clock differs too much from theirs
+    CLOCK_OFF: N_("Computer clock is off"),
+}
+SERVICE_NAME = {
+    # TRANSLATORS: the parts of Garmin's servers, in the popover of the server state button
+    CONNECT: N_("Garmin Connect"),
+    # TRANSLATORS: a part of Garmin's servers, in the popover of the server state button: the
+    # one for software updates and maps
+    OMT: N_("Updates and maps"),
+    # TRANSLATORS: a part of Garmin's servers, in the popover of the server state button: the
+    # sign-in server (a noun, not a button)
+    SIGN_IN: N_("Sign-in"),
+}
 _HOST_KEY = {CONNECT: "connectapi", OMT: "omt", SIGN_IN: "sso"}
 
 
@@ -273,13 +294,21 @@ def rows(last: dict[str, Result], answered: dict[str, float], hosts: dict[str, s
         r = last.get(s)
         host = r.host if r else urlsplit(hosts.get(_HOST_KEY[s], "")).netloc
         if r is None:
+            # TRANSLATORS: how a part of Garmin's servers answered when the program has not needed
+            # it yet; read by screen readers after its name
             detail = outcome = _("not needed yet")
         elif r.kind == OK:
+            # TRANSLATORS: a part of Garmin's servers answered well, read by screen readers; {at}:
+            # "at 23:41", on another day with the date
             detail = _("answered {at}").format(at=at(r.at, now))
             # TRANSLATORS: how a service of Garmin last answered, beside the time
             outcome = _("answered")
         elif r.kind == NETWORK:
+            # TRANSLATORS: a part of Garmin's servers could not be reached, read by screen readers;
+            # {at}: "at 23:41", on another day with the date
             detail = _("no connection {at}").format(at=at(r.at, now))
+            # TRANSLATORS: a part of Garmin's servers could not be reached: the word beside its time
+            # in the popover of the server state button
             outcome = _("no connection")
         elif r.kind == SERVER:
             detail = _("server error (HTTP {status}) {at}").format(
@@ -293,6 +322,8 @@ def rows(last: dict[str, Result], answered: dict[str, float], hosts: dict[str, s
             detail = _("computer clock off by {minutes} min at {time}").format(
                 minutes=r.minutes, time=when(r.at, now))
             outcome = _("clock off by {minutes} min").format(minutes=r.minutes)
+        # TRANSLATORS: when a part of Garmin's servers last answered well (screen readers, tooltip
+        # of its row); {at}: "at 23:41" or with the date
         last_answer = (_("last answer {at}").format(at=at(answered[s], now))
                        if r is not None and r.kind != OK and s in answered else "")
         good = r.at if r is not None and r.kind == OK else answered.get(s)
@@ -310,6 +341,8 @@ def describe(last: dict[str, Result], answered: dict[str, float], hosts: dict[st
     lines = [_(STATE_TEXT[state])]
     for r in rows(last, answered, hosts, now):
         detail = r.detail + ("; " + r.last_answer if r.last_answer else "")
+        # TRANSLATORS: a line read by screen readers for each part of Garmin's servers; {host}: its
+        # address; {detail}: how it last answered
         lines.append(_("{service} ({host}): {detail}").format(
             service=r.name, host=r.host, detail=detail))
     return lines[0], "\n".join(lines)

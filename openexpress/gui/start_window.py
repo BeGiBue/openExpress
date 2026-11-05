@@ -332,6 +332,8 @@ class StartWindow:
         for sec in self.sections.values():
             sec.loaded = False
             sec.clear()
+            # TRANSLATORS: title of the device pages when several devices are connected and none is
+            # open; also why Sync cannot start
             sec.set_empty(_("Choose a device"),
                           _("Several Garmin devices are connected. Choose one on the "
                             "Device page."), False)

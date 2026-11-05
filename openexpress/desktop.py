@@ -14,7 +14,11 @@ from openexpress.paths import APP_ID as DESKTOP_ID
 SERVICE = "openexpress-watch.service"
 
 NAME = "openExpress"
+# TRANSLATORS: name of the hidden desktop entry that syncs in the background when the device is
+# connected
 NAME_BACKGROUND = N_("openExpress (background)")
+# TRANSLATORS: generic name of the app in application menus (GenericName in the desktop file): a
+# tool that syncs Garmin watches
 GENERIC_NAME = N_("Garmin Watch Sync")
 COMMENT = N_("Sync, updates and maps for Garmin watches")
 # TRANSLATORS: search keywords for the application menu; keep the ";" separators and the ending ";"

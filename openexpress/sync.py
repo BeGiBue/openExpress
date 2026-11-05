@@ -442,6 +442,8 @@ def plan_uploads(
             locations = [loc for loc in locations if loc not in diag]
             if diag and not locations:
                 if _sources_for(device, dt):
+                    # TRANSLATORS: sync dry run, after "skipped: ": diagnostic data kept back unless
+                    # the option is given; keep "--include-diagnostics"
                     plan.skipped_types[name] = _("diagnostics/telemetry (--include-diagnostics)")
                 continue
         if skipped:

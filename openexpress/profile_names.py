@@ -351,6 +351,8 @@ def built_in_count(always: int, needed: int, hidden: int) -> str:
     needed and those hidden on the device ("3 built-in screens (+6 when needed, 1 hidden)")."""
     extras = []
     if always or not needed:
+        # TRANSLATORS: the device's own data screens an activity profile scrolls through: "3
+        # built-in screens (+6 when needed, 1 hidden)"
         text = ngettext("{count} built-in screen", "{count} built-in screens", always).format(
             count=always)
         if needed:
@@ -481,6 +483,8 @@ def layout_name(variant: int | None, edge: bool) -> str:
     """The layout of a screen of one's own: its letter on an Edge, its family on a watch; its
     code when it is not known."""
     if variant is None:
+        # TRANSLATORS: the layout of a custom data screen when the profile file does not say it
+        # (otherwise e.g. "Layout A")
         return _("Layout not given")
     if layout_known(variant, edge) and edge:
         # TRANSLATORS: the layout of a data screen by the letter of the device's menu

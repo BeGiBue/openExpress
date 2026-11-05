@@ -555,6 +555,8 @@ class DeviceDetection:
             text = _("This takes a moment after the cable is plugged in.")
             return _("The device is starting…"), f"{text} {_(REPLUG_HINT)}", True
         if state == ABSENT:
+            # TRANSLATORS: title when no device is plugged in: plug it in with a USB cable
+            # ("connect", not Garmin Connect)
             return (_("Connect your device"),
                     _("Connect your Garmin device with a USB cable. "
                       "It will be detected automatically."), False)

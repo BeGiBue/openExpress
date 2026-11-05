@@ -147,12 +147,15 @@ def _install_task(win, s, chosen):
         if not rep.written:
             return
         if not mass_storage:
+            # TRANSLATORS: heading of the message after an update was copied to the device or its
+            # drive was ejected (not a button)
             win.error(_("Done"), win._update_done_text(rep))
             return
         win.eject_device(s, bike_accessory)
 
     def failed(e) -> bool:
         # Under a heading of its own, not the name of the task ("Installing update…").
+        # TRANSLATORS: heading of the error message when installing an update failed
         win.error(_("Update not installed"), str(e) or type(e).__name__)
         return True
 
@@ -174,6 +177,8 @@ def confirm_install_all(win, items) -> None:
     lines += [f"{u.title}: " + _("Can be installed once the device has installed {name}").format(
         name=other.title) for u, other in put_off]
     body = ("\n".join(lines) + "\n\n"
+            # TRANSLATORS: in the question before installing updates: their size; {size}: e.g. "25.4
+            # MB"
             + _("Size: {size}").format(size=human_size(sum(u.size or 0 for u in kept))))
     def install() -> None:
         work, done, failed = _install_task(win, s, chosen)
@@ -249,8 +254,12 @@ class UpdatesPage:
         re = [u for u in items if (u.is_reinstall or u.on_device) and not u.is_metadata
               and not any(u is w for w in staged)]
         if re:
+            # TRANSLATORS: heading of a group on the Updates page that holds the reinstall of
+            # components already on the device
             g = sec.group(_("Advanced"))
             exp = Adw.ExpanderRow(
+                # TRANSLATORS: title of an expandable row on the Updates page that lists components
+                # already on the device, each with a Reinstall button
                 title=_("Reinstall components"),
                 subtitle=ngettext("{count} component already on the device; useful for "
                                   "troubleshooting",
@@ -318,6 +327,8 @@ class UpdatesPage:
             # TRANSLATORS: button that installs every update offered to a device connected as
             # a USB drive, then ejects it once
             buttons.append(self._button(
+                # TRANSLATORS: button that installs every update offered to a device connected as a
+                # USB drive, then ejects it once
                 _("Install all"), lambda items=list(installable): confirm_install_all(self, items),
                 None if buttons else "suggested-action"))
         buttons.append(self._button(_("Check Again"), lambda: check_updates_again(self)))
@@ -387,6 +398,8 @@ class UpdatesPage:
             subtitle += "\n" + note
             reinstall = True
         row = Adw.ActionRow(
+            # TRANSLATORS: title of the row of an update of the device's own software (firmware), on
+            # the Updates page
             title=GLib.markup_escape_text(_("System software") if u.is_system else u.title),
             subtitle=GLib.markup_escape_text(subtitle),
         )
@@ -411,6 +424,8 @@ class UpdatesPage:
         body = (f"{u.title} {versions_text(u, s.device)}\n"
                 + _("Size: {size}").format(size=human_size(u.size)) + "\n"
                 + _("On the device: {path}").format(path=u.device_path)
+                # TRANSLATORS: in the question before installing an update: above the list of what
+                # the update changes
                 + ("\n\n" + _("Changes:") + "\n" + "\n".join("• " + c for c in u.changes[:10])
                    if u.changes else "")
                 + ("\n\n" + _("This is a beta version.") if u.is_beta else ""))
@@ -444,6 +459,8 @@ class UpdatesPage:
         def ejected(_result):
             # For a bike accessory, as Garmin Express does: how it finishes the update.
             inform(self, "ejected", _("Done"), ejected_text(),
+                   # TRANSLATORS: heading of the message after a bike accessory was ejected, with
+                   # the steps that finish its update
                    then=(lambda: self.error(_("Finish the update"), bike_accessory_text()))
                    if bike_accessory else None)
 

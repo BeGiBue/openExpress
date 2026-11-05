@@ -370,6 +370,8 @@ def chips(tile, now: float | None = None) -> list[tuple[str, str, str | None]]:
             # it, the device installs it once unplugged
             words = pgettext("chip", "Unplug to install")
         when = full_time(datetime.fromtimestamp(tile.update_ready))
+        # TRANSLATORS: tooltip of an update chip on a device's tile: when the updates were checked;
+        # {when}: a date and an hour
         said.append((words, "warning", _("Checked {when}").format(when=when)))
     elif found is not None:
         said.append((update_available(), "warning",
@@ -383,6 +385,8 @@ def chips(tile, now: float | None = None) -> list[tuple[str, str, str | None]]:
                                "{count} new activities since {when}", count).format(
                 count=count, when=full_time(datetime.fromtimestamp(tile.synced_at)))
         else:
+            # TRANSLATORS: tooltip of the chip "To sync" when no last sync is known: activities on
+            # the device not uploaded yet
             tooltip = ngettext("{count} new activity", "{count} new activities",
                                count).format(count=count)
         # TRANSLATORS: a chip on the tile of a connected device: it has activities that
@@ -859,6 +863,7 @@ def small_kind_icon(category) -> str:
 
 
 def _name(tile) -> str:
+    # TRANSLATORS: shown in place of a device's name when its name is not known
     return tile.description or _("Garmin device")
 
 

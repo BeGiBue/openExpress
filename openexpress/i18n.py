@@ -9,6 +9,7 @@ Usage in code:
   from openexpress.i18n import _, N_, ngettext
   _("Text")                         translated at call time
   N_("Text")                        marks a module-level constant; translate with _() when shown
+  NC_("ctx", "Text")                the same with a context; translate with pgettext("ctx", …)
   ngettext("{n} file", "{n} files", n).format(n=n)
   pgettext("tab", "Sync")           same English word, different meaning (tab vs. button)
 """
@@ -151,6 +152,8 @@ def relative_time(moment: datetime, now: datetime) -> str:
     "3 days ago" two to six days back by the date; else the date and the hour."""
     seconds = (now - moment).total_seconds()
     if seconds < 60:
+        # TRANSLATORS: how long ago, under a minute: alone ("just now · 3 new files") or after a
+        # word ("Last seen just now")
         return _("just now")
     if seconds < 3600:
         n = int(seconds // 60)
@@ -187,8 +190,12 @@ def format_when(ts: float) -> str:
     now = datetime.now()
     clock = when.strftime("%H:%M")
     if when.date() == now.date():
+        # TRANSLATORS: tooltip of "Last sync": when the sync was, today; {time}: the hour, e.g.
+        # 23:41
         return _("Today at {time}").format(time=clock)
     if when.date() == (now - timedelta(days=1)).date():
+        # TRANSLATORS: tooltip of "Last sync": when the sync was, yesterday; {time}: the hour, e.g.
+        # 23:41
         return _("Yesterday at {time}").format(time=clock)
     return when.strftime("%x %H:%M")
 
@@ -434,6 +441,11 @@ def human_size(n: int | None, localize: bool = True) -> str:
 
 
 def N_(message: str) -> str:
+    return message
+
+
+def NC_(context: str, message: str) -> str:
+    """Marks a text with a context to be translated later, as N_ does (pgettext when shown)."""
     return message
 
 

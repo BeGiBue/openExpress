@@ -178,6 +178,8 @@ def backups_text(unit_id) -> str:
         return _("No backup yet")
     # TRANSLATORS: subtitle of the row "Backup": when the last backup was made
     return caption(_("Last on {when}").format(when=i18n.full_time(found[0][0])),
+                   # TRANSLATORS: subtitle of the row "Backup", after "Last on …": how many backups
+                   # there are
                    ngettext("{count} backup", "{count} backups", len(found)).format(
                        count=len(found)))
 
@@ -252,6 +254,7 @@ def device_error_row(win, group=None) -> None:
     if found.dumps:
         size = sum(n for _p, n in found.dumps)
         r = Adw.ActionRow(title=_("Memory dumps"), subtitle=caption(
+            # TRANSLATORS: subtitle of "Memory dumps": how many memory dump files the device holds
             ngettext("{count} dump", "{count} dumps", len(found.dumps)).format(
                 count=len(found.dumps)), human_size(size),
             # TRANSLATORS: of the memory dumps of the device: only Garmin can read them
@@ -301,6 +304,8 @@ def primary_wearable_row(win, wearable):
                         subtitle=GLib.markup_escape_text(primary_wearable_text(wearable)))
     if not wearable.is_this_device:
         row.add_suffix(win._button(
+            # TRANSLATORS: button beside "Primary wearable" or "Primary training device": makes this
+            # device the account's primary one
             _("Set as Primary"), lambda button: confirm_primary_wearable(win, wearable, button),
             with_button=True))
     return row
@@ -527,7 +532,10 @@ def primary_training_unknown(s) -> str:
         # TRANSLATORS: subtitle of "Primary training device" of a device off the account
         return pgettext("primary training device", "Not available")
     if s.ownership_error is not None or s.account_devices is None:
+        # TRANSLATORS: subtitle of "Primary training device" when the account could not be asked
         return _("Could not check")
+    # TRANSLATORS: subtitle of a row (Device software, Maps, Primary training device) while Garmin's
+    # server is asked
     return _("Checking…")
 
 
@@ -985,6 +993,7 @@ class DevicePage:
                 g.add(self._auto_sync_row())  # the background service never syncs a drive
 
         g = sec.group(pgettext("tab", "Updates"))
+        # TRANSLATORS: row of the device's own software (firmware) and its updates
         self.update_row = Adw.ActionRow(title=_("Device software"), activatable=True)
         self.update_row.add_suffix(Gtk.Image(icon_name="go-next-symbolic"))
         self.update_row.connect("activated", lambda *_a: self.select_section("updates"))
@@ -1034,7 +1043,10 @@ class DevicePage:
             g.add(add_to_account_row(self, s))
         if not mass_storage:
             # The row stays when it cannot be read: why, in short.
-            self.primary_row = Adw.ActionRow(title=_("Primary training device"),
+            self.primary_row = Adw.ActionRow(
+                # TRANSLATORS: title of the row with the Garmin account's primary training
+                # device (the main source of performance and training data)
+                title=_("Primary training device"),
                                              subtitle=primary_training_unknown(s))
             g.add(self.primary_row)
             if s.logged_in and s.ownership_error is None and s.account_devices is not None:
@@ -1049,12 +1061,15 @@ class DevicePage:
 
         g = sec.group(_("Tools"))
         # A backup only reads the files of the device: of a drive too.
+        # TRANSLATORS: a noun: row under "Tools" on the device page, with the button that makes a
+        # copy of the device's files
         self.backup_row = Adw.ActionRow(title=_("Backup"))
         show_backups(self)  # when the last one was made, how many; the folder in the tooltip
         # TRANSLATORS: button that creates a backup
         self.backup_row.add_suffix(self._button(_("Create"), self.backup))
         g.add(self.backup_row)
         device_error_row(self, g)  # only when the device logged an error lately
+        # TRANSLATORS: row with the device's Garmin part number, a product code such as 006-B1234-00
         row = Adw.ActionRow(title=_("Part number"), subtitle=d.part_number,
                             subtitle_selectable=True)
         g.add(row)
@@ -1064,9 +1079,15 @@ class DevicePage:
     @staticmethod
     def _primary_training_text(status) -> str:
         if status.unit_id is None:
+            # TRANSLATORS: subtitle of "Primary training device" or "Primary wearable": the account
+            # has none set
             return _("Not set")
         if status.is_this_device:
+            # TRANSLATORS: subtitle of "Primary training device" or "Primary wearable": it is the
+            # device shown
             return _("This device")
+        # TRANSLATORS: subtitle of "Primary training device" or "Primary wearable": another device
+        # of the account, its name not known
         return status.name or _("Another device")
 
     def _show_primary_training(self, row) -> None:
@@ -1499,11 +1520,16 @@ class DevicePage:
         self.run_task(_("Syncing…"), writes_to_device(work), done, failed)
 
     def ask_first_sync(self) -> None:
+        # TRANSLATORS: heading of the question before the first sync of a device
         confirm(self, "first-sync", _("First sync"),
                 _("If the device also syncs via your phone, most data is already "
                   "in Garmin Connect. You can mark the current files as uploaded "
                   "and upload only new ones, or upload everything (Connect skips duplicates)."),
+                # TRANSLATORS: button of the question "First sync": uploads every activity file on
+                # the device
                 Answer("all", _("Upload everything"), lambda: self.start_sync("all")),
+                # TRANSLATORS: button of the question "First sync": marks the files on the device as
+                # uploaded and uploads only new ones
                 Answer("baseline", _("New data only"), lambda: self.start_sync("baseline"),
                        look="suggested"),
                 default="baseline")

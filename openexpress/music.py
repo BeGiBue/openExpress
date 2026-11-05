@@ -27,6 +27,8 @@ from openexpress.progress import Step, byte_steps, say_to
 log = logging.getLogger(__name__)
 
 KINDS = {"track": "MEDIA_TRACK", "podcast": "MEDIA_PODCAST", "audiobook": "MEDIA_AUDIOBOOK"}
+# TRANSLATORS: a kind of audio to add, beside Podcasts and Audiobooks: a row with Folders… and
+# Files… on the Music page
 KIND_NAMES = {"track": N_("Music"), "podcast": N_("Podcasts"), "audiobook": N_("Audiobooks")}
 PLAYLIST = "MEDIA_PLAYLIST"
 PODCAST_WORDS = ("podcast", "подкаст")
@@ -355,6 +357,8 @@ def plan_playlist(m3u: Path, device: GarminDevice, storage: Storage,
     skipped: list[tuple[str, str]] = []
     for entry in read_m3u(m3u):
         if not entry.is_file():
+            # TRANSLATORS: in brackets after a track of a playlist that cannot be added: its file is
+            # missing
             skipped.append((entry.name, _("file not found")))
             continue
         key = entry.resolve()

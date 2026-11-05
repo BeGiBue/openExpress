@@ -775,6 +775,8 @@ if Shumate is not None:
 def _map_source():
     """The reference of the map's view: OpenStreetMap's projection and zooms."""
     return Shumate.RasterRenderer.new_full(
+        # TRANSLATORS: attribution of the map data on the activity map; keep © and the name
+        # OpenStreetMap
         CACHE_KEY, "OpenStreetMap", _("© OpenStreetMap contributors"), COPYRIGHT_URL, 0,
         MAX_ZOOM, TILE_SIZE, Shumate.MapProjection.MERCATOR, NoTiles())
 
@@ -1013,6 +1015,8 @@ class ActivityMap(Gtk.Box):
             "The map can show streets and terrain under the track, from OpenStreetMap. The "
             "OpenStreetMap server then learns the area of each activity you open. You can turn "
             "this off again in Preferences."), wrap=True, xalign=0))
+        # TRANSLATORS: button under the note about OpenStreetMap: turns on the online map of an
+        # activity
         button = Gtk.Button(label=_("Show the Map"), halign=Gtk.Align.START)
         button.add_css_class("pill")
         button.connect("clicked", _turn_on)

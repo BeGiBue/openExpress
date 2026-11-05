@@ -155,6 +155,8 @@ class Watcher(Gio.Application):
                               _("Open openExpress and choose how to sync the device."))
                 return
             GLib.idle_add(self.notify,
+                          # TRANSLATORS: title of the notification while the background service
+                          # syncs; {device}: the device's name
                           _("Syncing {device}").format(device=s.device.description),
                           # TRANSLATORS: notification body while the watch is syncing
                           _("In progress…"))

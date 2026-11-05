@@ -24,6 +24,8 @@ def _read_varint(data: bytes, pos: int) -> tuple[int, int]:
     result = shift = 0
     while True:
         if pos >= len(data):
+            # TRANSLATORS: error reading protobuf data (the device's Connect IQ files): it ends
+            # inside a varint, a variable-length number
             raise ProtoError(_("Truncated varint"))
         b = data[pos]
         pos += 1
@@ -32,6 +34,8 @@ def _read_varint(data: bytes, pos: int) -> tuple[int, int]:
             return result, pos
         shift += 7
         if shift > 63:
+            # TRANSLATORS: error reading protobuf data (the device's Connect IQ files): a varint, a
+            # variable-length number, longer than 64 bits
             raise ProtoError(_("Varint too long"))
 
 
@@ -48,11 +52,15 @@ def decode(data: bytes) -> list[Field]:
         elif wt == LEN:
             n, pos = _read_varint(data, pos)
             if pos + n > len(data):
+                # TRANSLATORS: error reading protobuf data (the device's Connect IQ files): a field
+                # with a given length runs past the end of the data
                 raise ProtoError(_("Truncated length-delimited field"))
             value, pos = data[pos : pos + n], pos + n
         elif wt in (I32, I64):
             n = 4 if wt == I32 else 8
             if pos + n > len(data):
+                # TRANSLATORS: error reading protobuf data (the device's Connect IQ files): a 4- or
+                # 8-byte field runs past the end of the data
                 raise ProtoError(_("Truncated fixed-size field"))
             value, pos = data[pos : pos + n], pos + n
         else:

@@ -26,6 +26,8 @@ def note_music_count(win, count: int | None, size: int | None) -> None:
     row = win.music_row
     if row is not None:
         row.set_subtitle(GLib.markup_escape_text(caption(ngettext(
+            # TRANSLATORS: subtitle of the row "Music" and of the groups of the music page: the
+            # files and their total size
             "{count} file · {size}", "{count} files · {size}", count).format(
             count=count, size=human_size(size or 0)))) if count is not None else "")
 
@@ -65,7 +67,11 @@ class MusicPage:
         g = sec.group(_("Add to the device"), space_text(free))
         for kind in kinds:
             row = Adw.ActionRow(title=_(music.KIND_NAMES[kind]))
+            # TRANSLATORS: button beside Music, Podcasts or Audiobooks: chooses folders to copy to
+            # the device
             row.add_suffix(self._button(_("Folders…"), lambda k=kind: self.choose_music(k, True)))
+            # TRANSLATORS: button beside Music, Podcasts or Audiobooks: chooses files to copy to the
+            # device
             row.add_suffix(self._button(_("Files…"), lambda k=kind: self.choose_music(k, False)))
             g.add(row)
         on_watch = {"track": _("Music on the device"), "podcast": _("Podcasts on the device"),
@@ -183,6 +189,8 @@ class MusicPage:
     def _playlist_summary(plan, in_flatpak: bool = False) -> str:
         """Text of the confirmation: what is copied, what is already there, what is left out."""
         tracks = len(plan.device_paths)
+        # TRANSLATORS: first line of the question before a playlist is added: how many songs it has
+        # (music tracks, not GPS tracks)
         lines = [ngettext("{count} track", "{count} tracks", tracks).format(count=tracks)]
         n = len(plan.copy.to_copy)
         lines.append(ngettext("{count} file to copy ({size}), {already} already on the device",

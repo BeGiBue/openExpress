@@ -33,7 +33,7 @@ from openexpress.connect import (
 from openexpress.device.storage import DeviceError, DeviceNotResponding, Storage
 from openexpress.device.xmldevice import GarminDevice, parse
 from openexpress.errors import OrdinaryStop, UserFacingError
-from openexpress.i18n import N_, _, ngettext
+from openexpress.i18n import N_, _, ngettext, pgettext
 from openexpress.progress import Waiting, say_to
 from openexpress.settings import Settings, SetupError, language_tag, load_consumer
 
@@ -705,7 +705,7 @@ def primary_training_status(client: GarminClient, device: GarminDevice,
     unit_id = unit_id_of(raw)
     if unit_id is None and raw not in (None, 0, "0", ""):
         raise ApiError(_("{what}: unexpected response from the server").format(
-            what=_("Primary training device")))
+            what=pgettext("server request", "Primary training device")))
     by_id = {unit_id_of(d.get("unitid")): d for d in devices}
     entry = by_id.get(unit_id) if unit_id is not None else None
     capable = by_id.get(device.unit_id, {}).get("primarytrainingcapable")
@@ -910,37 +910,80 @@ class SyncSummary:
 # coming from Garmin Connect's queue to a device (the logs, the download of the queue); the
 # names also say what came from there.
 TYPE_NAMES = {
+    # TRANSLATORS: a type of data on the device, lowercase, in lists ("Files from the device:
+    # activities ×2, sleep") and after "Uploading"
     "FIT_TYPE_4": N_("activities"),             # FIT SDK: activity; upload: activity
+    # TRANSLATORS: a type of data: planned workouts sent to the device (lowercase, in lists of data
+    # types)
     "FIT_TYPE_5": N_("workouts"),               # FIT SDK: workout; queue
+    # TRANSLATORS: a type of data: courses, routes to follow on the device (lowercase, in lists of
+    # data types)
     "FIT_TYPE_6": N_("courses"),                # FIT SDK: course; queue
+    # TRANSLATORS: a type of data: dates of planned workouts, a training calendar (lowercase, in
+    # lists of data types)
     "FIT_TYPE_7": N_("schedules"),              # FIT SDK: schedules
+    # TRANSLATORS: a type of data: body weight readings, a noun (lowercase, in lists of data types)
     "FIT_TYPE_9": N_("weight"),                 # FIT SDK: weight; upload: weight
+    # TRANSLATORS: a type of data: the user's goals, e.g. steps or distance (lowercase, in lists of
+    # data types)
     "FIT_TYPE_11": N_("goals"),                 # FIT SDK: goals; queue
+    # TRANSLATORS: a type of data: summaries of activities (lowercase, in lists of data types)
     "FIT_TYPE_20": N_("activity summary"),      # FIT SDK: activity_summary; queue
+    # TRANSLATORS: a type of data: daily totals of all-day tracking such as steps (lowercase, in
+    # lists of data types)
     "FIT_TYPE_28": N_("daily monitoring"),      # FIT SDK: monitoring_daily
+    # TRANSLATORS: a type of data: personal bests (lowercase, in lists of data types)
     "FIT_TYPE_29": N_("personal records"),      # FIT profile: personal_records; queue
+    # TRANSLATORS: a type of data: all-day tracking of steps, heart rate, stress… (lowercase, in
+    # lists of data types)
     "FIT_TYPE_32": N_("monitoring"),            # FIT SDK: monitoring_b
+    # TRANSLATORS: a type of data: segments, stretches of road or trail to race on (lowercase, in
+    # lists of data types)
     "FIT_TYPE_34": N_("segments"),              # FIT SDK: segment
+    # TRANSLATORS: a type of data: the list of the segments on the device (lowercase, in lists of
+    # data types)
     "FIT_TYPE_35": N_("segment list"),          # FIT SDK: segment_list; upload: segment-list
     "FIT_TYPE_38": N_("golf scorecards"),       # folder: SCORCRDS
+    # TRANSLATORS: a type of data: a record of the changes to the device's settings (lowercase, in
+    # lists of data types)
     "FIT_TYPE_41": N_("settings change log"),   # FIT profile: settings_change_log; queue
+    # TRANSLATORS: a type of data: the device's training and health metrics (lowercase, in lists of
+    # data types)
     "FIT_TYPE_44": N_("metrics"),               # upload: metrics; queue
+    # TRANSLATORS: a type of data: sleep records, a noun (lowercase, in lists of data types)
     "FIT_TYPE_49": N_("sleep"),                 # folder: Sleep
     # FIT profile: device_monitoring ("data logged on a device level", not the wearer's
     # monitoring); upload: device-monitoring; folder: Garmin/Device
+    # TRANSLATORS: a type of data: what the device logs about itself, not the wearer's tracking
+    # (lowercase, in lists of data types)
     "FIT_TYPE_58": N_("device log"),
+    # TRANSLATORS: a type of data: electrocardiogram readings (abbreviation; lowercase list of data
+    # types)
     "FIT_TYPE_61": N_("ECG"),                   # folder: ECG
+    # TRANSLATORS: a type of data: Garmin's HRV status (heart rate variability); use the feature's
+    # name in Garmin's apps
     "FIT_TYPE_68": N_("HRV status"),            # upload: hrvstatus
     # FIT profile: fbt_lha_backup; folder: Garmin/FbtBackup
+    # TRANSLATORS: a type of data: Garmin's training status kept by the device; use the feature's
+    # name in Garmin's apps
     "FIT_TYPE_72": N_("training status data"),
     "FIT_TYPE_73": N_("skin temperature"),      # upload: skintemp
     # FIT profile: primary_training_backup; folder: Garmin/FbtPtdBackup
     "FIT_TYPE_74": N_("primary training device data"),
     # FIT profile: adaptive_coaching_schedule; folder: Garmin/Coach
+    # TRANSLATORS: a type of data: a Garmin Coach training plan (Garmin Coach is a name)
     "FIT_TYPE_77": N_("Garmin Coach plan"),
+    # TRANSLATORS: a type of data: interruptions of sleep the device recorded (lowercase, in lists
+    # of data types)
     "FIT_TYPE_79": N_("sleep disruptions"),     # upload: sleep-disruptions
+    # TRANSLATORS: a type of data: use of gear such as shoes or bikes, not bike gears (lowercase, in
+    # lists of data types)
     "FIT_TYPE_87": N_("gear tracking"),         # FIT profile: gear_tracking; queue
+    # TRANSLATORS: a type of data: activities that last several days (lowercase, in lists of data
+    # types)
     "FIT_TYPE_88": N_("multi-day activities"),  # upload: multi-day-activity
+    # TRANSLATORS: a type of data: a backup of the device uploaded to Garmin Connect (lowercase, in
+    # lists of data types)
     "BACKUP_PRIMARY": N_("device backup"),      # upload: backup
     "BACKUP_SUPPLEMENTARY": N_("device backup"),
     "ACTIVITY_GCPD": N_("raw GPS data of activities"),  # upload: rawgnssactivity
@@ -951,6 +994,8 @@ def type_name(datatype: str) -> str:
     """The readable name of a data type of new files (and of the files of Garmin Connect's
     queue), in the language of the moment."""
     known = TYPE_NAMES.get(datatype)
+    # TRANSLATORS: a type of data with no name, in lists of data types; {type}: its technical name,
+    # e.g. FIT_TYPE_70
     return _(known) if known else _("other data ({type})").format(type=datatype)
 
 
@@ -1225,6 +1270,8 @@ def describe_counts(data: dict) -> str:
     elif files:
         # TRANSLATORS: files found on the device, e.g. "8 new files, 6 uploaded"
         found = ngettext("{count} new file", "{count} new files", files).format(count=files)
+        # TRANSLATORS: under "Last sync", after "8 new files, ": how many of them were uploaded to
+        # Garmin Connect
         sent = (ngettext("{count} uploaded", "{count} uploaded", uploaded).format(
             count=uploaded) if uploaded
             # TRANSLATORS: after "3 new files, ": not one of them was uploaded
@@ -1241,6 +1288,8 @@ def describe_counts(data: dict) -> str:
         parts[0] = _("{types} only: {numbers}").format(
             types=_describe_types({datatype: 1 for datatype in only}), numbers=parts[0])
     if received:
+        # TRANSLATORS: under "Last sync", after " · ": files, TrueUp and apps from Garmin Connect
+        # written to the device
         parts.append(ngettext("{count} received", "{count} received", received).format(
             count=received))
     return " · ".join(parts)

@@ -99,6 +99,8 @@ class MainWindow(TaskRunner, DeviceDetection, StartWindow, DevicePage, MapsPage,
                     _("Reading activities…")),
             # TRANSLATORS: tab title (the sport profiles of the device and their data screens)
             Section("profiles", pgettext("tab", "Activity profiles"), PROFILES_ICON,
+                    # TRANSLATORS: shown while the device's activity (sport) profiles are read, not
+                    # user profiles
                     _("Reading profiles…")),
         )}
         for sec in self.sections.values():

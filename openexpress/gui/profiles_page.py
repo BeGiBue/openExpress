@@ -39,6 +39,7 @@ edge_shaped, screen_title = names.edge_shaped, names.screen_title
 
 
 def fields_text(count: int) -> str:
+    # TRANSLATORS: data fields on one data screen of an activity profile
     return ngettext("{count} field", "{count} fields", count).format(count=count)
 
 
@@ -57,6 +58,8 @@ def profile_caption(profile: profiles.Profile) -> str:
     """Under a profile's name: how many screens of one's own and built in it scrolls through."""
     shown = profile.carousel()
     own = sum(1 for s in shown if s.own)
+    # TRANSLATORS: the user's own data screens in an activity profile, part of the line under its
+    # name
     parts = [ngettext("{count} data screen", "{count} data screens", own).format(count=own)]
     built_in = names.built_in_summary(profile)
     if built_in:
@@ -377,6 +380,8 @@ def open_profile(win, profile_file) -> None:
     needed = [s for s in profile.carousel() if names.when_needed(s, edge)]
     data = [(n, s) for n, s in enumerate(always, 1) if s.own]
     if data:
+        # TRANSLATORS: heading on the page of an activity profile: the device's data screens (pages
+        # of data fields)
         group = Adw.PreferencesGroup(title=_("Data screens"),
                                      description=_("The fields in their order on the screen"))
         cards = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, spacing=12)
@@ -410,6 +415,8 @@ def open_profile(win, profile_file) -> None:
                     if not s.shown and s.code != profiles.RESERVED_CODE]
     off_own = [s for s in profile.own_screens() if not s.shown]
     if off_built_in or off_own:
+        # TRANSLATORS: heading of the data screens of a profile that are turned off or hidden on the
+        # device
         group = Adw.PreferencesGroup(title=_("Off and hidden"))
         for screen in off_built_in:
             known = names.built_in_known(screen, edge)
@@ -445,10 +452,14 @@ def open_screen(win, profile_file, screen) -> None:
             label=_("The fields in their order; where each stands on the screen depends on "
                     "the layout"), wrap=True, justify=Gtk.Justification.CENTER,
             css_classes=["dim-label", "caption"]))
+        # TRANSLATORS: heading and row on the page of a data screen: how its data fields are
+        # arranged
         layout = Adw.PreferencesGroup(title=_("Layout"))
         layout.add(_row(_("Layout"), names.layout_name(screen.variant, edge)))
+        # TRANSLATORS: row on the page of a data screen: how many data fields it shows
         layout.add(_row(_("Number of fields"), str(len(screen.fields))))
         box.append(layout)
+        # TRANSLATORS: heading of the data fields of a data screen, in their order
         fields = Adw.PreferencesGroup(title=_("Fields"),
                                       description=_("In their order on the screen"))
         for n, number in enumerate(screen.fields, 1):
@@ -465,6 +476,8 @@ def open_screen(win, profile_file, screen) -> None:
         box.append(fields)
     details = Adw.PreferencesGroup(title=_("Details"))
     details.add(_row(_("Code of the screen"), str(screen.code)))
+    # TRANSLATORS: row on the page of a data screen: whether it is on, off or hidden on the device
+    # (not a country's state)
     details.add(_row(_("State"), state_text(screen)))
     box.append(details)
     win.navigation.push(_page(screen_title(profile, screen), profile_file.title, SCREEN_TAG,
@@ -501,12 +514,16 @@ def _profile_groups(win, sec, readable, recent) -> int:
     rows: list[tuple[Adw.PreferencesGroup, Adw.ActionRow, str]] = []
     groups = []
     search = Gtk.SearchEntry(placeholder_text=ngettext(
+        # TRANSLATORS: placeholder text of the search field on the Activity profiles page; {count}:
+        # how many profiles it searches
         "Search {count} profile", "Search {count} profiles", len(readable)).format(
         count=len(readable)), hexpand=True)
     sec.group().add(search)
     by_name = {f.profile.name: f for f in readable}
     recent_files = [by_name[n] for n in recent if n in by_name]
     if recent_files:
+        # TRANSLATORS: heading above the activity profiles used by the newest activities on the
+        # device
         g = sec.group(_("Used recently"), _("From the newest activities on the device"))
         groups.append(g)
         for f in recent_files:

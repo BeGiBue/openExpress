@@ -181,6 +181,8 @@ class NetStatusPanel:
             w.state.set_visible(problem)
             if problem:
                 _paint(w.state, NET_ROW_COLOUR[r.kind])
+            # TRANSLATORS: window of Garmin's servers, in place of the time of the last answer: the
+            # server was not asked yet
             w.when.set_label(r.time if r.kind is not None else _("not asked yet"))
             w.row.set_tooltip_text(r.answered or None)
             w.row.set_sensitive(r.kind is not None)  # not asked yet: greyed

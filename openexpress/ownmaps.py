@@ -271,6 +271,8 @@ def add(plan: AddPlan, device: GarminDevice, storage: Storage,
 def _failed_text(storage: Storage, path: str) -> str:
     """Remove what a failed copy left behind and say what happened to it."""
     if storage.resolve(path) is None:
+        # TRANSLATORS: copying a map file to the device failed; {path}: the file's path on the
+        # device
         return _("Writing {path} failed.").format(path=path)
     try:
         storage.delete(path)

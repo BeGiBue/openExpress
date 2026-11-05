@@ -32,11 +32,23 @@ CATEGORIES = {"maps": ("maps",), "updates": ("software",), "pictures": ("images"
               "tiles": ("tiles",),
               # Files on their way to the device (the Flatpak), and what older versions left.
               "temp": ("transfer", "tmp")}
-# TRANSLATORS: the parts of the cache, as `openexpress cache` and the preferences list them
-CATEGORY_NAMES = {"maps": N_("Maps"), "updates": N_("Software updates"),
-                  "pictures": N_("Pictures and icons"),
-                  "answers": N_("Answers of Garmin's servers"),
-                  "tiles": N_("Activity map tiles"), "temp": N_("Temporary files")}
+CATEGORY_NAMES = {
+    # TRANSLATORS: the parts of the cache, as `openexpress cache` and the preferences list them
+    "maps": N_("Maps"),
+    # TRANSLATORS: a part of the cache in `openexpress cache` and the preferences: downloaded
+    # device software
+    "updates": N_("Software updates"),
+    # TRANSLATORS: a part of the cache in `openexpress cache` and the preferences: downloaded
+    # pictures of devices and icons of apps
+    "pictures": N_("Pictures and icons"),
+    "answers": N_("Answers of Garmin's servers"),
+    # TRANSLATORS: a part of the cache in `openexpress cache` and the preferences:
+    # OpenStreetMap tiles under the maps of activities
+    "tiles": N_("Activity map tiles"),
+    # TRANSLATORS: a part of the cache in `openexpress cache` and the preferences: files on
+    # their way to the device
+    "temp": N_("Temporary files"),
+}
 
 
 # The lock of the cache, in its folder; a clearing never deletes it. Shared while files of the

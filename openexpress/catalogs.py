@@ -32,8 +32,9 @@ TEMPLATE = PO / f"{i18n.DOMAIN}.pot"
 METAINFO_TEMPLATE = PACKAGE / "data" / f"{APP_ID}.metainfo.xml.in"
 METAINFO = METAINFO_TEMPLATE.with_suffix("")  # …metainfo.xml, made from the template
 # The calls that mark a text to translate (i18n's docstring); the same keywords for xgettext.
-GETTEXT_CALL = re.compile(r"\b(_|N_|ngettext|pgettext)\(")
-KEYWORDS = ("--keyword=_", "--keyword=N_", "--keyword=ngettext:1,2", "--keyword=pgettext:1c,2")
+GETTEXT_CALL = re.compile(r"\b(_|N_|NC_|ngettext|pgettext)\(")
+KEYWORDS = ("--keyword=_", "--keyword=N_", "--keyword=NC_:1c,2", "--keyword=ngettext:1,2",
+            "--keyword=pgettext:1c,2")
 
 
 class CatalogError(Exception):

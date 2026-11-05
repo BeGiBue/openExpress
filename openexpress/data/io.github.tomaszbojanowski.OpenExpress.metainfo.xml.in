@@ -22,6 +22,8 @@
       <li>Copy music, podcasts, audiobooks and playlists</li>
       <li>See each activity's track on a map, with its charts, laps, heart-rate zones and training effect</li>
       <li>Sync automatically in the background when the watch is connected</li>
+      <!-- TRANSLATORS: a feature in the description for software centres: the program sends no
+           usage data -->
       <li>No telemetry</li>
     </ul>
     <p>

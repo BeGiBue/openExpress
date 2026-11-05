@@ -147,6 +147,8 @@ class MapsPage:
             used_by_maps = sum(m.size for m in installed if m.occupies)
             row = Adw.ActionRow(
                 title=space_text(free, total),
+                # TRANSLATORS: subtitle under the free space of the device on the Maps page ({size}:
+                # the space the maps take)
                 subtitle=_("Maps use {size}").format(size=human_size(used_by_maps)))
             row.add_suffix(Gtk.LevelBar(min_value=0, max_value=1, value=1 - free / total,
                                         valign=Gtk.Align.CENTER, width_request=120))
@@ -214,6 +216,7 @@ class MapsPage:
         if self.session is None or overview.folder is None:
             return  # no device, or one without a folder for maps
         g = self.sections["maps"].group(
+            # TRANSLATORS: heading of the group of maps the user added, not from Garmin
             _("Own maps"), _("Maps not from Garmin, e.g. from OpenStreetMap"))
         g.set_header_suffix(self._button(_("Add Map…"), self.choose_map))
         if overview.unreadable:
@@ -358,6 +361,7 @@ class MapsPage:
                 read_again_after_failure(self, "maps", refused))
 
         confirm(self, "own-map-remove", _("Remove {name}?").format(name=m.title or m.filename),
+                # TRANSLATORS: button that removes an own map openExpress did not copy to the device
                 body, Answer("ok", _("Remove Anyway") if foreign else _("Remove"), remove,
                              look="destructive"), wide=True)
 
@@ -385,6 +389,8 @@ class MapsPage:
             return
         s = self.session
         if not (s.client.consumer and s.client.consumer.url_salt):
+            # TRANSLATORS: heading of an error: the one-time setup (files read from Garmin Express)
+            # is not done
             self.error(_("Setup missing"),
                        _("Downloading maps requires the Utilities.dll file from Garmin Express.\n"
                          "Run: openexpress setup --utilities-dll /path/to/Utilities.dll"))
@@ -407,6 +413,7 @@ class MapsPage:
         def failed(_e):
             return self.session is not s  # gone meanwhile: the window says so already
 
+        # TRANSLATORS: progress while the free space on the device is read before a map is installed
         self.run_task(_("Checking the space…"), work, done, failed, button=button)
 
     def _ask_install_map(self, m, need: int, free: int | None, removing: list[str]) -> None:
@@ -415,17 +422,24 @@ class MapsPage:
         from openexpress import maps as mp
 
         s = self.session
+        # TRANSLATORS: line of the question before a map is installed ({size}: how much is
+        # downloaded)
         body = (_("Download: {size}").format(size=human_size(m.size)) + "\n"
                 + _("Space on the device: {needed} ({space})").format(
                     needed=human_size(need), space=space_text(free)) + "\n"
+                # TRANSLATORS: line of the question before a map is installed: how many files the
+                # map has
                 + _("Files: {count}").format(count=len(m.files))
                 + ("\n" + _("Old files to remove: {count}").format(count=len(removing))
                    if removing else "")
                 + "".join("\n\n" + _("License: {url}").format(url=e) for e in m.eula_urls)
                 + "\n\n" + _("Copying large maps over USB can take tens of minutes.")
                 + _cleanup_paragraph(self))
-        heading = (_("Update {name}?") if m.installed else _("Install {name}?")).format(
-            name=m.name)
+        # TRANSLATORS: heading of the question before an installed map is updated ({name}: the map)
+        heading = (_("Update {name}?") if m.installed
+                   # TRANSLATORS: heading of the question before a map is installed ({name}: the
+                   # map)
+                   else _("Install {name}?")).format(name=m.name)
         def unlock_not_written(e) -> bool:
             # The words of the window ("come back to this page"), not the command line's.
             if not isinstance(e, mp.UnlockNotWritten):
@@ -435,6 +449,8 @@ class MapsPage:
 
         def install():
             self.run_task(
+                # TRANSLATORS: progress of a map install, also the heading of its error ({name}: the
+                # map)
                 _("Installing {name}…").format(name=m.name),
                 writes_to_device(lambda: mp.install(
                     m, self.maps_cache, s.storage,
@@ -448,6 +464,8 @@ class MapsPage:
             )
 
         confirm(self, "map-install", heading, body,
+                # TRANSLATORS: button that accepts the license agreement and installs the map or
+                # update
                 Answer("ok", _("Accept and install"), install, look="suggested"))
 
     def confirm_remove(self, m) -> None:

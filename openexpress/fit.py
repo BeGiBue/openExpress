@@ -140,6 +140,7 @@ def iter_messages(data: bytes, wanted: Collection[int] | None = None,
 def _check_header(data: bytes) -> int:
     """The size of the header of a FIT file; FitError when `data` is no FIT file."""
     if len(data) < 12:
+        # TRANSLATORS: error reading a FIT activity file: too few bytes to be one
         raise FitError(_("File too short"))
     header_size = data[0]
     if header_size not in (12, 14) or data[8:12] != b".FIT":
@@ -325,6 +326,7 @@ def _whole_number(value: Value) -> int | None:
 def parse_file_id(data: bytes) -> FileId:
     v = find_message(data, _MESG_FILE_ID)
     if v is None:
+        # TRANSLATORS: error reading a FIT file; file_id is the name of a FIT message, keep it
         raise FitError(_("No file_id message"))
     return FileId(time_created=_whole_number(v.get(_FIELD_TIME_CREATED)))
 

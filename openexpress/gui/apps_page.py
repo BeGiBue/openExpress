@@ -123,8 +123,10 @@ class AppsPage:
         refused = refused_dirs_text(ciq.refused_dirs(self.session.device))
         # No app list yet: none on the device; the account's apps can be installed.
         space = ciq.no_apps_text() if state.no_app_list else self._apps_space(state)
+        # TRANSLATORS: heading above the apps, or the maps, installed on the device
         g = sec.group(_("On the device"), f"{space}\n{refused}" if refused else space)
         if updates:
+            # TRANSLATORS: button above the apps on the device: installs every available app update
             b = self._button(_("Update all"), lambda: self.install_apps(updates),
                              "suggested-action")
             g.set_header_suffix(b)
@@ -144,6 +146,8 @@ class AppsPage:
                 g.add(row)
                 continue
             if a.app_id in upd:
+                # TRANSLATORS: in the line of an app: an update to version {version} is available
+                # (lowercase, after " · ")
                 sub = caption(sub, _("update {version}").format(
                     version=upd[a.app_id].version_name))
                 if getattr(upd[a.app_id], "permissions_changed", False):
@@ -158,15 +162,20 @@ class AppsPage:
                                             lambda u=upd[a.app_id]: self.install_apps([u]),
                                             "suggested-action"))
             if a.removable:
+                # TRANSLATORS: tooltip of the trash button of an app or map row ({name}: its name)
                 row.add_suffix(self._trash(_("Remove {name}").format(name=a.name),
                                            lambda a=a: self.confirm_remove_app(a)))
             g.add(row)
+        # TRANSLATORS: heading of the group about the order of the apps on the device (their
+        # arrangement, not a purchase or a command)
         g = sec.group(_("Order"))
         blocked = self._order_blocked(state)
         row = Adw.ActionRow(
             title=_("Restore the order from a copy"),
             subtitle=GLib.markup_escape_text(
                 blocked or _("A copy of the app list is made before every change")))
+        # TRANSLATORS: button that restores the order of the apps from a copy (opens a list of
+        # copies)
         row.add_suffix(self._button(_("Restore…"), lambda button: self.choose_order(button),
                                     with_button=True))
         if blocked:
@@ -197,8 +206,12 @@ class AppsPage:
             return  # none known (no app list): no group of none
         g = sec.group(_("Built-in activities and apps"),
                       _("Changes take effect after you disconnect the device."))
+        # TRANSLATORS: placeholder of the search field above the device's built-in activities
+        # (sports) and apps
         search = Gtk.SearchEntry(placeholder_text=_("Search activities"), margin_bottom=12)
         g.add(search)
+        # TRANSLATORS: expander row that opens the list of built-in activities and apps ({count}:
+        # how many)
         exp = Adw.ExpanderRow(title=ngettext("Show {count} item", "Show {count} items",
                                              len(builtin)).format(count=len(builtin)))
         listbox = Gtk.ListBox(selection_mode=Gtk.SelectionMode.NONE)
@@ -255,8 +268,8 @@ class AppsPage:
     def _store_type_name(app) -> str:
         from openexpress import ciq
 
-        name = ciq.APP_TYPES.get(app.app_type) if app.store_type in ciq.STORE_TYPES else None
-        return _(name) if name else app.store_type
+        name = ciq.app_type_name(app.app_type) if app.store_type in ciq.STORE_TYPES else None
+        return name or app.store_type
 
     @staticmethod
     def _apps_space(state) -> str:
@@ -266,6 +279,7 @@ class AppsPage:
         slots = state.available_slots
         if slots is None:
             return space
+        # TRANSLATORS: how many more apps the device can hold, followed by its free space
         return caption(ngettext("{count} free slot", "{count} free slots", slots).format(
             count=slots), space)
 
@@ -394,8 +408,11 @@ class AppsPage:
         the copies it read: the question asks the device nothing."""
         from openexpress import ciq
 
+        # TRANSLATORS: heading of the question before the order of the apps on the device is
+        # restored from a copy
         confirm(self, "order-restore", _("Restore this order?"),
                 ciq.copy_title(copy) + "\n\n" + self._order_summary(plan, note),
+                # TRANSLATORS: answer that restores the order of the apps from the chosen copy
                 Answer("ok", _("Restore the Order"), lambda: self.restore_order(copy),
                        look="suggested"))
 
@@ -411,6 +428,7 @@ class AppsPage:
                        else _("The apps on the device are already in this order."))
             self.load_section("apps", force=True)
 
+        # TRANSLATORS: shown while the order of the apps on the device is restored from a copy
         self.run_task(_("Restoring the order…"),
                       writes_to_device(lambda: ciq.restore_order(s.device, s.storage,
                                                                  copy.state)), done,
@@ -441,9 +459,13 @@ class AppsPage:
             # TRANSLATORS: answer to the question about new permissions: skip the apps that
             # ask for them and install or update only the others
             "others", _("Skip These Apps"), lambda: self._install_apps(others))] if others else []
+        # TRANSLATORS: answer to the question about new permissions: install the apps and allow what
+        # they ask for
         answers.append(Answer("allow", _("Allow"), lambda: self._install_apps(apps, allowed),
                               look="suggested"))
         confirm(self, "app-permissions", ngettext(
+            # TRANSLATORS: heading of the question before installing apps that ask for new
+            # permissions ({count}: how many apps, more than one)
             "Allow New Permissions?", "Allow New Permissions for {count} Apps?",
             count).format(count=count), body, *answers, keep_as="_permissions_dialog")
 
@@ -476,6 +498,8 @@ class AppsPage:
             elif rep.installed and all(n in rep.direct for n in rep.installed):
                 self.toast(ciq.written_text(rep.installed))
             elif rep.installed:
+                # TRANSLATORS: toast after apps were installed ({names}: their names,
+                # comma-separated)
                 self.toast(_("Installed {names}").format(names=", ".join(rep.installed)))
             else:
                 self.toast(_("Queued; it will be installed on the next sync"))
@@ -535,12 +559,16 @@ class AppsPage:
 
         def forget():
             self.run_task(
+                # TRANSLATORS: shown while an app or a map is removed ({name}: its name)
                 _("Removing {name}…").format(name=app.name), work,
                 lambda _r: (self.toast(_("Removed {name} from your account list.").format(
                     name=app.name)), self.load_section("apps", force=True)),
                 read_again_after_failure(self, "apps"), device=False)
 
+        # TRANSLATORS: heading of the question before an app or a map is removed ({name}: its name)
         confirm(self, "app-forget", _("Remove {name}?").format(name=app.name),
+                # TRANSLATORS: answer: removes the app only from the account's list of apps, not
+                # from the device
                 self._forget_text(app), Answer("forget", _("Remove from Account"), forget))
 
     def confirm_remove_app(self, app) -> None:
@@ -567,6 +595,7 @@ class AppsPage:
                 return removed
 
             def done(_removed):
+                # TRANSLATORS: toast after an app was removed from the device ({name}: its name)
                 text = _("Removed {name}").format(name=app.name)
                 if direct:
                     text += ". " + _("The device finishes the removal after it is unplugged.")
@@ -577,7 +606,11 @@ class AppsPage:
                           writes_to_device(work), done, read_again_after_failure(self, "apps"))
 
         confirm(self, "app-remove", _("Remove {name}?").format(name=app.name), body,
+                # TRANSLATORS: answer: removes the app from the device and also from the account's
+                # list of apps
                 Answer("forget", _("Remove and forget"), lambda: remove(True)),
+                # TRANSLATORS: button that removes an app, map or music file from the device; also
+                # the tooltip of a trash button
                 Answer("ok", _("Remove"), lambda: remove(False), look="destructive"))
 
     def toggle_app(self, app, row, handler_id: int) -> None:
@@ -598,7 +631,11 @@ class AppsPage:
             if self.busy:
                 self.toast(_("Another operation is in progress"))
             return
-        msg = _("{name} enabled") if enabled else _("{name} disabled")
+        # TRANSLATORS: toast after a Connect IQ app is turned on on the device ({name}: the app)
+        msg = (_("{name} enabled") if enabled
+               # TRANSLATORS: toast after a Connect IQ app is turned off on the device ({name}:
+               # the app)
+               else _("{name} disabled"))
 
         def done(_r):
             app.disabled = not enabled

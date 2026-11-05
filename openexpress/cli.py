@@ -172,8 +172,12 @@ def cmd_setup(args) -> int:
     print(_("Environment: {environment}, locale: {locale}").format(
         environment=settings.environment, locale=settings.locale))
     if args.ui_language:
+        # TRANSLATORS: `openexpress setup --ui-language`: {language} is the language's own name, or
+        # "system language"
         print(_("Interface language: {language}").format(
             language=i18n.language_name(ui_language) if ui_language
+            # TRANSLATORS: fills {language} in "Interface language: {language}": the program follows
+            # the system's language
             else _("system language")))
     if getattr(args, "diagnostics_copy", None):
         print(_diagnostics_copy_text(settings.diagnostics_copy))
@@ -199,6 +203,7 @@ def cmd_diagnostics(args) -> int:
     for e in entries:
         print(f"  {e.words()} ({e.source})")
     if not entries:
+        # TRANSLATORS: under "Error logs on the device:" when the device has none
         print("  " + _("no entries"))
     dumps = diagnostics.dumps_on_device(st)
     if dumps:
@@ -277,13 +282,25 @@ def cmd_info(args) -> int:
         return 0
     rows = [
         (_("Device:"), dev.description),
+        # TRANSLATORS: label in `openexpress info`, followed by Garmin's part number of the model
+        # ("006-B1234-00")
         (_("Part number:"), dev.part_number),
+        # TRANSLATORS: label in `openexpress info`, followed by the version of the device's software
         (_("Software:"), dev.software_version_str),
+        # TRANSLATORS: label in `openexpress info`, followed by Garmin's number of this one device
+        # (its unit ID)
         (_("Unit ID:"), dev.unit_id),
+        # TRANSLATORS: label in `openexpress info`, followed by where the files are: the MTP
+        # storage's name or "USB drive (…)"
         (_("Storage:"), storage_text(st)),
         (_("Free space:"), _human(st.free_space())),
-        (_("Data types:"), _("{datatypes}, components: {components}").format(
-            datatypes=len(dev.datatypes()), components=len(dev.update_files))),
+        # TRANSLATORS: label in `openexpress info`, followed by "{datatypes}, components:
+        # {components}"
+        (_("Data types:"),
+         # TRANSLATORS: `openexpress info`, after "Data types:": {datatypes} how many data
+         # types, {components} how many software components
+         _("{datatypes}, components: {components}").format(
+             datatypes=len(dev.datatypes()), components=len(dev.update_files))),
     ]
     if dev.iq_max_apps:
         rows.append(("Connect IQ:", ngettext(
@@ -381,6 +398,8 @@ def cmd_activities(args) -> int:
     from openexpress import activities
 
     st, dev = open_device(args)
+    # TRANSLATORS: first line of `openexpress activities` and `sync`: {device} the device's name,
+    # {version} its software version
     print(_("{device} (software {version})").format(
         device=dev.description, version=dev.software_version_str))
     exporting = args.activities_cmd == "export"
@@ -403,6 +422,8 @@ def cmd_activities(args) -> int:
     only_in_backups = sum(1 for a in found.listing if a.source is activities.Source.BACKUP)
     words = [_("The newest {shown} of {count}; --all shows every one.").format(
                  shown=len(read), count=len(found.listing)) if found.left
+             # TRANSLATORS: under the table of `openexpress activities`: how many recorded
+             # activities the device and its backups have
              else ngettext("{count} activity.", "{count} activities.",
                            len(found.listing)).format(count=len(found.listing))]
     if only_in_backups:
@@ -450,6 +471,7 @@ def _export_activities(args, found) -> int:
             count = sum(1 for _point in fit.points(data))
         except (gpx.NoPositions, fit.FitError) as e:
             kind = "no positions" if isinstance(e, gpx.NoPositions) else "damaged"
+            # TRANSLATORS: an activity not exported to GPX: {name} its file name, {error} why
             refused.append((kind, _("{name}: {error}").format(name=a.name, error=e)))
             continue
         target = dest / f"{stem}.gpx"
@@ -506,6 +528,8 @@ def _activity_row(read) -> tuple[list[str], str | None]:
             date=a.backup.strftime(_("%Y-%m-%d")))
     dash = "–"
     if summary is None:
+        # TRANSLATORS: a note under a row of `openexpress activities`: the activity's file could not
+        # be read
         return [dash] * 5 + [source, a.name], _("unreadable file")
     when = summary.start or summary.created
     cells = [_seen_at(when) if when else dash,
@@ -519,14 +543,30 @@ def _activity_row(read) -> tuple[list[str], str | None]:
         dash if not summary.distance else f"{decimal(f'{summary.distance / 1000:.2f}')} km",
         dash if summary.ascent is None else f"{summary.ascent} m",
         source, a.name]
+    # TRANSLATORS: a note under a row of `openexpress activities`: the activity's file is damaged
     return cells, _("damaged file") if summary.state is fit.FileState.DAMAGED else None
 
 
 def _activity_table(read) -> list[str]:
     """The lines of `activities`: the heading, then a row for each activity, its note (a
     file still being written, damaged or unreadable) under its sport."""
-    heading = [_("Date"), _("Sport"), _("Time"), _("Distance"), _("Ascent"), _("Source"),
-               _("File")]
+    heading = [
+        # TRANSLATORS: column heading in `openexpress activities`: when the activity started
+        # (date and hour)
+        _("Date"),
+        _("Sport"),
+        pgettext("activity list column", "Time"),
+        _("Distance"),
+        # TRANSLATORS: column heading in `openexpress activities`: the total ascent of the
+        # activity, in metres
+        _("Ascent"),
+        # TRANSLATORS: column heading in `openexpress activities`: where the activity was
+        # found, on the device or in a backup (not source code)
+        _("Source"),
+        # TRANSLATORS: column heading in `openexpress activities` and a row in a profile's
+        # details: the name of the file
+        _("File"),
+    ]
     rows = [_activity_row(r) for r in read]
     widths = [max(len(cells[n]) for cells in [heading] + [c for c, _note in rows])
               for n in range(len(heading))]
@@ -593,6 +633,7 @@ def _inspection(name: str, found) -> list[str]:
     its type, manufacturer, product, creation time and messages, the most frequent first."""
     from openexpress import fit, service
 
+    # TRANSLATORS: fit inspect: the file that was read, {name} its name, {size} its size
     lines = [_("File: {name}, {size}").format(name=name, size=_human(found.size)),
              _fit_check(found)]
     if found.header_size is None:
@@ -606,15 +647,20 @@ def _inspection(name: str, found) -> list[str]:
     elif maker in fit.MANUFACTURER_NAMES:
         maker = f"{fit.MANUFACTURER_NAMES[maker]} ({maker})"
     lines += [
+        # TRANSLATORS: fit inspect: the kind of FIT file ("activities (FIT_TYPE_4)")
         _("Type: {type}").format(type=file_type),
         _("Manufacturer: {manufacturer}").format(manufacturer=maker),
+        # TRANSLATORS: fit inspect: the product number of the device that made the file
         _("Product: {product}").format(product="-" if found.product is None else found.product),
+        # TRANSLATORS: fit inspect: when the file was created (date and hour)
         _("Created: {when}").format(
             when="-" if found.created is None else _seen_at(found.created)),
     ]
     kinds = len(found.messages)
     # TRANSLATORS: fit inspect: "Messages: 6 kinds, 1213 in all"
     lines.append(_("Messages: {kinds}, {count} in all").format(
+        # TRANSLATORS: fit inspect: fills {kinds} in "Messages: {kinds}, {count} in all": how many
+        # kinds of messages
         kinds=ngettext("{count} kind", "{count} kinds", kinds).format(count=kinds),
         count=sum(found.messages.values())))
     named = [(f"{fit.MESSAGE_NAMES[num]} ({num})" if num in fit.MESSAGE_NAMES
@@ -625,8 +671,14 @@ def _inspection(name: str, found) -> list[str]:
     digits = max((len(str(count)) for _label, count in named), default=0)
     lines += [f"  {label:<{width}}  {count:>{digits}}" for label, count in named]
     developer = any(num in found.messages for num in fit.DEVELOPER_MESSAGES)
-    lines.append(_("Developer data: present") if developer else _("Developer data: none"))
+    lines.append(
+        # TRANSLATORS: fit inspect: the file has developer data (fields that Connect IQ apps add)
+        _("Developer data: present") if developer
+        # TRANSLATORS: fit inspect: the file has no developer data (fields that Connect IQ apps
+        # add)
+        else _("Developer data: none"))
     if found.broke_off:
+        # TRANSLATORS: fit inspect: the reading of the file broke off; {error} says why
         lines.append(_("Reading stopped: {error}").format(error=found.broke_off))
     return lines
 
@@ -734,7 +786,11 @@ def _print_status(s, entry, listed, client, now) -> None:
         on = (s.unit_id in listed if listed is not None else
               tile_facts.read(entry, connected=True, kind=s.found.kind,
                               software_version=s.software_version).on_account)
+        # TRANSLATORS: `openexpress status`, after a device's name: the device is on the signed-in
+        # Garmin account
         parts.append(_("on your account") if on else _("not on your account")
+                     # TRANSLATORS: `openexpress status`, after a device's name: it is not known
+                     # whether the device is on the Garmin account
                      if on is False else _("account not known"))
     print(" · ".join(parts))
     if not drive:
@@ -748,9 +804,13 @@ def _print_status(s, entry, listed, client, now) -> None:
                 # As the device page: the activities it has to upload now, listed only.
                 text = words.with_activities_to_upload(
                     text, data, sync.activities_to_sync(s.device, s.storage))
+        # TRANSLATORS: `openexpress status`: {text} gives the window's words for the device's last
+        # sync
         print("  " + _("Last sync: {text}").format(text=text))
     text = (_status_updates_online(client, s) if client is not None
             else _status_updates(entry, s.software_version, now))
+    # TRANSLATORS: `openexpress status`: {text} says whether an update of the device's software is
+    # available
     print("  " + _("Device software: {text}").format(text=text))
 
 
@@ -844,6 +904,7 @@ def cmd_cache(args) -> int:
         else:
             log.info("cache: %s: %s in %s", name, applog.size(size), counted)
     if args.clear and args.apply:
+        # TRANSLATORS: after clearing the cache: how much disk space was freed
         print(_("Freed {size}.").format(size=human_size(use.total)))
     elif args.clear:
         print(_("Dry run: nothing was deleted. Add --apply to delete it."))
@@ -922,6 +983,8 @@ def cmd_devices(args) -> int:
         _error(_("Error: {error}").format(error=_("{device} was not forgotten.").format(
             device=name)))
         return 1
+    # TRANSLATORS: a device was forgotten, so this computer no longer remembers it; {device} is its
+    # name
     print(_("Forgot {device}.").format(device=name))
     if args.backups and kept.backups:
         print(ngettext("Deleted {count} backup.", "Deleted {count} backups.",
@@ -952,6 +1015,8 @@ def cmd_upload_config(args) -> int:
     if args.json:
         print(json.dumps(cfg, indent=2, ensure_ascii=False))
         return 0
+    # TRANSLATORS: `openexpress upload-config`: {name} is the kind of device as Garmin's server
+    # names it
     print(_("Device type: {name}").format(name=cfg.get("unittypename")))
     for dt in cfg.get("datatypes") or []:
         print(f"- {dt.get('datatypename')}  shouldDelete={dt.get('shoulddelete')}")
@@ -1045,6 +1110,8 @@ def _print_sync_plan(plan, client, drive: bool = False, makers=None) -> None:
             size = sum(c.size for c in uploads.candidates if c.datatype == dt)
             print(f"  {dt:22} {n:5}  {_human(size)}")
         for dt, why in sorted(uploads.skipped_types.items()):
+            # TRANSLATORS: dry run of sync: a data type or a file of the queue that is left out;
+            # {reason} says why
             print(f"  {dt:22} " + _("skipped: {reason}").format(reason=why))
         if plan.gate is not None:
             print(plan.gate.message(done=False) if not plan.gate.allowed else _(
@@ -1095,6 +1162,7 @@ def _queue_file_words(found, makers=None) -> str:
     if d.name:
         parts.append(d.name)
     if d.steps is not None:
+        # TRANSLATORS: dry run of sync: the number of steps of a workout, not steps walked
         parts.append(ngettext("{count} step", "{count} steps", d.steps).format(count=d.steps))
     if d.days:
         def day(moment: int) -> str:
@@ -1109,6 +1177,7 @@ def _queue_file_words(found, makers=None) -> str:
         # TRANSLATORS: dry run of sync: the device (or Garmin Connect) that made a queue file
         parts.append(_("made by {maker}").format(maker=who))
     if d.created is not None:
+        # TRANSLATORS: dry run of sync: when a file of Garmin Connect's queue was created
         parts.append(_("created {date}").format(
             date=time.strftime(_("%Y-%m-%d"), time.localtime(d.created))))
     not_whole = found.check
@@ -1133,6 +1202,7 @@ def _print_sync_steps(summary, unit_id: int):
 
     told = last_sync.describe(summary.record(unit_id))
     said = [text for text, _warning in told.steps]
+    # TRANSLATORS: after a sync, under its steps: an error of the sync; {error} says what went wrong
     said += ["  " + _("ERROR {error}").format(error=error) for error in summary.errors]
     said += ["  " + _("Warning: Connect did not confirm processing of {item}").format(
         item=label) for label in summary.not_confirmed]
@@ -1374,6 +1444,8 @@ def cmd_updates(args) -> int:
     staged = [] if args.reinstalls else upd.staged(items)
     # Offered by the server although the device has the very same file: not an update.
     present = [u for u in items if u.on_device and not any(u is s for s in staged)]
+    # TRANSLATORS: first line of `openexpress updates`: {device} the device's name, {version} its
+    # software version
     print(_("{device}, software {version}").format(
         device=dev.description, version=dev.software_version_str))
     if upd.beta_offered(resp):
@@ -1389,6 +1461,8 @@ def cmd_updates(args) -> int:
             _print_present(present, args.verbose)
             return 0
         visible = [u for u in listed if not u.is_metadata or args.verbose]
+        # TRANSLATORS: `openexpress updates --reinstalls`: how many items the server offers to
+        # install again, though the device has them already
         print((_("Reinstalls: {count}") if args.reinstalls
                else _("Available updates: {count}")).format(count=len(visible)))
         for u in sorted(visible, key=lambda x: (not x.is_system, x.severity.lower() != "critical",
@@ -1404,6 +1478,8 @@ def cmd_updates(args) -> int:
         if not args.reinstalls:
             _print_present(present, args.verbose)
             _print_staged(staged, st)
+        # TRANSLATORS: `openexpress updates`, under the list: {command} is the command that installs
+        # an update (not translated)
         print("\n" + _("Install: {command}").format(
             command="openexpress updates --install PART_NUMBER [--reinstalls] --apply"))
         return 0
@@ -1440,6 +1516,7 @@ def cmd_updates(args) -> int:
     if not chosen:
         return 0
     need, free = upd.check_space(st, chosen)
+    # TRANSLATORS: `openexpress updates --install`: heading above the updates about to be installed
     print(_("To install:"))
     for u in upd.sort_for_install(chosen):
         print(f"  {u.part_number} {u.version}  {u.title}{_beta_mark(u)}  ({_human(u.size)}) "
@@ -1652,6 +1729,8 @@ def cmd_maps(args) -> int:
         if own:
             print("\n" + _("Own maps (not from Garmin):"))
             for o in own:
+                # TRANSLATORS: in the list of own maps: shown in place of a map's name that could
+                # not be read from its file
                 title = o.title or _("(name not read)")
                 print(f"  {o.filename:48} {_human(o.size):>9}  {title}")
         return 0
@@ -1768,8 +1847,7 @@ def _find_app(items, query: str, app_type: int | None = None):
         raise SetupError(_("No app matches '{query}'").format(query=query))
 
     def label(a):
-        kind = ciq.APP_TYPES.get(a.app_type)
-        return f"{a.name} ({_(kind) if kind else a.app_type})"
+        return f"{a.name} ({ciq.app_type_name(a.app_type) or a.app_type})"
 
     names = "; ".join(label(a) for a in partial)
     if len({a.name.casefold() for a in partial}) == 1:
@@ -1780,7 +1858,9 @@ def _find_app(items, query: str, app_type: int | None = None):
 
 def _app_status(disabled: bool) -> str:
     # TRANSLATORS: state of a Connect IQ app or built-in activity on the watch
-    return _("disabled") if disabled else _("enabled")
+    return (_("disabled") if disabled
+            # TRANSLATORS: state of a Connect IQ app or built-in activity on the watch
+            else _("enabled"))
 
 
 def _apps_queue_only(args, dev, st, client, api, account) -> int:
@@ -1896,8 +1976,7 @@ def _remove_app_directly(args, dev, st, state, app, api) -> int:
                              "Nothing was changed."))
     print("  " + _("every other app on the device is kept, in the same order and with the "
                    "same flags"))
-    kind = ciq.APP_TYPES.get(app.app_type)
-    kind = _(kind) if kind else app.app_type
+    kind = ciq.app_type_name(app.app_type) or app.app_type
     print("  " + _("to be removed: {name} ({type})").format(name=app.name, type=kind))
     if not args.apply:
         print(ciq.app_list_copy_note(dev, st))
@@ -1914,6 +1993,8 @@ def _remove_app_directly(args, dev, st, state, app, api) -> int:
     else:
         msg = ngettext("Removed {count} file.", "Removed {count} files.", len(removed))
     print(msg.format(count=len(removed)))
+    # TRANSLATORS: `openexpress apps remove`: the app that was removed, {name} its name, {type} its
+    # kind ("watch face")
     print("  " + _("removed: {name} ({type})").format(name=app.name, type=kind))
     print(_("The device finishes the removal after it is unplugged."))
     return 0
@@ -1933,10 +2014,9 @@ def _print_in_bin_preview(preview) -> None:
                   if preview.kept else
                   _("WARNING: the new list does NOT match the apps on the device")))
     for name, app_type, disabled in preview.new:
-        kind = ciq.APP_TYPES.get(app_type)
         print("  " + (_("new: {name} ({type}), added as inactive") if disabled
                       else _("new: {name} ({type}), added as active")).format(
-            name=name, type=_(kind) if kind else app_type))
+            name=name, type=ciq.app_type_name(app_type) or app_type))
     if not preview.kept:
         raise ciq.CiqError(_("The app list that would be written does not match the device. "
                              "Nothing was changed."))
@@ -1980,7 +2060,11 @@ def cmd_apps(args) -> int:
                            state.unreadable).format(count=state.unreadable))
         for a in state.store_apps:
             upd = updates.get(a.app_id)
+            # TRANSLATORS: after an app in the list of `openexpress apps`: {version} is the app's
+            # newer version
             note = ("  " + _("update available: {version}").format(version=upd.version_name)
+                    # TRANSLATORS: after an app update in `openexpress apps`: the new version asks
+                    # for other permissions
                     + (" " + _("(permissions changed)") if upd.permissions_changed else "")
                     if upd else "")
             if a.pending:
@@ -2070,6 +2154,8 @@ def cmd_apps(args) -> int:
         if not args.apply:
             for a in targets:
                 if a.app_id in refused:
+                    # TRANSLATORS: a Connect IQ app that could not be installed: {item} its name,
+                    # {error} why
                     print("  " + _("ERROR {item}: {error}").format(
                         item=a.name, error=refused[a.app_id]))
             if len(refused) < len(targets):
@@ -2091,6 +2177,8 @@ def cmd_apps(args) -> int:
         if installed or (not written and (rep.failed or not rep.for_phone)):
             # TRANSLATORS: shown after "Installed:" when no app was installed
             none = _("none")
+            # TRANSLATORS: after installing Connect IQ apps: {names} lists the installed apps,
+            # separated by commas, or "none"
             print(_("Installed: {names}").format(names=", ".join(installed) or none))
         for name, err in rep.failed:
             print("  " + _("ERROR {item}: {error}").format(item=name, error=err))
@@ -2158,7 +2246,12 @@ def cmd_apps(args) -> int:
     enable = cmd == "enable"
     # Refused also in a dry run, as with --apply: a list that waits cannot be read whole.
     ciq.require_readable_waiting_list(state)
-    print((_("Enable {name}") if enable else _("Disable {name}")).format(name=app.name))
+    # TRANSLATORS: CLI: the change "apps enable/disable" is about to make, before the dry-run note
+    # ({name}: an app or built-in activity)
+    print((_("Enable {name}") if enable
+           # TRANSLATORS: CLI: the change "apps enable/disable" is about to make, before the
+           # dry-run note ({name}: an app or built-in activity)
+           else _("Disable {name}")).format(name=app.name))
     if not args.apply:
         print(ciq.app_list_copy_note(dev, st))
         print(_("Dry run. Add --apply."))
@@ -2213,6 +2306,8 @@ def _primary_role(wearable: bool) -> _PrimaryRole:
         lambda status: status.set, {
             "none": _("No primary wearable is set for this Garmin account."),
             "this": _("Primary wearable: {name} (this device)"),
+            # TRANSLATORS: CLI: the account's primary wearable is another device ({name}: that
+            # device's name)
             "other": _("Primary wearable: {name}"),
             "unlisted": _("a device that is not on the account's list"),
             "not_it": _("The connected device ({device}) is not the primary wearable."),
@@ -2299,15 +2394,18 @@ def _profile_lines(f) -> list[str]:
             lines.append(f"  {n}. {built_in(screen)}")
     if not always:
         lines.append("  " + _("none"))
-    states = {True: _("on"), False: _("off")}
+    states = {True: pgettext("screen state", "on"), False: pgettext("screen state", "off")}
     every = [s for s in p.built_in() if s.code != profiles.RESERVED_CODE]
     needed = [s for s in every if names.when_needed(s, edge)]
+    # TRANSLATORS: CLI heading above the device's built-in screens of an activity profile, each with
+    # its state
     for title, group in ((_("Built-in screens:"), [s for s in every if s not in needed]),
                          (_("Built-in screens when needed:"), needed)):
         if group:
             lines.append(title)
             for screen in group:
-                state = _("hidden") if screen.hidden else states[screen.shown]
+                state = (pgettext("screen state", "hidden") if screen.hidden
+                         else states[screen.shown])
                 lines.append(f"  {built_in(screen)}: {state}")
     off = [s for s in p.own_screens() if not s.shown]
     if off:
@@ -2346,6 +2444,7 @@ def cmd_profiles(args) -> int:
         print(found[0].title)
         print("\n".join(_profile_lines(found[0])))
         return 0
+    # TRANSLATORS: CLI heading above the list of the device's activity profiles
     print(ngettext("{count} profile:", "{count} profiles:", len(readable))
           .format(count=len(readable)))
     for f in readable:
@@ -2358,6 +2457,8 @@ def cmd_profiles(args) -> int:
         print(f"  {f.title} · " + " · ".join(parts))
     for f in files:
         if f.profile is None:
+            # TRANSLATORS: CLI: an activity profile file that could not be read ({file}: its
+            # name, {error}: why); keep the two leading spaces
             print(_("  {file}: {error}").format(file=f.name, error=f.error))
     if found_files.backup_time is not None:
         print(_("The device keeps backups of its profiles from {date}.").format(
@@ -2413,8 +2514,14 @@ def cmd_register(args) -> int:
 
 
 MUSIC_KIND_LINES = {
+    # TRANSLATORS: CLI music list: music tracks on the device, not GPS tracks ({count}: how many,
+    # {size}: their total size)
     "track": N_("Tracks: {count} ({size})"),
+    # TRANSLATORS: CLI music list: podcast episodes on the device ({count}: how many, {size}: their
+    # total size)
     "podcast": N_("Podcasts: {count} ({size})"),
+    # TRANSLATORS: CLI music list: audiobooks on the device ({count}: how many, {size}: their total
+    # size)
     "audiobook": N_("Audiobooks: {count} ({size})"),
 }
 
@@ -2481,6 +2588,8 @@ def cmd_music(args) -> int:
                     print(f"    {f.path}")
         pls = music.list_playlists(dev, st)
         if pls:
+            # TRANSLATORS: CLI music list: how many playlists the device has ({names}: their names,
+            # comma-separated)
             print(_("Playlists: {count}: {names}").format(count=len(pls), names=", ".join(pls)))
         elif music.supports_playlists(dev):
             print(_("Playlists: {count}").format(count=len(pls)))
@@ -2513,6 +2622,8 @@ def cmd_music(args) -> int:
             music.copy(plan, st, progress=progress)
         if args.playlist:
             dests = [d for _t, d in plan.to_copy + plan.already]
+            # TRANSLATORS: CLI: the playlist file written on the device after the music was copied
+            # ({path}: its path)
             print(_("Playlist: {path}").format(
                 path=music.write_playlist(dev, st, args.playlist, dests)))
         print(_("Done."))
@@ -2577,8 +2688,14 @@ def cmd_install_desktop(args) -> int:
     if args.remove:
         removed = desktop.uninstall(dry_run=not args.apply)
         for p in removed:
-            print((_("Removed {path}") if args.apply else _("Would remove {path}")).format(path=p))
+            # TRANSLATORS: CLI install-desktop --remove: a file of the launcher, icon or service
+            # that was removed ({path})
+            print((_("Removed {path}") if args.apply
+                   # TRANSLATORS: CLI install-desktop --remove, dry run: a file of the launcher,
+                   # icon or service that would be removed ({path})
+                   else _("Would remove {path}")).format(path=p))
         if not removed:
+            # TRANSLATORS: CLI install-desktop --remove: no launcher, icon or service file was found
             print(_("Nothing to remove."))
         elif not args.apply:
             print(_("Dry run. Add --apply."))
@@ -2594,7 +2711,12 @@ def cmd_install_desktop(args) -> int:
         _build_translations()
     written, removed = desktop.install(dry_run=not args.apply)
     for p in written:
-        print((_("Wrote {path}") if args.apply else _("Would write {path}")).format(path=p))
+        # TRANSLATORS: CLI install-desktop: a file of the launcher, icon or service that was
+        # written ({path})
+        print((_("Wrote {path}") if args.apply
+               # TRANSLATORS: CLI install-desktop, dry run: a file of the launcher, icon or
+               # service that would be written ({path})
+               else _("Would write {path}")).format(path=p))
     for p in removed:
         print((_("Removed old file {path}") if args.apply
                else _("Would remove old file {path}")).format(path=p))
@@ -2629,13 +2751,18 @@ def _build_translations() -> None:
 ARGPARSE_MESSAGES = [
     # TRANSLATORS: argparse header before the command syntax, keep the trailing space
     N_("usage: "),
+    # TRANSLATORS: argparse help heading above the arguments given without a dash (here mostly the
+    # commands)
     N_("positional arguments"),
+    # TRANSLATORS: argparse help heading above the list of options (--name)
     N_("options"),
     N_("show this help message and exit"),
     N_("show program's version number and exit"),
     N_("the following arguments are required: %s"),
+    # TRANSLATORS: argparse error (%s: the arguments it did not recognize)
     N_("unrecognized arguments: %s"),
     N_("invalid choice: %(value)r (choose from %(choices)s)"),
+    # TRANSLATORS: argparse error after "argument --NAME: ": the option was given without its value
     N_("expected one argument"),
     N_("%(prog)s: error: %(message)s\n"),
 ]
@@ -2649,6 +2776,7 @@ def build_parser() -> argparse.ArgumentParser:
         description=_("Independent Garmin Express client for Linux."),
     )
     p.add_argument("--version", action="version", version=f"%(prog)s {__version__}")
+    # TRANSLATORS: CLI help of -v/--verbose: print more details
     p.add_argument("-v", "--verbose", action="store_true", help=_("more details"))
     p.add_argument("--lang", metavar="LANG",
                    help=_("interface language, e.g. {examples}").format(
@@ -2674,6 +2802,8 @@ def build_parser() -> argparse.ArgumentParser:
                    help=_("OAuth1 consumer secret of Garmin Express; only together with --key"))
     s.add_argument("--environment", choices=sorted(ENVIRONMENTS),
                    help=_("Garmin servers to use: production (default) or china"))
+    # TRANSLATORS: CLI help of "setup --locale": "for example" ({example}: a locale code such as
+    # pl_PL)
     s.add_argument("--locale", help=_("e.g. {example}").format(example="pl_PL"))
     s.add_argument("--ui-language", choices=i18n.available_languages() + ["system"],
                    help=_("language of this program (\"system\": follow the system locale)"))
@@ -2775,6 +2905,7 @@ def build_parser() -> argparse.ArgumentParser:
                    help=_("also ask Garmin Connect and Garmin's update server now"))
     s.set_defaults(func=cmd_status)
 
+    # TRANSLATORS: CLI help of the whoami command, which shows the signed-in Garmin Connect account
     s = sub.add_parser("whoami", help=_("signed-in account"))
     s.add_argument("--check", action="store_true", help=_("verify the token with the server"))
     s.set_defaults(func=cmd_whoami)
@@ -2942,6 +3073,7 @@ def build_parser() -> argparse.ArgumentParser:
                    help=_("remove the files and playlists from the device"))
     s.set_defaults(func=cmd_music)
 
+    # TRANSLATORS: CLI help of the gui command, which opens the application window
     s = sub.add_parser("gui", help=_("application window"))
     s.set_defaults(func=cmd_gui)
 
@@ -3126,6 +3258,8 @@ def _run(args, service, requests) -> int:
         return 1
     except ApiError as e:
         log.info("server error: %s: %s", type(e).__name__, e)
+        # TRANSLATORS: CLI error from a Garmin server ({error}: the request's name and what went
+        # wrong)
         _error(_("Server error: {error}").format(error=e))
         if args.verbose and e.body:
             print(applog.redact(e.body), file=sys.stderr)  # the server's own words: filtered
@@ -3144,6 +3278,7 @@ def _run(args, service, requests) -> int:
         log.debug("network error", exc_info=True)
         return 1
     except KeyboardInterrupt:
+        # TRANSLATORS: CLI: the command was stopped with Ctrl+C
         _error(_("Interrupted."))
         return 130
     except Exception as e:  # not foreseen: told briefly, the rest in the log

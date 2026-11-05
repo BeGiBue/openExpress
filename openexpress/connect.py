@@ -20,7 +20,7 @@ from openexpress.auth import store
 from openexpress.auth.oauth1 import authorization_header
 from openexpress.auth.store import ConnectAuth
 from openexpress.errors import UserFacingError
-from openexpress.i18n import _
+from openexpress.i18n import _, pgettext
 from openexpress.settings import UPLOAD_CONFIG_CLIENT_ID, Consumer, Settings, language_tag
 from openexpress.useragent import USER_AGENT
 from openexpress.useragent import session as user_agent_session
@@ -310,6 +310,8 @@ class GarminClient:
             {"ticket": ticket, "login-url": service}
         )
         url = self._prepared_url("GET", url)
+        # TRANSLATORS: name of a server request (sign-in: a one-time ticket traded for a token),
+        # shown before an error
         what = _("Ticket exchange")
         h = self._client_headers()
         h["Authorization"] = self._sign("GET", url, with_token=False)
@@ -335,6 +337,8 @@ class GarminClient:
         )
         h = self._omt_headers()
         h["Garmin-Client-Guid"] = self.settings.client_guid
+        # TRANSLATORS: name of a server request (the device's upload settings), shown before an
+        # error
         what = _("Upload configuration")
         resp = self._request(
             "GET",
@@ -352,6 +356,8 @@ class GarminClient:
             return {}
         ids = sorted(external_ids)
         params = [("deviceId", str(unit_id))] + [("externalIds", i) for i in ids]
+        # TRANSLATORS: name of a server request (are these activities already in Garmin Connect?),
+        # shown before an error
         what = _("Duplicate check")
         # Like Garmin Express: the same parameters in the URL and as a form body, but the
         # body is NOT part of the OAuth1 signature (Garmin rejects such a signature with 401).
@@ -467,6 +473,8 @@ class GarminClient:
             return self._omt(
                 "GET",
                 f"api/unit-info/manufacturers/Taiwan/unitids/{unit_id}",
+                # TRANSLATORS: name of a server request (information about the device), shown before
+                # an error
                 _("Device info"),
                 quiet=True,  # the path names the device
                 params={"primaryFirmwarePartNumber": part_number},
@@ -489,6 +497,8 @@ class GarminClient:
             return self._omt(
                 "POST",
                 "api/device-software/v1/updates",
+                # TRANSLATORS: name of a server request (looking for device software updates), shown
+                # before an error
                 _("Software update check"),
                 params={"filter": "all"} if include_reinstalls else None,
                 json={
@@ -511,6 +521,8 @@ class GarminClient:
             return self._omt(
                 "POST",
                 f"api/maps/universal/{'reinstall' if reinstall else 'update'}",
+                # TRANSLATORS: name of a server request (looking for map updates), shown before an
+                # error
                 _("Map check"),
                 json={
                     "garminDeviceXml": device_xml.decode("utf-8"),
@@ -530,6 +542,8 @@ class GarminClient:
             return self._omt(
                 "POST",
                 "api/maps/universal/activate",
+                # TRANSLATORS: name of a server request (activating the maps installed on the
+                # device), shown before an error
                 _("Map activation"),
                 json={"garminDeviceXml": device_xml.decode("utf-8"),
                       "installedMaps": identifiers},
@@ -567,6 +581,8 @@ class GarminClient:
         """Devices registered to the logged-in account; each entry carries `unitid`. Kept for
         a while (answers); `fresh`: asked anew (the ownership check before a write)."""
         def ask():
+            # TRANSLATORS: name of a server request (the devices on the Garmin account), shown
+            # before an error
             what = _("Account device list")
             r = self._connect("GET", "device-service/deviceregistration/devices", what)
             body = lower_keys(self._json(r, what))
@@ -584,6 +600,8 @@ class GarminClient:
         """The state of one consent of the account (e.g. DI_CONNECT_UPLOAD); None when the
         server has nothing to say about it. Read-only."""
         self.require_verified()
+        # TRANSLATORS: name of a server request (the account's consent to uploads to Garmin
+        # Connect), shown before an error
         what = _("Upload consent")
         r = self._connect("GET", f"gdprconsent-service/feature/consent/{consent_type}", what)
         if r.status_code == 204 or not r.content.strip():
@@ -597,6 +615,8 @@ class GarminClient:
         """The account's "device sync" preference: {"key": ..., "value": "true"|"false"}.
         Read-only."""
         self.require_verified()
+        # TRANSLATORS: name of a server request (the account's setting for syncing devices), shown
+        # before an error
         what = _("Device sync setting")
         r = self._connect("GET", "userpreference-service/account.deviceSync", what)
         if r.status_code == 204 or not r.content.strip():
@@ -613,6 +633,8 @@ class GarminClient:
         self.require_verified()
 
         def ask():
+            # TRANSLATORS: name of a server request (the country set on the account), shown before
+            # an error
             what = _("Account location")
             r = self._connect("GET", "userprofile-service/userprofile/location", what)
             if r.status_code == 204 or not r.content.strip():
@@ -633,7 +655,7 @@ class GarminClient:
         self.require_verified()
 
         def ask():
-            what = _("Primary training device")
+            what = pgettext("server request", "Primary training device")
             r = self._connect("GET", PRIMARY_TRAINING_PATH, what,
                               params={"ignoreCache": "false"})
             if r.status_code == 204 or not r.content.strip():
@@ -655,7 +677,8 @@ class GarminClient:
         Any 2xx answer counts as accepted; callers read the setting back to confirm.
         """
         self.require_verified(unit_id)
-        self._connect("PUT", PRIMARY_TRAINING_PATH, _("Primary training device"),
+        self._connect("PUT", PRIMARY_TRAINING_PATH,
+                      pgettext("server request", "Primary training device"),
                       data=json.dumps({"deviceId": unit_id}),
                       headers={"Content-Type": "application/json"})
 
@@ -762,6 +785,8 @@ class GarminClient:
 
     def device_messages(self, unit_id: int) -> list[dict]:
         self.require_verified(unit_id)
+        # TRANSLATORS: name of a server request (files Garmin Connect has queued for the device),
+        # shown before an error
         what = _("Connect file queue")
         r = self._connect(
             "GET",
@@ -794,6 +819,8 @@ class GarminClient:
         self._connect(
             "POST",
             f"device-service/devicemessage/message/{message_id}",
+            # TRANSLATORS: name of a server request (telling Garmin Connect that a queued file was
+            # received), shown before an error
             _("Receipt acknowledgement"),
             params={"status": "received"},
             headers={"X-HTTP-Method-Override": "PUT"},

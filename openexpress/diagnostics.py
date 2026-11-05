@@ -770,6 +770,8 @@ def copies_text(unit_id: int) -> str:
     where = folder(unit_id)
     snaps = _snapshots(where)
     if not snaps:
+        # TRANSLATORS: shown after "Copies on this computer:" when no copy of the device's
+        # diagnostic files has been made
         return _("No copy yet")
     try:
         when = full_time(datetime.strptime(snaps[-1].stem.split(" (")[0], STAMP))

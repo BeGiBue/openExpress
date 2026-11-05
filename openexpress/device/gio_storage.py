@@ -339,6 +339,8 @@ class GioStorage(Storage):
             pass
 
     def _list(self, real_path: str) -> list[Entry]:
+        # TRANSLATORS: error: the contents of a folder on the device cannot be read ({path}: the
+        # folder)
         what = _("Cannot list {path}").format(path=real_path or "/")
         context = _steps_context()  # one for all the steps of the listing
         folder = self._f(real_path)
@@ -546,6 +548,7 @@ class GioStorage(Storage):
         try:
             self._f(real_path).delete(None)
         except GLib.Error as e:
+            # TRANSLATORS: error: a file on the device cannot be deleted ({path}: the file)
             raise _err(e, _("Cannot delete {path}").format(path=real_path)) from e
 
     def _mkdir(self, real_path: str) -> None:

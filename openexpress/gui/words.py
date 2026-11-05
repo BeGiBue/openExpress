@@ -187,6 +187,7 @@ def software_text(version: str, from_account: bool = False) -> str:
     if from_account:
         # TRANSLATORS: the version of a device that only the Garmin account knows of
         return _("Software {version} (Garmin Connect)").format(version=version)
+    # TRANSLATORS: the version of a device's software, under its name ("Software 23.39")
     return _("Software {version}").format(version=version)
 
 
@@ -202,6 +203,7 @@ def space_text(free: int | None, total: int | None = None, reading: bool = False
         return pgettext("space", "Unknown")
     if total:
         return _("{free} free of {total}").format(free=human_size(free), total=human_size(total))
+    # TRANSLATORS: free space on the device when its capacity is not known; {size}: e.g. "3.2 GB"
     return _("{size} free").format(size=human_size(free))
 
 
@@ -209,6 +211,8 @@ def last_seen_text(last_seen: float, now: datetime | None = None) -> str:
     """When this computer last saw a device, told against now, as the last sync is ("Last
     seen 2 h ago"): on its tile and on its page alike; the full date is in the tooltip
     (last_seen_tooltip)."""
+    # TRANSLATORS: when this computer last saw a device: {when} is "2 h ago" on a tile, a full date
+    # in its tooltip and in the CLI
     return _("Last seen {when}").format(
         when=relative_time(datetime.fromtimestamp(last_seen), now or datetime.now()))
 
@@ -240,6 +244,8 @@ def activity_title(read) -> str:
     from openexpress.activities import sport_name
 
     if read.summary is None:
+        # TRANSLATORS: title of the row of an activity whose file is not a FIT file, in place of its
+        # sport
         return _("Unreadable file")
     return sport_name(read.summary.sport)
 
@@ -318,6 +324,7 @@ def activities_count_text(count: int, only_in_backups: int) -> str:
     """Above the rows of the Activities page: how many activities, and how many of them only
     a backup has."""
     return caption(
+        # TRANSLATORS: above the rows of the Activities page: how many activities are listed
         ngettext("{count} activity", "{count} activities", count).format(count=count),
         # TRANSLATORS: on the Activities page: how many activities only a backup has
         _("{count} only in backups").format(count=only_in_backups) if only_in_backups else "")
@@ -625,7 +632,11 @@ def lap_title(number: int) -> str:
 def laps_title(kilometres: bool) -> str:
     """The title of the laps of an activity's page: its device's laps, or the kilometres
     worked out from its records when the device kept none."""
-    return _("Kilometres") if kilometres else _("Laps")
+    # TRANSLATORS: title of the list of kilometre splits worked out from an activity's records,
+    # shown in place of "Laps" (not the unit)
+    return (_("Kilometres") if kilometres
+            # TRANSLATORS: title of the list of an activity's laps as its device recorded them
+            else _("Laps"))
 
 
 def kilometre_title(number: int) -> str:

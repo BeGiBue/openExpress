@@ -35,7 +35,7 @@ from openexpress.device.storage import (
 )
 from openexpress.device.xmldevice import GarminDevice
 from openexpress.errors import UserFacingError
-from openexpress.i18n import N_, _, caption, ngettext
+from openexpress.i18n import N_, NC_, _, caption, ngettext, pgettext
 from openexpress.progress import Step, downloading_text, say_to, writing_text
 
 log = logging.getLogger(__name__)
@@ -44,10 +44,37 @@ PRELOADED_PREFIX = "c0ffee15-600d"
 # The Connect IQ Store app ships with the watch firmware and must stay.
 STORE_APP_ID = uuid.UUID("7cd38736-510a-4480-8801-0dfe2f5944af")
 
-# Protobuf AppType (GDI.Proto.ConnectIQInstalledApps.AppType)
-# TRANSLATORS: Connect IQ app types shown in app lists
-APP_TYPES = {0: N_("unknown"), 1: N_("app"), 2: N_("widget"), 3: N_("watch face"),
-             4: N_("data field"), 7: N_("music app"), 8: N_("activity")}
+# Protobuf AppType (GDI.Proto.ConnectIQInstalledApps.AppType); their names: app_type_name.
+APP_TYPES = {
+    # TRANSLATORS: a type of Connect IQ app openExpress does not know, lower case, after an
+    # app's name in lists
+    0: NC_("app type", "unknown"),
+    # TRANSLATORS: a type of Connect IQ app, lower case, after an app's name in lists; use
+    # the name the Connect IQ Store uses in your language
+    1: NC_("app type", "app"),
+    # TRANSLATORS: a type of Connect IQ app, lower case, after an app's name in lists; use
+    # the name the Connect IQ Store uses in your language
+    2: NC_("app type", "widget"),
+    # TRANSLATORS: a type of Connect IQ app, lower case, after an app's name in lists; use
+    # the name the Connect IQ Store uses in your language
+    3: NC_("app type", "watch face"),
+    # TRANSLATORS: a type of Connect IQ app, lower case, after an app's name in lists; use
+    # the name the Connect IQ Store uses in your language
+    4: NC_("app type", "data field"),
+    # TRANSLATORS: a type of Connect IQ app, lower case, after an app's name in lists; use
+    # the name the Connect IQ Store uses in your language
+    7: NC_("app type", "music app"),
+    # TRANSLATORS: a type of Connect IQ app, lower case, after an app's name in lists; use
+    # the name the Connect IQ Store uses in your language
+    8: NC_("app type", "activity"),
+}
+
+
+def app_type_name(app_type) -> str | None:
+    """The name of a type of Connect IQ app in the program's language; None: not known."""
+    name = APP_TYPES.get(app_type)
+    return pgettext("app type", name) if name else None
+
 DATATYPE_TO_APPTYPE = {"IQWatchApps": 1, "IQWidgets": 2, "IQWatchFaces": 3,
                        "IQDataFields": 4, "IQAudioContentApps": 7}
 APPTYPE_TO_DATATYPE = {v: k for k, v in DATATYPE_TO_APPTYPE.items()}
@@ -90,8 +117,7 @@ class InstalledApp:
 
     @property
     def type_name(self) -> str:
-        name = APP_TYPES.get(self.app_type)
-        return _(name) if name else str(self.app_type)
+        return app_type_name(self.app_type) or str(self.app_type)
 
     @property
     def removable(self) -> bool:
@@ -468,7 +494,7 @@ class StoreApi:
     def account_apps(self, device: GarminDevice, locale: str) -> list[StoreApp]:
         data = self._kept(answers.STORE_APPS, device, (locale, device.part_number), lambda: (
             self._request("GET", "express/appstore/rest/apps/downloads",
-                          _("Connect IQ apps"),
+                          pgettext("server request", "Connect IQ apps"),
                           params={"unitId": device.unit_id, "locale": locale,
                                   "sku": device.part_number}, unit_id=device.unit_id)))
         return _store_apps(data)
@@ -480,6 +506,9 @@ class StoreApi:
                 "deviceSKU": device.part_number, "locale": locale}
         data = self._kept(answers.STORE_UPDATES, device, (json.dumps(body, sort_keys=True),),
                           lambda: self._request("POST", "express/appstore/rest/apps/updates",
+                                                # TRANSLATORS: name of a server request that asks
+                                                # which apps have new versions, shown before an
+                                                # error
                                                 _("Connect IQ updates"), json_body=body,
                                                 unit_id=device.unit_id))
         # The server also lists apps that are already current; keep only newer versions.
@@ -491,6 +520,8 @@ class StoreApi:
                          for a in apps], "unitId": device.unit_id}
         try:
             data = self._request("POST", "express/appstore/rest/apps/installApps",
+                                 # TRANSLATORS: name of a server request that queues apps for
+                                 # installation, shown before an error
                                  _("Connect IQ install"), json_body=body,
                                  unit_id=device.unit_id) or []
         finally:  # what the store said of the device's apps is asked anew
@@ -518,6 +549,8 @@ class StoreApi:
                 "unitId": device.unit_id}
         try:
             self._request("POST", "express/appstore/rest/apps/removeInstalledApps",
+                          # TRANSLATORS: name of a server request that takes apps off the account's
+                          # list, shown before an error
                           _("Connect IQ remove"), json_body=body, unit_id=device.unit_id)
         finally:  # what the store said of the device's apps is asked anew
             self._forget(device)
@@ -569,23 +602,37 @@ def _store_app(a: dict) -> StoreApp:
 # What each permission of a Connect IQ app lets it do, in our words; a name not listed here
 # is shown as the store gives it.
 PERMISSION_WORDS = {
+    # TRANSLATORS: a permission a Connect IQ app asks for, one line under "{name} {version} needs
+    # these permissions:"
     "ant": N_("ANT radio"),
     "background": N_("running in the background (may use more battery)"),
-    "bluetoothlowenergy": N_("Bluetooth Low Energy"),
+    "bluetoothlowenergy": "Bluetooth Low Energy",  # the name of the radio: not translated
     "communications": N_("the internet, through the phone"),
     "complicationpublisher": N_("offering data to watch faces and other apps"),
     "complicationsubscriber": N_("reading data that other apps offer"),
     "datafieldalert": N_("alerts during an activity"),
+    # TRANSLATORS: a permission a Connect IQ app asks for, one line under "{name} {version} needs
+    # these permissions:"
     "fit": N_("activity files (FIT)"),
     "fitcontributor": N_("adding its own data to activity files"),
+    # TRANSLATORS: a permission a Connect IQ app asks for, one line under "{name} {version} needs
+    # these permissions:"
     "notifications": N_("showing notifications"),
     "persistedcontent": N_("saved courses, routes, waypoints and workouts"),
     "persistedlocations": N_("saving locations on the device"),
+    # TRANSLATORS: a permission a Connect IQ app asks for, one line under "{name} {version} needs
+    # these permissions:"
     "positioning": N_("GPS location"),
+    # TRANSLATORS: a permission a Connect IQ app asks for, one line under "{name} {version} needs
+    # these permissions:"
     "pushnotification": N_("push notifications"),
     "sensor": N_("sensors (heart rate, ANT+ sensors, compass)"),
     "sensorhistory": N_("history of heart rate, pressure, temperature and altitude"),
+    # TRANSLATORS: a permission a Connect IQ app asks for, one line under "{name} {version} needs
+    # these permissions:"
     "sensorlogging": N_("recording sensor data"),
+    # TRANSLATORS: a permission a Connect IQ app asks for, one line under "{name} {version} needs
+    # these permissions:"
     "steps": N_("step counts"),
     "userprofile": N_("your Garmin Connect profile"),
 }
@@ -1298,6 +1345,8 @@ def _install_hidden(device, storage, state, hidden: list[_Hidden], new_entries, 
             # The session broke, then the device was not mounted again: what became of each
             # app first, then the USB connection.
             broken_off(broken[0])
+        # TRANSLATORS: shown in place of an app's name in the list of what failed in an install
+        # ("USB connection: …")
         report.failed.append((_("USB connection"), replug_text(e)))
         if not opened:
             report.for_phone += [h.name for h in hidden]

@@ -62,7 +62,6 @@ def _fetch(client: GarminClient, m: dict) -> bytes | None:
 class TrueUpResult:
     written: str | None = None
     waited_s: float = 0.0
-    note: str = ""
     stopped: bool = False  # the wait was stopped: nothing more was asked or written
 
 
@@ -122,7 +121,6 @@ def run(
     result = TrueUpResult()
     targets = device.targets(DATATYPE)
     if not targets:
-        result.note = _("the device does not support TrueUp")
         log.info("TrueUp: not supported by the device")
         return result
     for _round in range(MAX_ROUNDS):
@@ -140,20 +138,17 @@ def run(
         log.info("TrueUp: check back (round %d), waiting %.0f s", _round + 1, wait)
         if wait and not _wait(wait, progress, sleep, stop, result):
             result.stopped = True
-            result.note = stopped_text()
             log.info("TrueUp: wait stopped after %.0f s, nothing more asked", result.waited_s)
             progress(stopped_text())
             return result
         messages = client.device_messages(device.unit_id)
     m = _find(messages, TRUE_UP)
     if m is None:
-        result.note = _("Connect has not prepared TrueUp data yet")
         log.info("TrueUp: nothing prepared yet (waited %.0f s)", result.waited_s)
         return result
     progress(Step(downloading_text("TrueUp")))
     data = _fetch(client, m)
     if not data:
-        result.note = _("empty TrueUp file")
         log.info("TrueUp: empty file")
         return result
     t = targets[0]

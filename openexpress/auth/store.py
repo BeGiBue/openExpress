@@ -27,6 +27,8 @@ class ConnectAuth:
         """The account's name as the window shows it: its user name, else its e-mail
         address, whole."""
         a = self.account
+        # TRANSLATORS: shown in place of the signed-in Garmin account's name when it has no user
+        # name and no e-mail address
         return a.get("username") or a.get("emailaddress") or _("(unknown account)")
 
     @property

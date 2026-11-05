@@ -627,6 +627,7 @@ class TaskRunner:
 
     @staticmethod
     def _removed_files(count: int) -> str:
+        # TRANSLATORS: toast after music or map files were removed from the device
         return ngettext("Removed {count} file", "Removed {count} files", count).format(count=count)
 
     @staticmethod

@@ -74,6 +74,8 @@ class Told:
         first errors."""
         if not self.errors:
             return self.text
+        # TRANSLATORS: in the notification after a sync in the background; {errors}: up to three
+        # errors, separated by "; "
         return self.text + "\n" + _("Errors: {errors}").format(
             errors="; ".join(self.errors[:3]))
 

@@ -107,6 +107,8 @@ class ReportDialog:
             d.set_extra_child(box)
             d.add_response("copy", _("Copy"))
         d.add_response("close", _("Close"))
+        # TRANSLATORS: button of the problem report dialog: opens a new issue form on GitHub with
+        # the report filled in
         d.add_response("open", _("Open on GitHub"))
         d.set_response_appearance("open", Adw.ResponseAppearance.SUGGESTED)
         d.set_close_response("close")
@@ -129,6 +131,7 @@ class ReportDialog:
         def response(dialog, r):
             if r == "copy":
                 self.get_clipboard().set(shown())
+                # TRANSLATORS: toast after the problem report was copied to the clipboard
                 self.toast(_("Report copied"))
             elif r == "open":
                 attached = self._open_report_form(

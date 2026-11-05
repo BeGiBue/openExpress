@@ -130,6 +130,8 @@ class Settings:
         s._extra = {k: v for k, v in data.items()
                     if k not in cls.__dataclass_fields__ and k != _OLD_LOCALE_KEY}
         if s.environment not in ENVIRONMENTS:
+            # TRANSLATORS: error: the settings file names a set of Garmin servers openExpress does
+            # not know; {name}: e.g. "production"
             raise SetupError(_("Unknown environment: {name}").format(name=s.environment))
         return s, data
 

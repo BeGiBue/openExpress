@@ -76,6 +76,8 @@ def maps_group(win) -> Adw.PreferencesGroup:
     """The "Activity maps" group: OpenStreetMap's tiles under the track of an activity, off
     until the yes (here or on the page, gui.json); taken back or given here, the map shown now
     follows."""
+    # TRANSLATORS: group in the preferences: the street map from OpenStreetMap under the track of an
+    # activity
     g = Adw.PreferencesGroup(title=_("Activity maps"))
     sw = Adw.SwitchRow(title=_("Streets and terrain from OpenStreetMap"),
                        subtitle=_("The OpenStreetMap server learns the area of each activity "
@@ -320,6 +322,8 @@ class Preferences:
 
     def show_preferences(self) -> None:
         dialog = Adw.PreferencesDialog()
+        # TRANSLATORS: title of the main page of the preferences and of the section in the keyboard
+        # shortcuts window
         page = Adw.PreferencesPage(title=_("General"), icon_name="preferences-system-symbolic")
         page.add(self._account_group())
         # The window holds the dialog while it is open, for the handlers of its rows (one
@@ -355,6 +359,7 @@ class Preferences:
 
         g = Adw.PreferencesGroup(title=_("Language"))
         codes = [""] + i18n.available_languages()
+        # TRANSLATORS: first choice under "Interface language": the language of the system
         names = [_("System default")] + [i18n.language_name(c) for c in codes[1:]]
         current = load_ui_language()
         combo = Adw.ComboRow(title=_("Interface language"), model=Gtk.StringList.new(names))
@@ -378,6 +383,8 @@ class Preferences:
         g.add(combo)
         page.add(g)
 
+        # TRANSLATORS: a noun: group in the preferences with the Garmin Express installer the
+        # application key is read from
         g = Adw.PreferencesGroup(title=_("Setup"))
         row = Adw.ActionRow(
             title=_("Garmin Express installer for Windows"),
@@ -419,7 +426,9 @@ class Preferences:
         size, its files and a trash (grey while the part is empty), and one for all of it
         with "Clear All…". The sizes are counted in the background, never on the window's
         thread; the group is about the cache of this installation alone."""
-        kind = _("Flatpak") if paths.in_flatpak() else _("version from source")
+        # TRANSLATORS: fills {kind} in "Only the files of this installation ({kind})…":
+        # openExpress runs from its source code, not as the Flatpak
+        kind = "Flatpak" if paths.in_flatpak() else _("version from source")
         # TRANSLATORS: group in the preferences: the cache (downloaded maps and updates,
         # pictures, temporary files) on the disk of the computer (not the device's storage of
         # the device page)
@@ -428,8 +437,12 @@ class Preferences:
             "when needed").format(kind=kind))
         parts = {}
         for name in cache.CATEGORIES:
+            # TRANSLATORS: subtitle of a row of the cache in the preferences while its size is
+            # counted
             row = Adw.ActionRow(title=_(cache.CATEGORY_NAMES[name]), subtitle=_("Counting…"))
             trash = Gtk.Button(icon_name="user-trash-symbolic", valign=Gtk.Align.CENTER,
+                               # TRANSLATORS: tooltip of the trash button of a part of the cache in
+                               # the preferences
                                tooltip_text=_("Delete these files"), sensitive=False)
             trash.add_css_class("flat")
             # The handler gets its button from the signal and holds none.
