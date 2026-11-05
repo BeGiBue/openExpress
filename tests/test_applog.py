@@ -505,7 +505,8 @@ def test_sync_is_logged_step_by_step_without_identifiers(log_file, device_root, 
     assert any(s.startswith("upload plan: 2 new (") for s in steps)
     assert any(s.startswith("uploads: 2 uploaded, 0 duplicates") for s in steps)
     assert any(s.startswith("queue from Garmin Connect: 1 items (FIT_TYPE_6×1)") for s in steps)
-    assert "downloads: 1 written, 0 empty, 0 failed, 0 not acknowledged" in steps
+    assert ("downloads: 1 written (maker not given×1), 0 empty, 0 failed, "
+            "0 not acknowledged") in steps
     assert steps[-1].startswith("sync: end after ") and steps[-1].endswith(
         "2 uploaded, 0 already known, 1 downloaded, 0 errors")
     assert DEVICE_UNIT not in text and str(device_root) not in text

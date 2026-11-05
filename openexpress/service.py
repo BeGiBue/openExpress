@@ -1387,8 +1387,9 @@ def plan_sync(s: DeviceSession, options: SyncOptions | None = None,
         raise store.NotLoggedIn(_("Not signed in to Garmin Connect."))
     if s.logged_in:
         # Before uploads: the account's list asked anew (a plan only shown: as kept).
-        require_account_device(s.client, s.device.unit_id, fresh=not options.preview,
-                               part_number=s.device.part_number)
+        s.account_devices = require_account_device(s.client, s.device.unit_id,
+                                                   fresh=not options.preview,
+                                                   part_number=s.device.part_number)
     plan = SyncPlan(options, s.state)
     if options.uploads:
         progress(Waiting(_("Fetching configuration from the Garmin server…")))
@@ -1526,11 +1527,34 @@ def done_before(error: BaseException) -> SyncSummary | None:
     return getattr(error, "sync_done_before", None)
 
 
+def product_number(part_number: str | None) -> int | None:
+    """The product number in a part number ("006-B4532-00": 4532); None: none in it."""
+    found = re.match(r"\d{3}-B(\d{4})-", part_number or "")
+    return int(found.group(1)) if found else None
+
+
+def queue_makers(s: DeviceSession) -> sync.Makers:
+    """Who may have made the files of the device's queue (sync.Makers): its own product number
+    and the names of the remembered devices and of the account's (as the account lists them),
+    by product number."""
+    names: dict[int, str] = {}
+    for known in known_devices.load().values():
+        product = product_number(known.part_number)
+        if product is not None and known.description:
+            names[product] = known.description
+    for device in s.account_devices or []:
+        product = product_number(device.get("partnumber"))
+        if product is not None and device.get("productdisplayname"):
+            names[product] = str(device["productdisplayname"])
+    return sync.Makers(own=product_number(s.device.part_number), names=names)
+
+
 def _apply_queue(s, queue: QueuePlan, state, progress, out: SyncSummary) -> None:
     items = queue.items
     todo = [i for i in items if not i.unsupported and not i.handled_by]
     if todo:
-        drep = sync.run_downloads(todo, s.storage, s.client, progress, state=state)
+        drep = sync.run_downloads(todo, s.storage, s.client, progress, state=state,
+                                  makers=queue_makers(s))
         out.downloaded = len(drep.written)
         if drep.written_types:
             out.lines.append(received_files_step(drep.written_types))

@@ -68,6 +68,66 @@ SPECIAL_DOWNLOAD_PREFIXES = {"IQ": "Connect IQ"}
 SPECIAL_DOWNLOAD_TYPES = {"FIT_TYPE_39": "TrueUp"}
 # The room kept free on the device besides a file from Garmin Connect's queue.
 DOWNLOAD_MARGIN = 1024 * 1024
+# The product number of the files Garmin Connect makes itself (TrueUp's, for one).
+CONNECT_PRODUCT = 65534
+GARMIN_MANUFACTURER = 1
+
+
+@dataclass(frozen=True)
+class Makers:
+    """Who may have made a file of Garmin Connect's queue: the product number of the open device
+    and the names of the account's and the remembered devices by product number. Garmin
+    Connect forwards the measurements of one device to the others; a file says who made it in
+    its file_id (its serial number is never read)."""
+
+    own: int | None = None
+    names: dict[int, str] = field(default_factory=dict)
+
+    def _maker(self, described: Described | None) -> tuple[str, str | int] | None:
+        if described is None or described.product is None or described.manufacturer not in (
+                None, GARMIN_MANUFACTURER):
+            return None
+        if described.product == self.own:
+            return "own", described.product
+        if described.product == CONNECT_PRODUCT:
+            return "connect", described.product
+        if described.product in self.names:
+            return "named", self.names[described.product]
+        return "product", described.product
+
+    def words(self, described: Described | None) -> str | None:
+        """Who made the file, for the user; None: it does not say."""
+        found = self._maker(described)
+        if found is None:
+            return None
+        kind, value = found
+        if kind == "own":
+            # TRANSLATORS: who made a file of Garmin Connect's queue: the open device
+            return _("this device")
+        if kind == "connect":
+            return "Garmin Connect"
+        if kind == "named":
+            return str(value)
+        # TRANSLATORS: who made a file of Garmin Connect's queue: a product not on the account
+        return _("Garmin product {number}").format(number=value)
+
+    def in_log(self, described: Described | None) -> str:
+        """Who made the file, as the log says it (in English, as the whole log)."""
+        found = self._maker(described)
+        if found is None:
+            return "maker not given"
+        kind, value = found
+        return {"own": "this device", "connect": "Garmin Connect", "named": str(value),
+                "product": f"Garmin product {value}"}[kind]
+
+
+def _made_in_log(described: Described | None, makers: Makers) -> str:
+    who = makers.in_log(described)
+    if who == "maker not given":
+        return who
+    when = (time.strftime(" on %Y-%m-%d %H:%M", time.localtime(described.created))
+            if described is not None and described.created is not None else "")
+    return f"made by {who}{when}"
 
 DOWNLOAD_NAME_PREFIX = {"FIT_TYPE_6": "course", "FIT_TYPE_5": "workout", "FIT_TYPE_11": "goal"}
 
@@ -855,6 +915,8 @@ class DownloadReport:
     written: list[str] = field(default_factory=list)
     # The data type of each file written now (as `written`), for the details of the sync.
     written_types: list[str] = field(default_factory=list)
+    # Who made each file written now, as the log says it (Makers.in_log).
+    makers: list[str] = field(default_factory=list)
     empty: list[str] = field(default_factory=list)
     failed: list[tuple[str, str]] = field(default_factory=list)
     # Written to the watch, but Connect was not told; acknowledged on the next sync.
@@ -871,15 +933,17 @@ def run_downloads(
     client: GarminClient,
     progress: Callable[[str], None] | None = None,
     state: SyncState | None = None,
+    makers: Makers | None = None,
 ) -> DownloadReport:
     """Download the queued files to the watch and return the report. With `state`, a message
     whose file was written but not acknowledged is kept in it and only acknowledged next
-    time (no duplicate file on the watch). Raises DeviceNotVerified at the first refusal of
-    a client never checked against the account: nothing more is fetched, written or
-    acknowledged."""
+    time (no duplicate file on the watch). The log says who made each file written (`makers`:
+    the names of the devices; without them a product by its number). Raises DeviceNotVerified
+    at the first refusal of a client never checked against the account: nothing more is
+    fetched, written or acknowledged."""
     progress = say_to(progress)
     try:
-        return _run_downloads(items, storage, client, progress, state)
+        return _run_downloads(items, storage, client, progress, state, makers or Makers())
     except DeviceNotVerified:
         # As the uploads (run_sync checks the owner first): the messages written before stay
         # not acknowledged, and the refusal is logged once.
@@ -888,7 +952,7 @@ def run_downloads(
         raise
 
 
-def _run_downloads(items, storage, client, progress, state) -> DownloadReport:
+def _run_downloads(items, storage, client, progress, state, makers: Makers) -> DownloadReport:
     report = DownloadReport()
     unacked = state.unacked() if state is not None else set()
     initial = set(unacked)
@@ -934,7 +998,12 @@ def _run_downloads(items, storage, client, progress, state) -> DownloadReport:
                 report.failed.append((label, str(e)))
                 report.failed_in_log.append((quiet, str(e)))
                 continue
-            log.debug("download: %s written", it.datatype)
+            try:
+                described = describe(data)
+            except FitError:
+                described = None
+            log.info("download: %s written, %s", it.datatype, _made_in_log(described, makers))
+            report.makers.append(makers.in_log(described))
             report.written.append(f"{label} -> {real}")
             report.written_types.append(it.datatype)
             # Written: not acknowledged until Garmin Connect says so, whatever stops the sync
@@ -954,9 +1023,9 @@ def _run_downloads(items, storage, client, progress, state) -> DownloadReport:
     finally:
         if state is not None and unacked != initial:
             state.save_unacked(unacked)
-    log.info("downloads: %d written, %d empty, %d failed, %d not acknowledged",
-             len(report.written), len(report.empty), len(report.failed),
-             len(report.ack_failed))
+    log.info("downloads: %d written (%s), %d empty, %d failed, %d not acknowledged",
+             len(report.written), applog.counts(report.makers), len(report.empty),
+             len(report.failed), len(report.ack_failed))
     for _label, error in report.failed:
         log.warning("download failed: %s", error)
     return report

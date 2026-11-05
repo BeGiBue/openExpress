@@ -985,7 +985,7 @@ def cmd_sync(args) -> int:
         drive=st.mass_storage)
     if not args.apply:
         _print_sync_plan(service.plan_sync(session, dataclasses.replace(options, preview=True)),
-                         client, drive=st.mass_storage)
+                         client, drive=st.mass_storage, makers=service.queue_makers(session))
         print("\n" + _("Dry run: nothing was uploaded or written to the device. "
                        "Add --apply to run the sync."))
         return 0
@@ -1015,11 +1015,12 @@ def cmd_sync(args) -> int:
     return code
 
 
-def _print_sync_plan(plan, client, drive: bool = False) -> None:
+def _print_sync_plan(plan, client, drive: bool = False, makers=None) -> None:
     """What `sync` would do (its dry run), as service.plan_sync worked it out. On a `drive`
     a Connect IQ app stays in Garmin Connect's queue (service.stays_in_queue). Under each file
     of the queue the sync would write to the device: what it is (sync.describe_queue, which
-    downloads it into memory and acknowledges nothing)."""
+    downloads it into memory and acknowledges nothing), and who made it (`makers`,
+    sync.Makers)."""
     from openexpress import service, sync
 
     if plan.upload_error is not None:
@@ -1058,12 +1059,13 @@ def _print_sync_plan(plan, client, drive: bool = False) -> None:
             target = it.target.path if it.target else "-"
             print(f"  {it.datatype:22} {it.message_name or it.message_id} -> {target}{note}")
             if id(it) in described:
-                print("      " + _queue_file_words(described[id(it)]))
+                print("      " + _queue_file_words(described[id(it)], makers))
 
 
-def _queue_file_words(found) -> str:
+def _queue_file_words(found, makers=None) -> str:
     """The line under a file of Garmin Connect's queue in the dry run of `sync`: what it is,
-    its sport and name or days, when it was made, and whether it is whole."""
+    its sport and name or days, who made it (when it says so), when it was made, and whether
+    it is whole."""
     from openexpress import activities, service
     from openexpress.fit import Problem
 
@@ -1091,6 +1093,10 @@ def _queue_file_words(found) -> str:
         parts.append(ngettext("{count} day from {first} to {last}",
                               "{count} days from {first} to {last}", len(d.days)).format(
             count=len(d.days), first=day(d.days[0]), last=day(d.days[-1])))
+    who = makers.words(d) if makers is not None else None
+    if who:
+        # TRANSLATORS: dry run of sync: the device (or Garmin Connect) that made a queue file
+        parts.append(_("made by {maker}").format(maker=who))
     if d.created is not None:
         parts.append(_("created {date}").format(
             date=time.strftime(_("%Y-%m-%d"), time.localtime(d.created))))

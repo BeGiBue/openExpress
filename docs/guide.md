@@ -397,9 +397,13 @@ known yet and are shown as numbers.
   in Garmin Express.
 - The dry run (`openexpress sync` without `--apply`) also says what each file waiting in
   Garmin Connect is before a sync writes it to the watch – a workout's sport, name and steps,
-  a course's sport and name, a schedule's days – and whether it is whole. It downloads them
-  into memory only and acknowledges nothing, so the sync downloads them again. Tested on a
-  fēnix 8 over MTP.
+  a course's sport and name, a schedule's days – who made it, and whether it is whole. It
+  downloads them into memory only and acknowledges nothing, so the sync downloads them again.
+  Tested on a fēnix 8 over MTP.
+- Garmin Connect also forwards the measurements of one device to your others (a file such a
+  device made). The dry run says who made each file (another device of your account by its
+  name, "this device", Garmin Connect), and the program's log says it for each file a sync
+  writes to the device.
 - A FIT file the device wrote while it was connected over MTP (a Garmin Coach plan, for
   example) may read cut short: gvfs keeps the size the file had when it was first looked at.
   At the first such file a sync mounts the device again for a moment, which gives fresh

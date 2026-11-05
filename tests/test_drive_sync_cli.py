@@ -225,7 +225,8 @@ def test_sync_apply_on_a_drive_uploads_its_files_and_writes_the_queue(
     assert "3 uploaded" in capsys.readouterr().out
     log = log_file.read_text()
     assert "uploads: 3 uploaded, 0 duplicates, 0 already in Connect" in log
-    assert "downloads: 1 written, 0 empty, 0 failed, 0 not acknowledged" in log
+    assert ("downloads: 1 written (maker not given×1), 0 empty, 0 failed, "
+            "0 not acknowledged") in log
 
 
 # --- ejected after a sync that wrote to it -------------------------------------------------

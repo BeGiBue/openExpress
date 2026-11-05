@@ -162,3 +162,27 @@ def test_only_the_dry_run_describes(device, monkeypatch):
     account = QueueAccount(FILES)
     monkeypatch.setattr(cli, "make_client", lambda settings, need_auth: account)
     assert cli.main(["sync", "--download-only", "--apply"]) in (0, 1)
+
+
+def test_a_file_another_device_of_the_account_made_is_said_with_its_maker(
+        device, monkeypatch, capsys):
+    """Garmin Connect forwards the measurements of one device to the others: the dry run names
+    the device that made such a file (its file_id), as the account lists it."""
+    made = fit_file(
+        FitDefinition(0, 0, ((0, ENUM), (1, UINT16), (2, UINT16), (4, UINT32))),
+        FitData(0, (6, 1, 4532, fit_time(2026, 10, 30, 8, 0))),
+        FitDefinition(1, 31, ((4, ENUM), (5, STRING, 16))), FitData(1, (CYCLING, "Morning loop")))
+
+    class Account(QueueAccount):
+        def account_devices(self, fresh=False):
+            return [{"unitid": self.UNIT},
+                    {"unitid": 4222333444, "partnumber": "006-B4532-00",
+                     "productdisplayname": "Made-up Watch 7"}]
+
+    account = Account({**FILES, "course/12": made})
+    monkeypatch.setattr(cli, "make_client", lambda settings, need_auth: account)
+    assert cli.main(["sync", "--download-only"]) == 0
+    lines = capsys.readouterr().out.splitlines()
+    assert described(lines, "Morning loop") == (
+        "      courses · Cycling · Morning loop · made by Made-up Watch 7 · created 2026-10-30"
+        " · whole")

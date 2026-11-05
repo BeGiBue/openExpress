@@ -923,12 +923,14 @@ _MESG_SCHEDULE, _SCHEDULE_TIME = 28, 6
 
 @dataclass(frozen=True)
 class Described:
-    """What a file says of itself (describe): its type, when it was made (a Unix time), and
-    for a workout or a course its sport and name, a workout's steps, a schedule's days (the
-    local clock, as seconds since 1970)."""
+    """What a file says of itself (describe): its type, when it was made (a Unix time), who
+    made it (its manufacturer and product numbers), and for a workout or a course its sport and
+    name, a workout's steps, a schedule's days (the local clock, as seconds since 1970)."""
 
     file_type: int | None = None
     created: int | None = None
+    manufacturer: int | None = None
+    product: int | None = None
     sport: int | None = None
     name: str | None = None
     steps: int | None = None
@@ -960,6 +962,8 @@ def describe(data: bytes) -> Described:
         pass
     return Described(
         file_type=_whole_number(file_id.get(_FILE_ID_TYPE)),
-        created=_unix_time(file_id.get(_FIELD_TIME_CREATED)), sport=_whole_number(sport),
+        created=_unix_time(file_id.get(_FIELD_TIME_CREATED)),
+        manufacturer=_whole_number(file_id.get(_FILE_ID_MANUFACTURER)),
+        product=_whole_number(file_id.get(_FILE_ID_PRODUCT)), sport=_whole_number(sport),
         name=name if isinstance(name, str) else None, steps=_whole_number(steps),
         days=tuple(sorted(days)))
