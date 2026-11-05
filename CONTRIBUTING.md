@@ -23,10 +23,14 @@ it). The tests never reach the network (one that tries fails) and need no device
 For testing only, not for ordinary use. `OPENEXPRESS_TEST_DRIVE_USB=VVVV:PPPP` (the vendor
 and product ID that `lsusb` shows) makes openExpress take the mounted USB drive with these IDs
 for a Garmin device connected as a USB drive. A pendrive with a copy of a watch's
-`GARMIN/GarminDevice.xml` then stands in for that watch: the same unit ID, account and sync
-state, so `--apply` uploads to Garmin Connect as from that watch. The log says so in a warning
-(on the command line also in the terminal); a value in another form is ignored with a warning.
-A connected MTP device still comes first, and a drive that is not mounted is not taken.
+`GARMIN/GarminDevice.xml` then stands in for that watch: the same unit ID and account, so
+`--apply` uploads to Garmin Connect as from that watch. Its sync leaves Garmin Connect's queue
+and TrueUp to the watch (nothing is downloaded or acknowledged, and the sync says so in one
+line), and its records are its own: what it uploaded and its last sync are kept apart from the
+watch's (`devices/<unit ID>/test-drive/` in the data folder), so its first sync starts anew and
+the watch's tile and records stay as they were. The log says so in a warning (on the command
+line also in the terminal); a value in another form is ignored with a warning. A connected MTP
+device still comes first, and a drive that is not mounted is not taken.
 
 ```bash
 OPENEXPRESS_TEST_DRIVE_USB=0781:5581 python3 -m openexpress sync    # dry run

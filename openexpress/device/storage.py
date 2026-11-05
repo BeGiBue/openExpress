@@ -92,6 +92,8 @@ class Storage(ABC):
     label = "storage"
     # A Garmin device in mass storage mode that the program found itself (UmsStorage).
     mass_storage = False
+    # A USB drive taken for a Garmin drive for testing (UmsStorage.test_drive).
+    test_drive = False
     # Whether write_file keeps the file it replaces until the new one is whole (a temporary
     # copy renamed at the end), so both have to fit for a while: what the space checks count.
     # Over MTP the old file is deleted before the new one is sent. (What a failed write
@@ -605,3 +607,9 @@ class UmsStorage(LocalStorage):
         self.label = device_uri.rstrip("/") + "/"
         self.usb = usb  # gio_storage.GarminUsb, when known
         self.usb_id: str | None = usb.usb_id if usb is not None else None
+
+    @property
+    def test_drive(self) -> bool:
+        """A USB drive of another vendor than Garmin, taken for a Garmin drive for testing
+        (gio_storage.TEST_DRIVE_ENV): it carries the GarminDevice.xml of a real device."""
+        return self.usb is not None and self.usb.for_testing

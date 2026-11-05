@@ -36,6 +36,17 @@ EXPECTED = {
         "pl": ("nic do wysłania", [
             ((f"To urządzenie synchronizował też openExpress (Flatpak), ostatnio {OTHER_DAY_PL}; "
               "pliki, które wysłał, nie są wysyłane ponownie"), True)])},
+    # A test drive (a USB drive taken for a Garmin drive): its files uploaded, Garmin Connect's
+    # queue and TrueUp left to the watch it stands in for.
+    "format-test-drive.json": {
+        "en": ("2 new files, 2 uploaded", [
+            (("A test drive: Garmin Connect's queue and TrueUp are left to the device it "
+              "stands in for"), False),
+            ("Files from the device: activities ×2", False)]),
+        "pl": ("2 nowe pliki, 2 wysłane", [
+            ((f"Dysk testowy: kolejka Garmin Connect i{NB}TrueUp zostają dla urządzenia, "
+              "które zastępuje"), False),
+            (f"Pliki z{NB}urządzenia: aktywności ×2", False)])},
     "format-nothing-new-one-course-received.json": {
         "en": ("nothing to upload · 1 received", [
             ("1 file from Garmin Connect: courses", False)]),

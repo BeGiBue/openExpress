@@ -66,7 +66,7 @@ writes over the watch's records in that install.
 - **D6 (recommended).** A test drive (a drive whose USB vendor is not Garmin's) syncs without
   Garmin Connect's queue and without TrueUp: nothing is downloaded or acknowledged. The sync says
   so in one line: "A test drive: Garmin Connect's queue and TrueUp are left to the device it
-  stands in for."
+  stands in for" (a line of the details, without a full stop).
 - **D7 (recommended: 7a).** Its records:
   - **7a.** Kept apart from the watch's (`devices/<unit>/test-drive/`): its uploaded files, its
     last sync and the facts of its tile never touch the watch's.
@@ -90,7 +90,7 @@ Garmin Connect." Nothing else changes.
 | maker not given | twórca nieznany |
 | openExpress (Flatpak) is syncing a device now; sync again when it is done. | openExpress (Flatpak) synchronizuje teraz urządzenie; zsynchronizuj ponownie, gdy skończy. |
 | This device was also synced by openExpress (Flatpak), last on {date}; files it sent are not sent again | To urządzenie synchronizował też openExpress (Flatpak), ostatnio {date}; pliki, które wysłał, nie są wysyłane ponownie |
-| A test drive: Garmin Connect's queue and TrueUp are left to the device it stands in for. | Dysk testowy: kolejka Garmin Connect i TrueUp zostają dla urządzenia, które zastępuje. |
+| A test drive: Garmin Connect's queue and TrueUp are left to the device it stands in for | Dysk testowy: kolejka Garmin Connect i TrueUp zostają dla urządzenia, które zastępuje |
 
 The log stays in English, as always.
 

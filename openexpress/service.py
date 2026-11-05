@@ -88,7 +88,12 @@ class DeviceSession:
     @property
     def state(self) -> sync.SyncState:
         """What was uploaded of the device (with the other install's records: sync.state_of)."""
-        return sync.state_of(self.device.unit_id)
+        return sync.state_of(self.device.unit_id, self.test_drive)
+
+    @property
+    def test_drive(self) -> bool:
+        """A USB drive taken for a Garmin drive for testing (Storage.test_drive)."""
+        return on_test_drive(self)
 
     @property
     def first_sync(self) -> bool:
@@ -1008,6 +1013,8 @@ def _describe_step(line) -> list[tuple[str, bool]]:
                                   "{count} files could not be uploaded",
                                   errors).format(count=errors), True))
         return said
+    if kind == "test_drive":
+        return [(test_drive_text(), False)]
     if kind == "other_install":
         at = line.get("at")
         if isinstance(at, bool) or not isinstance(at, int | float):
@@ -1239,6 +1246,13 @@ def describe_counts(data: dict) -> str:
     return " · ".join(parts)
 
 
+def test_drive_text() -> str:
+    # TRANSLATORS: a line of the details of "Last sync" and of a sync's dry run: a USB drive
+    # taken for a Garmin drive for testing carries the files of a real device
+    return _("A test drive: Garmin Connect's queue and TrueUp are left to the device it "
+             "stands in for")
+
+
 def other_install_text(at: float) -> str:
     """The other install of this computer synced the device after this one (`at`: when)."""
     try:
@@ -1339,16 +1353,16 @@ def run_sync(
     except KeyboardInterrupt as e:
         log.info("sync: interrupted after %.1f s (Ctrl+C)", time.monotonic() - started)
         # TRANSLATORS: under "Last sync", in its details: Ctrl+C on the command line
-        _keep_stopped(s.device.unit_id, e, _("The sync was interrupted before the end (Ctrl+C)"))
+        _keep_stopped(s, e, _("The sync was interrupted before the end (Ctrl+C)"))
         raise
     except Exception as e:
         log.warning("sync: stopped after %.1f s: %s: %s", time.monotonic() - started,
                     type(e).__name__, e, extra=applog.TOLD)  # the caller tells why
         # TRANSLATORS: under "Last sync", in its details: the error that stopped the sync
-        _keep_stopped(s.device.unit_id, e, _("The sync stopped before the end: {error}").format(
+        _keep_stopped(s, e, _("The sync stopped before the end: {error}").format(
             error=_stop_text(e)))
         raise
-    save_last_sync(s.device.unit_id, summary)
+    save_last_sync(s.device.unit_id, summary, test_drive=s.test_drive)
     log.info("sync: end after %.1f s: %d uploaded, %d already known, %d downloaded, %d errors",
              time.monotonic() - started, summary.uploaded, summary.skipped_known,
              summary.downloaded, len(summary.errors))
@@ -1401,6 +1415,9 @@ class SyncPlan:
     queue: QueuePlan | None = None  # read with the plan for a preview only
     # Why the uploads are skipped: the upload settings could not be fetched (upload_skipped).
     upload_error: str | None = None
+    # A test drive (Storage.test_drive): Garmin Connect's queue and TrueUp are left to the
+    # device it stands in for.
+    test_drive: bool = False
     # When the other install of this computer (sync.other_install_records) synced the device,
     # if it did after this one; None: it did not.
     other_newer: float | None = None
@@ -1437,7 +1454,9 @@ def plan_sync(s: DeviceSession, options: SyncOptions | None = None,
         s.account_devices = require_account_device(s.client, s.device.unit_id,
                                                    fresh=not options.preview,
                                                    part_number=s.device.part_number)
-    plan = SyncPlan(options, s.state)
+    plan = SyncPlan(options, s.state, test_drive=s.test_drive)
+    if plan.test_drive:
+        log.info("sync: a test drive: Garmin Connect's queue and TrueUp left to the device")
     if plan.state.other is not None:
         log.info("sync: the other install of this computer: %d file%s it sent taken as sent",
                  plan.state.adopted, "" if plan.state.adopted == 1 else "s")
@@ -1468,7 +1487,7 @@ def plan_sync(s: DeviceSession, options: SyncOptions | None = None,
             consent_granted=plan.gate.granted if plan.gate is not None else None)
     # Garmin Connect's queue is read by apply_sync, after the uploads, in the order Garmin
     # Express syncs; a preview reads it now (nothing is uploaded before it).
-    if options.preview and options.downloads and s.logged_in:
+    if options.preview and options.downloads and s.logged_in and not plan.test_drive:
         plan.queue = plan_queue(s, progress)
     return plan
 
@@ -1488,6 +1507,16 @@ def _other_synced_after(unit_id: int, state: sync.SyncState) -> float | None:
 
 def other_install_step(at: float) -> dict:
     return {"kind": "other_install", "at": at}
+
+
+def test_drive_step() -> dict:
+    return {"kind": "test_drive"}
+
+
+def on_test_drive(s) -> bool:
+    """Whether a session (the window's too, which may have no storage: a remembered device) is
+    on a test drive (Storage.test_drive)."""
+    return bool(getattr(getattr(s, "storage", None), "test_drive", False))
 
 
 def plan_queue(s: DeviceSession, progress: Progress | None = None) -> QueuePlan:
@@ -1510,6 +1539,8 @@ def apply_sync(s: DeviceSession, plan: SyncPlan,
         raise ValueError("a preview of a sync is only to be shown")
     out = SyncSummary()
     state = plan.state
+    if plan.test_drive:
+        out.lines.append(test_drive_step())
     if plan.other_newer is not None:
         out.lines.append(other_install_step(plan.other_newer))
     if plan.upload_error is not None:
@@ -1553,7 +1584,7 @@ def apply_sync(s: DeviceSession, plan: SyncPlan,
         # choice of the first sync stays to be made.
         state.save()
     # No new file on the device: the row says it ("nothing to upload"), no line of its own.
-    if options.downloads:
+    if options.downloads and not plan.test_drive:
         try:
             _apply_queue(s, plan_queue(s, progress), state, progress, out)
         except (Exception, KeyboardInterrupt) as e:  # Ctrl+C too: the uploads are done
@@ -1570,7 +1601,7 @@ def _stop_text(error: Exception) -> str:
     return str(error) or type(error).__name__
 
 
-def _keep_stopped(unit_id: int, error: BaseException, why: str) -> None:
+def _keep_stopped(s: DeviceSession, error: BaseException, why: str) -> None:
     """Keeps the record of a sync stopped after its uploads: what it did (done_before), with
     `why` it stopped as one of its errors, so that "Last sync" and the tiles tell this sync,
     whose files are in Garmin Connect. Stopped before its uploads, nothing was done and the
@@ -1581,7 +1612,7 @@ def _keep_stopped(unit_id: int, error: BaseException, why: str) -> None:
     # A copy: the summary on the error stays as it is (the command line prints it).
     kept = replace(done, errors=[*done.errors, why])
     try:
-        save_last_sync(unit_id, kept)
+        save_last_sync(s.device.unit_id, kept, test_drive=s.test_drive)
     except Exception as e:  # noqa: BLE001 - the error that stopped the sync is the one told
         log.warning("sync: the record of the stopped sync could not be kept: %s: %s",
                     type(e).__name__, e)
@@ -1667,9 +1698,9 @@ def last_sync_path():
     return paths.data_dir() / "last_sync.json"
 
 
-def device_last_sync_path(unit_id: int):
-    """The last sync of this device."""
-    return paths.device_dir(unit_id) / "last_sync.json"
+def device_last_sync_path(unit_id: int, test_drive: bool = False):
+    """The last sync of this device (of a test drive standing in for it: sync.records_dir)."""
+    return sync.records_dir(unit_id, test_drive) / "last_sync.json"
 
 
 def _write_json(path, data: dict) -> None:
@@ -1677,8 +1708,12 @@ def _write_json(path, data: dict) -> None:
     paths.write_private(path, json.dumps(data, indent=1, ensure_ascii=False))
 
 
-def save_last_sync(unit_id: int, summary: SyncSummary) -> None:
+def save_last_sync(unit_id: int, summary: SyncSummary, test_drive: bool = False) -> None:
     data = summary.record(unit_id)
+    if test_drive:
+        # Its own file alone: the newest sync of a device and the tile are the device's.
+        _write_json(device_last_sync_path(unit_id, test_drive=True), data)
+        return
     # The device's own file first: the shared one only tells which sync was the newest,
     # and a sync of another device replaces it.
     _write_json(device_last_sync_path(unit_id), data)
@@ -1721,20 +1756,21 @@ def _usable_last_sync(data: dict | None) -> dict | None:
     return data
 
 
-def sync_stamp(unit_id: int | None) -> str | None:
+def sync_stamp(unit_id: int | None, test_drive: bool = False) -> str | None:
     """The version of what this installation knows of the sync of a device: when its
     state.json was written and its size, and the time of its last sync recorded; with those of
     the other install's state.json, when it has one (sync.other_state_path). A count of its
     activities is shown from a record only while this is the same (known_devices.SyncCount).
-    None: never synced here (no state.json, in neither install)."""
+    None: never synced here (no state.json, in neither install). A test drive: its own record
+    alone (sync.records_dir)."""
     if not unit_id:
         return None
-    own = _file_stamp(sync.state_path(unit_id))
-    other_path = sync.other_state_path(unit_id)
+    own = _file_stamp(sync.state_path(unit_id, test_drive))
+    other_path = None if test_drive else sync.other_state_path(unit_id)
     other = _file_stamp(other_path) if other_path is not None else None
     if own is None and other is None:
         return None
-    record = load_last_sync(unit_id)
+    record = load_last_sync(unit_id, test_drive)
     when = record.get("time") if record else None
     stamp = f"{own or '-'}-{when}"
     return stamp if other is None else f"{stamp}+{other}"
@@ -1748,10 +1784,13 @@ def _file_stamp(path) -> str | None:
     return f"{st.st_mtime_ns}-{st.st_size}"
 
 
-def load_last_sync(unit_id: int | None = None) -> dict | None:
+def load_last_sync(unit_id: int | None = None, test_drive: bool = False) -> dict | None:
     """The last sync of this device (of any device without `unit_id`). Its own file comes
     first; the shared file, which earlier versions wrote alone, counts only when it is of
-    this device."""
+    this device. A test drive standing in for it: its own file alone."""
+    if unit_id is not None and test_drive:
+        data = _usable_last_sync(_read_json(device_last_sync_path(unit_id, test_drive=True)))
+        return data if data is not None and data.get("unit_id") == unit_id else None
     if unit_id is not None:
         data = _usable_last_sync(_read_json(device_last_sync_path(unit_id)))
         if data is not None and data.get("unit_id") == unit_id:

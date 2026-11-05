@@ -205,9 +205,10 @@ def update_summary(device, new_updates: list) -> known_devices.UpdateSummary | N
 
 def note_count(counted) -> None:
     """What a count of the activities to upload found (sync.ActivitiesToSync), with the
-    version of the device's sync state now; a count not known (None, never synced) keeps
-    what was there. Optional: a failure is only written to the log."""
-    if counted is None or counted.count is None:
+    version of the device's sync state now. A count not known (None, never synced), or one
+    of a test drive (against its own record, not the device's), keeps what was there.
+    Optional: a failure is only written to the log."""
+    if counted is None or counted.count is None or counted.test_drive:
         return
     stamp = service.sync_stamp(counted.unit_id)
     if stamp is None:

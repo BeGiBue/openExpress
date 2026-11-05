@@ -36,3 +36,6 @@ format-*: the shapes older versions wrote, with made-up numbers; and shapes of t
   ("· now to upload: 2 activities"). Synthetic (marked "synthetic" in it).
 format-other-install.json: a sync of the version from source of a device the Flatpak synced
   after it: nothing new to send, and the step that says the Flatpak synced it (made up).
+format-test-drive.json: a sync of a test drive (a USB drive taken for a Garmin drive) that
+  uploaded two activities, and the step that says the queue and TrueUp were left to the watch
+  it stands in for (made up).

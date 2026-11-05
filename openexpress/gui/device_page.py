@@ -95,12 +95,13 @@ def last_sync_words(data: dict, now: datetime | None = None) -> str:
 
 
 def last_sync_subtitle(unit_id, data: dict | None, to_sync=None,
-                       now: datetime | None = None) -> str:
+                       now: datetime | None = None, test_drive: bool = False) -> str:
     """The subtitle of "Last sync": "Never synced" when the device was never synced here
-    (sync.synced_here, the one source of it, as on the tile); else the last sync (`data`,
-    last_sync.json) or that none is recorded, then the new activities to upload (`to_sync`,
-    the count of the chip "To sync"), unless that sync could not upload (no chip then)."""
-    if not unit_id or not sync.synced_here(unit_id):
+    (sync.synced_here, the one source of it, as on the tile; a test drive: by its own record);
+    else the last sync (`data`, last_sync.json) or that none is recorded, then the new
+    activities to upload (`to_sync`, the count of the chip "To sync"), unless that sync could
+    not upload (no chip then)."""
+    if not unit_id or not sync.synced_here(unit_id, test_drive):
         return never_synced()
     text = last_sync_words(data, now) if data else no_sync_record()
     return with_activities_to_upload(text, data, to_sync)
@@ -109,12 +110,13 @@ def last_sync_subtitle(unit_id, data: dict | None, to_sync=None,
 def open_to_sync(s):
     """The count of activities to upload of the open device for its page: what it counted, or
     until then what the last count found (known_devices.recorded_sync_count), as its tile
-    from the first frame; None: not known."""
+    from the first frame; None: not known. A test drive: only what it counted (the count kept
+    is the device's)."""
     counted = getattr(s, "to_sync", None)
     if counted is not None:
         return counted
     unit_id = getattr(s.device, "unit_id", None)
-    if not unit_id or not sync.synced_here(unit_id):
+    if not unit_id or service.on_test_drive(s) or not sync.synced_here(unit_id):
         return None
     count = known_devices.recorded_sync_count(known_devices.load().get(unit_id),
                                               service.sync_stamp(unit_id))
@@ -134,7 +136,7 @@ def refresh_last_sync_subtitle(win) -> None:
         return
     text = GLib.markup_escape_text(last_sync_subtitle(
         s.device.unit_id, win._last_sync_data, open_to_sync(s),
-        datetime.now()))
+        datetime.now(), test_drive=service.on_test_drive(s)))
     if row.get_subtitle() != text:
         row.set_subtitle(text)
 
@@ -1379,11 +1381,12 @@ class DevicePage:
         self._last_sync_children = []
         s = self.session
         unit_id = s.device.unit_id
-        data = service.load_last_sync(unit_id)
+        test_drive = service.on_test_drive(s)  # its own records (sync.records_dir)
+        data = service.load_last_sync(unit_id, test_drive)
         self._last_sync_data = data  # its time told against now, again every minute
         row.set_subtitle(GLib.markup_escape_text(last_sync_subtitle(
-            unit_id, data, open_to_sync(s), datetime.now())))
-        synced = bool(unit_id) and sync.synced_here(unit_id)
+            unit_id, data, open_to_sync(s), datetime.now(), test_drive)))
+        synced = bool(unit_id) and sync.synced_here(unit_id, test_drive)
         if not synced or not data:
             # Never synced here (the tooltip says by which installation), or no record.
             row.set_tooltip_text(None if synced else never_synced_tooltip())

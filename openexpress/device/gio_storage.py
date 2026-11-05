@@ -640,6 +640,11 @@ class GarminUsb:
     def usb_id(self) -> str:
         return f"{self.vendor}:{self.product or 'unknown'}"
 
+    @property
+    def for_testing(self) -> bool:
+        """The drive named in TEST_DRIVE_ENV: of another vendor than Garmin."""
+        return self.vendor != GARMIN_VID
+
 
 @dataclass
 class FoundDevice:

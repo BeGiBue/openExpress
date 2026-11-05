@@ -1023,6 +1023,8 @@ def _print_sync_plan(plan, client, drive: bool = False, makers=None) -> None:
     sync.Makers)."""
     from openexpress import service, sync
 
+    if plan.test_drive:
+        print("\n" + service.test_drive_text())
     if plan.upload_error is not None:
         print("\n" + plan.upload_error)
     uploads = plan.uploads

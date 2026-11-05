@@ -231,17 +231,20 @@ class DriveAccount(SyncAccount):
         return self.answer
 
 
-def drive_session(root, account, storage_class=None):
+def drive_session(root, account, storage_class=None, vendor=None):
     """A session on the made-up device in `root` connected as a USB drive (UmsStorage, or
-    `storage_class`), as service.open_session makes it."""
+    `storage_class`), as service.open_session makes it; with `vendor`, a USB drive of that
+    vendor taken for a Garmin drive (a test drive, gio_storage.TEST_DRIVE_ENV)."""
     from openexpress import service
     from openexpress.device.gio_storage import GarminUsb
     from openexpress.device.storage import UmsStorage
     from openexpress.device.xmldevice import parse
     from openexpress.settings import Settings
 
-    storage = (storage_class or UmsStorage)(
-        root, root.as_uri() + "/", usb=GarminUsb("4f42", 1, 9, serial="MADE-UP-SERIAL-8"))
+    usb = GarminUsb("4f42", 1, 9, serial="MADE-UP-SERIAL-8")
+    if vendor is not None:
+        usb = GarminUsb("5678", 1, 9, serial="MADE-UP-SERIAL-9", vendor=vendor)
+    storage = (storage_class or UmsStorage)(root, root.as_uri() + "/", usb=usb)
     device = parse((root / "GARMIN" / "GarminDevice.xml").read_bytes())
     return service.DeviceSession(storage, device, Settings(), account)
 

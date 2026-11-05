@@ -31,9 +31,10 @@ def _synced(device, done=()):
 
 
 class Untouchable:
-    """A device that must not be asked anything."""
+    """A device that must not be asked anything (what the storage knows of itself only)."""
 
     mass_storage = False
+    test_drive = False
 
     def __getattr__(self, name):
         pytest.fail(f"the device was asked: {name}")

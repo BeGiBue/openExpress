@@ -805,29 +805,38 @@ def _failure_codes(body) -> set[int]:
     return codes
 
 
-def state_path(unit_id: int) -> Path:
+def records_dir(unit_id: int, test_drive: bool = False) -> Path:
+    """Where the records of a device's syncs are (what was sent, the last sync); those of a
+    test drive (Storage.test_drive), which carries the GarminDevice.xml of a real device, apart
+    from that device's, in its folder (forgotten with it)."""
+    folder = paths.device_dir(unit_id)
+    return folder / "test-drive" if test_drive else folder
+
+
+def state_path(unit_id: int, test_drive: bool = False) -> Path:
     """The state.json of a device, as SyncState has it."""
-    return paths.device_dir(unit_id) / "sync" / "state.json"
+    return records_dir(unit_id, test_drive) / "sync" / "state.json"
 
 
-def state_of(unit_id: int) -> SyncState:
+def state_of(unit_id: int, test_drive: bool = False) -> SyncState:
     """What was uploaded of the device: this install's record, with the other install's of
-    this computer (other_install_records) taken in, read only."""
-    state = SyncState(unit_id)
-    other = other_install_records(unit_id)
+    this computer (other_install_records) taken in, read only. A test drive has its own
+    record alone."""
+    state = SyncState(unit_id, base=records_dir(unit_id, test_drive))
+    other = None if test_drive else other_install_records(unit_id)
     if other is not None:
         state.adopt(other)
     return state
 
 
-def synced_here(unit_id: int) -> bool:
+def synced_here(unit_id: int, test_drive: bool = False) -> bool:
     """Whether this installation (or the other one of this computer, other_install_records)
     has synced the device, or marked its files as uploaded (baseline): its state.json is
     there. Without it the device was never synced here, and its first sync asks how to begin
-    (the one source of "never synced")."""
-    if state_path(unit_id).exists():
+    (the one source of "never synced"). A test drive: only by its own record."""
+    if state_path(unit_id, test_drive).exists():
         return True
-    other = other_install_records(unit_id)
+    other = None if test_drive else other_install_records(unit_id)
     return other is not None and other.synced
 
 
@@ -844,6 +853,8 @@ class ActivitiesToSync:
     unit_id: int = field(repr=False)
     listed: frozenset[str] = field(default=frozenset(), repr=False)
     count: int | None = None
+    # Counted on a test drive, against its own record: not for the tile of the device.
+    test_drive: bool = False
 
     @property
     def never_synced(self) -> bool:
@@ -854,7 +865,7 @@ class ActivitiesToSync:
         listed against state.json as it is now; the device is not asked again (no activity
         is made while it is connected over USB)."""
         try:
-            return _activities_left(self.unit_id, self.listed)
+            return _activities_left(self.unit_id, self.listed, self.test_drive)
         except Exception as e:  # noqa: BLE001 - not known, never 0: the tile shows nothing
             log.info("activities: not counted again (%s)", type(e).__name__)
             return None
@@ -877,9 +888,10 @@ def activities_to_sync(device: GarminDevice, storage: Storage) -> ActivitiesToSy
 def _activities_to_sync(device: GarminDevice, storage: Storage) -> ActivitiesToSync | None:
     if not device.unit_id:
         return None
-    if not synced_here(device.unit_id):
+    test_drive = storage.test_drive
+    if not synced_here(device.unit_id, test_drive):
         log.info("activities: not counted, the device was never synced here")
-        return ActivitiesToSync(device.unit_id)
+        return ActivitiesToSync(device.unit_id, test_drive=test_drive)
     started = time.monotonic()
     listed = set()
     for src in device.sources(ACTIVITY_TYPE):
@@ -887,21 +899,22 @@ def _activities_to_sync(device: GarminDevice, storage: Storage) -> ActivitiesToS
             if src.matches(path):
                 listed.add(posixpath.basename(path).casefold())
     took = time.monotonic() - started
-    result = _activities_left(device.unit_id, frozenset(listed))
+    result = _activities_left(device.unit_id, frozenset(listed), test_drive)
     log.info("activities: %d on the device, %d not uploaded yet (listed in %.2f s)",
              len(listed), result.count or 0, took)
     return result
 
 
-def _activities_left(unit_id: int, listed: frozenset[str]) -> ActivitiesToSync:
-    state = state_of(unit_id)
+def _activities_left(unit_id: int, listed: frozenset[str],
+                     test_drive: bool = False) -> ActivitiesToSync:
+    state = state_of(unit_id, test_drive)
     if state.never_synced:
-        return ActivitiesToSync(unit_id, listed)
+        return ActivitiesToSync(unit_id, listed, test_drive=test_drive)
     # Done as a sync marks them: also those refused by Garmin and already in Connect, not a
     # failed upload.
     done = state.completed.get(ACTIVITY_TYPE, set())
     kept = {p.name.casefold() for p in state.pending_files(ACTIVITY_TYPE)}
-    return ActivitiesToSync(unit_id, listed, len((listed | kept) - done))
+    return ActivitiesToSync(unit_id, listed, len((listed | kept) - done), test_drive=test_drive)
 
 
 def mark_baseline(device: GarminDevice, storage: Storage, upload_config: dict,
