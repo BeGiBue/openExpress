@@ -523,6 +523,19 @@ def test_a_412_leaves_out_that_file_alone(device_root, tmp_path):
     assert sorted(done) == [False, True]
 
 
+def test_a_412_is_not_undone_by_a_location_that_needs_a_consent(device_root, tmp_path):
+    """412 at the main location: Garmin Connect has not the file, whatever an optional
+    location that needs a consent answers; it is left out, not marked, tried again later."""
+    config = {"datatypes": [{"datatypename": "FIT_TYPE_4", "uploadlocations": [
+        {"url": ACT, "requiresauthentication": True, "requiresuserconsent": False},
+        {"url": MON, "requiresauthentication": True, "requiresuserconsent": True}]}]}
+    st, dev, state = _setup(device_root, tmp_path)
+    plan = sync.plan_uploads(dev, st, config, state, only_types={"FIT_TYPE_4"})
+    rep = sync.run_uploads(plan, dev, st, SyncClient(statuses={ACT: 412, MON: 201}), state)
+    assert (len(rep.not_taken), rep.uploaded, rep.failed) == (2, [], [])
+    assert not any(state.is_completed("FIT_TYPE_4", name) for name in (FIRST, SECOND))
+
+
 def test_a_429_holds_back_the_rest_of_that_kind_only(device_root, tmp_path):
     """429: too many uploads. The file fails (the next sync tries it again) and the other files
     of its kind wait for the next sync, as in Garmin Connect's app; the other kinds go on."""

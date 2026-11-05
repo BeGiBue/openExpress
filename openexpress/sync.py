@@ -539,8 +539,8 @@ def _run_uploads(plan, device, storage, client, state, progress,
             c.data = None
         state.save()
     log.info("uploads: %d uploaded, %d duplicates, %d already in Connect, %d rejected, "
-             "%d failed, %d not confirmed, %d for another tracker, %d not taken by a "
-             "location that needs a consent",
+             "%d failed, %d not confirmed, %d for another tracker, %d not taken for want of "
+             "a consent",
              len(report.uploaded), len(report.duplicates), len(report.already_in_connect),
              len(report.rejected), len(report.failed), len(report.not_confirmed),
              len(report.tracker_conflict), len(report.not_taken))
@@ -556,6 +556,7 @@ def _upload_one(c, data, label, last, client, state, report, progress,
     error = ""
     outcome = "uploaded"
     taken = False  # a location answered for good (not one that needs a consent refusing it)
+    refused = False  # Garmin Connect has no consent for the file (412): it is not taken at all
     for loc in c.locations:
         try:
             res = client.upload_file(
@@ -575,7 +576,9 @@ def _upload_one(c, data, label, last, client, state, report, progress,
             outcome = "duplicate"
         elif res.status == 412:
             # Garmin Connect has no consent for this file: it is left out as a refusing
-            # location's file is (the next sync tries again), the other files go on.
+            # location's file is (the next sync tries again), whatever another location
+            # answers; the other files go on.
+            refused = True
             continue
         elif res.status == 429:
             # Too many uploads: the other files of this kind wait for the next sync, the
@@ -616,10 +619,10 @@ def _upload_one(c, data, label, last, client, state, report, progress,
             ok, error = False, f"HTTP {res.status}"
             break
         taken = True
-    if ok and not taken:
-        # No location took it: tried again from the device by the next sync, not told as an
-        # error. No copy is kept for it (the consent may never come); files of a type that
-        # must arrive in order wait with it.
+    if ok and (refused or not taken):
+        # No location took it, or Garmin Connect has no consent for it: tried again from the
+        # device by the next sync, not told as an error. No copy is kept for it (the consent
+        # may never come); files of a type that must arrive in order wait with it.
         report.not_taken.append(label)
         if c.datatype in MONITORING_TYPES or c.datatype in SLEEP_TYPES:
             stop_types.add(c.datatype)
