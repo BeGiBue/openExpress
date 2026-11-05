@@ -349,7 +349,7 @@ beside its fields, numbered in their order on the screen (where each field stand
 the layout, which the drawing does not show), with its place in the order the device scrolls
 through its screens; then the built-in screens it always scrolls through (Map, Elevation,
 Stamina…), as rows with their place; then, folded, those an Edge shows only when they are needed
-(Workout during a workout, Segment on a segment, ClimbPro on a climb, Group Ride and Group Track
+(Workout during a workout, Segment on a segment, ClimbPro on a climb, GroupRide and GroupTrack
 during a group ride, Power Guide with an active power plan); then the screens turned off or
 hidden. The list of profiles counts the built-in screens the same way ("3 built-in screens (+6
 when needed, 1 hidden)"). A screen's page and `openexpress profiles show NAME` give its layout

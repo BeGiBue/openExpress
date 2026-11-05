@@ -411,19 +411,7 @@ proof. It is made once, by hand, with the log kept:
 
 ### 9.1 The first attempt
 
-A Venu 2 (part 006-B3703-00, software 19.05), not on the account, was added from the window
-(Add to Account… on the banner, then the question's Add to Account), with the Flatpak of the
-version that brought the feature. The log, in this order, without its times:
-
-```
-account: the device (006-B3703-00) is not among the 2 devices of the account (006-B4440-00 active, 006-B4532-00 active); none of its part number; environment production
-dialog add-to-account: add
-register: 006-B3703-00 sent as an active device (GarminDevice.xml …, environment production)
-HTTP POST https://connectapi.garmin.com/device-service/deviceregistration/device -> 200
-register: Garmin added it (new registration: True, status: active)
-register: on the account's list after adding it: yes
-```
-
-Then the device was checked again, as by Refresh, with no line "is not among" after it, and the
-window showed it on the account. The request went with openExpress's own User-Agent (4.6).
-Nothing was synced afterwards, and the account's primary devices were not changed.
+A Venu 2 not on the account was added from the window (Add to Account… on the banner, then the
+question's Add to Account): Garmin's server answered 200 to the registration, with openExpress's
+own User-Agent (4.6), and the device was on the account's list after it, as active. Nothing was
+synced afterwards, and the account's primary devices were not changed.

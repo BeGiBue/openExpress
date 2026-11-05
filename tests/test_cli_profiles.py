@@ -12,7 +12,8 @@ SPORTS = ("<DataType><Name>FIT_TYPE_3</Name><File><Location><Path>Garmin/Sports<
 RUN = (ScreenRecord(place=0, code=0, order=0, fields=(56, 6, 999, None), variant=2),
        ScreenRecord(place=1, code=110, order=1, variant=12),
        ScreenRecord(place=2, code=127, state=0, order=None, fields=(127,)),
-       ScreenRecord(place=3, code=1, state=0, order=None, fields=(9,), variant=1))
+       ScreenRecord(place=3, code=1, state=0, order=None, fields=(9,), variant=1),
+       ScreenRecord(place=4, code=32, state=0, order=None))  # reserved: never said
 ROAD = (ScreenRecord(place=0, code=0, order=0, fields=(48, 6), variant=1),
         ScreenRecord(place=1, code=104, order=1), ScreenRecord(place=2, code=35, hidden=1,
                                                                order=2),
@@ -62,7 +63,7 @@ def test_a_watch_profile_s_screens(profiles_root, capsys):
         "Built-in screens:",
         "  Built-in screen 110: on",
         "  Built-in screen 127: off",
-        "Screens turned off:",
+        "Screens off or hidden:",
         "  Screen 2 · 1 field · Layout “No Labels”: Elevation",
         ("The fields are named as Garmin's Edge devices number them; the codes of some of this "
          "device's layouts and built-in screens are not known to openExpress yet."),
@@ -93,7 +94,6 @@ def test_an_edge_profile_s_screens(profiles_root, capsys):
         "Road",
         "Data screens, in the order the device scrolls through them:",
         "  1. Screen 1 · 2 fields · Layout B: Speed, Distance",
-        "  2. ClimbPro (on a climb)",
         "Built-in screens:",
         "  Compass: hidden",
         "Built-in screens when needed:",

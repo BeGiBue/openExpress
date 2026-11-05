@@ -2246,6 +2246,7 @@ def _profile_lines(f) -> list[str]:
     """A profile's data screens as text: those the device scrolls through in their order, its
     built-in screens with their state, those turned off; what is not known by its number."""
     from openexpress import profile_names as names
+    from openexpress import profiles
 
     p = f.profile
     edge = names.edge_shaped(p)
@@ -2265,15 +2266,16 @@ def _profile_lines(f) -> list[str]:
                            names.layout_name(screen.variant, edge)))
 
     lines = [_("Data screens, in the order the device scrolls through them:")]
-    for n, screen in enumerate(p.carousel(), 1):
+    always = [s for s in p.carousel() if not names.when_needed(s, edge)]
+    for n, screen in enumerate(always, 1):
         if screen.own:
             lines.append(f"  {n}. {own(screen)}: {fields(screen) or '-'}")
         else:
             lines.append(f"  {n}. {built_in(screen)}")
-    if not p.carousel():
+    if not always:
         lines.append("  " + _("none"))
     states = {True: _("on"), False: _("off")}
-    every = [s for s in p.built_in() if not (edge and s.code == 32)]
+    every = [s for s in p.built_in() if s.code != profiles.RESERVED_CODE]
     needed = [s for s in every if names.when_needed(s, edge)]
     for title, group in ((_("Built-in screens:"), [s for s in every if s not in needed]),
                          (_("Built-in screens when needed:"), needed)):
@@ -2284,7 +2286,7 @@ def _profile_lines(f) -> list[str]:
                 lines.append(f"  {built_in(screen)}: {state}")
     off = [s for s in p.own_screens() if not s.shown]
     if off:
-        lines.append(_("Screens turned off:"))
+        lines.append(_("Screens off or hidden:"))
         lines += [f"  {own(s)}: {fields(s) or '-'}" for s in off]
     if not edge:
         lines.append(_("The fields are named as Garmin's Edge devices number them; the codes "

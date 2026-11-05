@@ -7,10 +7,11 @@ only one, included). As implemented, stage 1 differs from sections 4 and 5 in fo
 
 - The drawing of a screen shows its fields one under another, in their order, not where each
   stands: the places of the fields in each layout are not known for any device yet (D5).
-- A watch's built-in screens and layouts are said by their codes ("Built-in screen 221",
-  "Layout code 12, unknown"), the Edge's names and letters not taken for them; a watch's fields
-  have the Edge's numbers (checked on a fēnix 8: its running and map screens hold its timer,
-  distance and speed under them) and are named so, the profile's page saying it.
+- A watch's built-in screens and layouts have names of their own where they are known
+  (Garmin Connect's names for a fēnix 8's screens, the families of its layouts), else their
+  codes ("Built-in screen 127", "Layout code 12, unknown"); the Edge's names and letters are
+  not taken for them. A watch's fields have the Edge's numbers (checked on a fēnix 8 with a
+  profile set to a dozen of them), with a few of its own, the profile's page saying it.
 - Message 13 is not read at all: no toggle of it is needed to show a profile (D13).
 - The names of the fields are Garmin's words from the Data Fields pages of its manuals, by the
   numbers of Activity Profile Editor's table (D4a); a field without a name there is shown by its

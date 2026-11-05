@@ -14,7 +14,9 @@ files of a watch and of a bike computer:
 - 7: the IDs of its data fields (eight on a watch, ten on an Edge);
 - 8: the variant of its layout;
 - 9: its place in the carousel, rising; 255: none;
-- 10: its code: below 25 a screen of one's own (a counter), else a built-in screen;
+- 10: its code: below 20 a screen of one's own (a counter), else a built-in screen (32 a
+  reserved place, never shown);
+- 11: on an Edge 1050, 2 when it is hidden (1 shown);
 - 12: on an Edge only, 1 when it is hidden.
 
 Message 13 holds the profile's other settings, personal values among them (zones, weight):
@@ -44,6 +46,8 @@ _PLACE, _STATE, _COUNT, _FIELDS, _VARIANT, _ORDER, _CODE, _HIDDEN = 254, 1, 3, 7
 # An Edge 1050 says a screen hidden on the device in its visibility (1 shown), field 12 staying 0.
 _VISIBILITY, HIDDEN_VISIBILITY = 11, 2
 SHOWN, OFF, UNUSED = 1, 0, 255
+# A built-in code no screen shows: a reserved place, on an Edge and on a watch.
+RESERVED_CODE = 32
 # The codes of the screens of one's own are a counter from 0 (ten screens at most); from 20 on
 # they are built-in screens (a watch's clock with status icons is 21, its heart rate zone gauge
 # 22; the Map is 25).

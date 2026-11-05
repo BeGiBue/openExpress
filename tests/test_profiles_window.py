@@ -172,6 +172,34 @@ def _page_texts(win):
     return page, _titles(page), labels
 
 
+def _section_labels(section):
+    from gi.repository import Gtk
+
+    return [w.get_label() for g in section.groups if g.get_visible() for w in descendants(g)
+            if isinstance(w, Gtk.Label)]
+
+
+def test_an_empty_folder_of_profiles_says_so(tmp_path):
+    """The folder declared but empty: the page says there is no profile (not a blank page)."""
+    (tmp_path / "GARMIN" / "Sports").mkdir(parents=True)
+    win, section = profiles_window(tmp_path)
+    win.load_profiles()
+    assert "No activity profiles" in _section_labels(section)
+
+
+def test_files_that_are_no_profile_alone(tmp_path):
+    """Only files that are no profile: no search and no empty list of profiles, those files."""
+    sports = tmp_path / "GARMIN" / "Sports"
+    sports.mkdir(parents=True)
+    (sports / "Broken.fit").write_bytes(b"not a FIT file")
+    win, section = profiles_window(tmp_path)
+    win.load_profiles()
+    labels = _section_labels(section)
+    assert "No activity profiles" in labels
+    assert [t for t, v in _groups(section) if v] == ["", "Files that are no profile"]
+    assert not any(t.startswith("Search") for t in labels)
+
+
 def test_the_device_s_backups_of_profiles_in_one_line(root):
     """The copies an Edge keeps in Sports/Backups are no "files that are no profile": one line
     says when the device made them."""

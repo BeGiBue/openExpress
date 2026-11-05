@@ -33,7 +33,6 @@ CONTENT_WIDTH = 760
 # The activity files read for the profiles used lately when the Activities page has read none.
 RECENT_ACTIVITIES = 10
 # The code of a place an Edge keeps for later ("reserved"): never a screen of its own.
-EDGE_RESERVED_CODE = 32
 
 
 edge_shaped, screen_title = names.edge_shaped, names.screen_title
@@ -49,24 +48,15 @@ def _sentence(text: str) -> str:
 
 
 def screen_caption(profile: profiles.Profile, screen: profiles.Screen) -> str:
-    """Under a screen's title: its fields and layout, or what kind of screen it is."""
-    if screen.own:
-        return caption(fields_text(len(screen.fields)),
-                       names.layout_name(screen.variant, edge_shaped(profile)))
-    if names.built_in_known(screen, edge_shaped(profile)):
-        when = names.when_needed(screen, edge_shaped(profile))
-        if when:
-            return _sentence(when)
-        # TRANSLATORS: a screen of the device of its own (Map, Compass…), not one of the user's
-        return _("Built-in screen")
-    return _("Not known to openExpress yet")
+    """Under the title of a screen of one's own: its fields and layout."""
+    return caption(fields_text(len(screen.fields)),
+                   names.layout_name(screen.variant, edge_shaped(profile)))
 
 
 def profile_caption(profile: profiles.Profile) -> str:
     """Under a profile's name: how many screens of one's own and built in it scrolls through."""
     shown = profile.carousel()
     own = sum(1 for s in shown if s.own)
-    built_in = len(shown) - own
     parts = [ngettext("{count} data screen", "{count} data screens", own).format(count=own)]
     built_in = names.built_in_summary(profile)
     if built_in:
@@ -405,7 +395,7 @@ def open_profile(win, profile_file) -> None:
         group.add(_row(_("No data screen is shown")))
         box.append(group)
     off_built_in = [s for s in profile.built_in()
-                    if not s.shown and s.code != EDGE_RESERVED_CODE]
+                    if not s.shown and s.code != profiles.RESERVED_CODE]
     off_own = [s for s in profile.own_screens() if not s.shown]
     if off_built_in or off_own:
         group = Adw.PreferencesGroup(title=_("Off and hidden"))
@@ -454,9 +444,10 @@ def open_screen(win, profile_file, screen) -> None:
                 # TRANSLATORS: the n-th place of a screen
                 sub = _("Field {place}").format(place=n)
             else:
+                place = _("Field {place}").format(place=n)
                 # TRANSLATORS: the number of a data field in the profile file
-                sub = caption(_("Field {place}").format(place=n),
-                              _("number {number}").format(number=number))
+                said = _("number {number}").format(number=number)
+                sub = caption(place, said)
             fields.add(_row(names.field_name(number, edge), sub))
         box.append(fields)
     details = Adw.PreferencesGroup(title=_("Details"))
@@ -477,6 +468,53 @@ def profile_row(win, group, profile_file) -> Adw.ActionRow:
     row.connect("activated", lambda _r: open_profile(win, profile_file))
     group.add(row)
     return row
+
+
+def _no_profiles(sec) -> None:
+    """The page without any profile: the page's icon and that it has none, in its content."""
+    box = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, spacing=8, halign=Gtk.Align.CENTER,
+                  margin_top=24, margin_bottom=24)
+    box.append(Gtk.Image(icon_name=PAGE_ICON, pixel_size=64))
+    words = Gtk.Label(label=_("No activity profiles"), wrap=True,
+                      justify=Gtk.Justification.CENTER, css_classes=["title-2"])
+    box.append(words)
+    sec.group().add(box)
+
+
+def _profile_groups(win, sec, readable, recent) -> int:
+    """A search, the profiles of the newest activities and every profile; how many of the
+    newest activities' profiles are shown."""
+    rows: list[tuple[Adw.PreferencesGroup, Adw.ActionRow, str]] = []
+    groups = []
+    search = Gtk.SearchEntry(placeholder_text=ngettext(
+        "Search {count} profile", "Search {count} profiles", len(readable)).format(
+        count=len(readable)), hexpand=True)
+    sec.group().add(search)
+    by_name = {f.profile.name: f for f in readable}
+    recent_files = [by_name[n] for n in recent if n in by_name]
+    if recent_files:
+        g = sec.group(_("Used recently"), _("From the newest activities on the device"))
+        groups.append(g)
+        for f in recent_files:
+            rows.append((g, profile_row(win, g, f), f.profile.name))
+    g = sec.group(_("All profiles"))
+    groups.append(g)
+    for f in readable:
+        rows.append((g, profile_row(win, g, f), f.profile.name))
+
+    def changed(entry):
+        wanted = profiles.sort_key(entry.get_text().strip())
+        seen = set()
+        for group, row, name in rows:
+            shown = not wanted or wanted in profiles.sort_key(name)
+            row.set_visible(shown)
+            if shown:
+                seen.add(group)
+        for group in groups:
+            group.set_visible(group in seen)
+
+    search.connect("search-changed", changed)
+    return len(recent_files)
 
 
 class ProfilesPage:
@@ -506,36 +544,18 @@ class ProfilesPage:
 
     def show_profiles(self, found, files, recent) -> None:
         """The list of the profiles read: a search, the profiles of the newest activities,
-        every profile, the files that are no profile."""
+        every profile, the files that are no profile; without a profile, that it has none."""
         if self.session is None:
             return
         self.profiles = found
         sec = self.sections["profiles"]
         readable = [f for f in files if f.profile is not None]
-        if not files:
-            sec.info.set_icon_name(PAGE_ICON)
-            sec.info.set_title(_("No activity profiles"))
-            sec.info.set_description("")
-            sec.show("info")
-            return
-        rows: list[tuple[Adw.PreferencesGroup, Adw.ActionRow, str]] = []
-        search = Gtk.SearchEntry(placeholder_text=ngettext(
-            "Search {count} profile", "Search {count} profiles", len(readable)).format(
-            count=len(readable)), hexpand=True)
-        top = sec.group()
-        top.add(search)
-        by_name = {f.profile.name: f for f in readable}
-        groups = []
-        recent_files = [by_name[n] for n in recent if n in by_name]
-        if recent_files:
-            g = sec.group(_("Used recently"), _("From the newest activities on the device"))
-            groups.append(g)
-            for f in recent_files:
-                rows.append((g, profile_row(self, g, f), f.profile.name))
-        g = sec.group(_("All profiles"))
-        groups.append(g)
-        for f in readable:
-            rows.append((g, profile_row(self, g, f), f.profile.name))
+        recent_count = 0
+        if readable:
+            recent_count = _profile_groups(self, sec, readable, recent)
+        else:
+            # In the page's content: the loading shows the content when it is done.
+            _no_profiles(sec)
         unreadable = [f for f in files if f.profile is None]
         if unreadable:
             g = sec.group(_("Files that are no profile"))
@@ -546,18 +566,5 @@ class ProfilesPage:
             # TRANSLATORS: the copies an Edge keeps of its profiles itself; {date}: when made
             sec.group("", _("The device keeps backups of its profiles from {date}").format(
                 date=profiles.backup_day(backup_time)))
-
-        def changed(entry):
-            wanted = profiles.sort_key(entry.get_text().strip())
-            seen = set()
-            for group, row, name in rows:
-                shown = not wanted or wanted in profiles.sort_key(name)
-                row.set_visible(shown)
-                if shown:
-                    seen.add(group)
-            for group in groups:
-                group.set_visible(group in seen)
-
-        search.connect("search-changed", changed)
         log.info("profiles page: %d profiles, %d of the newest activities, %d files not read",
-                 len(readable), len(recent_files), len(unreadable))
+                 len(readable), recent_count, len(unreadable))

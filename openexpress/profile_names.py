@@ -326,9 +326,9 @@ def hidden_built_in(profile) -> int:
 
 # The built-in screens an Edge shows only in their situation, and when it shows them.
 def _edge_when() -> dict[int, str]:
-    # TRANSLATORS: when a device shows a built-in screen it shows only then ("ClimbPro (on a
-    # climb)")
     return {
+        # TRANSLATORS: when a device shows a built-in screen it shows only then ("ClimbPro
+        # (on a climb)")
         38: pgettext("built-in screen shown", "during a workout"),
         56: pgettext("built-in screen shown", "on a segment"),
         57: pgettext("built-in screen shown", "during a group ride"),
