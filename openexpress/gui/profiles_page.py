@@ -384,7 +384,7 @@ def open_profile(win, profile_file) -> None:
         box.append(group)
     built_in = [(n, s) for n, s in enumerate(always, 1) if not s.own]
     if built_in:
-        group = Adw.PreferencesGroup(title=_("Built-in screens, always scrolled"))
+        group = Adw.PreferencesGroup(title=_("Built-in screens in the scrolling order"))
         for place, screen in built_in:
             known = names.built_in_known(screen, edge)
             group.add(built_in_row(win, profile_file, screen, caption(
@@ -411,9 +411,10 @@ def open_profile(win, profile_file) -> None:
         group = Adw.PreferencesGroup(title=_("Off and hidden"))
         for screen in off_built_in:
             known = names.built_in_known(screen, edge)
+            # The state only where it tells hidden from off.
             group.add(built_in_row(win, profile_file, screen,
                                    "" if known else _("Not known to openExpress yet"),
-                                   state_text(screen)))
+                                   state_text(screen) if screen.hidden else None))
         for screen in off_own:
             group.add(_row(screen_title(profile, screen), screen_caption(profile, screen)))
         box.append(group)

@@ -211,7 +211,7 @@ def test_a_watch_profile_s_page(monkeypatch):
     profiles_page.open_profile(win, found)
     page, rows, labels = _page_texts(win)
     assert page.get_tag() == "profile" and page.get_title() == "Run"
-    assert _groups_of(page) == ["Data screens", "Built-in screens, always scrolled",
+    assert _groups_of(page) == ["Data screens", "Built-in screens in the scrolling order",
                                 "Off and hidden", "Details"]
     # Each data screen: its place in the scrolling order, its fields numbered, legible.
     assert "No. 1 in the scrolling order\u00a0· 4 fields\u00a0· Layout “Stack”" in labels
@@ -224,6 +224,7 @@ def test_a_watch_profile_s_page(monkeypatch):
     assert not any(isinstance(w, Adw.ExpanderRow) for w in descendants(page))  # a watch's: none
     assert ("Screen 3", "1 field\u00a0· Layout “No Labels”") in rows  # turned off
     assert ("Built-in screen 127", "Not known to openExpress yet") in rows
+    assert "Off" not in labels  # all of them off: no state said
     assert any("not known to openExpress yet" in t for t in labels)  # the watch's note
 
 
@@ -284,6 +285,10 @@ def test_every_built_in_screen_s_icon_is_in_the_theme():
     from openexpress.gui import profiles_page
 
     theme = Gtk.IconTheme.get_for_display(Gdk.Display.get_default())
+    from pathlib import Path
+
+    data = Path(__file__).resolve().parent.parent / "openexpress" / "data"
+    theme.add_search_path(str(data))  # as the window does
     codes = set(profile_names._edge_screen_names()) | set(profile_names._watch_screen_names())
     names = {profiles_page.built_in_icon(code) for code in codes | {999}}
     assert [n for n in sorted(names) if not theme.has_icon(n)] == []
