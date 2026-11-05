@@ -273,22 +273,34 @@ def _fill(win, page: str) -> str:
     elif key == "activities":
         MainWindow.show_activities(win, _activities())
     elif key == "profiles":
-        MainWindow.show_profiles(win, None, _profiles(), ["Narciarstwo skiturowe w terenie"])
+        # With the line of an Edge's own backups of its profiles.
+        backups = types.SimpleNamespace(backup_time=1_700_000_000.0)
+        MainWindow.show_profiles(win, backups, _profiles(), ["Narciarstwo skiturowe w terenie"])
     win.sections[key].show("content")
     win._update_actions()
     win._update_banner()
     return key
 
 
-# Profiles with long names and long words, of a watch and of an Edge.
+# Profiles with long names and long words, of a watch and of an Edge: every group of a
+# profile's page (data screens, built-in screens with the longest names and one not known,
+# those an Edge shows when needed, those off and hidden).
 LONG_SCREENS = (
     ScreenRecord(place=0, code=0, order=0, fields=(7, 445, 269, 177), variant=2),
     ScreenRecord(place=1, code=221, order=1, fields=(), variant=12),
     ScreenRecord(place=2, code=1, state=0, order=None, fields=(579,), variant=3),
+    ScreenRecord(place=3, code=21, order=2), ScreenRecord(place=4, code=22, order=3),
+    ScreenRecord(place=5, code=127, order=4),  # not known on a watch
+    ScreenRecord(place=6, code=100, state=0, order=None),
+    ScreenRecord(place=7, code=198, state=0, order=None),  # off, not known
 )
 LONG_EDGE = (
     ScreenRecord(place=0, code=0, order=0, fields=(445, 177, 269), variant=1),
     ScreenRecord(place=1, code=63, order=1), ScreenRecord(place=2, code=128, order=2, hidden=1),
+    ScreenRecord(place=3, code=74, order=3), ScreenRecord(place=4, code=199, order=4),
+    ScreenRecord(place=5, code=125, order=5), ScreenRecord(place=6, code=162, order=6),
+    ScreenRecord(place=7, code=38, order=7, state=0),
+    ScreenRecord(place=8, code=1, state=0, order=None, fields=(579, 445), variant=2),
 )
 
 
@@ -1016,7 +1028,11 @@ def test_the_banner_of_devices_that_stopped_responding_fits_the_narrowest_window
 @pytest.mark.parametrize("language", ["en", "pl"])
 @pytest.mark.parametrize("which", [0, 1])
 def test_a_profile_s_pages_fit_the_narrowest_window(narrow_window, language, which):
-    """A profile's page and its first screen's, of a watch and of an Edge, with long names."""
+    """A profile's page, the screens an Edge shows when needed unfolded, and the page of each
+    of its screens, of a watch and of an Edge, with long names."""
+    from gi.repository import Adw
+
+    from openexpress import profile_names
     from openexpress.gui import profiles_page
 
     win = narrow_window(language)
@@ -1025,8 +1041,49 @@ def test_a_profile_s_pages_fit_the_narrowest_window(narrow_window, language, whi
     win.navigation.push(win.device_view)
     found = _profiles()[which]
     profiles_page.open_profile(win, found)
+    page = win.navigation.get_visible_page()
+    folded = []
+    stack = [page]
+    while stack:
+        widget = stack.pop()
+        if isinstance(widget, Adw.ExpanderRow):
+            folded.append(widget)
+        child = widget.get_first_child()
+        while child is not None:
+            stack.append(child)
+            child = child.get_next_sibling()
+    assert len(folded) == which  # the Edge's screens shown when needed
+    for row in folded:
+        row.set_expanded(True)
     _iterate(0.05)
-    assert _min_width(win.navigation.get_visible_page()) <= NARROWEST
-    profiles_page.open_screen(win, found, found.profile.screens[0])
-    _iterate(0.05)
-    assert _min_width(win.navigation.get_visible_page()) <= NARROWEST
+    assert _min_width(page) <= NARROWEST
+    # The longest names are on the page: a built-in screen's, and when an Edge shows one.
+    by_code = {s.code: s for s in found.profile.screens}
+    edge = profile_names.edge_shaped(found.profile)
+    longest = profile_names.built_in_name(by_code[74 if edge else 221], edge)
+    labels = [w.get_label() for w in _all_labels(page)]
+    assert longest in labels
+    if edge:
+        when = profile_names.when_needed(by_code[125], edge)
+        assert any(label.casefold() == when.casefold() for label in labels)
+    for screen in found.profile.screens:
+        profiles_page.open_screen(win, found, screen)
+        _iterate(0.02)
+        assert _min_width(win.navigation.get_visible_page()) <= NARROWEST, screen.code
+        win.navigation.pop()
+
+
+def _all_labels(widget):
+    from gi.repository import Gtk
+
+    found = []
+    stack = [widget]
+    while stack:
+        w = stack.pop()
+        if isinstance(w, Gtk.Label):
+            found.append(w)
+        child = w.get_first_child()
+        while child is not None:
+            stack.append(child)
+            child = child.get_next_sibling()
+    return found

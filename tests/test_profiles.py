@@ -92,9 +92,8 @@ def test_message_13_is_never_decoded(monkeypatch):
         return real(data, wanted=wanted, arrays=arrays)
 
     monkeypatch.setattr(fit, "iter_messages", spy)
-    p = profiles.read_profile(sport_file(screens=RUN_SCREENS, personal=b"secret"))
+    profiles.read_profile(sport_file(screens=RUN_SCREENS, personal=b"secret"))
     assert asked and all(13 not in wanted and wanted for wanted in asked)
-    assert "secret" not in repr(p)
 
 
 @pytest.mark.parametrize("data, said", [
@@ -119,9 +118,35 @@ def test_a_profile_without_screens():
     assert p.screens == () and p.carousel() == []
 
 
-def test_the_profile_s_repr_names_no_file_content():
-    p = profiles.read_profile(sport_file(screens=RUN_SCREENS))
-    assert "1234567" not in repr(p)  # the made-up serial number of file_id is not kept
+def _kept(value):
+    """Every value an object keeps, also in attributes its repr leaves out."""
+    if hasattr(value, "__dict__") and not isinstance(value, type):
+        for v in vars(value).values():
+            yield from _kept(v)
+    elif hasattr(value, "__slots__"):
+        for name in value.__slots__:
+            yield from _kept(getattr(value, name, None))
+    elif isinstance(value, (tuple, list, set, frozenset)):
+        for v in value:
+            yield from _kept(v)
+    elif isinstance(value, dict):
+        for k, v in value.items():
+            yield from _kept(k)
+            yield from _kept(v)
+    else:
+        yield value
+
+
+def test_a_profile_keeps_neither_the_serial_number_nor_the_personal_settings():
+    """Nothing of file_id but its type (not the serial number) and nothing of message 13 is
+    kept, not even where the repr does not look."""
+    p = profiles.read_profile(sport_file(screens=RUN_SCREENS, personal=b"secret"))
+    kept = list(_kept(p))
+    assert "Run" in kept and 56 in kept  # the walk reaches the name and the fields
+    assert 1234567 not in kept  # the made-up serial number of file_id
+    texts = [v.decode("latin-1") if isinstance(v, bytes) else v for v in kept
+             if isinstance(v, (str, bytes))]
+    assert [v for v in texts if "secret" in v] == []
 
 
 # --- the copies of real profiles (testdata/, the user's own; skipped without them) -----------
