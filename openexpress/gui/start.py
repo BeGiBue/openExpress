@@ -64,6 +64,15 @@ KIND_ICONS = {
     BIKE_SENSOR: f"{APP_ID}-bike-sensor-symbolic",
 }
 DEVICE_ICON = f"{APP_ID}-device-symbolic"
+# The same kinds drawn for 16 px (2 px lines), where the tile's icons come out too thin: the
+# side panel's Device. The kinds that do not open as a device take the neutral one.
+SMALL_KIND_ICONS = {
+    WATCH: f"{APP_ID}-watch-small-symbolic",
+    CYCLING_COMPUTER: f"{APP_ID}-cycling-computer-small-symbolic",
+    HANDHELD: f"{APP_ID}-handheld-small-symbolic",
+    BIKE_ACCESSORY: f"{APP_ID}-bike-accessory-small-symbolic",
+}
+SMALL_DEVICE_ICON = f"{APP_ID}-device-small-symbolic"
 # One width for every tile, in every section (never fitted to the longest text of a
 # section), from the width of the page: as many tiles on a line as fit at least
 # MIN_TILE_WIDTH each, TILE_SPACING between them, sharing the line out; three in a window
@@ -843,6 +852,10 @@ def tile_image(item) -> Gtk.Image:
 
 def kind_icon(category) -> str:
     return KIND_ICONS.get(category, DEVICE_ICON)
+
+
+def small_kind_icon(category) -> str:
+    return SMALL_KIND_ICONS.get(category, SMALL_DEVICE_ICON)
 
 
 def _name(tile) -> str:

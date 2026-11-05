@@ -76,12 +76,18 @@ def test_the_icon_of_automatic_is_in_the_program_and_in_the_flatpak():
 def test_the_side_panel_chooses_a_section(window):
     from gi.repository import Gtk
 
+    from openexpress.paths import APP_ID
+
     keys = list(window.sections)
     assert keys == ["watch", "updates", "maps", "apps", "music", "activities", "profiles"]
-    assert window.sections["activities"].icon == "x-office-calendar-symbolic"
-    assert window.sections["profiles"].icon == "view-grid-symbolic"
+    # Device: the small icon of no kind until a device is open (then of its kind).
+    assert window.sections["watch"].icon == f"{APP_ID}-device-small-symbolic"
+    assert window.sections["activities"].icon == f"{APP_ID}-activities-symbolic"
+    assert window.sections["profiles"].icon == f"{APP_ID}-profiles-symbolic"
     rows = [r for r in descendants(window.nav) if isinstance(r, Gtk.ListBoxRow)]
     assert [r.key for r in rows] == keys
+    assert {key: image.get_icon_name() for key, image in window.nav_icons.items()} == {
+        key: sec.icon for key, sec in window.sections.items()}
     window.select_section("maps")
     assert window.pages.get_visible_child_name() == "maps"
     assert window.content_page.get_title() == window.sections["maps"].title

@@ -7048,6 +7048,7 @@ def _device_view_icon(drive_window, monkeypatch, account=None, name=None):
     picture is not asked here), and the stand-in of the window; `name`: another model name
     (one that tells no kind)."""
     from fakes import page_window
+    from gi.repository import Gtk
 
     from openexpress.gui.app import MainWindow
 
@@ -7062,6 +7063,7 @@ def _device_view_icon(drive_window, monkeypatch, account=None, name=None):
                  "select_section", "backup", "set_background", "logout"):
         setattr(win, name, lambda *a, **kw: None)
     win._background_enabled = lambda: False
+    win.nav_icons = {"watch": Gtk.Image()}  # the side panel's Device
     MainWindow.show_overview(win)
     return win.device_image.get_icon_name(), win
 
@@ -7073,8 +7075,9 @@ def test_the_device_view_waits_with_the_neutral_icon_like_the_tile(drive_window,
     from openexpress.gui.start import kind_icon
     from openexpress.paths import APP_ID
 
-    icon, _win = _device_view_icon(drive_window, monkeypatch, name="Test drive")
+    icon, win = _device_view_icon(drive_window, monkeypatch, name="Test drive")
     assert icon == kind_icon(None) and icon != APP_ID
+    assert win.nav_icons["watch"].get_icon_name() == f"{APP_ID}-device-small-symbolic"
 
 
 @pytest.mark.needs_display
@@ -7084,18 +7087,21 @@ def test_the_device_view_waits_with_the_icon_of_its_kind(drive_window, monkeypat
     from openexpress import known_devices
     from openexpress.connect import lower_keys
     from openexpress.gui.app import MainWindow
-    from openexpress.gui.start import kind_icon
+    from openexpress.gui.start import kind_icon, small_kind_icon
 
     known_devices.remember(3000000003, "Varia RTL515", "006-B3592-03", "3.36", "ums", now=1.0)
     known_devices.set_category(3000000003, "bike-accessory")
     icon, win = _device_view_icon(drive_window, monkeypatch)
     assert icon == kind_icon("bike-accessory")
+    # The side panel's Device: the small icon of the same kind.
+    assert win.nav_icons["watch"].get_icon_name() == small_kind_icon("bike-accessory")
     known_devices.forget(3000000003)
     # Opened at once (no tile before): the kind from the account's list all the same.
     win._account = lower_keys([{"unitId": 3000000003, "productDisplayName": "Varia RTL515",
                                 "deviceCategories": ["DEDICATED_BIKE_COMPUTER"]}])
     MainWindow.show_overview(win)
     assert win.device_image.get_icon_name() == kind_icon("cycling-computer")
+    assert win.nav_icons["watch"].get_icon_name() == small_kind_icon("cycling-computer")
 
 
 @pytest.mark.needs_display
@@ -7104,7 +7110,7 @@ def test_unit_info_read_for_the_picture_sets_the_icon_while_there_is_no_picture(
     """The unit-info the device view asks for the picture (one request) tells a bike
     accessory and gives no picture: the icon becomes the radar; nothing more is asked for
     the icon."""
-    from openexpress.gui.start import kind_icon
+    from openexpress.gui.start import kind_icon, small_kind_icon
 
     icon, win = _device_view_icon(drive_window, monkeypatch, name="Test drive")
     assert icon == kind_icon(None)
@@ -7120,6 +7126,7 @@ def test_unit_info_read_for_the_picture_sets_the_icon_while_there_is_no_picture(
     win._show_device_picture()
     assert asked == ["006-B3592-03"]
     assert win.device_image.get_icon_name() == kind_icon("bike-accessory")
+    assert win.nav_icons["watch"].get_icon_name() == small_kind_icon("bike-accessory")
 
 
 @pytest.mark.needs_display

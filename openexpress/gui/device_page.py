@@ -53,7 +53,7 @@ from openexpress.gui.pictures import (  # noqa: E402
     picture_from_unit_info,
 )
 from openexpress.gui.preferences import resolve_account  # noqa: E402
-from openexpress.gui.start import kind_icon, show_placeholder  # noqa: E402
+from openexpress.gui.start import kind_icon, show_placeholder, small_kind_icon  # noqa: E402
 from openexpress.gui.tasks import (  # noqa: E402
     forget_on_refresh,
     lets_the_window_close,
@@ -623,13 +623,23 @@ def open_device_kind(s, account) -> str | None:
     return next((devicelist.icon_kind(t) for t in tiles if t.connected), None)
 
 
-def device_view_icon(win, s) -> str:
-    """The icon of the device view before the picture: that of the device's kind, from the
-    window's account list (or the one its ownership check read) and devices.json."""
+def device_view_kind(win, s) -> str | None:
+    """The kind of the open device, from the window's account list (or the one its ownership
+    check read) and devices.json."""
     account = win._account
     if account is None:
         account = getattr(s, "account_devices", None)
-    return kind_icon(open_device_kind(s, account))
+    return open_device_kind(s, account)
+
+
+def device_view_icon(win, s) -> str:
+    """The icon of the device view before the picture: that of the device's kind; the side
+    panel's Device takes the small icon of the same kind (start.small_kind_icon)."""
+    kind = device_view_kind(win, s)
+    image = win.nav_icons.get("watch")
+    if image is not None:
+        image.set_from_icon_name(small_kind_icon(kind))
+    return kind_icon(kind)
 
 
 def show_not_for_mass_storage(sec) -> None:

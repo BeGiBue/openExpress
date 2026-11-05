@@ -47,6 +47,7 @@ from openexpress.gui.words import (  # noqa: E402
     tile_name,
 )
 from openexpress.i18n import _  # noqa: E402
+from openexpress.paths import APP_ID  # noqa: E402
 
 log = logging.getLogger(__name__)
 
@@ -54,14 +55,16 @@ TAG = "activity"
 CONTENT_WIDTH = 1000  # its content in one column, at most this wide
 NARROW = "max-width: 450sp"  # a window too narrow for the dot of the sport beside the title
 NARROWEST = (360, 200)  # the page's own least size (its breakpoints need one)
-# The icons of the tiles, by their kind (from the GNOME icon theme).
-TILE_ICONS = {"distance": "mark-location-symbolic", "time": "preferences-system-time-symbolic",
-              "pace": "power-profile-performance-symbolic",
-              "swim pace": "power-profile-performance-symbolic",
-              "speed": "power-profile-performance-symbolic",
-              "average heart rate": "emote-love-symbolic",
-              "maximum heart rate": "emote-love-symbolic", "calories": "emoji-food-symbolic",
-              "ascent": "go-up-symbolic"}
+# The icons of the tiles, by their kind (the program's own, in data/): the stopwatch, the heart
+# and the peaks are those of the built-in screens of a profile.
+_SPEED = f"{APP_ID}-activity-speed-symbolic"
+_HEART = f"{APP_ID}-screen-heart-rate-zone-symbolic"
+TILE_ICONS = {"distance": f"{APP_ID}-activity-distance-symbolic",
+              "time": f"{APP_ID}-screen-lap-summary-symbolic",
+              "pace": _SPEED, "swim pace": _SPEED, "speed": _SPEED,
+              "average heart rate": _HEART, "maximum heart rate": _HEART,
+              "calories": f"{APP_ID}-activity-calories-symbolic",
+              "ascent": f"{APP_ID}-screen-elevation-symbolic"}
 
 
 class ReadFailed(UserFacingError):

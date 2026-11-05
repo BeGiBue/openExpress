@@ -31,7 +31,7 @@ from openexpress.i18n import _, ngettext  # noqa: E402
 
 log = logging.getLogger(__name__)
 
-PAGE_ICON = "x-office-calendar-symbolic"
+PAGE_ICON = f"{paths.APP_ID}-activities-symbolic"  # a runner
 
 
 def _read(found, count: int, progress):

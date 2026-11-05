@@ -719,6 +719,7 @@ empty.
   runtime: distance `mark-location`, time `preferences-system-time`, pace and speed
   `power-profile-performance`, heart rate `emote-love`, ascent `go-up`, calories `emoji-food`.
   The colour says nothing the title does not (it is no carrier of meaning alone).
+  The tiles' icons are now the program's own: [ikony-okna.md](ikony-okna.md).
   - \+ No new dependency, no picture to draw.
 - Corrected when step 7 began (the colours above drawn on the cards of both styles): five of
   the six had less than the contrast of 3:1 that an icon needs, on the light cards (water,

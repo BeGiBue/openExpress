@@ -23,10 +23,11 @@ from gi.repository import Adw, GLib, Gtk, Pango, PangoCairo  # noqa: E402 - impo
 from openexpress import profile_names as names  # noqa: E402
 from openexpress import profiles  # noqa: E402
 from openexpress.i18n import _, caption, ngettext  # noqa: E402
+from openexpress.paths import APP_ID  # noqa: E402
 
 log = logging.getLogger(__name__)
 
-PAGE_ICON = "view-grid-symbolic"
+PAGE_ICON = f"{APP_ID}-profiles-symbolic"  # sliders
 PROFILE_TAG, SCREEN_TAG = "profile", "profile-screen"
 NARROWEST = (360, 200)  # a page's own least size (its breakpoints need one)
 CONTENT_WIDTH = 760
@@ -298,7 +299,7 @@ def _device_name(win) -> str:
 
 
 def _screen_icon(kind: str) -> str:
-    return f"io.github.tomaszbojanowski.OpenExpress-screen-{kind}-symbolic"
+    return f"{APP_ID}-screen-{kind}-symbolic"
 
 
 GROUP_ICON, CLOCK_ICON = "system-users-symbolic", "preferences-system-time-symbolic"

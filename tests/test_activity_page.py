@@ -1417,12 +1417,17 @@ def test_a_dot_of_the_sport_s_colour_before_the_title_not_in_a_narrow_window(mon
         win.toplevel.destroy()
 
 
+def tile_icon(name: str) -> str:
+    return f"io.github.tomaszbojanowski.OpenExpress-{name}-symbolic"
+
+
 @pytest.mark.parametrize(("which", "group", "icons"), [
-    ("walk", "foot", ["mark-location-symbolic", "preferences-system-time-symbolic",
-                      "power-profile-performance-symbolic", "emote-love-symbolic",
-                      "go-up-symbolic"]),
-    ("workout", "training", ["preferences-system-time-symbolic", "emote-love-symbolic",
-                             "emote-love-symbolic", "emoji-food-symbolic"])])
+    ("walk", "foot", [tile_icon(n) for n in ("activity-distance", "screen-lap-summary",
+                                             "activity-speed", "screen-heart-rate-zone",
+                                             "screen-elevation")]),
+    ("workout", "training", [tile_icon(n) for n in ("screen-lap-summary", "screen-heart-rate-zone",
+                                                    "screen-heart-rate-zone",
+                                                    "activity-calories")])])
 def test_the_tiles_have_the_icons_of_their_kind_in_the_sport_s_colour(monkeypatch, which, group,
                                                                       icons):
     """Over each tile's value; for the eye only (the value and its name say it)."""

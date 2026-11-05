@@ -302,7 +302,7 @@ Set by the rules of the program, not decisions:
 | `backup.py` | one function listing the backups of a unit ID (stamp names, no symbolic links), also used by `gui/device_page.backups_text` instead of its own listing |
 | `sync.py` | `describe_queue(items, client)`: downloads and describes the items the sync would write; writes nothing, acknowledges nothing (D7b: one check in `_run_downloads`) |
 | `cli.py` | `activities`, `activities export`, `fit inspect`; `_print_sync_plan` prints the described lines (D6a) |
-| `gui/app.py` | `Section("activities", …)` last, icon `x-office-calendar-symbolic`; `ActivitiesPage` among the bases of `MainWindow`; its attributes in `_init_state` |
+| `gui/app.py` | `Section("activities", …)` last, with the page's icon (`activities_page.PAGE_ICON`); `ActivitiesPage` among the bases of `MainWindow`; its attributes in `_init_state` |
 | new `gui/activities_page.py` | the page, Show 30 More, Export GPX (file chooser, `run_task(…, button=)`); "Has:" line, own logger |
 | `gui/device_page.py` | `load_section` knows "activities"; `_clear_device_pages` forgets the summaries |
 | `gui/words.py` | the words of a row: sport, date, time, distance, ascent, source, state (no GTK, tested without a display) |

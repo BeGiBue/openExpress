@@ -22,6 +22,7 @@ from openexpress.connect import NotAccountDevice  # noqa: E402
 from openexpress.console import error as print_error  # noqa: E402
 from openexpress.device.gio_storage import ABSENT  # noqa: E402
 from openexpress.gui import pictures, start  # noqa: E402
+from openexpress.gui.activities_page import PAGE_ICON as ACTIVITIES_ICON  # noqa: E402
 from openexpress.gui.activities_page import ActivitiesPage  # noqa: E402
 from openexpress.gui.activity_page import leave as leave_activity  # noqa: E402
 from openexpress.gui.apps_page import AppsPage  # noqa: E402
@@ -43,7 +44,7 @@ from openexpress.gui.preferences import KEYS, Preferences  # noqa: E402
 from openexpress.gui.profiles_page import PAGE_ICON as PROFILES_ICON  # noqa: E402
 from openexpress.gui.profiles_page import ProfilesPage  # noqa: E402
 from openexpress.gui.report_dialog import ReportDialog  # noqa: E402
-from openexpress.gui.start import RememberedPage, StartPage  # noqa: E402
+from openexpress.gui.start import SMALL_DEVICE_ICON, RememberedPage, StartPage  # noqa: E402
 from openexpress.gui.start_window import StartView, StartWindow  # noqa: E402
 from openexpress.gui.updates_page import UpdatesPage  # noqa: E402
 from openexpress.gui.window_tasks import (  # noqa: E402
@@ -78,7 +79,8 @@ class MainWindow(TaskRunner, DeviceDetection, StartWindow, DevicePage, MapsPage,
 
         # TRANSLATORS: tab title
         self.sections = {s.key: s for s in (
-            Section("watch", pgettext("tab", "Device"), "preferences-system-time-symbolic",
+            # Its icon follows the kind of the device open (device_page.device_view_icon).
+            Section("watch", pgettext("tab", "Device"), SMALL_DEVICE_ICON,
                     _("Detecting the device…")),
             # TRANSLATORS: tab title
             Section("updates", pgettext("tab", "Updates"), "software-update-available-symbolic",
@@ -93,7 +95,7 @@ class MainWindow(TaskRunner, DeviceDetection, StartWindow, DevicePage, MapsPage,
             Section("music", pgettext("tab", "Music"), "audio-x-generic-symbolic",
                     _("Reading music on the device…")),
             # TRANSLATORS: tab title
-            Section("activities", pgettext("tab", "Activities"), "x-office-calendar-symbolic",
+            Section("activities", pgettext("tab", "Activities"), ACTIVITIES_ICON,
                     _("Reading activities…")),
             # TRANSLATORS: tab title (the sport profiles of the device and their data screens)
             Section("profiles", pgettext("tab", "Activity profiles"), PROFILES_ICON,
@@ -220,6 +222,7 @@ class MainWindow(TaskRunner, DeviceDetection, StartWindow, DevicePage, MapsPage,
         # Made by __init__ and the layout.
         self.sections: dict = {}
         self.split = self.sidebar_header = self.nav = None
+        self.nav_icons: dict = {}  # the icon of each section in the side panel, by its key
         self.net_icon = self.net_label = self.net_button = None
         self.net_heading_dot = self.net_heading = self.net_retry = None
         self.net_rows: dict = {}
@@ -301,7 +304,8 @@ class MainWindow(TaskRunner, DeviceDetection, StartWindow, DevicePage, MapsPage,
         for sec in self.sections.values():
             box = Gtk.Box(spacing=12, margin_top=6, margin_bottom=6, margin_start=6,
                           margin_end=6)
-            box.append(Gtk.Image(icon_name=sec.icon))
+            self.nav_icons[sec.key] = icon = Gtk.Image(icon_name=sec.icon)
+            box.append(icon)
             box.append(Gtk.Label(label=sec.title, xalign=0, hexpand=True))
             row = Gtk.ListBoxRow(child=box)
             row.key = sec.key
