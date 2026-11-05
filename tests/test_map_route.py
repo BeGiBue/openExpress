@@ -2,8 +2,9 @@
 universal one, which is the only one asked, serves a device filed as Universal, or as
 UniversalDetect while it declares the data type PreProgrammedNamedMaps. A device served
 another way (Gemini, LegacyRmu, Unknown, none given) gets "not supported yet" and no map
-check, unless it declares no data type of maps in its GarminDevice.xml: then it has none (a
-Venu 2, a Varia). All data here is made up."""
+check, unless every data type it declares in its GarminDevice.xml is known to be no maps: then
+it has none (a Venu 2, a Varia). A data type not known may be maps under another name, so in
+doubt it is "not supported yet". All data here is made up."""
 import logging
 from datetime import timedelta
 from pathlib import Path
@@ -18,6 +19,12 @@ PPNM = "PreProgrammedNamedMaps"
 UNIT, PART = 3000000061, "006-B9999-00"
 REFUSAL = "Map updates for this device aren't supported yet."
 NO_MAPS = "This device has no maps."
+# Data types that are no maps, as a watch without maps (a Venu 2) declares them.
+NO_MAP_DATATYPES = (
+    "ErrorShutdownReports", "ExpressRequest", "FITBinary", "FIT_TYPE_2", "FIT_TYPE_4",
+    "FIT_TYPE_72", "GPSData", "IQAppsConfiguration", "IQWatchFaces", "IQWidgets",
+    "MEDIA_AUDIOBOOK", "MEDIA_TRACK", "TranslatedText", "UHCConfig", "ULFConfig", "ULFLogs",
+    "WiFiConfiguration", "WELLNESS_TYPE_1", "BACKUP_PRIMARY", "ACTIVITY_GCPD", "CustomPOI")
 
 
 def device(*datatypes):
@@ -68,6 +75,14 @@ def _route_lines(caplog):
     ({"mapupdatetype": "UniversalDetect"}, ("NMaps",), "unsupported"),
     ({"mapupdatetype": "UniversalDetect"}, ("Maps",), "unsupported"),
     ({"mapupdatetype": "UniversalDetect"}, ("SupplementalMapsTopo",), "unsupported"),
+    # maps under other names, or a data type not known: in doubt, not "no maps"
+    ({"mapupdatetype": "UniversalDetect"}, ("BaseMaps",), "unsupported"),
+    ({"mapupdatetype": "UniversalDetect"}, ("BirdsEye",), "unsupported"),
+    ({"mapupdatetype": "UniversalDetect"}, ("PreProgrammedDEMMaps",), "unsupported"),
+    ({"mapupdatetype": "Gemini"}, ("PedestrianMaps",), "unsupported"),
+    ({"mapupdatetype": "UniversalDetect"}, ("FIT_TYPE_4", "TopoActiveInstaSearch"), "unsupported"),
+    ({"mapupdatetype": "UniversalDetect"}, ("FIT_TYPE_4", "MadeUpCharts"), "unsupported"),
+    ({"mapupdatetype": "UniversalDetect"}, NO_MAP_DATATYPES, "none"),  # all a Venu 2 declares
     ({"mapupdatetype": "Gemini"}, ("ManifestGmf",), "unsupported"),  # a zūmo
     ({"mapupdatetype": "Gemini"}, ("CustomPOI",), "none"),  # points of interest are no maps
     ({"mapupdatetype": "Gemini"}, (PPNM,), "unsupported"),

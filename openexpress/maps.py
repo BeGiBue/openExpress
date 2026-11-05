@@ -219,8 +219,8 @@ class MapsNotSupported(MapError):
 
 
 class DeviceHasNoMaps(MapsNotSupported):
-    """Garmin's universal map service does not serve the device, and it declares no data type
-    of maps either (declares_maps): it has none, rather than maps this program does not
+    """Garmin's universal map service does not serve the device, and nothing it declares may
+    be maps either (declares_maps): it has none, rather than maps this program does not
     update yet (a Venu 2, a Varia)."""
 
     def __init__(self) -> None:
@@ -228,17 +228,23 @@ class DeviceHasNoMaps(MapsNotSupported):
         self.map_update_type = None
 
 
-# The data types of maps a device declares in its GarminDevice.xml (the maps' folders): by
-# them a device whose maps Garmin serves another way is told apart from one without maps.
-# Points of interest (CustomPOI) are no maps.
-MAP_DATATYPES = ("maps", "nmaps", "preprogrammednamedmaps", "manifestgmf")
-MAP_DATATYPE_PREFIX = "supplementalmaps"
+# The data types of a device's GarminDevice.xml known to be no maps: by them a device whose
+# maps Garmin serves another way is told apart from one without maps. Maps come under many
+# names (NMaps, BaseMaps, PedestrianMaps, BirdsEye, PreProgrammedDEMMaps, ManifestGmf…), so
+# any other data type may be maps. Points of interest (CustomPOI) are no maps.
+NO_MAP_DATATYPES = frozenset(name.casefold() for name in (
+    "CustomPOI", "ErrorShutdownReports", "ExpressRequest", "FITBinary", "GPSData",
+    "LiveActivity", "PROMPT_FILE", "TranslatedText", "UHCConfig", "ULFConfig", "ULFLogs",
+    "UpdateMetadata", "WiFiConfiguration"))
+NO_MAP_DATATYPE_PREFIXES = tuple(prefix.casefold() for prefix in (
+    "FIT_TYPE_", "WELLNESS_TYPE_", "ACTIVITY_", "BACKUP_", "MEDIA_", "IQ"))
 
 
 def declares_maps(device) -> bool:
-    """Whether the device's GarminDevice.xml declares a data type of maps."""
+    """Whether the device's GarminDevice.xml declares a data type that may be maps: any but
+    those known to be no maps."""
     names = [name.casefold() for name in device.datatypes()]
-    return any(name in MAP_DATATYPES or name.startswith(MAP_DATATYPE_PREFIX)
+    return any(name not in NO_MAP_DATATYPES and not name.startswith(NO_MAP_DATATYPE_PREFIXES)
                for name in names)
 
 
@@ -269,7 +275,7 @@ def universal_serves(map_update_type, device) -> bool:
 def check(client, device, ask=None, country=None) -> tuple[list[UniversalMap], int]:
     """The maps of the device and the count of listed maps (read_maps), restrictions applied;
     MapsNotSupported when unit-info says the universal map service does not serve it
-    (DeviceHasNoMaps when the device declares no maps either). `ask`
+    (DeviceHasNoMaps when nothing the device declares may be maps either). `ask`
     gives unit-info's answer (the window: service.unit_info); none: it is asked here.
     `country` gives the account's country, asked only when a map is restricted to one; none:
     such a map is only marked."""
