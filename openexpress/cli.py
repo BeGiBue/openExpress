@@ -2192,6 +2192,9 @@ def _primary_role(wearable: bool) -> _PrimaryRole:
                 "changed": _("Primary training device changed from {old} to {new}."),
                 "back": _("To change it back, connect {old} and run `openexpress primary set "
                           "--apply`, or change it in Garmin Connect."),
+                # Said first by `primary set`, as the window's question says it.
+                "what": _("The primary training device is the main source of performance and "
+                          "training data in Garmin Connect."),
             })
     return _PrimaryRole(
         service.primary_wearable_status,
@@ -2234,6 +2237,8 @@ def cmd_primary(args) -> int:
 
 
 def _primary_set(client, dev, apply: bool, role: _PrimaryRole) -> int:
+    if "what" in role.words:
+        print(role.words["what"])  # before anything is asked or changed
     words, before = role.words, role.change(client, dev, apply)
     old = before.name or words["unlisted"]
     if before.is_this_device:

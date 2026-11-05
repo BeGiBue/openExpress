@@ -283,6 +283,16 @@ def test_the_command_line_says_which_device_is_the_primary_one(account, device_r
     assert account.sent == sent
 
 
+WHAT_IT_IS = ("The primary training device is the main source of performance and training data "
+              "in Garmin Connect.")
+
+
+def said_first(argv) -> list[str]:
+    """What `primary set` says first of the primary training device, before anything is asked
+    or changed (the window's question says it too); nothing of the primary wearable."""
+    return [WHAT_IT_IS] if "set" in argv and "--wearable" not in argv else []
+
+
 @pytest.mark.parametrize(("argv", "state", "lines", "sent"), [
     (["primary", "set"], {"training": OTHER},
      ["Primary training device: Other watch", "Would change it to: Test watch",
@@ -322,7 +332,8 @@ def test_the_command_line_says_which_device_is_the_primary_one(account, device_r
         "wearable-apply", "wearable-apply-unset", "wearable-already"])
 def test_the_command_line_changes_the_primary_one_only_with_apply(account, device_root, capsys,
                                                                   argv, state, lines, sent):
-    assert run(account, device_root, capsys, *argv, **state) == (0, lines, "")
+    assert run(account, device_root, capsys, *argv, **state) == (
+        0, [*said_first(argv), *lines], "")
     assert account.sent == sent
 
 
@@ -353,7 +364,7 @@ def test_the_command_line_says_why_it_changes_nothing_and_exits_with_1(account, 
                                                                        capsys, argv, state,
                                                                        text, sent):
     code, lines, err = run(account, device_root, capsys, *argv, **state)
-    assert (code, lines) == (1, [])
+    assert (code, lines) == (1, said_first(argv))
     assert text in err and "Traceback" not in err
     assert account.sent == sent
 

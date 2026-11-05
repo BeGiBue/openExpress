@@ -1089,6 +1089,11 @@ def test_set_primary_training_checks_ownership_anew(device):
     assert account.puts == [] and account.client.verified_unit_id is None
 
 
+# What `primary set` says first, before it changes anything (as the window's question).
+WHAT_IT_IS = ("The primary training device is the main source of performance and training data "
+              "in Garmin Connect.")
+
+
 @pytest.mark.parametrize("argv, current, lines, puts", [
     (["primary", "set"], OTHER,
      ["Primary training device: Bike computer", "Would change it to: Test watch",
@@ -1110,9 +1115,18 @@ def test_cli_primary_set(device_root, xdg, cli_client, capsys, argv, current, li
     cli_client["client"] = account.client
     before = tree(device_root)
     assert main(["--path", str(device_root), *argv]) == 0
-    assert capsys.readouterr().out.splitlines() == lines
+    assert capsys.readouterr().out.splitlines() == [WHAT_IT_IS, *lines]
     assert len(account.puts) == puts
     assert tree(device_root) == before  # nothing is ever written to the device
+
+
+def test_cli_primary_set_says_what_it_is_before_it_changes_anything(device_root, xdg,
+                                                                    cli_client, capsys):
+    """Said before the account is asked: also when the change is then refused."""
+    account = FakeAccount(OTHER, [ACCOUNT[1]])  # a device of another account
+    cli_client["client"] = account.client
+    assert main(["--path", str(device_root), "primary", "set", "--apply"]) == 1
+    assert capsys.readouterr().out.splitlines() == [WHAT_IT_IS] and account.puts == []
 
 
 @pytest.mark.parametrize("argv", [["primary", "set"], ["primary", "set", "--apply"]], ids=" ".join)
