@@ -160,6 +160,64 @@ def md5(data: bytes) -> str:
 # --- local state -----------------------------------------------------------------------
 
 
+@dataclass(frozen=True)
+class OtherRecords:
+    """What the other install of openExpress on this computer keeps of a device
+    (paths.other_install_dir), read only: the files it sent (by name; a single file by the MD5
+    of its content), the messages of the queue it wrote but could not acknowledge, and when it
+    last synced the device (None: not known)."""
+
+    completed: dict[str, frozenset[str]]
+    singleton_md5: dict[str, str]
+    unacked: frozenset[str]
+    last_sync: float | None
+
+    @property
+    def synced(self) -> bool:
+        """Whether it has a record of the files it sent (it synced the device)."""
+        return bool(self.completed or self.singleton_md5)
+
+
+def _read_json(path: Path):
+    try:
+        return json.loads(path.read_text())
+    except (OSError, ValueError):
+        return None
+
+
+def other_state_path(unit_id: int) -> Path | None:
+    """The other install's record of the files it sent of the device (its state.json, maybe
+    not there); None: no other install."""
+    base = paths.other_install_dir()
+    return base / "devices" / str(unit_id) / "sync" / "state.json" if base is not None else None
+
+
+def other_install_records(unit_id: int) -> OtherRecords | None:
+    """The other install's records of the device (OtherRecords), never written here; None when
+    there is no other install or it keeps nothing of the device. A record that does not read
+    counts as none."""
+    state_file = other_state_path(unit_id)
+    if state_file is None:
+        return None
+    device = state_file.parent.parent
+    state = _read_json(state_file)
+    unacked = _read_json(device / "sync" / "unacked.json")
+    last = _read_json(device / "last_sync.json")
+    state = state if isinstance(state, dict) else {}
+    completed = state.get("completed") if isinstance(state.get("completed"), dict) else {}
+    md5s = state.get("singleton_md5") if isinstance(state.get("singleton_md5"), dict) else {}
+    when = last.get("time") if isinstance(last, dict) else None
+    records = OtherRecords(
+        completed={str(k): frozenset(str(n).casefold() for n in v)
+                   for k, v in completed.items() if isinstance(v, list)},
+        singleton_md5={str(k): str(v) for k, v in md5s.items()},
+        unacked=frozenset(str(i) for i in unacked) if isinstance(unacked, list) else frozenset(),
+        last_sync=float(when) if isinstance(when, int | float) else None)
+    if not (records.synced or records.unacked or records.last_sync is not None):
+        return None
+    return records
+
+
 class SyncState:
     """What has already been uploaded; Garmin Express keeps the same record."""
 
@@ -173,6 +231,27 @@ class SyncState:
             k: set(v) for k, v in data.get("completed", {}).items()
         }
         self.singleton_md5: dict[str, str] = data.get("singleton_md5", {})
+        # The other install's records of the device (adopt); None: none read.
+        self.other: OtherRecords | None = None
+        self.adopted = 0  # the files it sent that this record did not have
+
+    def adopt(self, other: OtherRecords) -> None:
+        """The other install's records (OtherRecords), read only: a file it sent counts as sent
+        here too, and goes into this install's record when it is written next."""
+        self.other = other
+        for datatype, names in other.completed.items():
+            mine = self.completed.setdefault(datatype, set())
+            self.adopted += len(names - mine)
+            mine |= names
+
+    @property
+    def never_synced(self) -> bool:
+        """Neither this install nor the other one (adopt) synced the device."""
+        return not self.file.exists() and not (self.other is not None and self.other.synced)
+
+    def written_elsewhere(self) -> set[str]:
+        """The messages of the queue the other install wrote but could not acknowledge."""
+        return set(self.other.unacked) if self.other is not None else set()
 
     def is_completed(self, datatype: str, name: str) -> bool:
         return name.casefold() in self.completed.get(datatype, set())
@@ -181,7 +260,13 @@ class SyncState:
         self.completed.setdefault(datatype, set()).add(name.casefold())
 
     def singleton_changed(self, datatype: str, path: str, digest: str) -> bool:
-        return self.singleton_md5.get(f"{datatype}:{path.casefold()}") != digest
+        key = f"{datatype}:{path.casefold()}"
+        if self.singleton_md5.get(key) == digest:
+            return False
+        if self.other is not None and self.other.singleton_md5.get(key) == digest:
+            self.singleton_md5[key] = digest  # the other install sent it: so in this record
+            return False
+        return True
 
     def mark_singleton(self, datatype: str, path: str, digest: str) -> None:
         self.singleton_md5[f"{datatype}:{path.casefold()}"] = digest
@@ -725,11 +810,25 @@ def state_path(unit_id: int) -> Path:
     return paths.device_dir(unit_id) / "sync" / "state.json"
 
 
+def state_of(unit_id: int) -> SyncState:
+    """What was uploaded of the device: this install's record, with the other install's of
+    this computer (other_install_records) taken in, read only."""
+    state = SyncState(unit_id)
+    other = other_install_records(unit_id)
+    if other is not None:
+        state.adopt(other)
+    return state
+
+
 def synced_here(unit_id: int) -> bool:
-    """Whether this installation has synced the device, or marked its files as uploaded
-    (baseline): its state.json is there. Without it the device was never synced here, and
-    its first sync asks how to begin (the one source of "never synced")."""
-    return state_path(unit_id).exists()
+    """Whether this installation (or the other one of this computer, other_install_records)
+    has synced the device, or marked its files as uploaded (baseline): its state.json is
+    there. Without it the device was never synced here, and its first sync asks how to begin
+    (the one source of "never synced")."""
+    if state_path(unit_id).exists():
+        return True
+    other = other_install_records(unit_id)
+    return other is not None and other.synced
 
 
 # --- activities not uploaded yet (the chip "To sync" of a tile) ------------------------
@@ -795,8 +894,8 @@ def _activities_to_sync(device: GarminDevice, storage: Storage) -> ActivitiesToS
 
 
 def _activities_left(unit_id: int, listed: frozenset[str]) -> ActivitiesToSync:
-    state = SyncState(unit_id)
-    if not state.file.exists():
+    state = state_of(unit_id)
+    if state.never_synced:
         return ActivitiesToSync(unit_id, listed)
     # Done as a sync marks them: also those refused by Garmin and already in Connect, not a
     # failed upload.
@@ -952,9 +1051,24 @@ def run_downloads(
         raise
 
 
+def _acknowledge(client: GarminClient, message_id) -> None:
+    """Tell Garmin Connect a message is received. A message it no longer has (404: the other
+    install of this computer, or another sync, acknowledged it) counts as done."""
+    try:
+        client.ack_message(message_id)
+    except ApiError as e:
+        if e.status != 404:
+            raise
+        log.info("download: a message acknowledged already (HTTP 404), done")
+
+
 def _run_downloads(items, storage, client, progress, state, makers: Makers) -> DownloadReport:
     report = DownloadReport()
-    unacked = state.unacked() if state is not None else set()
+    own = state.unacked() if state is not None else set()
+    # A message the other install wrote but could not acknowledge is only acknowledged; its
+    # number is never kept in this install's record.
+    elsewhere = state.written_elsewhere() - own if state is not None else set()
+    unacked = own | elsewhere
     initial = set(unacked)
     fetched = [it for it in items if not (it.unsupported or it.handled_by)
                and str(it.message_id) not in unacked]
@@ -968,7 +1082,7 @@ def _run_downloads(items, storage, client, progress, state, makers: Makers) -> D
             mid = str(it.message_id)
             if mid in unacked:
                 try:
-                    client.ack_message(it.message_id)
+                    _acknowledge(client, it.message_id)
                 except (Unauthorized, DeviceNotVerified):
                     raise
                 except Exception as e:  # noqa: BLE001
@@ -1011,7 +1125,7 @@ def _run_downloads(items, storage, client, progress, state, makers: Makers) -> D
             # again.
             unacked.add(mid)
             try:
-                client.ack_message(it.message_id)
+                _acknowledge(client, it.message_id)
             except (Unauthorized, DeviceNotVerified):
                 raise
             except Exception as e:  # noqa: BLE001
@@ -1022,7 +1136,7 @@ def _run_downloads(items, storage, client, progress, state, makers: Makers) -> D
                 unacked.discard(mid)
     finally:
         if state is not None and unacked != initial:
-            state.save_unacked(unacked)
+            state.save_unacked(unacked - elsewhere)
     log.info("downloads: %d written (%s), %d empty, %d failed, %d not acknowledged",
              len(report.written), applog.counts(report.makers), len(report.empty),
              len(report.failed), len(report.ack_failed))

@@ -87,11 +87,12 @@ class DeviceSession:
 
     @property
     def state(self) -> sync.SyncState:
-        return sync.SyncState(self.device.unit_id)
+        """What was uploaded of the device (with the other install's records: sync.state_of)."""
+        return sync.state_of(self.device.unit_id)
 
     @property
     def first_sync(self) -> bool:
-        return not self.state.file.exists()
+        return self.state.never_synced
 
     @property
     def mass_storage(self) -> bool:
@@ -1007,6 +1008,11 @@ def _describe_step(line) -> list[tuple[str, bool]]:
                                   "{count} files could not be uploaded",
                                   errors).format(count=errors), True))
         return said
+    if kind == "other_install":
+        at = line.get("at")
+        if isinstance(at, bool) or not isinstance(at, int | float):
+            return []
+        return [(other_install_text(at), True)]
     if kind == "marked_known" and (n := _count(line)) is not None:
         return [(ngettext("Marked {count} existing file as already uploaded",
                           "Marked {count} existing files as already uploaded",
@@ -1233,6 +1239,18 @@ def describe_counts(data: dict) -> str:
     return " · ".join(parts)
 
 
+def other_install_text(at: float) -> str:
+    """The other install of this computer synced the device after this one (`at`: when)."""
+    try:
+        day = time.strftime(_("%Y-%m-%d"), time.localtime(at))
+    except (ValueError, OverflowError, OSError):
+        day = "?"
+    # TRANSLATORS: a line of the details of "Last sync" and of a sync's dry run: the Flatpak
+    # of openExpress synced the device after the version from source; {date} as %Y-%m-%d
+    return _("This device was also synced by openExpress (Flatpak), last on {date}; files it "
+             "sent are not sent again").format(date=day)
+
+
 def describe_steps(lines) -> list[tuple[str, bool]]:
     """The lines of a sync summary in words, each with whether it is a warning (files
     rejected, or that could not be uploaded): for the window, which marks the warnings."""
@@ -1245,7 +1263,9 @@ class SyncBusy(OrdinaryStop):
 
 @contextlib.contextmanager
 def sync_lock():
-    """Inter-process lock (the GUI and the background service never sync at the same time)."""
+    """Inter-process lock (the GUI and the background service never sync at the same time),
+    and that of the other install of this computer (paths.other_install_dir), held too while
+    it is there: the two never sync at the same time either. Its lock file is never made."""
     path = paths.data_dir() / "sync.lock"
     paths.make_dir(path.parent)
     with open(path, "w") as f:
@@ -1253,6 +1273,30 @@ def sync_lock():
             fcntl.flock(f, fcntl.LOCK_EX | fcntl.LOCK_NB)
         except BlockingIOError:
             raise SyncBusy(_("A sync is already running in another process.")) from None
+        try:
+            with _other_install_lock():
+                yield
+        finally:
+            fcntl.flock(f, fcntl.LOCK_UN)
+
+
+@contextlib.contextmanager
+def _other_install_lock():
+    other = paths.other_install_dir()
+    try:
+        f = open(other / "sync.lock", "rb") if other is not None else None  # noqa: SIM115
+    except OSError:
+        f = None  # no lock file: it never synced (or cannot be read): nothing to wait for
+    if f is None:
+        yield
+        return
+    with f:
+        try:
+            fcntl.flock(f, fcntl.LOCK_EX | fcntl.LOCK_NB)
+        except BlockingIOError:
+            log.info("sync: the other install of this computer is syncing")
+            raise SyncBusy(_("openExpress (Flatpak) is syncing a device now; sync again when "
+                             "it is done.")) from None
         try:
             yield
         finally:
@@ -1357,6 +1401,9 @@ class SyncPlan:
     queue: QueuePlan | None = None  # read with the plan for a preview only
     # Why the uploads are skipped: the upload settings could not be fetched (upload_skipped).
     upload_error: str | None = None
+    # When the other install of this computer (sync.other_install_records) synced the device,
+    # if it did after this one; None: it did not.
+    other_newer: float | None = None
 
 
 def upload_skipped(s: DeviceSession, error: Exception) -> str:
@@ -1391,6 +1438,10 @@ def plan_sync(s: DeviceSession, options: SyncOptions | None = None,
                                                    fresh=not options.preview,
                                                    part_number=s.device.part_number)
     plan = SyncPlan(options, s.state)
+    if plan.state.other is not None:
+        log.info("sync: the other install of this computer: %d file%s it sent taken as sent",
+                 plan.state.adopted, "" if plan.state.adopted == 1 else "s")
+    plan.other_newer = _other_synced_after(s.device.unit_id, plan.state)
     if options.uploads:
         progress(Waiting(_("Fetching configuration from the Garmin server…")))
         try:
@@ -1401,7 +1452,7 @@ def plan_sync(s: DeviceSession, options: SyncOptions | None = None,
             log.warning("sync: the upload settings could not be fetched (%s); uploads "
                         "skipped", type(e).__name__)
     if options.uploads and plan.config is not None:
-        if not plan.state.file.exists():  # the first sync
+        if plan.state.never_synced:  # the first sync
             if options.first_run == "baseline":
                 plan.baseline = sync.plan_baseline(s.device, s.storage, plan.config,
                                                    plan.state)
@@ -1420,6 +1471,23 @@ def plan_sync(s: DeviceSession, options: SyncOptions | None = None,
     if options.preview and options.downloads and s.logged_in:
         plan.queue = plan_queue(s, progress)
     return plan
+
+
+def _other_synced_after(unit_id: int, state: sync.SyncState) -> float | None:
+    """When the other install of this computer synced the device last, if it did after this
+    install (or this one never did); None otherwise."""
+    other = state.other.last_sync if state.other is not None else None
+    if other is None:
+        return None
+    own = _usable_last_sync(_read_json(device_last_sync_path(unit_id)))
+    if own is not None and own.get("time", 0.0) >= other:
+        return None
+    log.info("sync: the other install of this computer synced the device after this one")
+    return other
+
+
+def other_install_step(at: float) -> dict:
+    return {"kind": "other_install", "at": at}
 
 
 def plan_queue(s: DeviceSession, progress: Progress | None = None) -> QueuePlan:
@@ -1442,6 +1510,8 @@ def apply_sync(s: DeviceSession, plan: SyncPlan,
         raise ValueError("a preview of a sync is only to be shown")
     out = SyncSummary()
     state = plan.state
+    if plan.other_newer is not None:
+        out.lines.append(other_install_step(plan.other_newer))
     if plan.upload_error is not None:
         # An error of this sync, which goes on with Garmin Connect's queue.
         out.errors.append(plan.upload_error)
@@ -1653,18 +1723,29 @@ def _usable_last_sync(data: dict | None) -> dict | None:
 
 def sync_stamp(unit_id: int | None) -> str | None:
     """The version of what this installation knows of the sync of a device: when its
-    state.json was written and its size, and the time of its last sync recorded. A count of
-    its activities is shown from a record only while this is the same (known_devices.
-    SyncCount). None: never synced here (no state.json)."""
+    state.json was written and its size, and the time of its last sync recorded; with those of
+    the other install's state.json, when it has one (sync.other_state_path). A count of its
+    activities is shown from a record only while this is the same (known_devices.SyncCount).
+    None: never synced here (no state.json, in neither install)."""
     if not unit_id:
         return None
-    try:
-        st = sync.state_path(unit_id).stat()
-    except OSError:
+    own = _file_stamp(sync.state_path(unit_id))
+    other_path = sync.other_state_path(unit_id)
+    other = _file_stamp(other_path) if other_path is not None else None
+    if own is None and other is None:
         return None
     record = load_last_sync(unit_id)
     when = record.get("time") if record else None
-    return f"{st.st_mtime_ns}-{st.st_size}-{when}"
+    stamp = f"{own or '-'}-{when}"
+    return stamp if other is None else f"{stamp}+{other}"
+
+
+def _file_stamp(path) -> str | None:
+    try:
+        st = path.stat()
+    except OSError:
+        return None
+    return f"{st.st_mtime_ns}-{st.st_size}"
 
 
 def load_last_sync(unit_id: int | None = None) -> dict | None:

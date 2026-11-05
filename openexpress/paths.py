@@ -52,6 +52,19 @@ def in_flatpak() -> bool:
     return Path("/.flatpak-info").exists()
 
 
+def flatpak_data_dir() -> Path:
+    """The data folder of the Flatpak of openExpress, as the rest of this user's files see it
+    (outside the sandbox)."""
+    return Path.home() / ".var" / "app" / APP_ID / "data" / "openexpress"
+
+
+def other_install_dir() -> Path | None:
+    """The data folder of the other install of openExpress on this computer, which this one
+    reads and never writes: the Flatpak's for the version from source; None in the Flatpak,
+    whose sandbox hides the folders of the version from source."""
+    return None if in_flatpak() else flatpak_data_dir()
+
+
 def flatpak_build() -> tuple[str | None, str | None] | None:
     """(branch, the first 12 characters of the app's commit) of this Flatpak, from
     /.flatpak-info; None outside the Flatpak or when the file cannot be read."""

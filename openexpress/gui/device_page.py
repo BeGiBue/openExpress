@@ -96,8 +96,8 @@ def last_sync_words(data: dict, now: datetime | None = None) -> str:
 
 def last_sync_subtitle(unit_id, data: dict | None, to_sync=None,
                        now: datetime | None = None) -> str:
-    """The subtitle of "Last sync": "Never synced" when this installation has no state.json
-    for the device (the one source of it, as on the tile); else the last sync (`data`,
+    """The subtitle of "Last sync": "Never synced" when the device was never synced here
+    (sync.synced_here, the one source of it, as on the tile); else the last sync (`data`,
     last_sync.json) or that none is recorded, then the new activities to upload (`to_sync`,
     the count of the chip "To sync"), unless that sync could not upload (no chip then)."""
     if not unit_id or not sync.synced_here(unit_id):

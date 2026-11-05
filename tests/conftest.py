@@ -427,10 +427,16 @@ def make_fit(time_created: int, file_type: int = 4) -> bytes:
 @pytest.fixture(autouse=True)
 def private_dirs(tmp_path, monkeypatch):
     """No test reads or writes the real data, settings or cache of openExpress: every test
-    has its own (the log: `log_file`). The same folders as `xdg` gives by name."""
+    has its own (the log: `log_file`). The same folders as `xdg` gives by name. The folder of
+    the other install of this computer (the Flatpak's, which the version from source reads)
+    is the test's own too, empty."""
+    from openexpress import paths
+
     monkeypatch.setenv("XDG_CONFIG_HOME", str(tmp_path / "config"))
     monkeypatch.setenv("XDG_DATA_HOME", str(tmp_path / "data"))
     monkeypatch.setenv("XDG_CACHE_HOME", str(tmp_path / "cache"))
+    monkeypatch.setattr(paths, "flatpak_data_dir",
+                        lambda: tmp_path / "flatpak-data" / "openexpress")
 
 
 @pytest.fixture(autouse=True)

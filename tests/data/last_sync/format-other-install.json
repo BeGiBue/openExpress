@@ -1,0 +1,16 @@
+{
+ "synthetic": "made up: a sync of the version from source of a device the Flatpak had synced after it: nothing new to send (the Flatpak sent it), and the sentence that says so",
+ "time": 1790000600.0,
+ "unit_id": 3000000121,
+ "uploaded": 0,
+ "downloaded": 0,
+ "skipped_known": 0,
+ "rejected": 0,
+ "errors": [],
+ "lines": [
+  {
+   "kind": "other_install",
+   "at": 1790000000.0
+  }
+ ]
+}

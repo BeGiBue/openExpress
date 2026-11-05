@@ -76,7 +76,8 @@ more than six devices), **Grid** or **List**. Up to two labels on a tile say
 what is waiting and what the device is: **Update available**, or **Unplug to install** (an
 update copied to the connected device, which installs it once unplugged; **Eject to install**
 for a USB drive), **To sync** (activities on the device not uploaded yet) or **Never synced**
-(by this installation: [each keeps its own](install.md#the-flatpak-and-the-version-from-source)),
+(by this installation: [each keeps its own](install.md#the-flatpak-and-the-version-from-source);
+the version from source counts the Flatpak's syncs too),
 **USB drive**, **Primary** (the account's **Primary wearable**, as Garmin Connect names it:
 steps and sleep come from this device), **Not on your account** and,
 when nothing else needs saying, **Synced** (synced before, nothing new to upload). **To
@@ -424,9 +425,11 @@ known yet and are shown as numbers.
   say how many Garmin Connect already had, and warn when Garmin rejected a file, a file could
   not be uploaded, or another step failed (a file from Garmin Connect, a Connect IQ app,
   TrueUp).
-- The Flatpak and the version from source keep their own records of what they uploaded: a
-  file one of them uploaded is new to the other, and Garmin Connect recognises it as a
-  duplicate.
+- The Flatpak and the version from source keep their own records of what they uploaded.
+  The version from source reads the Flatpak's too, so a file the Flatpak uploaded is not
+  uploaded again from source ([details](install.md#the-flatpak-and-the-version-from-source));
+  a file the version from source uploaded is new to the Flatpak, and Garmin Connect recognises
+  it as a duplicate.
 
 ## A device that stops responding
 

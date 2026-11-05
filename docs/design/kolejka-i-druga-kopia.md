@@ -48,8 +48,8 @@ new permission for it); the version from source can read the Flatpak's.
   (Flatpak) is syncing a device now; sync again when it is done."
 - **D5 (recommended).** What is said: when the Flatpak's last sync of the device is newer than
   this install's, the sync says once (the window's summary, the command line):
-  "This device was also synced by openExpress (Flatpak), last on {when}; files it sent are not
-  sent again." The row "Last sync" of the device page stays this install's own (a change of it
+  "This device was also synced by openExpress (Flatpak), last on {date}; files it sent are not
+  sent again" (a line of the details, without a full stop). The row "Last sync" of the device page stays this install's own (a change of it
   needs its own patterns and words; left for later).
 - An acknowledgement Garmin Connect answers with 404 (the message is gone) counts as done, in
   either install, so that a message both installs know is not tried for ever.
@@ -89,7 +89,7 @@ Garmin Connect." Nothing else changes.
 | Garmin product {number} | produkt Garmin {number} |
 | maker not given | twórca nieznany |
 | openExpress (Flatpak) is syncing a device now; sync again when it is done. | openExpress (Flatpak) synchronizuje teraz urządzenie; zsynchronizuj ponownie, gdy skończy. |
-| This device was also synced by openExpress (Flatpak), last on {when}; files it sent are not sent again. | To urządzenie synchronizował też openExpress (Flatpak), ostatnio {when}; pliki, które wysłał, nie są wysyłane ponownie. |
+| This device was also synced by openExpress (Flatpak), last on {date}; files it sent are not sent again | To urządzenie synchronizował też openExpress (Flatpak), ostatnio {date}; pliki, które wysłał, nie są wysyłane ponownie |
 | A test drive: Garmin Connect's queue and TrueUp are left to the device it stands in for. | Dysk testowy: kolejka Garmin Connect i TrueUp zostają dla urządzenia, które zastępuje. |
 
 The log stays in English, as always.

@@ -34,3 +34,5 @@ format-*: the shapes older versions wrote, with made-up numbers; and shapes of t
   wrote one course from Garmin Connect ("nothing to upload · 1 received"); with the activities
   the device has to upload now after it, the row and `openexpress status` say both apart
   ("· now to upload: 2 activities"). Synthetic (marked "synthetic" in it).
+format-other-install.json: a sync of the version from source of a device the Flatpak synced
+  after it: nothing new to send, and the step that says the Flatpak synced it (made up).

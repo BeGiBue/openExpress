@@ -61,9 +61,19 @@ banner at the top and **Sign In**.
 They are separate installations: each keeps its own
 setup (the key from the Garmin Express installer), login, settings and sync state: its own
 last syncs, uploaded files and list of your own maps. After switching from one to the other,
-choose the installer and sign in again. The first sync of each device then starts anew: the
-window asks whether to mark the files already on it as uploaded, and on the command line
-`openexpress sync --apply` stops and suggests `openexpress baseline --apply` or `--all`.
+choose the installer and sign in again. The first sync of each device then starts anew in the
+Flatpak: the window asks whether to mark the files already on it as uploaded, and on the
+command line `openexpress sync --apply` stops and suggests `openexpress baseline --apply` or
+`--all`.
+
+The version from source also reads (never writes) what the Flatpak keeps of a device: a file
+the Flatpak uploaded is not uploaded again (a settings file only while its content is the
+same), a file from Garmin Connect the Flatpak wrote to the device but could not report as
+received is only reported, and a device the Flatpak synced needs no first-sync choice. While
+the Flatpak syncs, a sync from source does not start: "openExpress (Flatpak) is syncing a
+device now; sync again when it is done." When the Flatpak synced the device after it, the sync
+says so once: in the details of **Last sync** and in the dry run of `openexpress sync`. The
+Flatpak cannot see the files of the version from source and works as before.
 
 ## Building the Flatpak yourself
 

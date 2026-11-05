@@ -1041,6 +1041,8 @@ def _print_sync_plan(plan, client, drive: bool = False, makers=None) -> None:
             print(plan.gate.message(done=False) if not plan.gate.allowed else _(
                 "Uploads are allowed: the Garmin account has the upload consent and device "
                 "sync is on."))
+    if plan.other_newer is not None:
+        print("\n" + service.other_install_text(plan.other_newer))
     if plan.queue is not None:
         items = plan.queue.items
 

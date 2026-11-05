@@ -5,6 +5,7 @@ English and Polish words, no line twice, none against the row.
 Every change of this row comes with a new record here and its exact words below."""
 
 import json
+import time
 from datetime import datetime, timedelta
 from pathlib import Path
 
@@ -17,12 +18,24 @@ from openexpress import i18n, service, sync
 PATTERNS = Path(__file__).resolve().parent / "data" / "last_sync"
 
 NB = "\u00a0"
+# The local day of the other install's last sync in format-other-install.json.
+OTHER_DAY = time.strftime("%Y-%m-%d", time.localtime(1790000000.0))
+OTHER_DAY_PL = time.strftime("%d.%m.%Y", time.localtime(1790000000.0))
 NOTHING_NEW = {"No new data to upload", "Brak nowych danych do wysłania"}
 
 # name: {language: (the numbers, [(a line of the details, whether it is a warning)])}
 EXPECTED = {
     # No new file on the device, a course from Garmin Connect written: the row of a device that
     # has new activities by now (test_the_row_says_what_is_to_upload_now).
+    # The version from source syncs a device the Flatpak synced after it (the day is the local
+    # day of 1790000000).
+    "format-other-install.json": {
+        "en": ("nothing to upload", [
+            ((f"This device was also synced by openExpress (Flatpak), last on {OTHER_DAY}; "
+              "files it sent are not sent again"), True)]),
+        "pl": ("nic do wysłania", [
+            ((f"To urządzenie synchronizował też openExpress (Flatpak), ostatnio {OTHER_DAY_PL}; "
+              "pliki, które wysłał, nie są wysyłane ponownie"), True)])},
     "format-nothing-new-one-course-received.json": {
         "en": ("nothing to upload · 1 received", [
             ("1 file from Garmin Connect: courses", False)]),
