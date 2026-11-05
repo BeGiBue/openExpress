@@ -123,6 +123,35 @@
   </supports>
   <content_rating type="oars-1.1"/>
   <releases>
+    <release version="0.8.5" date="2026-11-05">
+      <description>
+        <ul>
+          <li>Clearer icons. The side panel's Device shows the kind of the device that is open (a watch,
+          a cycling computer, a handheld, a bike light or radar), Activities a runner and Activity
+          profiles sliders; an activity's tiles show two points for the distance, a stopwatch, a
+          speedometer, a heart, a flame for the calories and two peaks for the ascent. They are drawn
+          for 16 px in the style of GNOME's icons; four take their shapes from GNOME's
+          icon-development-kit (CC0).</li>
+          <li>The version from source and the Flatpak on one computer: the version from source now reads
+          what the Flatpak keeps of a device (and changes none of it). A file the Flatpak uploaded is
+          not uploaded again, a file from Garmin Connect it wrote but could not report is only
+          reported, and a device it synced asks no first-sync question. A sync from source does not
+          start while the Flatpak syncs, and when the Flatpak synced the device after it, the details
+          of Last sync and the dry run of "openexpress sync" say so once.</li>
+          <li>Garmin Connect's queue: the log names who made each file written to the device (another
+          device of the account, this device, or Garmin Connect) and when, and the dry run of
+          "openexpress sync" shows it beside each file. A file Garmin Connect no longer has is taken as
+          received.</li>
+          <li>Command line: --device-uri, --path and --no-wait also work after the command
+          ("openexpress sync --device-uri URI"), as the message about several devices suggests;
+          "openexpress primary set" first says what the primary training device is.</li>
+          <li>For testing: a USB drive that stands in for a watch (OPENEXPRESS_TEST_DRIVE_USB) leaves
+          Garmin Connect's queue and TrueUp to the watch and keeps its own records.</li>
+          <li>Troubleshooting: why Garmin Connect can show a heat or altitude acclimation from another
+          device than the one you look at.</li>
+        </ul>
+      </description>
+    </release>
     <release version="0.8.4" date="2026-11-05">
       <description>
         <ul>
