@@ -233,11 +233,11 @@ class DeviceHasNoMaps(MapsNotSupported):
 # names (NMaps, BaseMaps, PedestrianMaps, BirdsEye, PreProgrammedDEMMaps, ManifestGmf…), so
 # any other data type may be maps. Points of interest (CustomPOI) are no maps.
 NO_MAP_DATATYPES = frozenset(name.casefold() for name in (
-    "CustomPOI", "ErrorShutdownReports", "ExpressRequest", "FITBinary", "GPSData",
-    "LiveActivity", "PROMPT_FILE", "TranslatedText", "UHCConfig", "ULFConfig", "ULFLogs",
-    "UpdateMetadata", "WiFiConfiguration"))
+    "BLELogs", "CustomPOI", "ErrorShutdownReports", "ExpressRequest", "FITBinary", "GPSData",
+    "KPI", "LiveActivity", "PROMPT_FILE", "RAMDump", "TranslatedText", "UHCConfig",
+    "ULFConfig", "ULFLogs", "UpdateMetadata", "WiFiConfiguration"))
 NO_MAP_DATATYPE_PREFIXES = tuple(prefix.casefold() for prefix in (
-    "FIT_TYPE_", "WELLNESS_TYPE_", "ACTIVITY_", "BACKUP_", "MEDIA_", "IQ"))
+    "FIT_TYPE_", "WELLNESS_TYPE_", "ACTIVITY_", "BACKUP_", "MEDIA_", "IQ", "Ephemeris"))
 
 
 def declares_maps(device) -> bool:

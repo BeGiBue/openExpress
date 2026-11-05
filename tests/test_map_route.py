@@ -83,6 +83,9 @@ def _route_lines(caplog):
     ({"mapupdatetype": "UniversalDetect"}, ("FIT_TYPE_4", "TopoActiveInstaSearch"), "unsupported"),
     ({"mapupdatetype": "UniversalDetect"}, ("FIT_TYPE_4", "MadeUpCharts"), "unsupported"),
     ({"mapupdatetype": "UniversalDetect"}, NO_MAP_DATATYPES, "none"),  # all a Venu 2 declares
+    # the diagnostics and the satellite data the program knows of are no maps either
+    ({"mapupdatetype": "UniversalDetect"},
+     ("FIT_TYPE_4", "KPI", "RAMDump", "BLELogs", "IQErrorReports", "EphemerisMadeUp"), "none"),
     ({"mapupdatetype": "Gemini"}, ("ManifestGmf",), "unsupported"),  # a zūmo
     ({"mapupdatetype": "Gemini"}, ("CustomPOI",), "none"),  # points of interest are no maps
     ({"mapupdatetype": "Gemini"}, (PPNM,), "unsupported"),
