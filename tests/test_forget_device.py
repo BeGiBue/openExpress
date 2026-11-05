@@ -200,3 +200,19 @@ def test_one_log_line_with_the_part_number_only(caplog, backups):
     assert lines == [("devices: forgot 006-B4532-00 and what this installation kept of it "
                       "(not uploaded: 1, backups deleted: 3)")]
     assert str(FENIX) not in caplog.text
+
+
+def test_the_files_a_test_drive_did_not_upload_count_too():
+    """A test drive standing in for the device keeps its own copies (sync.records_dir): they
+    are lost with the device as well, so they are counted and asked for."""
+    from openexpress import forget, sync
+
+    remembered(FENIX)
+    folder = kept_of(FENIX, pending=1)
+    copy = sync.records_dir(FENIX, test_drive=True) / "sync" / "pending" / "FIT_TYPE_4" / "T.FIT"
+    copy.parent.mkdir(parents=True)
+    copy.write_bytes(b"fit")
+    assert forget.kept(FENIX).pending == 2
+    with pytest.raises(forget.PendingFiles) as e:
+        forget.forget_device(FENIX)
+    assert e.value.count == 2 and copy.exists() and folder.exists()

@@ -14,6 +14,7 @@ from __future__ import annotations
 import hashlib
 import json
 import logging
+import math
 import posixpath
 import time
 import uuid
@@ -125,8 +126,12 @@ def _made_in_log(described: Described | None, makers: Makers) -> str:
     who = makers.in_log(described)
     if who == "maker not given":
         return who
-    when = (time.strftime(" on %Y-%m-%d %H:%M", time.localtime(described.created))
-            if described is not None and described.created is not None else "")
+    when = ""
+    if described is not None and described.created is not None:
+        try:
+            when = time.strftime(" on %Y-%m-%d %H:%M", time.localtime(described.created))
+        except (ValueError, OverflowError, OSError):
+            pass  # a time no clock can show (a damaged file_id): said without it
     return f"made by {who}{when}"
 
 DOWNLOAD_NAME_PREFIX = {"FIT_TYPE_6": "course", "FIT_TYPE_5": "workout", "FIT_TYPE_11": "goal"}
@@ -185,6 +190,12 @@ def _read_json(path: Path):
         return None
 
 
+def _a_time(value) -> bool:
+    """A number of seconds a clock can show (not true or false, not infinite)."""
+    return (isinstance(value, int | float) and not isinstance(value, bool)
+            and math.isfinite(value) and abs(value) < 1e11)
+
+
 def other_state_path(unit_id: int) -> Path | None:
     """The other install's record of the files it sent of the device (its state.json, maybe
     not there); None: no other install."""
@@ -212,7 +223,7 @@ def other_install_records(unit_id: int) -> OtherRecords | None:
                    for k, v in completed.items() if isinstance(v, list)},
         singleton_md5={str(k): str(v) for k, v in md5s.items()},
         unacked=frozenset(str(i) for i in unacked) if isinstance(unacked, list) else frozenset(),
-        last_sync=float(when) if isinstance(when, int | float) else None)
+        last_sync=float(when) if _a_time(when) else None)
     if not (records.synced or records.unacked or records.last_sync is not None):
         return None
     return records
@@ -1125,6 +1136,10 @@ def _run_downloads(items, storage, client, progress, state, makers: Makers) -> D
                 report.failed.append((label, str(e)))
                 report.failed_in_log.append((quiet, str(e)))
                 continue
+            # Written: not acknowledged until Garmin Connect says so, whatever stops the sync
+            # meanwhile (also Ctrl+C); the next sync then acknowledges it without writing it
+            # again.
+            unacked.add(mid)
             try:
                 described = describe(data)
             except FitError:
@@ -1133,10 +1148,6 @@ def _run_downloads(items, storage, client, progress, state, makers: Makers) -> D
             report.makers.append(makers.in_log(described))
             report.written.append(f"{label} -> {real}")
             report.written_types.append(it.datatype)
-            # Written: not acknowledged until Garmin Connect says so, whatever stops the sync
-            # meanwhile (also Ctrl+C); the next sync then acknowledges it without writing it
-            # again.
-            unacked.add(mid)
             try:
                 _acknowledge(client, it.message_id)
             except (Unauthorized, DeviceNotVerified):

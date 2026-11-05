@@ -1161,20 +1161,23 @@ def cmd_baseline(args) -> int:
     st, dev = open_device(args)
     settings = Settings.load()
     client = make_client(settings, need_auth=True)
+    session = service.DeviceSession(st, dev, settings, client)
     if st.mass_storage:
         # As its sync: a drive that Garmin's word does not let sync is not marked either.
-        service.refuse_drive_sync(service.DeviceSession(st, dev, settings, client))
+        service.refuse_drive_sync(session)
     service.require_account_device(client, dev.unit_id, part_number=dev.part_number)
     cfg = client.upload_settings(dev.unit_id)
+    # The record its sync goes by (a test drive's own; with the other install's taken in).
     if not args.apply:
-        n = len(sync.plan_baseline(dev, st, cfg, sync.SyncState(dev.unit_id)))
+        n = len(sync.plan_baseline(dev, st, cfg, session.state))
         print(ngettext("Dry run: {count} file would be marked as already uploaded. Add --apply.",
                        "Dry run: {count} files would be marked as already uploaded. Add --apply.",
                        n).format(count=n))
         return 0
     with service.sync_lock():
-        n = sync.mark_baseline(dev, st, cfg, sync.SyncState(dev.unit_id), client)
-    tile_facts.note_synced(dev.unit_id)  # synced here now, for its tile
+        n = sync.mark_baseline(dev, st, cfg, session.state, client)
+    if not session.test_drive:
+        tile_facts.note_synced(dev.unit_id)  # synced here now, for its tile
     print(ngettext("Marked {count} file as already uploaded. "
                    "The next `sync` will upload only new data.",
                    "Marked {count} files as already uploaded. "

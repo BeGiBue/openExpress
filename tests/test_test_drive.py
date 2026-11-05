@@ -141,3 +141,29 @@ def test_the_page_of_a_test_drive_shows_its_own_last_sync(device_root, xdg):
         uploaded=2, lines=[service.test_drive_step()]), test_drive=True)
     MainWindow._show_last_sync(win)
     assert "2 uploaded" in win.last_sync_row.get_subtitle()
+
+
+def test_baseline_of_a_test_drive_marks_its_own_record_not_the_watchs(device_root, monkeypatch,
+                                                                      capsys):
+    """Its first sync asks how to begin; baseline answers it in the test drive's record, so the
+    next sync goes on, and the watch's records and tile stay as they were."""
+    watch_synced()
+    storage = a_test_drive(device_root).storage
+    monkeypatch.setattr(service, "open_device_or_drive", lambda **_kw: storage)
+    account = DriveAccount({"connectsupport": "Required"})
+    monkeypatch.setattr(cli, "make_client", lambda settings, need_auth: account)
+    def watch_sync():
+        """The watch's records of its sync and what its tile knows of it (opening a device
+        from the command line remembers it, which is no sync)."""
+        entry = known_devices.load()[UNIT]
+        synced = entry.synced  # its facts, not when they were looked at again
+        return ({r for r in watch_records() if r[0] != known_devices.path().name},
+                synced and (synced.once, synced.last, synced.not_uploaded, synced.state),
+                entry.sync_count)
+
+    before = watch_sync()
+    assert cli.main(["sync", "--apply"]) == cli.FIRST_SYNC_CHOICE
+    assert cli.main(["baseline", "--apply"]) == 0
+    assert (own_folder() / "sync" / "state.json").exists()
+    assert watch_sync() == before
+    assert cli.main(["sync", "--apply"]) == 0

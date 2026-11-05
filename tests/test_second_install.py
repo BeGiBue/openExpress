@@ -129,16 +129,24 @@ def test_a_message_the_flatpak_wrote_but_could_not_acknowledge_is_only_acknowled
     assert list((device_root / "GARMIN" / "NewFiles").iterdir()) == []
 
 
-def test_the_flatpak_syncing_stops_this_sync_before_anything_is_read(device, account, capsys):
+BUSY = "openExpress (Flatpak) is syncing a device now; try again when it is done."
+
+
+@pytest.mark.parametrize("command", [["sync", "--apply"], ["baseline", "--apply"]],
+                         ids=" ".join)
+def test_the_flatpak_syncing_stops_this_install_before_it_writes(device, account, capsys,
+                                                                 command):
+    """Its sync stops before anything is read; baseline (which takes the same lock) too, with
+    words that suit both."""
     flatpak = paths.flatpak_data_dir()
     flatpak.mkdir(parents=True)
     with open(flatpak / "sync.lock", "w") as held:
         fcntl.flock(held, fcntl.LOCK_EX | fcntl.LOCK_NB)
-        code = cli.main(["sync", "--apply"])
+        code = cli.main(command)
     assert code != 0
-    assert ("openExpress (Flatpak) is syncing a device now; sync again when it is done."
-            in capsys.readouterr().err)
-    assert account.asked == []
+    assert BUSY in capsys.readouterr().err
+    assert "upload" not in account.asked
+    assert not (paths.device_dir(UNIT) / "sync" / "state.json").exists()
 
 
 def test_in_the_flatpak_there_is_no_other_install(monkeypatch):
@@ -194,3 +202,10 @@ def test_the_activities_of_a_device_the_flatpak_synced_are_counted(device_root):
     dev = parse(st.read("GARMIN/GarminDevice.xml"))
     flatpak_keeps(state={"completed": SENT, "singleton_md5": {}})
     assert sync.activities_to_sync(dev, st).count == 0
+
+
+@pytest.mark.parametrize("when", ["true", "1e400", "\"yesterday\""])
+def test_a_time_of_the_flatpaks_last_sync_no_clock_can_show_is_none(when):
+    device = flatpak_keeps(state={"completed": SENT, "singleton_md5": {}}, last_sync=None)
+    (device / "last_sync.json").write_text('{"time": ' + when + "}")
+    assert sync.other_install_records(UNIT).last_sync is None

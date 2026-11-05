@@ -15,7 +15,7 @@ import shutil
 from dataclasses import dataclass
 from pathlib import Path
 
-from openexpress import known_devices, paths, service
+from openexpress import known_devices, paths, service, sync
 from openexpress.backup import PARTIAL_PREFIX, is_backup_dir
 from openexpress.ciq import APP_LIST_COPY_PREFIX
 from openexpress.errors import OrdinaryStop
@@ -95,11 +95,14 @@ def _delete(unit_id: int, discard_pending: bool, backups: bool) -> str:
 
 
 def _pending(unit_id: int) -> list[Path]:
-    """The copies of files whose upload failed (sync.SyncState: pending/<data type>/<name>)."""
-    folder = paths.device_dir(unit_id) / "sync" / "pending"
-    if not folder.is_dir():
-        return []
-    return [p for p in folder.glob("*/*") if p.is_file()]
+    """The copies of files whose upload failed (sync.SyncState: pending/<data type>/<name>),
+    also those of a test drive standing in for the device (its own records, in its folder)."""
+    found = []
+    for test_drive in (False, True):
+        folder = sync.records_dir(unit_id, test_drive) / "sync" / "pending"
+        if folder.is_dir():
+            found += [p for p in folder.glob("*/*") if p.is_file()]
+    return found
 
 
 def _partial(p: Path) -> bool:

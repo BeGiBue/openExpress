@@ -84,3 +84,24 @@ def test_the_maker_of_a_file_in_words():
     described = fit.describe(FILES["other"])
     assert (described.manufacturer, described.product) == (1, 4532)
     assert SERIAL not in vars(described).values()
+
+
+def test_a_time_of_making_out_of_range_neither_stops_the_queue_nor_writes_the_file_twice(
+        device_root, caplog):
+    """A file_id whose time created no clock can show (a 64-bit field, made up): the file is
+    written once, acknowledged, and said without its time."""
+    huge = FitDefinition(0, 0, ((0, ENUM), (1, UINT16), (2, UINT16), (4, 0x8F)))
+    data = fit_file(huge, FitData(0, (44, 1, 4532, 2 ** 62)))
+
+    class Odd(SyncClient):
+        def download_message(self, url, absolute):
+            return data
+
+    st = LocalStorage(device_root)
+    dev = parse(st.read("GARMIN/GarminDevice.xml"))
+    client = Odd()
+    state = sync.SyncState(3000000099)
+    with caplog.at_level(logging.INFO, logger="openexpress.sync"):
+        report = sync.run_downloads(items(dev)[:1], st, client, state=state, makers=MAKERS)
+    assert len(report.written) == 1 and client.acks == [1] and state.unacked() == set()
+    assert "download: FIT_TYPE_6 written, made by Made-up Watch 7" in caplog.messages

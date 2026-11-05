@@ -45,7 +45,8 @@ new permission for it); the version from source can read the Flatpak's.
   - **3c.** No sync from source of a device the Flatpak synced, unless asked with a flag.
 - **D4 (recommended).** The lock: the version from source also takes the Flatpak's
   `sync.lock` (without waiting); held, its sync stops before anything is read: "openExpress
-  (Flatpak) is syncing a device now; sync again when it is done."
+  (Flatpak) is syncing a device now; try again when it is done." (the same words when it stops
+  `baseline` or forgetting a device, which take the same lock)
 - **D5 (recommended).** What is said: when the Flatpak's last sync of the device is newer than
   this install's, the sync says once (the window's summary, the command line):
   "This device was also synced by openExpress (Flatpak), last on {date}; files it sent are not
@@ -84,15 +85,14 @@ Garmin Connect." Nothing else changes.
 
 | English | Polish |
 |---|---|
-| made by {maker} on {when} | utworzony przez {maker}, {when} |
+| made by {maker} (the dry run, before the time the file was made) | twórca: {maker} |
 | this device | to urządzenie |
 | Garmin product {number} | produkt Garmin {number} |
-| maker not given | twórca nieznany |
-| openExpress (Flatpak) is syncing a device now; sync again when it is done. | openExpress (Flatpak) synchronizuje teraz urządzenie; zsynchronizuj ponownie, gdy skończy. |
+| openExpress (Flatpak) is syncing a device now; try again when it is done. | openExpress (Flatpak) synchronizuje teraz urządzenie; spróbuj ponownie, gdy skończy. |
 | This device was also synced by openExpress (Flatpak), last on {date}; files it sent are not sent again | To urządzenie synchronizował też openExpress (Flatpak), ostatnio {date}; pliki, które wysłał, nie są wysyłane ponownie |
 | A test drive: Garmin Connect's queue and TrueUp are left to the device it stands in for | Dysk testowy: kolejka Garmin Connect i TrueUp zostają dla urządzenia, które zastępuje |
 
-The log stays in English, as always.
+The log stays in English, as always ("made by …", "maker not given").
 
 ## Tests
 

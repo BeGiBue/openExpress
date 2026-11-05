@@ -120,16 +120,16 @@ def remembered_update_text(entry, now: datetime | None = None) -> str:
 
 
 def never_synced() -> str:
-    """A device this installation has never synced (no state.json): on its tile and on its
-    page, the same words."""
+    """A device never synced here (sync.synced_here: no state.json of this installation, nor,
+    from source, of the Flatpak): on its tile and on its page, the same words."""
     # TRANSLATORS: a chip on the tile of a connected device that openExpress on this
     # computer has never synced, and the subtitle of "Last sync" on its page
     return pgettext("chip", "Never synced")
 
 
 def never_synced_tooltip() -> str:
-    """The tooltip of never_synced: the Flatpak and the version from source each keep their
-    own record."""
+    """The tooltip of never_synced: each installation keeps its own record (the version from
+    source reads the Flatpak's too)."""
     return _("Never synced by this installation of openExpress")
 
 

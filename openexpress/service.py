@@ -1309,7 +1309,7 @@ def _other_install_lock():
             fcntl.flock(f, fcntl.LOCK_EX | fcntl.LOCK_NB)
         except BlockingIOError:
             log.info("sync: the other install of this computer is syncing")
-            raise SyncBusy(_("openExpress (Flatpak) is syncing a device now; sync again when "
+            raise SyncBusy(_("openExpress (Flatpak) is syncing a device now; try again when "
                              "it is done.")) from None
         try:
             yield
