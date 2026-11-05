@@ -1,0 +1,97 @@
+# Translating openExpress
+
+openExpress uses GNU gettext. The texts are in the template `po/openexpress.pot`, each language
+has its `po/<language>.po`, and `po/LINGUAS` lists the languages. Any editor for `.po` files
+works: Poedit, GNOME Translation Editor or a text editor.
+
+## What not to translate
+
+- Garmin, Garmin Connect, Garmin Express, Connect IQ, TrueUp, and the names of Garmin's
+  features that Garmin leaves in English in your language (Body Battery, ClimbPro…).
+- The names of devices and models: fēnix, Edge, Venu, Forerunner, Varia…
+- The names of maps: TopoActive, CourseView…
+- Codes and identifiers: commands and options (`openexpress sync --apply`), file names
+  (`GarminExpress.exe`, `GarminDevice.xml`), paths, environment variables, `MTP`, `FIT`, `GPX`.
+
+## Garmin's words
+
+For Garmin's concepts, use the term Garmin Connect uses in your language. That covers data
+screens, activity profiles, workouts, courses, segments, training status, HRV status, the
+primary training device and the like. Garmin Connect on the web (connect.garmin.com, with your
+account's language set to your language) comes first. Use its phone app only for a term the web
+does not show. Names of sport profiles need no translation: they come from the device.
+
+The most frequent terms, with the Polish of openExpress (taken from Garmin Connect) as an
+example:
+
+| English | Where | Polish |
+|---|---|---|
+| Activity Profiles | a page of the device | Profile aktywności |
+| Data Screens | a profile's page | Ekrany danych |
+| workouts, courses, segments | data that goes to the device | treningi, kursy, segmenty |
+| training status data, HRV status | data that goes to Garmin Connect | dane stanu wytrenowania, status HRV |
+| Primary Training Device | the device page | Podstawowe urządzenie treningowe |
+| Primary Wearable | the device page | Podstawowe urządzenie typu wearable |
+| Heart Rate Zones | an activity's page | Strefy tętna |
+| Training Effect, Training load | an activity's page | Efekt treningu, Obciążenie wysiłkowe |
+| Total ascent | an activity's tiles | Całkowity wznios |
+| watch face, data field | types of Connect IQ apps (use the Connect IQ Store's names) | tarcza zegarka, pole danych |
+
+## Where the context is
+
+- **Comments for translators**: the lines starting with `#.` in the `.po` file. Poedit and
+  GNOME Translation Editor show them next to the text. They say where a text appears and what
+  fills its placeholders.
+- **Contexts** (`msgctxt`): the same English text in two roles is two entries, each with its
+  context ("tab", "app type", "data field", "screen state"…). Translate each one for its own
+  role.
+- **Capitalization**: English labels use GNOME's header capitalization ("Install All", "Device
+  Not Ready"). That rule is for English only: write by the conventions of your language. Polish,
+  for example, capitalizes only the first word everywhere and names a switch with a noun
+  ("Synchronizacja w tle").
+
+## Plurals, placeholders and punctuation
+
+- **Plurals**: fill every plural form your language has. `msginit` sets the `Plural-Forms` line
+  of the header when the file is started.
+- **Placeholders** in braces (`{count}`, `{name}`, `{size}`, `{date}`…) stay exactly as they are.
+  You may move them within the sentence. A few texts are date formats (`%Y-%m-%d`); their
+  comment says so, and they must keep valid format codes.
+- **Ellipsis**: the single character `…` (U+2026), wherever the English has it: a button that
+  asks for more before it acts, or a task under way.
+- **Hard spaces**: `tools/po-hard-spaces.py po/<language>.po` shows where your language's
+  typography wants a hard space, and `--apply` writes them. The command line prints plain
+  spaces in their place.
+  - **Rules:** Polish, Czech and Slovak get one after a one-letter word; French gets a narrow
+    one before `; : ! ?` and inside `« »`.
+  - **Not checked yet:** the Czech, Slovak and French rules were written from the usual
+    typography of those languages, and no translator has checked them. If yours are wrong,
+    correct them in that file or turn them off for your language, and say so in the pull
+    request.
+  - **Another language:** add its rules to that file; `tests/test_i18n.py` checks every
+    language that has rules.
+
+## Trying a translation in the window
+
+From [source](install.md#from-source), with GNU gettext installed:
+
+```bash
+tools/update-translations.sh de        # starts po/de.po and adds de to po/LINGUAS (once)
+tools/update-translations.sh           # merges every language, builds the catalogs
+python3 -m openexpress --lang de gui   # the window in that language
+python3 -m pytest tests/test_i18n.py tests/test_catalogs.py
+```
+
+`--lang` (or `OPENEXPRESS_LANG=de`) wins over the language chosen in the Preferences.
+`LANGUAGE=de` works only while the Preferences say "System default". The window opens a
+connected device as usual.
+
+## Credits and sending a translation
+
+- Translate "translator-credits" into your name, one translator per line: the About dialog
+  shows it. Add your language and name to [TRANSLATORS](../TRANSLATORS) too.
+- Translate "English" in the context "language name" into the name of your language in your
+  language ("Deutsch", "Français"). The list of languages in the Preferences shows it.
+- Send `po/LINGUAS`, your `po/<language>.po` and `TRANSLATORS` in a pull request.
+- A web editor on Hosted Weblate is coming. This page will say how to use it once the project is
+  accepted there.

@@ -39,32 +39,8 @@ OPENEXPRESS_TEST_DRIVE_USB=0781:5581 python3 -m openexpress sync    # dry run
 
 ## Adding a translation
 
-Translations use GNU gettext (`msginit`, `msgmerge`, `msgattrib`, `msgfmt` from the `gettext`
-package). The languages are those of `po/LINGUAS`, each with its `po/<language>.po`.
-
-```bash
-tools/update-translations.sh de      # starts po/de.po from the template, adds de to po/LINGUAS
-# translate po/de.po (e.g. with Poedit, GNOME Translation Editor or a text editor)
-tools/update-translations.sh         # merges every language, builds the catalogs to try them
-python3 -m pytest tests/test_i18n.py tests/test_catalogs.py
-```
-
-Then send `po/LINGUAS` and your `po/<language>.po` in a pull request. In the translation:
-
-- Keep `{placeholders}` unchanged and fill all plural forms.
-- Translate "English" in the context "language name" into the name of your language in your
-  language ("Deutsch", "Français"): the list of languages in the Preferences shows it.
-- Put your name into "translator-credits" (the About dialog) and add yourself to
-  [TRANSLATORS](TRANSLATORS).
-- For activities, sports and data fields use the words Garmin Connect uses in your language.
-  Never translate names: Garmin, Garmin Connect, Garmin Express, Connect IQ, TrueUp,
-  Body Battery, fēnix, Edge and the other names of Garmin's products and features.
-- Hard spaces: `tools/po-hard-spaces.py po/<language>.po --apply` puts them where your
-  language's typography wants them (rules for Polish, Czech, Slovak and French). The rules
-  for Czech, Slovak and French were written from the usual typography of those languages and
-  no translator of them has checked them yet: if yours are wrong, correct them in
-  `tools/po-hard-spaces.py` or turn them off for your language, and say so in the pull
-  request.
+What to translate and how, trying it in the window and sending it:
+[Translating openExpress](docs/translating.md).
 
 The template `po/openexpress.pot` is made from the files `po/POTFILES` lists, the metainfo's
 template among them, by `tools/update-template.sh`; it is committed with the code that changes

@@ -215,9 +215,8 @@ your `GarminDevice.xml` or the files in `~/.config/openexpress`. When something 
 
 ## Help translate
 
-openExpress speaks English and Polish. To add your language or correct one, send a pull
-request with a `.po` file: [Adding a translation](CONTRIBUTING.md#adding-a-translation).
-Translators are named in [TRANSLATORS](TRANSLATORS) and in the window's About dialog.
+openExpress speaks English and Polish. To add your language or correct one:
+[Translating openExpress](docs/translating.md).
 
 ## Documentation
 
@@ -227,6 +226,7 @@ Translators are named in [TRANSLATORS](TRANSLATORS) and in the window's About di
 - [Troubleshooting](docs/troubleshooting.md) – known problems, the log, reporting a problem
 - [Privacy and security](docs/privacy.md) – what is kept and sent, the Flatpak's permissions
 - [Other ways to install](docs/install.md) – a bundle from a release, from source, building the Flatpak
+- [Translating](docs/translating.md) – what not to translate, Garmin's words, trying a translation
 - [Contributing](CONTRIBUTING.md) – tests and translations
 
 ## Thanks

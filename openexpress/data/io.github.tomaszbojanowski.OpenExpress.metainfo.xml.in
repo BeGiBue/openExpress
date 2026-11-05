@@ -40,7 +40,7 @@
   <url type="homepage">https://openexpress.bojanowski.me</url>
   <url type="bugtracker">https://github.com/TomaszBojanowski/openExpress/issues</url>
   <url type="vcs-browser">https://github.com/TomaszBojanowski/openExpress</url>
-  <url type="translate">https://github.com/TomaszBojanowski/openExpress/blob/main/CONTRIBUTING.md#adding-a-translation</url>
+  <url type="translate">https://github.com/TomaszBojanowski/openExpress/blob/main/docs/translating.md</url>
   <screenshots>
     <screenshot type="default">
       <caption>The page of an activity: its track on a map coloured by elevation, and its elevation profile</caption>
