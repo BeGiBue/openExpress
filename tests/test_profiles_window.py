@@ -195,38 +195,82 @@ def test_the_device_s_backups_of_profiles_in_one_line(root):
     assert [t for t, _s in _titles(unreadable[0])] == ["Broken.fit"]
 
 
+def _groups_of(page):
+    from gi.repository import Adw
+
+    return [g.get_title() for g in descendants(page) if isinstance(g, Adw.PreferencesGroup)
+            and g.get_title()]
+
+
 def test_a_watch_profile_s_page(monkeypatch):
+    from gi.repository import Adw
+
     from openexpress.gui import profiles_page
 
     win, found = navigated((("Run",), RUN, "watch"))
     profiles_page.open_profile(win, found)
     page, rows, labels = _page_texts(win)
     assert page.get_tag() == "profile" and page.get_title() == "Run"
-    # The carousel: by its order, a built-in screen of a watch by its code.
-    cards = [t for t in labels if t.startswith(("Screen", "Built-in"))]
-    assert cards[:3] == ["Screen 1", "Built-in screen 110", "Screen 2"]
-    assert "4 fields\u00a0· Layout “Stack”" in labels
-    assert ("Built-in screen 110", "Not known to openExpress yet") in [r[:2] for r in rows]
+    assert _groups_of(page) == ["Data screens", "Built-in screens, always scrolled",
+                                "Off and hidden", "Details"]
+    # Each data screen: its place in the scrolling order, its fields numbered, legible.
+    assert "No. 1 in the scrolling order\u00a0· 4 fields\u00a0· Layout “Stack”" in labels
+    numbered = [t for t in labels if t[:3] in ("1. ", "2. ", "3. ", "4. ")]
+    assert numbered[:4] == ["1. Timer", "2. Distance", "3. Field 999", "4. %Max Heart Rate"]
+    assert "No. 3 in the scrolling order\u00a0· 2 fields\u00a0· Layout code 12, unknown" in labels
+    # A built-in screen: a row with its place; one not known says so.
+    assert ("Built-in screen 110",
+            "No. 2 in the scrolling order\u00a0· Not known to openExpress yet") in rows
+    assert not any(isinstance(w, Adw.ExpanderRow) for w in descendants(page))  # a watch's: none
     assert ("Screen 3", "1 field\u00a0· Layout “No Labels”") in rows  # turned off
+    assert ("Built-in screen 127", "Not known to openExpress yet") in rows
     assert any("not known to openExpress yet" in t for t in labels)  # the watch's note
 
 
 def test_an_edge_profile_s_page():
+    from gi.repository import Adw
+
     from openexpress.gui import profiles_page
 
     win, found = navigated((("Road", 2), ROAD, "edge"))
     profiles_page.open_profile(win, found)
-    _page, rows, labels = _page_texts(win)
-    # The cards (Compass is hidden: no card), then the built-in screens by their code.
-    assert [t for t in labels if t in ("Screen 1", "ClimbPro", "Compass")] == [
-        "Screen 1", "ClimbPro", "Compass", "ClimbPro"]
-    assert "3 fields\u00a0· Layout A" in labels
+    page, rows, labels = _page_texts(win)
+    assert _groups_of(page) == ["Data screens", "Off and hidden", "Details"]
+    assert "No. 1 in the scrolling order\u00a0· 3 fields\u00a0· Layout A" in labels
+    numbered = [t for t in labels if t[:3] in ("1. ", "2. ", "3. ")]
+    assert numbered[:3] == ["1. Speed", "2. Distance", "3. Timer"]
+    # ClimbPro, shown only on a climb: in the folded group, with when.
+    (needed,) = [w for w in descendants(page) if isinstance(w, Adw.ExpanderRow)]
+    assert needed.get_title() == "1 built-in screen when needed" and not needed.get_expanded()
+    assert ("ClimbPro", "On a climb") in rows
+    assert ("Compass", "") in rows and "Hidden" in labels
     assert not any(t.startswith("Built-in screen 32") for t in labels)  # reserved: left out
-    assert "Hidden" in labels and "On" in labels
-    # ClimbPro, shown only on a climb: its own group, and its card says when.
-    assert "Built-in screens when needed" in labels
-    assert ("ClimbPro", "On a climb") in [r[:2] for r in rows]
-    assert "On a climb" in labels
+
+
+def test_a_data_screen_s_card_opens_its_page():
+    from gi.repository import Gtk
+
+    from openexpress.gui import profiles_page
+
+    win, found = navigated((("Run",), RUN, "watch"))
+    profiles_page.open_profile(win, found)
+    page = win.navigation.get_visible_page()
+    (card, *_rest) = [w for w in descendants(page)
+                      if isinstance(w, Gtk.Button) and w.has_css_class("card")]
+    card.emit("clicked")
+    assert win.navigation.get_visible_page().get_tag() == "profile-screen"
+
+
+def test_every_built_in_screen_s_icon_is_in_the_theme():
+    from gi.repository import Gdk, Gtk
+
+    from openexpress import profile_names
+    from openexpress.gui import profiles_page
+
+    theme = Gtk.IconTheme.get_for_display(Gdk.Display.get_default())
+    codes = set(profile_names._edge_screen_names()) | set(profile_names._watch_screen_names())
+    names = {profiles_page.built_in_icon(code) for code in codes | {999}}
+    assert [n for n in sorted(names) if not theme.has_icon(n)] == []
 
 
 def test_a_screen_s_page():

@@ -344,15 +344,17 @@ fēnix 8 over MTP.
 The **Activity profiles** page and `openexpress profiles` show the sport profiles of the
 connected device (its `Sports` folder) and their data screens, read only: nothing is written to
 the device. The profiles of its newest activities come first, then every profile by name, with
-a search. A profile's page shows the data screens in the order the device scrolls through them:
-each drawn in the shape of the device's screen with its fields in their order (where each field
-stands depends on the layout, which the drawing does not show), and its built-in screens (Map,
-ClimbPro, Stamina…) on, off or hidden. An Edge shows some of them only when they are needed
+a search. A profile's page shows its data screens, each drawn in the shape of the device's screen
+beside its fields, numbered in their order on the screen (where each field stands depends on
+the layout, which the drawing does not show), with its place in the order the device scrolls
+through its screens; then the built-in screens it always scrolls through (Map, Elevation,
+Stamina…), as rows with their place; then, folded, those an Edge shows only when they are needed
 (Workout during a workout, Segment on a segment, ClimbPro on a climb, Group Ride and Group Track
-during a group ride, Power Guide with an active power plan): they have a group of their own, and
-the list of profiles counts them apart ("3 built-in screens (+6 when needed, 1 hidden)"). A
-screen's page and `openexpress profiles show NAME` give its layout and each field with its
-number.
+during a group ride, Power Guide with an active power plan); then the screens turned off or
+hidden. The list of profiles counts the built-in screens the same way ("3 built-in screens (+6
+when needed, 1 hidden)"). A screen's page and `openexpress profiles show NAME` give its layout
+and each field with its number. An Edge's own backups of its profiles (in `Sports/Backups`) are
+said in one line with their day.
 
 The fields are named with Garmin's words, in English or Polish. The numbers of the fields, the
 codes of the built-in screens and the letters of the layouts come from two open projects that

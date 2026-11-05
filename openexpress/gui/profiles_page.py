@@ -303,23 +303,63 @@ def _device_name(win) -> str:
     return device_name(win.session) if win.session is not None else ""
 
 
-def screen_card(win, profile_file, screen) -> Gtk.Widget:
-    """A screen in the carousel: its drawing, title and caption; a click opens its page."""
+# The icons of the built-in screens in their rows, by their codes (an Edge's and a watch's).
+BUILT_IN_ICONS = {
+    21: "preferences-system-time-symbolic", 22: "view-paged-symbolic",
+    25: "mark-location-symbolic", 26: "system-users-symbolic", 30: "audio-x-generic-symbolic",
+    35: "find-location-symbolic", 38: "media-playback-start-symbolic", 44: "go-up-symbolic",
+    56: "media-skip-forward-symbolic", 57: "system-users-symbolic", 58: "battery-symbolic",
+    63: "view-paged-symbolic", 74: "view-list-symbolic", 80: "view-list-ordered-symbolic",
+    95: "battery-symbolic", 100: "alarm-symbolic", 101: "object-rotate-right-symbolic",
+    104: "go-top-symbolic", 125: "power-profile-performance-symbolic",
+    127: "battery-good-symbolic", 128: "weather-clear-symbolic", 162: "system-users-symbolic",
+    221: "weather-clear-symbolic", 223: "network-wireless-signal-good-symbolic",
+}
+
+
+def built_in_icon(code: int) -> str:
+    return BUILT_IN_ICONS.get(code, PAGE_ICON)
+
+
+def place_text(place: int) -> str:
+    # TRANSLATORS: where a screen stands among those the device always scrolls through
+    return _("No. {place} in the scrolling order").format(place=place)
+
+
+def data_card(win, profile_file, screen, place: int) -> Gtk.Widget:
+    """A data screen: its drawing beside its title, place, layout and its fields, numbered, one
+    to a line; a click opens its page."""
     profile = profile_file.profile
-    box = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, spacing=8, margin_top=12,
-                  margin_bottom=12, margin_start=12, margin_end=12)
-    box.append(screen_drawing(profile, screen, 112))
+    edge = edge_shaped(profile)
+    column = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, spacing=4, hexpand=True)
     title = Gtk.Label(label=screen_title(profile, screen), xalign=0, wrap=True,
                       css_classes=["heading"])
-    caption = Gtk.Label(label=screen_caption(profile, screen), xalign=0, wrap=True,
-                        css_classes=["dim-label", "caption"])
-    box.append(title)
-    box.append(caption)
+    column.append(title)
+    column.append(Gtk.Label(
+        label=caption(place_text(place), fields_text(len(screen.fields)),
+                      names.layout_name(screen.variant, edge)),
+        xalign=0, wrap=True, css_classes=["dim-label", "caption"]))
+    for n, number in enumerate(screen.fields, 1):
+        column.append(Gtk.Label(label=f"{n}. {names.field_name(number, edge)}", xalign=0,
+                                wrap=True))
+    box = Gtk.Box(spacing=12, margin_top=12, margin_bottom=12, margin_start=12, margin_end=12)
+    box.append(screen_drawing(profile, screen, 120))
+    box.append(column)
     button = Gtk.Button(child=box, css_classes=["card"])
     button.update_property([Gtk.AccessibleProperty.LABEL],
-                           [f"{title.get_label()}, {caption.get_label()}"])
+                           [f"{title.get_label()}, {place_text(place)}"])
     button.connect("clicked", lambda _b: open_screen(win, profile_file, screen))
     return button
+
+
+def built_in_row(win, profile_file, screen, subtitle: str, state: str | None = None):
+    """A built-in screen: its icon and name, under it `subtitle`; a click opens its page."""
+    profile = profile_file.profile
+    row = _row(screen_title(profile, screen), subtitle, state)
+    row.add_prefix(Gtk.Image(icon_name=built_in_icon(screen.code)))
+    row.set_activatable(True)
+    row.connect("activated", lambda _r: open_screen(win, profile_file, screen))
+    return row
 
 
 def open_profile(win, profile_file) -> None:
@@ -328,42 +368,52 @@ def open_profile(win, profile_file) -> None:
     profile = profile_file.profile
     edge = edge_shaped(profile)
     box = _box()
-    screens = Adw.PreferencesGroup(
-        title=_("Data screens"),
-        description=_("In the order the device scrolls through them"))
-    flow = Gtk.FlowBox(selection_mode=Gtk.SelectionMode.NONE, homogeneous=True,
-                       min_children_per_line=2, max_children_per_line=4,
-                       column_spacing=12, row_spacing=12)
-    for screen in profile.carousel():
-        flow.append(screen_card(win, profile_file, screen))
-    if not profile.carousel():
-        screens.add(_row(_("No data screen is shown")))
-    else:
-        screens.add(flow)
-    box.append(screens)
-    built_in = [s for s in profile.built_in()
-                if not (edge and s.code == EDGE_RESERVED_CODE)]
-    needed = [s for s in built_in if names.when_needed(s, edge)]
-    always = [s for s in built_in if s not in needed]
-    if always:
-        group = Adw.PreferencesGroup(title=_("Built-in screens"))
-        for screen in always:
-            caption = ("" if names.built_in_known(screen, edge)
-                       else _("Not known to openExpress yet"))
-            group.add(_row(screen_title(profile, screen), caption, state_text(screen)))
+    # The screens the device always scrolls through, numbered in its order; those it shows only
+    # when they are needed (an Edge's) apart.
+    always = [s for s in profile.carousel() if not names.when_needed(s, edge)]
+    needed = [s for s in profile.carousel() if names.when_needed(s, edge)]
+    data = [(n, s) for n, s in enumerate(always, 1) if s.own]
+    if data:
+        group = Adw.PreferencesGroup(title=_("Data screens"),
+                                     description=_("The fields in their order on the screen"))
+        cards = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, spacing=12)
+        for place, screen in data:
+            cards.append(data_card(win, profile_file, screen, place))
+        group.add(cards)
+        box.append(group)
+    built_in = [(n, s) for n, s in enumerate(always, 1) if not s.own]
+    if built_in:
+        group = Adw.PreferencesGroup(title=_("Built-in screens, always scrolled"))
+        for place, screen in built_in:
+            known = names.built_in_known(screen, edge)
+            group.add(built_in_row(win, profile_file, screen, caption(
+                place_text(place), *(() if known else (_("Not known to openExpress yet"),)))))
         box.append(group)
     if needed:
-        group = Adw.PreferencesGroup(
-            title=_("Built-in screens when needed"),
-            description=_("The device shows them only when they are needed"))
+        group = Adw.PreferencesGroup()
+        folded = Adw.ExpanderRow(title=names.built_in_count(0, len(needed), 0),
+                                 subtitle=_("The device shows them only when they are needed"))
         for screen in needed:
-            group.add(_row(screen_title(profile, screen),
-                           _sentence(names.when_needed(screen, edge)), state_text(screen)))
+            folded.add_row(built_in_row(win, profile_file, screen,
+                                        _sentence(names.when_needed(screen, edge)),
+                                        state_text(screen)))
+        group.add(folded)
         box.append(group)
-    off = [s for s in profile.own_screens() if not s.shown]
-    if off:
-        group = Adw.PreferencesGroup(title=_("Screens turned off"))
-        for screen in off:
+    if not always and not needed:
+        group = Adw.PreferencesGroup(title=_("Data screens"))
+        group.add(_row(_("No data screen is shown")))
+        box.append(group)
+    off_built_in = [s for s in profile.built_in()
+                    if not s.shown and s.code != EDGE_RESERVED_CODE]
+    off_own = [s for s in profile.own_screens() if not s.shown]
+    if off_built_in or off_own:
+        group = Adw.PreferencesGroup(title=_("Off and hidden"))
+        for screen in off_built_in:
+            known = names.built_in_known(screen, edge)
+            group.add(built_in_row(win, profile_file, screen,
+                                   "" if known else _("Not known to openExpress yet"),
+                                   state_text(screen)))
+        for screen in off_own:
             group.add(_row(screen_title(profile, screen), screen_caption(profile, screen)))
         box.append(group)
     details = Adw.PreferencesGroup(title=_("Details"))
@@ -373,8 +423,8 @@ def open_profile(win, profile_file) -> None:
             "this device's layouts and built-in screens are not known to openExpress yet."))
     details.add(_row(_("File"), profile_file.name))
     box.append(details)
-    log.info("profile page: %d screens shown, %d built-in (%d when needed), %d turned off (%s)",
-             len(profile.carousel()), len(built_in), len(needed), len(off),
+    log.info("profile page: %d screens always shown, %d when needed, %d off or hidden (%s)",
+             len(always), len(needed), len(off_built_in) + len(off_own),
              "an Edge's" if edge else "a watch's")
     win.navigation.push(_page(profile.name or profile_file.name, _device_name(win),
                               PROFILE_TAG, box))
