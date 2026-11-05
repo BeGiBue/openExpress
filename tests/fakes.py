@@ -928,6 +928,11 @@ class ScreenRecord:
     visibility: int | None = 1
 
 
+def backup_of_a_profile() -> bytes:
+    """A copy an Edge keeps of a profile in Sports/Backups: a FIT file of type 57."""
+    return fit_file(FitDefinition(0, 0, ((0, 0x00), (4, 0x86))), FitData(0, (57, 1100000000)))
+
+
 def sport_file(name="Run", sport=1, sub_sport=0, colour=(200, 40, 40, 255), screens=(),
                shape="watch", unused=0, personal=b"\x2a" * 6, cut=None, bad_crc=False) -> bytes:
     """A made-up sport profile: its name and colour (message 12), a message 13 holding made-up

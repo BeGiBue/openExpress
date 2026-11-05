@@ -172,6 +172,29 @@ def _page_texts(win):
     return page, _titles(page), labels
 
 
+def test_the_device_s_backups_of_profiles_in_one_line(root):
+    """The copies an Edge keeps in Sports/Backups are no "files that are no profile": one line
+    says when the device made them."""
+    import os
+    from datetime import datetime
+
+    from fakes import backup_of_a_profile, descendants
+    from gi.repository import Gtk
+
+    backups = root / "GARMIN" / "Sports" / "Backups"
+    backups.mkdir()
+    (backups / "Run.fit").write_bytes(backup_of_a_profile())
+    os.utime(backups / "Run.fit", (1_700_000_000, 1_700_000_000))
+    win, section = profiles_window(root)
+    win.load_profiles()
+    labels = [w.get_label() for g in section.groups for w in descendants(g)
+              if isinstance(w, Gtk.Label)]
+    day = datetime.fromtimestamp(1_700_000_000).strftime("%Y-%m-%d")
+    assert f"The device keeps backups of its profiles from {day}" in labels
+    unreadable = [g for g in section.groups if g.get_title() == "Files that are no profile"]
+    assert [t for t, _s in _titles(unreadable[0])] == ["Broken.fit"]
+
+
 def test_a_watch_profile_s_page(monkeypatch):
     from openexpress.gui import profiles_page
 

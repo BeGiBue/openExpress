@@ -6,7 +6,7 @@ name an activity file gives its profile). All files here are made up."""
 import os
 
 import pytest
-from fakes import FitData, FitDefinition, ScreenRecord, fit_file, sport_file
+from fakes import FitData, FitDefinition, ScreenRecord, backup_of_a_profile, fit_file, sport_file
 
 from openexpress import fit, profiles
 from openexpress.device.storage import DeviceError, LocalStorage
@@ -96,6 +96,29 @@ def test_a_file_that_is_no_profile_is_said_and_the_others_read(root):
     (broken,) = [f for f in found if f.profile is None]
     assert broken.name == "Broken.fit" and "could not be read" in broken.error
     assert len(found) == 4 and found[-1] is broken  # after the profiles
+
+
+def test_the_device_s_own_backups_are_no_profiles(root):
+    """An Edge keeps copies of its profiles in Sports/Backups (FIT type 57): they are neither
+    profiles nor files that are no profile, and the list keeps only when the newest was made.
+    The files of other folders below Sports are none of the profiles' either."""
+    backups = root / "GARMIN" / "Sports" / "Backups"
+    backups.mkdir()
+    for name, when in (("Run.fit", 1_700_000_000), ("Bike.fit", 1_700_086_400)):
+        (backups / name).write_bytes(backup_of_a_profile())
+        os.utime(backups / name, (when, when))
+    (root / "GARMIN" / "Sports" / "Other").mkdir()
+    (root / "GARMIN" / "Sports" / "Other" / "Odd.fit").write_bytes(b"no profile")
+    found = profiles.ProfileList(device(), LocalStorage(root))
+    files = found.read_all()
+    assert sorted(f.path.split("/", 2)[2] for f in files) == ["Bike.fit", "Hike.fit", "Run.fit"]
+    assert found.backup_time == 1_700_086_400
+
+
+def test_without_backups_the_list_says_none(root):
+    found = profiles.ProfileList(device(), LocalStorage(root))
+    found.read_all()
+    assert found.backup_time is None
 
 
 def test_the_steps_of_the_reading(root):

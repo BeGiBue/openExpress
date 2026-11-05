@@ -489,6 +489,11 @@ class ProfilesPage:
             g = sec.group(_("Files that are no profile"))
             for f in unreadable:
                 g.add(_row(f.name, f.error or ""))
+        backup_time = getattr(found, "backup_time", None)  # none read: no list of them
+        if backup_time is not None:
+            # TRANSLATORS: the copies an Edge keeps of its profiles itself; {date}: when made
+            sec.group("", _("The device keeps backups of its profiles from {date}").format(
+                date=profiles.backup_day(backup_time)))
 
         def changed(entry):
             wanted = profiles.sort_key(entry.get_text().strip())

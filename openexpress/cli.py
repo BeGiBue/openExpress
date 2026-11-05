@@ -2303,7 +2303,8 @@ def cmd_profiles(args) -> int:
     if not profiles.keeps_profiles(dev):
         _error(_("This device keeps no activity profiles."))
         return 1
-    files = profiles.ProfileList(dev, st).read_all()
+    found_files = profiles.ProfileList(dev, st)
+    files = found_files.read_all()
     readable = [f for f in files if f.profile is not None]
     if args.profiles_cmd == "show":
         wanted = profiles.sort_key(args.name)
@@ -2331,6 +2332,9 @@ def cmd_profiles(args) -> int:
     for f in files:
         if f.profile is None:
             print(_("  {file}: {error}").format(file=f.name, error=f.error))
+    if found_files.backup_time is not None:
+        print(_("The device keeps backups of its profiles from {date}.").format(
+            date=profiles.backup_day(found_files.backup_time)))
     return 0
 
 

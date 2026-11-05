@@ -27,6 +27,7 @@ import time
 import unicodedata
 from collections.abc import Callable, Iterable
 from dataclasses import dataclass, field
+from datetime import datetime
 
 from openexpress import applog, fit
 from openexpress.errors import UserFacingError
@@ -172,6 +173,8 @@ def read_profile(data: bytes) -> Profile:
 # --- the profiles of a device ----------------------------------------------------------------
 
 SPORT_DATATYPE = "FIT_TYPE_3"
+# The folder below Sports where an Edge keeps copies of its profiles itself (FIT type 57).
+BACKUP_FOLDER = "backups"
 
 
 def keeps_profiles(device) -> bool:
@@ -193,24 +196,35 @@ class ProfileFile:
 
 
 class ProfileList:
-    """The sport profiles of a device, as its storage lists and reads them: each file read
-    once, kept by its path, size and time of change (read again once one of them changes).
-    Nothing is written. Has: what it read of the open device."""
+    """The sport profiles of a device, as its storage lists and reads them: the files of its
+    Sports folder itself, each read once, kept by its path, size and time of change (read
+    again once one of them changes); of the folders below it, only when the device's own
+    backups of profiles were made. Nothing is written. Has: what it read of the open device,
+    the time of its newest backup of profiles."""
 
     def __init__(self, device, storage):
         self.device, self.storage = device, storage
         self._kept: dict[tuple, ProfileFile] = {}
+        self.backup_time: float | None = None
 
     def read_all(self, progress: Callable[[str], None] | None = None) -> list[ProfileFile]:
         """Every file of the Sports folder: the profiles by their name, then those that could
         not be read. `progress`: a step for each file read, never its name. An error of the
         device stops it (DeviceError)."""
         progress = say_to(progress)
-        found = []
+        found, backups = [], []
         for src in self.device.sources(SPORT_DATATYPE):
+            base = src.path.casefold().strip("/")
             for path, entry in self.storage.walk_files(src.path):
-                if src.matches(path):
+                if not src.matches(path):
+                    continue
+                below = path.casefold().strip("/")[len(base) + 1 if base else 0:].split("/")
+                if len(below) == 1:
                     found.append((path, entry))
+                elif below[0] == BACKUP_FOLDER:
+                    backups.append(entry.mtime)
+                # The files of other folders below Sports are none of the profiles'.
+        self.backup_time = max(backups) if backups else None
         keys = {(path.casefold(), entry.size, entry.mtime): (path, entry)
                 for path, entry in found}
         to_read = [key for key in keys if key not in self._kept]
@@ -231,11 +245,16 @@ class ProfileList:
             self._kept[key] = kept
         self._kept = {key: self._kept[key] for key in keys}  # files gone are forgotten
         if to_read:
-            log.info("profiles: %d files, %d read now in %.1f s (%s), %d not readable",
-                     len(keys), len(to_read), time.monotonic() - started, applog.size(size),
-                     unreadable)
+            log.info("profiles: %d files, %d read now in %.1f s (%s), %d not readable; %d "
+                     "backups of the device's own", len(keys), len(to_read),
+                     time.monotonic() - started, applog.size(size), unreadable, len(backups))
         return sorted(self._kept.values(), key=lambda f: (
             f.profile is None, sort_key(f.profile.name if f.profile else f.name)))
+
+
+def backup_day(ts: float) -> str:
+    """The day of the device's own backups of profiles, in the language's date format."""
+    return datetime.fromtimestamp(ts).strftime(_("%Y-%m-%d"))
 
 
 def sort_key(name: str) -> str:

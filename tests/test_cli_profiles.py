@@ -69,6 +69,24 @@ def test_a_watch_profile_s_screens(profiles_root, capsys):
     ]
 
 
+def test_the_device_s_backups_of_profiles(profiles_root, capsys):
+    """An Edge's copies in Sports/Backups: no profile and no unreadable file, one line."""
+    import os
+    from datetime import datetime
+
+    from fakes import backup_of_a_profile
+
+    backups = profiles_root / "GARMIN" / "Sports" / "Backups"
+    backups.mkdir()
+    (backups / "Run.fit").write_bytes(backup_of_a_profile())
+    os.utime(backups / "Run.fit", (1_700_000_000, 1_700_000_000))
+    assert main(["--path", str(profiles_root), "profiles"]) == 0
+    out = capsys.readouterr().out.splitlines()
+    day = datetime.fromtimestamp(1_700_000_000).strftime("%Y-%m-%d")
+    assert out[-1] == f"The device keeps backups of its profiles from {day}."
+    assert sum("Run.fit" in line for line in out) == 0
+
+
 def test_an_edge_profile_s_screens(profiles_root, capsys):
     assert main(["--path", str(profiles_root), "profiles", "show", "ROAD"]) == 0
     assert capsys.readouterr().out.splitlines() == [
