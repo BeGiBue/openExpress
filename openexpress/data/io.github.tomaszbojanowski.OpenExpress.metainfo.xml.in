@@ -96,6 +96,31 @@
   </supports>
   <content_rating type="oars-1.1"/>
   <releases>
+    <release version="0.8.6" date="2026-11-06">
+      <description translate="no">
+        <ul>
+          <li>Labels in GNOME's header capitalization: buttons, the headings of dialogs, groups and
+          pages, the titles of rows and switches, and the tooltips of icon buttons ("Install All",
+          "Heart Rate Zones"). A heading that was a long sentence is short now, with the sentence in
+          the dialog or under the title of the page; a row's title is a name, with its sentence
+          under it.</li>
+          <li>Ready for translation on Weblate: the template and po/LINGUAS, comments and contexts for
+          translators on short or ambiguous texts, and a page for translators (docs/translating.md)
+          with Garmin's words and how to try a translation in the window.</li>
+          <li>The translations and the metainfo are built when openExpress is built, no longer kept in
+          the repository; building from source needs GNU gettext (msgfmt).</li>
+          <li>Map updates are confirmed on a fēnix 8: a Garmin map installed by openExpress and current
+          on the device after it was plugged in again.</li>
+          <li>The question before a map install or update says how big the map's files on the device
+          are and how much space stays free afterwards, counting the old files an update replaces;
+          copying an own map says the same. The bar with a task's progress at the bottom of the
+          device pages has a surface of its own, over the list.</li>
+          <li>The log says whether the size and MD5 of every downloaded file match, and what comes
+          next when they do not; after reading the maps of a device, one line gives the state of
+          each.</li>
+        </ul>
+      </description>
+    </release>
     <release version="0.8.5" date="2026-11-05">
       <description translate="no">
         <ul>
