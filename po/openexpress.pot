@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: openexpress 0.8.7\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-11-06 23:09+0100\n"
+"POT-Creation-Date: 2026-11-06 23:24+0100\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -262,6 +262,7 @@ msgstr ""
 #. TRANSLATORS: a part of the cache in `openexpress cache` and the preferences: downloaded
 #. pictures of devices and icons of apps
 #: openexpress/cache.py:43
+#, ignore-reused
 msgid "Pictures and icons"
 msgstr ""
 
@@ -273,12 +274,14 @@ msgstr ""
 #. TRANSLATORS: a part of the cache in `openexpress cache` and the preferences:
 #. OpenStreetMap tiles under the maps of activities
 #: openexpress/cache.py:47
+#, ignore-reused
 msgid "Activity map tiles"
 msgstr ""
 
 #. TRANSLATORS: a part of the cache in `openexpress cache` and the preferences: files on
 #. their way to the device
 #: openexpress/cache.py:50
+#, ignore-reused
 msgid "Temporary files"
 msgstr ""
 
@@ -1844,6 +1847,7 @@ msgid "Update copied, waiting for the device to install it:"
 msgstr ""
 
 #: openexpress/cli.py:1408
+#, ignore-reused
 msgid "Ejecting the device…"
 msgstr ""
 
@@ -3619,6 +3623,7 @@ msgid "Primary training device"
 msgstr ""
 
 #: openexpress/connect.py:691
+#, ignore-reused
 msgid "Primary wearable"
 msgstr ""
 
@@ -5007,6 +5012,7 @@ msgstr ""
 #. TRANSLATORS: Garmin Connect's name of the setting (in Polish "Podstawowe urządzenie typu
 #. wearable")
 #: openexpress/gui/device_page.py:305 openexpress/gui/start_window.py:278
+#, ignore-reused
 msgid "Primary Wearable"
 msgstr ""
 
@@ -5822,6 +5828,7 @@ msgstr ""
 #. TRANSLATORS: row of the cache in the preferences: downloaded pictures of devices and icons
 #. of apps
 #: openexpress/gui/preferences.py:146
+#, ignore-reused
 msgid "Pictures and Icons"
 msgstr ""
 
@@ -5835,11 +5842,13 @@ msgstr ""
 #. TRANSLATORS: row of the cache in the preferences: OpenStreetMap tiles under the maps of
 #. activities
 #: openexpress/gui/preferences.py:152
+#, ignore-reused
 msgid "Activity Map Tiles"
 msgstr ""
 
 #. TRANSLATORS: row of the cache in the preferences: files on their way to the device
 #: openexpress/gui/preferences.py:154
+#, ignore-reused
 msgid "Temporary Files"
 msgstr ""
 
@@ -6612,6 +6621,7 @@ msgid "Device Not Ejected"
 msgstr ""
 
 #: openexpress/gui/updates_page.py:479
+#, ignore-reused
 msgid "Ejecting the Device…"
 msgstr ""
 
@@ -7021,6 +7031,7 @@ msgid "Minimum elevation"
 msgstr ""
 
 #: openexpress/gui/words.py:546
+#, ignore-reused
 msgctxt "activity detail"
 msgid "Maximum elevation"
 msgstr ""
@@ -7073,6 +7084,7 @@ msgid "Temperature"
 msgstr ""
 
 #: openexpress/gui/words.py:556
+#, ignore-reused
 msgctxt "activity detail"
 msgid "Respiration rate"
 msgstr ""
@@ -8510,6 +8522,7 @@ msgid "Lap Descent"
 msgstr ""
 
 #: openexpress/profile_names.py:168
+#, ignore-reused
 msgctxt "data field"
 msgid "Maximum Elevation"
 msgstr ""
@@ -8809,6 +8822,7 @@ msgid "Asc. to Next Course Pt."
 msgstr ""
 
 #: openexpress/profile_names.py:229
+#, ignore-reused
 msgctxt "data field"
 msgid "Respiration Rate"
 msgstr ""

@@ -77,6 +77,22 @@ data field|Speed Graph|ignore-reused
 data field|Speed Chart|ignore-reused
 data field|Elevation Graph|ignore-reused
 data field|Elevation Chart|ignore-reused
+# Texts that differ only in their letters' case (the command line's and the window's in GNOME's
+# header capitalization; an activity's detail and a data field): Polish writes both alike
+|Pictures and icons|ignore-reused
+|Pictures and Icons|ignore-reused
+|Activity map tiles|ignore-reused
+|Activity Map Tiles|ignore-reused
+|Temporary files|ignore-reused
+|Temporary Files|ignore-reused
+|Ejecting the device…|ignore-reused
+|Ejecting the Device…|ignore-reused
+|Primary wearable|ignore-reused
+|Primary Wearable|ignore-reused
+activity detail|Maximum elevation|ignore-reused
+data field|Maximum Elevation|ignore-reused
+activity detail|Respiration rate|ignore-reused
+data field|Respiration Rate|ignore-reused
 |Configuration|ignore-reused
 
 # ignore-multiple-capital
