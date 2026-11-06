@@ -24,6 +24,7 @@ def parsed(*argv):
     ["primary", "set", "--device-uri", URI, "--apply"],
     ["activities", "export", "made-up.fit", "--device-uri", URI],
     ["profiles", "show", "Made-up", "--device-uri", URI],
+    ["courses", "add", "made-up.gpx", "--device-uri", URI, "--apply"],
 ], ids=" ".join)
 def test_the_device_uri_after_the_command_names_the_device(argv):
     assert parsed(*argv).device_uri == URI

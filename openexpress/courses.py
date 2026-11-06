@@ -261,7 +261,8 @@ def _waiting(storage: Storage, path: str, size: int) -> Waiting:
 
 def _locations(device: GarminDevice, storage: Storage) -> int | None:
     """How many saved locations the device keeps: the location messages of its locations
-    file. None when a file of them does not read whole."""
+    file; None for a device that declares none. FitError when a file of them does not read
+    whole."""
     folder = _out_folder(device, LOCATION_DATATYPE)
     if folder is None:
         return None
@@ -272,7 +273,7 @@ def _locations(device: GarminDevice, storage: Storage) -> int | None:
             continue
         found = fit.inspect(storage.read(path))
         if not found.whole:
-            return None
+            raise fit.FitError("a locations file does not read whole")  # the log: its class
         count += found.messages.get(fit.MESG_LOCATION, 0)
     return count
 
@@ -367,6 +368,21 @@ def _taken_text(name: str) -> str:
         name=name)
 
 
+def not_offered_text() -> str:
+    # TRANSLATORS: a device that does not take GPX files in Garmin/NewFiles
+    return _("This device does not make courses of GPX files.")
+
+
+def check_local(local: Path, name: str | None = None) -> GpxFile:
+    """What is checked of a GPX file without the device: the file itself (course_gpx.read), and
+    that a course name (`name`) is given only to a file of one track or route."""
+    gpx = course_gpx.read(local)
+    applog.hide(name, "course")
+    if name is not None and name.strip() and gpx.courses != 1:
+        raise CourseError(_no_name_text(gpx))
+    return gpx
+
+
 def plan_add(device: GarminDevice, storage: Storage, local: Path,
              name: str | None = None) -> AddPlan:
     """Everything checked before a GPX file is copied; nothing is written. `name`: the course's
@@ -374,12 +390,8 @@ def plan_add(device: GarminDevice, storage: Storage, local: Path,
     CourseFileError or CourseError says why a file is not copied."""
     target = gpx_target(device)
     if target is None:
-        # TRANSLATORS: a device that does not take GPX files in Garmin/NewFiles
-        raise CourseError(_("This device does not make courses of GPX files."))
-    gpx = course_gpx.read(local)
-    applog.hide(name, "course")
-    if name is not None and name.strip() and gpx.courses != 1:
-        raise CourseError(_no_name_text(gpx))
+        raise CourseError(not_offered_text())
+    gpx = check_local(local, name)
     course = course_gpx.course_name(gpx, name)
     for named in (course, *(line.name for line in gpx.lines)):
         applog.hide(named, "course")

@@ -53,14 +53,14 @@ FIRST_SYNC_CHOICE = 3
 
 
 # Commands that read or write many files on the device when they are not a dry run.
-WORKS_ON_DEVICE = frozenset({"sync", "backup", "updates", "maps", "apps", "music"})
+WORKS_ON_DEVICE = frozenset({"sync", "backup", "updates", "maps", "apps", "music", "courses"})
 
 
 # Commands that open a device: they take --path, --device-uri and --no-wait after them too
 # (_device_options).
 DEVICE_COMMANDS = frozenset({
     "report", "info", "files", "activities", "diagnostics", "upload-config", "sync", "baseline",
-    "backup", "updates", "maps", "primary", "profiles", "register", "apps", "music"})
+    "backup", "updates", "maps", "primary", "profiles", "register", "apps", "music", "courses"})
 
 
 # Commands that do not apply to a Garmin device in mass storage mode (as in the window);
@@ -2466,6 +2466,228 @@ def cmd_profiles(args) -> int:
     return 0
 
 
+# --- courses -------------------------------------------------------------------------------
+
+
+def _km(metres: float) -> str:
+    return f"{decimal(f'{metres / 1000:.2f}')} km"
+
+
+def _points(line) -> str:
+    """How many points a track or a route of a GPX file has (its own words for each kind, told
+    from the file's waypoints)."""
+    if line.kind == "track":
+        # TRANSLATORS: `openexpress courses`: the points of a track of a GPX file (not its
+        # waypoints)
+        return ngettext("{count} track point", "{count} track points", line.points).format(
+            count=line.points)
+    # TRANSLATORS: `openexpress courses`: the points of a route of a GPX file, which a device
+    # joins with straight lines (not its waypoints)
+    return ngettext("{count} route point", "{count} route points", line.points).format(
+        count=line.points)
+
+
+def _gpx_contents(gpx) -> str:
+    """What a GPX file holds, each kind of it: "track, 12.35 km, ↗ 321 m, 120 points"."""
+    tracks = [line for line in gpx.lines if line.kind == "track"]
+    routes = [line for line in gpx.lines if line.kind == "route"]
+    parts = []
+    if len(tracks) == 1:
+        (track,) = tracks
+        words = [pgettext("course contents", "track"), _km(track.distance_m)]
+        if track.ascent_m is not None:
+            words.append(f"↗ {round(track.ascent_m)} m")
+        parts.append(", ".join([*words, _points(track)]))
+    elif tracks:
+        parts.append(ngettext("{count} track, {distance}", "{count} tracks, {distance}",
+                              len(tracks)).format(count=len(tracks), distance=_km(
+                                  sum(track.distance_m for track in tracks))))
+    if len(routes) == 1:
+        parts.append(", ".join([pgettext("course contents", "route"), _points(routes[0])]))
+    elif routes:
+        parts.append(ngettext("{count} route", "{count} routes", len(routes)).format(
+            count=len(routes)))
+    if gpx.waypoints:
+        parts.append(ngettext("{count} waypoint", "{count} waypoints", gpx.waypoints).format(
+            count=gpx.waypoints))
+    return "; ".join(parts)
+
+
+def _what_the_device_does(gpx) -> list[str]:
+    """What the device makes of a GPX file, said of Garmin's devices in general."""
+    said = []
+    if gpx.courses:
+        said.append(ngettext("The device makes the course when you unplug the cable.",
+                             "The device makes {count} courses when you unplug the cable.",
+                             gpx.courses).format(count=gpx.courses))
+    if any(line.kind == "route" for line in gpx.lines):
+        said.append(_("Garmin devices join the points of a route with straight lines, not "
+                      "roads. For a course along roads, export a track instead of a route."))
+    if gpx.waypoints:
+        said.append(_("Garmin devices save waypoints as saved locations."))
+    return said
+
+
+def _course_line(course) -> str:
+    """A course of `courses`: its name, where it came from, its distance and ascent, and the
+    day the device made it (each left out when not known)."""
+    parts = [course.title]
+    if course.origin is not None:
+        parts.append(course.origin)
+    if course.distance_m:
+        parts.append(_km(course.distance_m))
+    if course.ascent_m is not None:
+        parts.append(f"↗ {course.ascent_m} m")
+    if course.made is not None:
+        parts.append(time.strftime(_("%Y-%m-%d"), time.localtime(course.made)))
+    return "  " + " · ".join(parts)
+
+
+def _waiting_line(waiting) -> str:
+    parts = [waiting.title]
+    if waiting.gpx is not None:
+        parts.append(_gpx_contents(waiting.gpx))
+    if waiting.title != waiting.filename:
+        parts.append(waiting.filename)
+    if waiting.gpx is None:
+        parts.append(_human(waiting.size))
+    return "  " + " · ".join(parts)
+
+
+def _courses_lines(seen) -> list[str]:
+    """The lines of `courses`: the device's courses, the GPX files waiting for it and how many
+    saved locations it keeps."""
+    lines = []
+    if "courses" in seen.unreadable:
+        lines.append(_("The courses on the device could not be read."))
+    elif seen.courses:
+        # TRANSLATORS: CLI heading above the list of the device's courses
+        lines.append(ngettext("{count} course on the device:", "{count} courses on the device:",
+                              len(seen.courses)).format(count=len(seen.courses)))
+        lines += [_course_line(c) for c in seen.courses]
+    else:
+        lines.append(_("No courses on the device."))
+    if "waiting" in seen.unreadable:
+        lines.append(_("The files waiting for the device could not be read."))
+    elif seen.waiting:
+        # TRANSLATORS: CLI heading above the GPX files copied to the device that it has not
+        # made courses of yet (it does when it is unplugged)
+        lines.append(ngettext("{count} GPX file waiting; unplug the device so it can import it:",
+                              "{count} GPX files waiting; unplug the device so it can import "
+                              "them:", len(seen.waiting)).format(count=len(seen.waiting)))
+        lines += [_waiting_line(w) for w in seen.waiting]
+    if "locations" in seen.unreadable:
+        lines.append(_("The saved locations could not be counted."))
+    elif seen.locations is not None:
+        lines.append(_("Saved locations on the device: {count}").format(count=seen.locations))
+    return lines
+
+
+def _course_plan_lines(plan) -> list[str]:
+    """What `courses add` would copy: the course's name, the file's name on the device, what
+    the file holds and what the device does with it, and the space."""
+    lines = []
+    if plan.courses:
+        lines.append(ngettext("Course: {names}", "Courses: {names}", len(plan.courses)).format(
+            names=", ".join(plan.courses)))
+    lines.append("  " + _("{file} ({size}) will be written to {path}").format(
+        file=plan.gpx.path.name, size=_human(plan.size), path=plan.path))
+    lines.append("  " + _("Contents: {contents}").format(contents=_gpx_contents(plan.gpx)))
+    lines += ["  " + said for said in _what_the_device_does(plan.gpx)]
+    if plan.same_waiting is not None:
+        lines.append("  " + _("The same file is already waiting on the device as {name}.")
+                     .format(name=plan.same_waiting))
+    if plan.free is not None:
+        lines.append(_("Free space on the device: {free} (the file takes {size})").format(
+            free=_human(plan.free), size=_human(plan.size)))
+    return lines
+
+
+def _removal_note(plan) -> str:
+    """What removing a course or a waiting file means: what is lost."""
+    from openexpress import courses
+
+    if plan.waiting:
+        return _("The device has not made a course of it yet.")
+    if plan.origin == courses.ORIGIN_OPENEXPRESS:
+        return _("The device keeps no other copy of it.")
+    if plan.origin == courses.ORIGIN_CONNECT:
+        return _("The device keeps no other copy of it; Garmin Connect can send it again.")
+    return _("openExpress did not copy this course and it did not come from Garmin Connect. "
+             "The device keeps no other copy of it.")
+
+
+def _courses_add(args, dev, st) -> int:
+    from openexpress import courses
+
+    plan = courses.plan_add(dev, st, Path(args.file), args.name)
+    print("\n".join(_course_plan_lines(plan)))
+    if not args.apply:
+        print(_("Dry run. Add --apply."))
+        return 0
+    with _progress() as progress:
+        path = courses.add(plan, dev, st, progress=progress)
+    print(_("Wrote {path} ({size}).").format(path=path, size=_human(plan.size)))
+    print(_("Unplug the device so it can import the file."))
+    return 0
+
+
+def _courses_remove(args, dev, st, seen) -> int:
+    """`courses remove NAME`: one course or waiting file, by its name or the file's (letter
+    case and diacritics aside), else by a part of it that only one has."""
+    from openexpress import courses
+    from openexpress.profiles import sort_key
+
+    shown = [*seen.courses, *seen.waiting]
+    wanted = sort_key(args.name)
+
+    def names(item) -> set[str]:
+        return {sort_key(item.title), sort_key(item.filename)}
+
+    found = ([item for item in shown if wanted in names(item)]
+             or [item for item in shown if any(wanted in n for n in names(item))])
+    if len(found) != 1:
+        listed = ", ".join(item.title if item.title == item.filename
+                           else f"{item.title} ({item.filename})" for item in found)
+        _error(_("Courses and files that match “{name}”: {names}").format(
+            name=args.name, names=listed) if found
+            else _("No course or waiting file is named “{name}”.").format(name=args.name))
+        return 1
+    plan = courses.plan_remove(dev, st, found[0])
+    print((_("Removing a file waiting for the device: {name}") if plan.waiting
+           else _("Removing course: {name}")).format(name=plan.title))
+    print(f"  - {plan.path}  ({_human(plan.size)})")
+    print("  " + _removal_note(plan))
+    if not args.apply:
+        print(_("Dry run. Add --apply."))
+        return 0
+    courses.remove(plan, dev, st)
+    print(_("Removed {path} ({size}).").format(path=plan.path, size=_human(plan.size)))
+    return 0
+
+
+def cmd_courses(args) -> int:
+    """The courses of the connected device, the GPX files waiting for it and its saved
+    locations; `add` copies a GPX file for it to make courses of, `remove` removes a course or
+    a waiting file (both a dry run without --apply)."""
+    from openexpress import courses
+
+    if args.courses_cmd == "add":
+        # Before the device is opened: is it a GPX file to copy, and may it take the name?
+        courses.check_local(Path(args.file), args.name)
+    st, dev = open_device(args)
+    if not courses.offered(dev):
+        _error(courses.not_offered_text())
+        return 1
+    if args.courses_cmd == "add":
+        return _courses_add(args, dev, st)
+    seen = courses.overview(dev, st)
+    if args.courses_cmd == "remove":
+        return _courses_remove(args, dev, st, seen)
+    print("\n".join(_courses_lines(seen)))
+    return 0
+
+
 def cmd_register(args) -> int:
     """Add the connected device to the Garmin account (service.add_device), experimental; a
     trial run without --apply. The account is named by its user name, an e-mail address
@@ -2994,6 +3216,24 @@ def build_parser() -> argparse.ArgumentParser:
     m = psub.add_parser("show", help=_("the data screens of one profile"))
     m.add_argument("name", metavar="NAME", help=_("the name of the profile, or a part of it"))
     s.set_defaults(func=cmd_profiles)
+
+    s = sub.add_parser("courses", help=_("the courses on the device, the GPX files waiting for "
+                                         "it and its saved locations (experimental)"))
+    csub = s.add_subparsers(dest="courses_cmd")
+    m = csub.add_parser("add", help=_("copy a GPX file to the device, which makes courses of "
+                                      "its tracks and routes (experimental)"))
+    m.add_argument("file", metavar="FILE", help=_("a GPX file on this computer"))
+    m.add_argument("--name", metavar="COURSE",
+                   help=_("the course's name (default: that of its track or route, else that "
+                          "of FILE)"))
+    m.add_argument("--apply", action="store_true", help=_("copy the file to the device"))
+    m = csub.add_parser("remove", help=_("remove a course or a GPX file waiting for the device "
+                                         "(experimental)"))
+    m.add_argument("name", metavar="NAME",
+                   help=_("the name of the course or of its file, or a part of it that only "
+                          "one has"))
+    m.add_argument("--apply", action="store_true", help=_("remove it from the device"))
+    s.set_defaults(func=cmd_courses)
 
     register_help = _("add the connected device to your Garmin account (experimental; a "
                       "trial run without --apply)")

@@ -7,7 +7,7 @@ import json
 import time
 
 import pytest
-from fakes import FitData, FitDefinition, fit_file, gpx_file, gpx_track, gpx_waypoint
+from fakes import FitData, FitDefinition, fit_file, gpx_file, gpx_route, gpx_track, gpx_waypoint
 
 from openexpress import applog, courses, fit, paths, service
 from openexpress.course_gpx import CourseFileError
@@ -231,16 +231,17 @@ def test_the_gpx_files_waiting_with_what_they_hold(drive):
     assert seen.waiting[1].gpx.lines[0].points == 3
 
 
-@pytest.mark.parametrize("files, expected", [
-    ({}, 0),
-    ({"Locations.fit": locations_fit(0)}, 0),
-    ({"Locations.fit": locations_fit(3), "notes.txt": b"x"}, 3),
-    ({"Locations.fit": locations_fit(3, cut=60)}, None),  # does not read whole: not known
+@pytest.mark.parametrize("files, expected, unreadable", [
+    ({}, 0, ()),
+    ({"Locations.fit": locations_fit(0)}, 0, ()),
+    ({"Locations.fit": locations_fit(3), "notes.txt": b"x"}, 3, ()),
+    ({"Locations.fit": locations_fit(3, cut=60)}, None, ("locations",)),  # not whole
 ])
-def test_the_saved_locations_are_counted(drive, files, expected):
+def test_the_saved_locations_are_counted(drive, files, expected, unreadable):
     for name, data in files.items():
         put(drive, f"Garmin/Locations/{name}", data)
-    assert courses.overview(device(), LocalStorage(drive)).locations == expected
+    seen = courses.overview(device(), LocalStorage(drive))
+    assert (seen.locations, seen.unreadable) == (expected, unreadable)
 
 
 def test_a_device_that_declares_no_locations_has_none_known(drive):
@@ -450,3 +451,163 @@ def test_no_removal_while_a_sync_holds_the_lock(drive, clock):
     with service.sync_lock(), pytest.raises(service.SyncBusy):
         courses.remove(plan, device(), st)
     assert (drive / "Garmin/Courses/A.fit").exists()
+
+
+# --- the command line ----------------------------------------------------------------------------
+
+COURSE_TYPES = """<DataType><Name>GPSData</Name>
+   <File><Location><Path>Garmin/NewFiles</Path><FileExtension>GPX</FileExtension></Location>
+    <TransferDirection>InputToUnit</TransferDirection></File></DataType>
+  <DataType><Name>FIT_TYPE_6</Name>
+   <File><Location><Path>Garmin/Courses</Path><FileExtension>FIT</FileExtension></Location>
+    <TransferDirection>OutputFromUnit</TransferDirection></File></DataType>
+  <DataType><Name>FIT_TYPE_8</Name>
+   <File><Location><Path>Garmin/Locations</Path><FileExtension>FIT</FileExtension></Location>
+    <TransferDirection>OutputFromUnit</TransferDirection></File></DataType>
+  <UpdateFile>"""
+
+
+@pytest.fixture
+def courses_cli(device_root):
+    """The made-up device of the tests' folder, declaring GPX files, courses and locations."""
+    xml = device_root / "GARMIN" / "GarminDevice.xml"
+    xml.write_text(xml.read_text().replace("<UpdateFile>", COURSE_TYPES, 1))
+    for folder in ("Courses", "Locations"):
+        (device_root / "GARMIN" / folder).mkdir()
+    return device_root
+
+
+def run(root, *argv):
+    from openexpress.cli import main
+
+    return main(["--path", str(root), "courses", *argv])
+
+
+def test_the_list_of_courses_files_waiting_and_locations(courses_cli, tmp_path, clock, capsys):
+    g = courses_cli / "GARMIN"
+    (g / "Courses" / "Along.fit").write_bytes(course_fit(
+        "Along the River", made=now(), product=courses.CONNECT_PRODUCT, ascent=None))
+    (g / "Courses" / "Broken.fit").write_bytes(b"not a course")
+    (g / "NewFiles" / "Two.gpx").write_text(gpx_file(gpx_track("First") + gpx_track("Second")
+                                                     + gpx_waypoint()))
+    (g / "Locations" / "Locations.fit").write_bytes(locations_fit(2))
+    assert run(courses_cli) == 0
+    assert capsys.readouterr().out.splitlines() == [
+        "2 courses on the device:",
+        "  Along the River · Garmin Connect · 12.35 km · 2026-10-21",
+        "  Broken.fit",
+        "1 GPX file waiting; unplug the device so it can import it:",
+        "  Two.gpx · 2 tracks, 2.74 km; 1 waypoint",
+        "Saved locations on the device: 2"]
+
+
+def test_no_course_and_no_locations_file(courses_cli, capsys):
+    assert run(courses_cli) == 0
+    assert capsys.readouterr().out.splitlines() == [
+        "No courses on the device.", "Saved locations on the device: 0"]
+
+
+def test_a_device_that_makes_no_courses_of_gpx_files_is_said(device_root, capsys):
+    assert run(device_root) == 1
+    assert "This device does not make courses of GPX files." in capsys.readouterr().err
+
+
+def test_add_is_a_dry_run_without_apply(courses_cli, tmp_path, capsys):
+    local = a_gpx(tmp_path, gpx_track() + gpx_route())
+    assert run(courses_cli, "add", str(local)) == 0
+    out = capsys.readouterr().out.splitlines()
+    assert out[0] == "Courses: Morning Loop, To the Lake"
+    assert out[1].startswith("  morning-loop.gpx (") and out[1].endswith(
+        "will be written to GARMIN/NewFiles/morning-loop.GPX")
+    assert out[2:5] == [
+        "  Contents: track, 1.37 km, ↗ 10 m, 3 track points; route, 3 route points",
+        "  The device makes 2 courses when you unplug the cable.",
+        ("  Garmin devices join the points of a route with straight lines, not roads. For a "
+         "course along roads, export a track instead of a route.")]
+    assert out[5].startswith("Free space on the device: ") and out[-1] == "Dry run. Add --apply."
+    assert sorted(p.name for p in (courses_cli / "GARMIN" / "NewFiles").iterdir()) == []
+
+
+def test_add_with_apply_copies_under_the_name_given(courses_cli, tmp_path, clock, capsys):
+    local = a_gpx(tmp_path)
+    assert run(courses_cli, "add", str(local), "--name", "Lake Loop", "--apply") == 0
+    out = capsys.readouterr().out.splitlines()
+    assert out[0] == "Course: Lake Loop"
+    assert out[-2].startswith("Wrote GARMIN/NewFiles/Lake_Loop.GPX (")
+    assert out[-1] == "Unplug the device so it can import the file."
+    written = (courses_cli / "GARMIN" / "NewFiles" / "Lake_Loop.GPX").read_bytes()
+    assert written == local.read_bytes().replace(b"Morning Loop", b"Lake Loop")
+    assert [c["courses"] for c in courses.recorded(1234567890)] == [["Lake Loop"]]
+
+
+def test_the_same_file_waiting_is_said_in_the_dry_run(courses_cli, tmp_path, capsys):
+    local = a_gpx(tmp_path)
+    (courses_cli / "GARMIN" / "NewFiles" / "Before.GPX").write_bytes(local.read_bytes())
+    assert run(courses_cli, "add", str(local)) == 0
+    assert ("  The same file is already waiting on the device as Before.GPX."
+            in capsys.readouterr().out.splitlines())
+
+
+@pytest.mark.parametrize("body, name, error", [
+    (gpx_track("First") + gpx_track("Second"), "One",
+     "makes 2 courses; only a file with one track or route takes a course name."),
+    (gpx_waypoint(), "One", "has only waypoints"),
+    ("<gpx", None, "is not a GPX file."),
+])
+def test_add_refuses_a_file_before_the_device_is_opened(courses_cli, tmp_path, monkeypatch,
+                                                        capsys, body, name, error):
+    from openexpress import cli
+
+    monkeypatch.setattr(cli, "open_device", lambda args: pytest.fail("the device was opened"))
+    local = tmp_path / "file.gpx"
+    local.write_text(body if body.startswith("<gpx") else gpx_file(body))
+    argv = ["add", str(local), *(["--name", name] if name else [])]
+    assert run(courses_cli, *argv) == 1
+    assert error in capsys.readouterr().err
+
+
+def test_remove_a_course_by_a_part_of_its_name(courses_cli, clock, capsys):
+    (courses_cli / "GARMIN" / "Courses" / "Along.fit").write_bytes(course_fit(
+        "Along the River", made=now(), product=courses.CONNECT_PRODUCT))
+    assert run(courses_cli, "remove", "river") == 0
+    assert capsys.readouterr().out.splitlines() == [
+        "Removing course: Along the River",
+        f"  - GARMIN/Courses/Along.fit  ({human(courses_cli / 'GARMIN/Courses/Along.fit')})",
+        "  The device keeps no other copy of it; Garmin Connect can send it again.",
+        "Dry run. Add --apply."]
+    assert run(courses_cli, "remove", "RIVER", "--apply") == 0
+    assert capsys.readouterr().out.splitlines()[-1].startswith("Removed GARMIN/Courses/Along.fit")
+    assert not (courses_cli / "GARMIN" / "Courses" / "Along.fit").exists()
+
+
+def human(path) -> str:
+    """The size of a file as the command line writes it (with a plain space)."""
+    from openexpress.i18n import human_size
+
+    return human_size(path.stat().st_size).replace("\xa0", " ")
+
+
+def test_remove_a_waiting_file_and_one_of_unknown_origin(courses_cli, clock, capsys):
+    (courses_cli / "GARMIN" / "NewFiles" / "Loop.gpx").write_text(gpx_file(gpx_track()))
+    (courses_cli / "GARMIN" / "Courses" / "Hand.fit").write_bytes(course_fit("By Hand",
+                                                                           made=now()))
+    assert run(courses_cli, "remove", "morning loop") == 0
+    out = capsys.readouterr().out.splitlines()
+    assert out[0] == "Removing a file waiting for the device: Morning Loop"
+    assert out[2] == "  The device has not made a course of it yet."
+    assert run(courses_cli, "remove", "Hand.fit") == 0
+    assert capsys.readouterr().out.splitlines()[2] == (
+        "  openExpress did not copy this course and it did not come from Garmin Connect. "
+        "The device keeps no other copy of it.")
+
+
+def test_remove_names_several_matches_and_none_and_removes_nothing(courses_cli, clock, capsys):
+    c = courses_cli / "GARMIN" / "Courses"
+    c.joinpath("A.fit").write_bytes(course_fit("Loop North", made=now()))
+    c.joinpath("B.fit").write_bytes(course_fit("Loop South", made=now()))
+    assert run(courses_cli, "remove", "loop", "--apply") == 1
+    assert ("Courses and files that match “loop”: Loop North (A.fit), Loop South (B.fit)"
+            in capsys.readouterr().err)
+    assert run(courses_cli, "remove", "east", "--apply") == 1
+    assert "No course or waiting file is named “east”." in capsys.readouterr().err
+    assert sorted(p.name for p in c.iterdir()) == ["A.fit", "B.fit"]
