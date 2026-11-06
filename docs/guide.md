@@ -29,7 +29,7 @@ should work, but are untested – reports are welcome. Developed on Fedora/GNOME
 
 <p align="center">
   <img src="screenshots/updates.png" width="800"
-       alt="The Updates page: two component updates offered for a fēnix 8">
+       alt="The Updates page: a beta system update offered for an Edge 1050, with Install, Check Again and Reinstall Components">
 </p>
 
 ## Not yet available
@@ -193,17 +193,12 @@ connected device; no login is needed.
   again. With more than one update for such a device, **Install All** copies all of them (one
   file of the device at a time) and ejects the drive once.
 
-<p align="center">
-  <img src="screenshots/updates-beta.png" width="700"
-       alt="The Updates page: a beta system update offered for an Edge 1050">
-</p>
-
 Installing a system update was tested on an Edge 1050 (beta 33.12) and
 reported working on a fēnix 7 ([#6](https://github.com/TomaszBojanowski/openExpress/issues/6)); component updates were tested on a Venu 2.
 
 <p align="center">
   <img src="screenshots/update-confirm.png" width="700"
-       alt="The question before a system update: versions, license link and warning">
+       alt="The question before a system update: versions, size, changes, license link and warning">
 </p>
 
 ## Maps of your own

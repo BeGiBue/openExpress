@@ -148,12 +148,16 @@ def test_the_metainfo_template_has_no_translation_in_it():
 
 @needs_gettext
 def test_the_metainfo_is_translated_into_polish_at_the_build(tmp_path):
-    """The Polish of the summary, the description and the screenshots' captions, as the
-    metainfo carried it before (19 texts), now from po/pl.po; the release notes in English."""
+    """Every text to translate of the template (the summary, the description and the
+    screenshots' captions) has its Polish from po/pl.po; the release notes stay in English."""
     out = catalogs.compose_metainfo(tmp_path / "metainfo.xml")
     root = ET.parse(out).getroot()
     polish = [e for e in root.iter() if e.get(XML_LANG) == "pl"]
-    assert len(polish) == 19
+    template = ET.parse(catalogs.METAINFO_TEMPLATE).getroot()
+    notes = {id(e) for releases in template.iter("releases") for e in releases.iter()}
+    to_translate = [e for e in template.iter()
+                    if e.tag in ("summary", "p", "li", "caption") and id(e) not in notes]
+    assert to_translate and len(polish) == len(to_translate)
     assert root.find("summary[@{http://www.w3.org/XML/1998/namespace}lang='pl']").text == (
         "Zarządzaj zegarkiem Garmin na Linuksie")
     assert {e.tag for e in polish} == {"summary", "p", "li", "caption"}

@@ -6,7 +6,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: openexpress\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-11-06 17:56+0100\n"
+"POT-Creation-Date: 2026-11-06 20:54+0100\n"
 "PO-Revision-Date: 2026-10-11 02:36+0200\n"
 "Last-Translator: Tomasz Bojanowski\n"
 "Language-Team: none\n"
@@ -10997,28 +10997,24 @@ msgstr ""
 "takimi jak „Dostępna aktualizacja”"
 
 #: openexpress/data/io.github.tomaszbojanowski.OpenExpress.metainfo.xml.in:54
-msgid "Software updates offered for the device"
-msgstr "Aktualizacje oprogramowania dostępne dla urządzenia"
-
-#: openexpress/data/io.github.tomaszbojanowski.OpenExpress.metainfo.xml.in:58
 msgid "Software updates, with a beta system update offered for the device"
 msgstr ""
 "Aktualizacje oprogramowania, w tym testowa aktualizacja systemu dla "
 "urządzenia"
 
-#: openexpress/data/io.github.tomaszbojanowski.OpenExpress.metainfo.xml.in:62
+#: openexpress/data/io.github.tomaszbojanowski.OpenExpress.metainfo.xml.in:58
 msgid "Maps on the device and free maps to install"
 msgstr "Mapy na urządzeniu i darmowe mapy do zainstalowania"
 
-#: openexpress/data/io.github.tomaszbojanowski.OpenExpress.metainfo.xml.in:66
+#: openexpress/data/io.github.tomaszbojanowski.OpenExpress.metainfo.xml.in:62
 msgid "Connect IQ apps"
 msgstr "Aplikacje Connect IQ"
 
-#: openexpress/data/io.github.tomaszbojanowski.OpenExpress.metainfo.xml.in:70
+#: openexpress/data/io.github.tomaszbojanowski.OpenExpress.metainfo.xml.in:66
 msgid "Music, podcasts and audiobooks"
 msgstr "Muzyka, podcasty i audiobooki"
 
-#: openexpress/data/io.github.tomaszbojanowski.OpenExpress.metainfo.xml.in:74
+#: openexpress/data/io.github.tomaszbojanowski.OpenExpress.metainfo.xml.in:70
 msgid ""
 "Activities of the device and of its backups, with their sport, time, "
 "distance and ascent"
