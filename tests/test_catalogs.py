@@ -3,8 +3,10 @@ po/LINGUAS, each with its po/<language>.po; the compiled catalogs (.mo) are made
 (the Flatpak's manifest, install-desktop, the tests) and never kept in the repository; the
 template (po/openexpress.pot) holds every text of the files po/POTFILES lists, the metainfo's
 too; the metainfo is translated through gettext from its template, its release notes left in
-English. GNU gettext's tools are needed; made-up catalogs only where one is written."""
+English; after tools/update-template.sh and tools/update-translations.sh every language has the
+template's date. GNU gettext's tools are needed; made-up catalogs only where one is written."""
 
+import os
 import re
 import shutil
 import subprocess
@@ -98,6 +100,42 @@ def test_the_template_holds_every_text_of_the_code_and_the_metainfo(tmp_path):
     # Not to translate: the name, the developer, the keywords, the release notes.
     assert not texts & {"openExpress", "Tomasz Bojanowski", "Garmin", "fenix"}
     assert not any(t.startswith("Clearer icons.") for t in texts)
+
+
+POT_DATE = re.compile(r'^"POT-Creation-Date: (.*)\\n"$', re.MULTILINE)
+
+
+def _pot_date(path: Path) -> str:
+    found = POT_DATE.search(path.read_text(encoding="utf-8"))
+    assert found, path.name
+    return found.group(1)
+
+
+@needs_gettext
+def test_after_the_scripts_every_language_has_the_template_s_date(tmp_path):
+    """tools/update-template.sh, then tools/update-translations.sh, on a copy of the tree: the
+    header of each po/<language>.po has the template's date, as Weblate's msgmerge add-on writes
+    it, so Weblate has no pull request of that one line to open after the template changes."""
+    (tmp_path / "tools").mkdir()
+    for script in ("update-template.sh", "update-translations.sh"):
+        shutil.copy2(ROOT / "tools" / script, tmp_path / "tools" / script)
+    shutil.copytree(ROOT / "po", tmp_path / "po")
+    shutil.copytree(ROOT / "openexpress", tmp_path / "openexpress",
+                    ignore=shutil.ignore_patterns("__pycache__", "locale"))
+    languages = [tmp_path / "po" / f"{lang}.po" for lang in catalogs.languages(tmp_path / "po")]
+    old = "2000-01-01 00:00+0000"  # no template's date
+    for po in languages:
+        text = po.read_text(encoding="utf-8")
+        po.write_text(POT_DATE.sub(lambda _m: f'"POT-Creation-Date: {old}\\n"', text, count=1),
+                      encoding="utf-8")
+    env = {k: v for k, v in os.environ.items() if k != "PYTHONPATH"}  # the copy's openexpress
+    for script in ("update-template.sh", "update-translations.sh"):
+        subprocess.run(["bash", str(tmp_path / "tools" / script)], cwd=tmp_path, env=env,
+                       capture_output=True, text=True, timeout=120, check=True)
+    template = _pot_date(tmp_path / "po" / "openexpress.pot")
+    dates = {po.name: _pot_date(po) for po in languages}
+    assert languages and template != old
+    assert dates == dict.fromkeys(dates, template)
 
 
 def test_the_metainfo_template_has_no_translation_in_it():

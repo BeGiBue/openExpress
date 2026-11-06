@@ -19,7 +19,10 @@ done
 
 for lang in $(sed 's/#.*//' po/LINGUAS); do
     po=po/$lang.po
-    msgmerge --quiet --update --backup=none "$po" "$POT"
+    # Written always, with the template's POT-Creation-Date in the header, as Weblate's msgmerge
+    # add-on writes it: --update leaves a file whose only difference is that date, and Weblate
+    # would open a pull request of that one line.
+    msgmerge --quiet --output-file="$po" "$po" "$POT"
     # Texts no code uses any more are dropped, not kept as "#~" (msgmerge has no option for it)
     msgattrib --no-obsolete --output-file="$po" "$po"
     echo "$lang: $(msgfmt --statistics --output-file=/dev/null "$po" 2>&1)"
