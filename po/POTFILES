@@ -9,6 +9,7 @@ openexpress/catalogs.py
 openexpress/ciq.py
 openexpress/cli.py
 openexpress/connect.py
+openexpress/course_gpx.py
 openexpress/desktop.py
 openexpress/device/gio_storage.py
 openexpress/device/ptp.py
