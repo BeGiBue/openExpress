@@ -1,0 +1,90 @@
+# The flags of Weblate for the texts whose check has nothing to say of them, one text a line:
+# context|text|flag, flag (the context empty for a text without one; the text written as in
+# a PO file, \n for a new line). tools/update-template.sh writes them into the template and
+# tools/update-translations.sh into each language after msgmerge, which drops them. Each
+# text must be one of the template (tests/test_catalogs.py).
+
+# ignore-same
+sport|Multisport|ignore-same
+|{hours} h {minutes} min|ignore-same
+|{minutes} min|ignore-same
+|{rate} bpm|ignore-same
+|{calories} kcal|ignore-same
+|{rate} brpm|ignore-same
+|{average} brpm ({low}–{high})|ignore-same
+|{low}–{high} bpm|ignore-same
+chart unit|bpm|ignore-same
+|{minutes} min {seconds} s|ignore-same
+|Garmin Connect|ignore-same
+data field|Normalized Power|ignore-same
+data field|Stamina|ignore-same
+built-in screen|Virtual Partner|ignore-same
+built-in screen|Segment|ignore-same
+built-in screen|GroupTrack|ignore-same
+built-in screen|Shimano STEPS|ignore-same
+built-in screen|ClimbPro|ignore-same
+built-in screen|Stamina|ignore-same
+built-in screen|GroupRide|ignore-same
+|TrueUp: {time}…|ignore-same
+
+# ignore-same, ignore-same-plurals
+|… and {count} more|ignore-same, ignore-same-plurals
+|Dry run: nothing was written. Add --apply to write it.|ignore-same, ignore-same-plurals
+|Show {count} More|ignore-same, ignore-same-plurals
+|{n} min ago|ignore-same, ignore-same-plurals
+|{n} h ago|ignore-same, ignore-same-plurals
+|+{count} when needed|ignore-same, ignore-same-plurals
+
+# ignore-reused
+sport|Paddling|ignore-reused
+sport|Kayaking|ignore-reused
+|Software updates|ignore-reused
+|Answers of Garmin's servers|ignore-reused
+|USB drive|ignore-reused
+date and hour|{date} {time}|ignore-reused
+server request|Primary training device|ignore-reused
+|The device is starting…|ignore-reused
+|Reading Activities…|ignore-reused
+|USB Drive|ignore-reused
+|Device Starting…|ignore-reused
+|Primary Training Device|ignore-reused
+|Software Updates|ignore-reused
+|Garmin Server Responses|ignore-reused
+|Setup|ignore-reused
+chip|USB drive|ignore-reused
+|Reading the Activity…|ignore-reused
+activity tile|Average pace|ignore-reused
+activity tile|Average speed|ignore-reused
+activity tile|Total ascent|ignore-reused
+activity detail|Elapsed time|ignore-reused
+activity detail|Total descent|ignore-reused
+activity detail|Maximum speed|ignore-reused
+activity detail|Heart rate|ignore-reused
+activity chart|Heart rate|ignore-reused
+|at {date} {time}|ignore-reused
+data field|Heart Rate|ignore-reused
+data field|Average Pace|ignore-reused
+data field|Avg Speed|ignore-reused
+data field|Elapsed Time|ignore-reused
+data field|Total Ascent|ignore-reused
+data field|Total Descent|ignore-reused
+data field|Max. Speed|ignore-reused
+|Configuration|ignore-reused
+
+# ignore-multiple-capital
+sport|Stand-up paddleboarding|ignore-multiple-capital
+data field|Intensity Factor|ignore-multiple-capital
+data field|Avg. Vertical Descent Speed|ignore-multiple-capital
+data field|Vertical Descent Speed|ignore-multiple-capital
+data field|30s Vertical Descent Speed|ignore-multiple-capital
+data field|Lap Vertical Descent Speed|ignore-multiple-capital
+
+# ignore-end-stop
+|The given URL has no ticket=ST-... parameter|ignore-end-stop
+data field|Asc. to Next Course Pt.|ignore-end-stop
+data field|Lap Norm. Force|ignore-end-stop
+data field|Last Lap Norm. Force|ignore-end-stop
+
+# ignore-newline-count
+|\nTo finish the installation:\n  1. Disconnect the device from the computer.\n  2. If the device does not turn on by itself, turn it on.\n  3. The device installs the update by itself. It may ask whether to install it:\n     choose to install now. It may also restart. Wait until it has finished.\n  4. Reconnect it and run `openexpress updates`: the installed update\n     should no longer be listed.\n|ignore-newline-count
+|\nTo finish the installation:\n  1. Disconnect the device from the computer.\n  2. If the device does not turn on by itself, turn it on.\n  3. The device installs the update by itself. It may ask whether to install it:\n     choose to install now. It may also restart. Wait until it has finished.\n  4. Reconnect it and check for updates again: the installed update\n     should no longer be listed.\n|ignore-newline-count

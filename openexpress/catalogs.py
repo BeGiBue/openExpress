@@ -6,6 +6,12 @@ xgettext and msgfmt do the work.
 
     python3 -m openexpress.catalogs             the catalogs and the metainfo (the build)
     python3 -m openexpress.catalogs --template  po/POTFILES and po/openexpress.pot
+    python3 -m openexpress.catalogs --flags FILE…  the flags of po/weblate-flags.txt into them
+
+Weblate takes a text's flags (ignore-same and the like, which quiet a check that has nothing to
+say of that text) from the "#," line of a PO file, but GNU gettext's tools drop every flag they
+do not know: so the flags of po/weblate-flags.txt are written into the template when it is made
+and into each language after msgmerge (tools/update-translations.sh).
 
 Has: nothing of the window (a module of the build and of install-desktop).
 """
@@ -81,7 +87,107 @@ def write_template(out: Path = TEMPLATE) -> Path:
     _run([_tool("xgettext"), "--from-code=UTF-8", *KEYWORDS, "--add-comments=TRANSLATORS",
           f"--package-name={i18n.DOMAIN}", f"--package-version={__version__}",
           f"--output={out}", *files])
+    add_flags(out)
     return out
+
+
+# --- the flags of Weblate ---------------------------------------------------------------------
+
+WEBLATE_FLAGS = PO / "weblate-flags.txt"
+_FLAG = re.compile(r"[a-z][a-z0-9-]*(?::[^,\s]+)?")
+_ESCAPES = {"n": "\n", "t": "\t", '"': '"', "\\": "\\"}
+
+
+def _unescape(text: str) -> str:
+    """A PO string's text: \\n, \\t, \\" and \\\\ as the characters they stand for."""
+    return re.sub(r"\\(.)", lambda m: _ESCAPES.get(m.group(1), "\\" + m.group(1)), text)
+
+
+def read_flags(path: Path = WEBLATE_FLAGS) -> dict[tuple[str, str], list[str]]:
+    """The flags of each text, from lines "context|text|flag, flag" (the context empty for a
+    text without one; the text written as in a PO file: \\n for a new line). Lines starting with
+    "#" and empty ones are notes. ValueError for a line that is no such entry."""
+    flags: dict[tuple[str, str], list[str]] = {}
+    if not path.exists():
+        return flags
+    for n, line in enumerate(path.read_text(encoding="utf-8").splitlines(), 1):
+        if not line.strip() or line.startswith("#"):
+            continue
+        context, sep1, rest = line.partition("|")
+        text, sep2, names = rest.rpartition("|")
+        found = [f.strip() for f in names.split(",") if f.strip()]
+        if not (sep1 and sep2 and text and found and all(_FLAG.fullmatch(f) for f in found)):
+            raise ValueError(f"{path.name}:{n}: not \"context|text|flags\"")
+        key = (context, _unescape(text))
+        flags[key] = [*flags.get(key, []), *(f for f in found if f not in flags.get(key, []))]
+    return flags
+
+
+def _entries(lines: list[str]):
+    """Each entry of a PO file as (its first line, the line after it, its context, its
+    msgid); the header and obsolete entries too, with their msgid."""
+    start, n = 0, len(lines)
+    while start < n:
+        while start < n and not lines[start].strip():
+            start += 1
+        end = start
+        while end < n and lines[end].strip():
+            end += 1
+        if start == end:
+            break
+        parts: dict[str, list[str]] = {}
+        key = None
+        for line in lines[start:end]:
+            m = re.match(r"(msgctxt|msgid|msgid_plural|msgstr(?:\[\d+\])?)\s+\"(.*)\"\s*$", line)
+            if m:
+                key = m.group(1)
+                parts[key] = [m.group(2)]
+            elif key and line.startswith('"'):
+                parts[key].append(line.strip()[1:-1])
+            elif line.startswith("#"):
+                key = None
+        context = _unescape("".join(parts["msgctxt"])) if "msgctxt" in parts else ""
+        msgid = _unescape("".join(parts["msgid"])) if "msgid" in parts else None
+        yield start, end, context, msgid
+        start = end
+
+
+def add_flags(path: Path, flags: dict[tuple[str, str], list[str]] | None = None) -> int:
+    """The flags of each listed text written into its "#," line in the PO file at `path` (the
+    line made where a PO file has it when the entry has none); the flags it has stay, none is
+    written twice, all in alphabetical order. How many entries got a flag."""
+    flags = read_flags() if flags is None else flags
+    lines = path.read_text(encoding="utf-8").splitlines()
+    out, last, changed = [], 0, 0
+    for start, end, context, msgid in _entries(lines):
+        out += lines[last:start]
+        entry = lines[start:end]
+        wanted = flags.get((context, msgid)) if msgid else None
+        if wanted:
+            at = next((i for i, line in enumerate(entry) if line.startswith("#,")), None)
+            have = ([f.strip() for f in entry[at][2:].split(",") if f.strip()]
+                    if at is not None else [])
+            # Sorted, as translate-toolkit (Weblate) writes the line whenever it changes one
+            # of its flags: the two never reorder each other's lines.
+            merged = sorted({*have, *wanted})
+            if set(merged) != set(have):
+                changed += 1
+                line = "#, " + ", ".join(merged)
+                if at is not None:
+                    entry[at] = line
+                else:
+                    # After the translators' and extracted comments and the references; before
+                    # the previous msgid (#|) and the entry itself.
+                    i = next((i for i, text in enumerate(entry)
+                              if not text.startswith(("# ", "#.", "#:")) and text != "#"),
+                             len(entry))
+                    entry.insert(i, line)
+        out += entry
+        last = end
+    out += lines[last:]
+    if changed:
+        path.write_text("\n".join(out) + "\n", encoding="utf-8")
+    return changed
 
 
 def build(locale_dir: Path | None = None, po_dir: Path = PO) -> list[Path]:
@@ -111,6 +217,11 @@ def main(argv: list[str] | None = None) -> int:
     try:
         if argv == ["--template"]:
             print(write_template().relative_to(ROOT))
+            return 0
+        if argv[:1] == ["--flags"] and argv[1:]:
+            flags = read_flags()
+            for name in argv[1:]:
+                add_flags(Path(name), flags)
             return 0
         if argv:
             print(__doc__.split("\n\n")[1], file=sys.stderr)

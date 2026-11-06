@@ -25,6 +25,8 @@ for lang in $(sed 's/#.*//' po/LINGUAS); do
     msgmerge --quiet --output-file="$po" "$po" "$POT"
     # Texts no code uses any more are dropped, not kept as "#~" (msgmerge has no option for it)
     msgattrib --no-obsolete --output-file="$po" "$po"
+    # The flags of Weblate (po/weblate-flags.txt), which msgmerge and msgattrib drop
+    python3 -m openexpress.catalogs --flags "$po"
     echo "$lang: $(msgfmt --statistics --output-file=/dev/null "$po" 2>&1)"
 done
 python3 -m openexpress.catalogs

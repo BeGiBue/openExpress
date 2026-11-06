@@ -111,11 +111,9 @@ def _pot_date(path: Path) -> str:
     return found.group(1)
 
 
-@needs_gettext
-def test_after_the_scripts_every_language_has_the_template_s_date(tmp_path):
-    """tools/update-template.sh, then tools/update-translations.sh, on a copy of the tree: the
-    header of each po/<language>.po has the template's date, as Weblate's msgmerge add-on writes
-    it, so Weblate has no pull request of that one line to open after the template changes."""
+def _run_the_scripts(tmp_path, prepare=None) -> list[Path]:
+    """tools/update-template.sh, then tools/update-translations.sh, on a copy of the tree (its
+    own openexpress); `prepare(po)` first changes each po/<language>.po. The languages' files."""
     (tmp_path / "tools").mkdir()
     for script in ("update-template.sh", "update-translations.sh"):
         shutil.copy2(ROOT / "tools" / script, tmp_path / "tools" / script)
@@ -123,19 +121,123 @@ def test_after_the_scripts_every_language_has_the_template_s_date(tmp_path):
     shutil.copytree(ROOT / "openexpress", tmp_path / "openexpress",
                     ignore=shutil.ignore_patterns("__pycache__", "locale"))
     languages = [tmp_path / "po" / f"{lang}.po" for lang in catalogs.languages(tmp_path / "po")]
-    old = "2000-01-01 00:00+0000"  # no template's date
-    for po in languages:
-        text = po.read_text(encoding="utf-8")
-        po.write_text(POT_DATE.sub(lambda _m: f'"POT-Creation-Date: {old}\\n"', text, count=1),
-                      encoding="utf-8")
+    for po in languages if prepare else ():
+        prepare(po)
     env = {k: v for k, v in os.environ.items() if k != "PYTHONPATH"}  # the copy's openexpress
     for script in ("update-template.sh", "update-translations.sh"):
         subprocess.run(["bash", str(tmp_path / "tools" / script)], cwd=tmp_path, env=env,
                        capture_output=True, text=True, timeout=120, check=True)
+    return languages
+
+
+@needs_gettext
+def test_after_the_scripts_every_language_has_the_template_s_date(tmp_path):
+    """The header of each po/<language>.po has the template's date, as Weblate's msgmerge
+    add-on writes it, so Weblate has no pull request of that one line to open after the template
+    changes."""
+    old = "2000-01-01 00:00+0000"  # no template's date
+
+    def an_old_date(po):
+        text = po.read_text(encoding="utf-8")
+        po.write_text(POT_DATE.sub(lambda _m: f'"POT-Creation-Date: {old}\\n"', text, count=1),
+                      encoding="utf-8")
+
+    languages = _run_the_scripts(tmp_path, an_old_date)
     template = _pot_date(tmp_path / "po" / "openexpress.pot")
     dates = {po.name: _pot_date(po) for po in languages}
     assert languages and template != old
     assert dates == dict.fromkeys(dates, template)
+
+
+# --- the flags of Weblate -----------------------------------------------------------------------
+
+def _flags_in(path: Path) -> dict[tuple[str, str], list[str]]:
+    """The flags of each entry of a PO file, from its "#," line."""
+    lines = path.read_text(encoding="utf-8").splitlines()
+    found = {}
+    for start, end, context, msgid in catalogs._entries(lines):
+        line = next((x for x in lines[start:end] if x.startswith("#,")), "#,")
+        found[(context, msgid)] = [f.strip() for f in line[2:].split(",") if f.strip()]
+    return found
+
+
+def test_every_text_of_the_weblate_flags_is_one_of_the_template():
+    listed = catalogs.read_flags()
+    template = _flags_in(ROOT / "po" / "openexpress.pot")
+    assert listed and not set(listed) - set(template), "a text of po/weblate-flags.txt is gone"
+    assert all(f.startswith("ignore-") for flags in listed.values() for f in flags)
+
+
+@needs_gettext
+def test_after_the_scripts_the_weblate_flags_are_in_the_template_and_every_language(tmp_path):
+    """msgmerge and msgattrib drop the flags they do not know: the scripts write them again."""
+    def no_weblate_flags(po):
+        po.write_text(re.sub(r", ignore-[a-z-]+", "", po.read_text(encoding="utf-8")),
+                      encoding="utf-8")
+
+    languages = _run_the_scripts(tmp_path, no_weblate_flags)
+    listed = catalogs.read_flags(tmp_path / "po" / "weblate-flags.txt")
+    for path in [tmp_path / "po" / "openexpress.pot", *languages]:
+        found = _flags_in(path)
+        missing = {key: flags for key, flags in listed.items()
+                   if not set(flags) <= set(found.get(key, []))}
+        assert missing == {}, path.name
+
+
+PO_TEXT = """\
+msgid ""
+msgstr ""
+"Content-Type: text/plain; charset=UTF-8\\n"
+
+#. TRANSLATORS: a comment
+#: openexpress/a.py:1
+msgctxt "data field"
+msgid "Stamina"
+msgstr "Stamina"
+
+#. TRANSLATORS: two lines
+#: openexpress/b.py:2
+#, python-brace-format
+msgid ""
+"{count} more "
+"lines\\n"
+msgid_plural "{count} more lines\\n"
+msgstr[0] ""
+
+#, fuzzy
+#| msgid "Old"
+msgid "Garmin"
+msgstr "Garmin"
+
+#~ msgid "Gone"
+#~ msgstr "Nie ma"
+"""
+
+
+def test_the_flags_are_written_where_a_po_file_has_them_and_never_twice(tmp_path):
+    po = tmp_path / "x.po"
+    po.write_text(PO_TEXT, encoding="utf-8")
+    flags = {("data field", "Stamina"): ["ignore-same"],
+             ("", "{count} more lines\n"): ["ignore-same-plurals", "python-brace-format"],
+             ("", "Garmin"): ["ignore-same"], ("", "Gone"): ["ignore-same"]}
+    assert catalogs.add_flags(po, flags) == 3
+    text = po.read_text(encoding="utf-8")
+    assert "#: openexpress/a.py:1\n#, ignore-same\nmsgctxt \"data field\"" in text
+    assert "#, ignore-same-plurals, python-brace-format\nmsgid \"\"" in text  # sorted
+    assert "#, fuzzy, ignore-same\n#| msgid \"Old\"" in text  # before the previous msgid
+    assert "#~ msgid \"Gone\"\n#~ msgstr" in text and text.count("ignore-same,") == 0
+    assert catalogs.add_flags(po, flags) == 0 and po.read_text(encoding="utf-8") == text
+    assert _flags_in(po)[("", "")] == []  # the header untouched
+
+
+@pytest.mark.parametrize("line", ["Stamina|ignore-same", "|Stamina|", "|Stamina|Ignore Same",
+                                  "|Stamina|ignore-same; ignore-reused"])
+def test_a_line_of_the_weblate_flags_that_is_no_entry_is_said(tmp_path, line):
+    path = tmp_path / "flags.txt"
+    path.write_text("# a note\n\n" + line + "\n", encoding="utf-8")
+    with pytest.raises(ValueError, match="flags.txt:3"):
+        catalogs.read_flags(path)
+    assert catalogs.read_flags(tmp_path / "none.txt") == {}
 
 
 def test_the_metainfo_template_has_no_translation_in_it():
