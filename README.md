@@ -215,8 +215,11 @@ your `GarminDevice.xml` or the files in `~/.config/openexpress`. When something 
 
 ## Help translate
 
-openExpress speaks English and Polish. To add your language or correct one:
-[Translating openExpress](docs/translating.md).
+<a href="https://hosted.weblate.org/projects/openexpress/"><img alt="Translation status on Hosted Weblate" src="https://hosted.weblate.org/widget/openexpress/openexpress/svg-badge.svg"></a>
+
+openExpress speaks English and Polish. To add your language or correct one, translate it in your
+browser on [Hosted Weblate](https://hosted.weblate.org/projects/openexpress/), or send a `.po`
+file in a pull request: [Translating openExpress](docs/translating.md).
 
 ## Documentation
 

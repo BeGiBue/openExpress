@@ -2,7 +2,8 @@
 
 openExpress uses GNU gettext. The texts are in the template `po/openexpress.pot`, each language
 has its `po/<language>.po`, and `po/LINGUAS` lists the languages. Any editor for `.po` files
-works: Poedit, GNOME Translation Editor or a text editor.
+works: Poedit, GNOME Translation Editor or a text editor. Hosted Weblate needs none: see the end
+of this page.
 
 ## What not to translate
 
@@ -93,5 +94,17 @@ connected device as usual.
 - Translate "English" in the context "language name" into the name of your language in your
   language ("Deutsch", "Français"). The list of languages in the Preferences shows it.
 - Send `po/LINGUAS`, your `po/<language>.po` and `TRANSLATORS` in a pull request.
-- A web editor on Hosted Weblate is coming. This page will say how to use it once the project is
-  accepted there.
+- Or translate in your browser on
+  [Hosted Weblate](https://hosted.weblate.org/projects/openexpress/), with no files, no git and
+  no GitHub account:
+  - **Account**: sign in to Hosted Weblate, or sign up there first. Anyone signed in can
+    translate.
+  - **Your language**: open the component openexpress and choose your language. If it is not
+    listed, start a new translation of it there: Weblate makes its file from the template.
+  - **Suggestions**: "Save and continue" puts your translation in at once. "Suggest" leaves it
+    for another translator of the language to accept, when you are unsure of a word or would
+    like a correction checked first.
+  - Weblate shows the comments and contexts beside each text, and the rules of this page apply
+    there too. "translator-credits" and the language name are texts like any other. Weblate
+    sends the translations to this repository in a pull request, merged before each release:
+    the hard spaces and the tests are run then, and your name goes to `TRANSLATORS`.
