@@ -4068,14 +4068,14 @@ msgstr "Nie znaleziono: {path}"
 
 #. TRANSLATORS: a GPX file chosen to be copied to the device as a course is too large;
 #. {size} and {limit}: sizes such as "31.2 MB"
-#: openexpress/course_gpx.py:218
+#: openexpress/course_gpx.py:223
 #, python-brace-format
 msgid "{file} is too large for a course: {size}, at most {limit}."
 msgstr "{file} jest za duży na kurs: {size}, najwyżej {limit}."
 
 #. TRANSLATORS: a GPX file declares a document type (<!DOCTYPE …>) or entities, which
 #. could make a parser expand them or read other files: it is not read at all
-#: openexpress/course_gpx.py:228
+#: openexpress/course_gpx.py:240
 #, python-brace-format
 msgid ""
 "{file} is not read: it declares a document type, which a GPX file has no "
@@ -4085,32 +4085,110 @@ msgstr ""
 "potrzebuje."
 
 #. TRANSLATORS: a point of a GPX file has a latitude or longitude out of range, or none
-#: openexpress/course_gpx.py:232
+#: openexpress/course_gpx.py:244
 #, python-brace-format
 msgid "{file} has a point with an impossible position."
 msgstr "{file} ma punkt o niemożliwym położeniu."
 
 #. TRANSLATORS: a file chosen to be copied to the device as a course is not a GPX file
-#: openexpress/course_gpx.py:236
+#: openexpress/course_gpx.py:248
 #, python-brace-format
 msgid "{file} is not a GPX file."
 msgstr "{file} nie jest plikiem GPX."
 
 #. TRANSLATORS: a GPX file has nothing the device could navigate by
-#: openexpress/course_gpx.py:240
+#: openexpress/course_gpx.py:252
 #, python-brace-format
 msgid "{file} has no track, route or waypoint."
 msgstr "{file} nie ma śladu, trasy ani punktu."
 
 #. TRANSLATORS: the course's name cannot be written into this GPX file (its text is
 #. written in UTF-16 or UTF-32); the file can be copied with the name it has
-#: openexpress/course_gpx.py:290
+#: openexpress/course_gpx.py:302
 #, python-brace-format
 msgid ""
 "The name of the course cannot be changed in {file}; copy it with the name it "
 "has."
 msgstr ""
 "W pliku {file} nie da się zmienić nazwy kursu; skopiuj go z nazwą, którą ma."
+
+#. TRANSLATORS: `courses add FILE --name NAME` for a GPX file of waypoints only
+#: openexpress/courses.py:355
+#, python-brace-format
+msgid ""
+"{file} has only waypoints: no course is made of it, so it takes no course "
+"name."
+msgstr ""
+"{file} zawiera tylko punkty: urządzenie nie zrobi z niego kursu, więc nie "
+"można nadać mu nazwy kursu."
+
+#. TRANSLATORS: `courses add FILE --name NAME` for a GPX file of several tracks and routes,
+#. each of which the device makes a course of, with the name it has
+#: openexpress/courses.py:359
+#, python-brace-format
+msgid ""
+"{file} makes {count} course; only a file with one track or route takes a "
+"course name."
+msgid_plural ""
+"{file} makes {count} courses; only a file with one track or route takes a "
+"course name."
+msgstr[0] ""
+"Z pliku {file} urządzenie zrobi {count} kurs; nazwę kursu można nadać tylko "
+"plikowi z jednym śladem lub trasą."
+msgstr[1] ""
+"Z pliku {file} urządzenie zrobi {count} kursy; nazwę kursu można nadać tylko "
+"plikowi z jednym śladem lub trasą."
+msgstr[2] ""
+"Z pliku {file} urządzenie zrobi {count} kursów; nazwę kursu można nadać "
+"tylko plikowi z jednym śladem lub trasą."
+
+#: openexpress/courses.py:366 openexpress/ownmaps.py:220
+#, python-brace-format
+msgid "A file named {name} is already on the device; nothing is overwritten."
+msgstr ""
+"Plik o nazwie {name} jest już na urządzeniu; nic nie zostanie nadpisane."
+
+#. TRANSLATORS: a device that does not take GPX files in Garmin/NewFiles
+#: openexpress/courses.py:378
+msgid "This device does not make courses of GPX files."
+msgstr "To urządzenie nie tworzy kursów z plików GPX."
+
+#. TRANSLATORS: {folder}: a folder the device declares, such as Garmin/NewFiles
+#: openexpress/courses.py:393
+#, python-brace-format
+msgid "The device has no folder {folder}."
+msgstr "Na urządzeniu nie ma katalogu {folder}."
+
+#. TRANSLATORS: copying a map file to the device failed; {path}: the file's path on the
+#. device
+#: openexpress/courses.py:423 openexpress/ownmaps.py:276
+#, python-brace-format
+msgid "Writing {path} failed."
+msgstr "Zapis {path} się nie powiódł."
+
+#: openexpress/courses.py:453 openexpress/ownmaps.py:395
+#, python-brace-format
+msgid "{name} is no longer on the device."
+msgstr "Pliku {name} nie ma już na urządzeniu."
+
+#. TRANSLATORS: a course's file or a waiting GPX file chosen to be removed
+#: openexpress/courses.py:456
+#, python-brace-format
+msgid "{name} has changed since the list was shown, so it is not removed."
+msgstr ""
+"Plik {name} zmienił się od wyświetlenia listy, więc nie zostanie usunięty."
+
+#. TRANSLATORS: what was chosen to be removed is not a course's file or a waiting GPX
+#. file of the device's folders
+#: openexpress/courses.py:480
+#, python-brace-format
+msgid "{name} is not the file of a course, so it is not removed."
+msgstr "{name} nie jest plikiem kursu, więc nie zostanie usunięty."
+
+#: openexpress/courses.py:519 openexpress/ownmaps.py:388
+#, python-brace-format
+msgid "{path} is still on the device."
+msgstr "Plik {path} nadal jest na urządzeniu."
 
 #. TRANSLATORS: name of the hidden desktop entry that syncs in the background when the device is
 #. connected
@@ -8555,12 +8633,6 @@ msgstr ""
 "Nazwy {name} nie można użyć: dozwolone są tylko litery, cyfry, spacje oraz . "
 "_ - ( ), a nazwa musi kończyć się na .img."
 
-#: openexpress/ownmaps.py:220
-#, python-brace-format
-msgid "A file named {name} is already on the device; nothing is overwritten."
-msgstr ""
-"Plik o nazwie {name} jest już na urządzeniu; nic nie zostanie nadpisane."
-
 #: openexpress/ownmaps.py:231 openexpress/ownmaps.py:361
 #: openexpress/ownmaps.py:411
 msgid "This device has no folder for maps."
@@ -8575,13 +8647,6 @@ msgstr "Nazwa {name} jest zastrzeżona dla map Garmina."
 #, python-brace-format
 msgid "the file on the device has {actual} instead of {expected}"
 msgstr "plik na urządzeniu ma {actual} zamiast {expected}"
-
-#. TRANSLATORS: copying a map file to the device failed; {path}: the file's path on the
-#. device
-#: openexpress/ownmaps.py:276
-#, python-brace-format
-msgid "Writing {path} failed."
-msgstr "Zapis {path} się nie powiódł."
 
 #: openexpress/ownmaps.py:282
 #, python-brace-format
@@ -8622,16 +8687,6 @@ msgstr ""
 msgid "{name} is named like one of Garmin's own maps, so it is not removed."
 msgstr ""
 "Plik {name} ma nazwę taką jak mapy Garmina, więc nie zostanie usunięty."
-
-#: openexpress/ownmaps.py:388
-#, python-brace-format
-msgid "{path} is still on the device."
-msgstr "Plik {path} nadal jest na urządzeniu."
-
-#: openexpress/ownmaps.py:395
-#, python-brace-format
-msgid "{name} is no longer on the device."
-msgstr "Pliku {name} nie ma już na urządzeniu."
 
 #: openexpress/ownmaps.py:398
 #, python-brace-format

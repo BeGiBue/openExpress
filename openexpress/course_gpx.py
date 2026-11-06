@@ -213,12 +213,24 @@ def read(path: Path) -> GpxFile:
     if info is None or not stat.S_ISREG(info.st_mode):
         raise CourseFileError(_("Not found: {path}").format(path=path))
     if info.st_size > MAX_SIZE:
-        # TRANSLATORS: a GPX file chosen to be copied to the device as a course is too large;
-        # {size} and {limit}: sizes such as "31.2 MB"
-        raise CourseFileError(_("{file} is too large for a course: {size}, at most {limit}.")
-                              .format(file=path.name, size=human_size(info.st_size),
-                                      limit=human_size(MAX_SIZE)))
-    data = path.read_bytes()
+        raise _too_large(path, info.st_size)
+    return parse(path.read_bytes(), path)
+
+
+def _too_large(path: Path, size: int) -> CourseFileError:
+    # TRANSLATORS: a GPX file chosen to be copied to the device as a course is too large;
+    # {size} and {limit}: sizes such as "31.2 MB"
+    return CourseFileError(_("{file} is too large for a course: {size}, at most {limit}.")
+                           .format(file=path.name, size=human_size(size),
+                                   limit=human_size(MAX_SIZE)))
+
+
+def parse(data: bytes, path: Path) -> GpxFile:
+    """The GPX file of these bytes, checked as read checks a file (`path`: where it is, named
+    in what is said: a file on the device, or the copy of a file with a new course name)."""
+    path = Path(path)
+    if len(data) > MAX_SIZE:
+        raise _too_large(path, len(data))
     reader = _Reader()
     try:
         reader.parser.Parse(data, True)
@@ -241,7 +253,7 @@ def read(path: Path) -> GpxFile:
             file=path.name))
     name_at = ((lines[0]["start"], lines[0]["name_start"], lines[0]["name_end"])
                if len(lines) == 1 else None)
-    return GpxFile(path, info.st_size, tuple(_line(found) for found in lines), reader.waypoints,
+    return GpxFile(path, len(data), tuple(_line(found) for found in lines), reader.waypoints,
                    reader.encoding, data, name_at)
 
 

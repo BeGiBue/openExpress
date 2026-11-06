@@ -195,7 +195,8 @@ of the track's or route's `<name>` (added when it has none); nothing else of the
   waiting for it and the number of saved locations (D10).
 - `openexpress courses add FILE.gpx [--name COURSE] [--apply]`: without `--apply` what would be
   copied (the course's name, the file's name on the device, what the file holds and what the
-  device does with it, the space); with it the copy. `--name` names the course, as the entry.
+  device does with it, the space); with it the copy. `--name` names the course, as the entry;
+  for a file that makes no course or several it is refused, with the reason.
 - `openexpress courses remove NAME [--apply]`: a course or a waiting file, by its name or a part
   of it, as `profiles show` matches names; several matches list them and remove nothing.
 - Every one works with `--path DIR` and `--device-uri URI`, as the other commands that open a
@@ -362,6 +363,10 @@ the rest in sentences; Polish in sentence case, with its hard spaces. The names 
 - **13a. From the FIT file and openExpress's record:** "Garmin Connect" for the product 65534 in
   `file_id`; "openExpress" for a course whose name a copy of either install recorded, made by the
   device (product 20119) after that copy; otherwise not known (no chip; the stronger question).
+  The course's name is the recorded one or its start (a device cuts a long name); "after" allows
+  the device's clock and the computer's to be ten minutes apart. Removing such a course takes its
+  name off this install's record, so a course of that name copied by hand later is not taken for
+  openExpress's.
   - \+ No guess: what is not known is said to be so.
   - − A course copied by openExpress on another computer is not known.
 - **13b. No origin.** − Every removal asked the same; a course from Garmin Connect looks like any.
@@ -408,7 +413,9 @@ and the questions (light and dark, made-up data) come before step 4.
    (section 2.3); README.
 6. **The map in the question** (D14), the last step.
 7. **On the devices**: a course copied and removed by openExpress on a fēnix 8 and an Edge 1050;
-   then "experimental" goes (D12).
+   then "experimental" goes (D12). Checked with it: a file named with the extension in the case
+   the device declares (`.GPX` on the fēnix 8, where the attempt copied `.gpx`), and the count
+   of saved locations (the `location` messages of the locations file) against the device's own.
 
 ## 9. Size
 

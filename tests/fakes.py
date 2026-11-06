@@ -905,6 +905,31 @@ def fit_file(*messages, header_size: int = 14, cut: int | None = None,
     return data if cut is None else data[:cut]
 
 
+# Made-up GPX files: a course to copy to a device (course_gpx, courses).
+GPX_NAMESPACE = "http://www.topografix.com/GPX/1/1"
+
+
+def gpx_file(body: str, ns: str = GPX_NAMESPACE,
+             decl: str = '<?xml version="1.0" encoding="UTF-8"?>\n') -> str:
+    return f'{decl}<gpx version="1.1" creator="made up" xmlns="{ns}">\n{body}</gpx>\n'
+
+
+def gpx_track(name: str | None = "Morning Loop",
+              points=((52.0, 13.0, 30.0), (52.0, 13.01, 40.0), (52.0, 13.02, 35.0))) -> str:
+    named = f"<name>{name}</name>" if name is not None else ""
+    pts = "".join(f'<trkpt lat="{la}" lon="{lo}"><ele>{e}</ele></trkpt>' for la, lo, e in points)
+    return f"  <trk>{named}<trkseg>{pts}</trkseg></trk>\n"
+
+
+def gpx_route(name="To the Lake", points=((52.0, 13.0), (52.01, 13.0), (52.02, 13.01))) -> str:
+    pts = "".join(f'<rtept lat="{la}" lon="{lo}"/>' for la, lo in points)
+    return f"  <rte><name>{name}</name>{pts}</rte>\n"
+
+
+def gpx_waypoint(name="Spring", lat=52.0, lon=13.0) -> str:
+    return f'  <wpt lat="{lat}" lon="{lon}"><name>{name}</name></wpt>\n'
+
+
 # Made-up sport profiles (FIT file type 3), in the shapes of the two kinds measured: a watch's
 # (a fēnix 8: eight field IDs a screen, no field 12) and a bike computer's (an Edge 1050: ten IDs,
 # field 12 "hidden", a text and two arrays more). Message 14 is the table of data screens.

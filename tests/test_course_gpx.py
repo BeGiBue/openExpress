@@ -5,32 +5,16 @@ into the copy (that element alone), and the file's name on the device. Made-up f
 import math
 
 import pytest
+from fakes import gpx_file as gpx
+from fakes import gpx_route as route
+from fakes import gpx_track as track
+from fakes import gpx_waypoint as waypoint
 
 from openexpress import course_gpx
 from openexpress.course_gpx import CourseFileError
 
 NS11 = "http://www.topografix.com/GPX/1/1"
 NS10 = "http://www.topografix.com/GPX/1/0"
-
-
-def gpx(body: str, ns: str = NS11, decl: str = '<?xml version="1.0" encoding="UTF-8"?>\n') -> str:
-    return f'{decl}<gpx version="1.1" creator="made up" xmlns="{ns}">\n{body}</gpx>\n'
-
-
-def track(name: str | None = "Morning Loop", points=((52.0, 13.0, 30.0), (52.0, 13.01, 40.0),
-                                                       (52.0, 13.02, 35.0))) -> str:
-    named = f"<name>{name}</name>" if name is not None else ""
-    pts = "".join(f'<trkpt lat="{la}" lon="{lo}"><ele>{e}</ele></trkpt>' for la, lo, e in points)
-    return f"  <trk>{named}<trkseg>{pts}</trkseg></trk>\n"
-
-
-def route(name="To the Lake", points=((52.0, 13.0), (52.01, 13.0), (52.02, 13.01))) -> str:
-    pts = "".join(f'<rtept lat="{la}" lon="{lo}"/>' for la, lo in points)
-    return f"  <rte><name>{name}</name>{pts}</rte>\n"
-
-
-def waypoint(name="Spring", lat=52.0, lon=13.0) -> str:
-    return f'  <wpt lat="{lat}" lon="{lon}"><name>{name}</name></wpt>\n'
 
 
 def write(tmp_path, text: str | bytes, name="morning-loop.gpx"):

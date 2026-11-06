@@ -917,17 +917,20 @@ def activity_data(data: bytes) -> ActivityData:
 
 
 # FIT profile: workout (sport, num_valid_steps, wkt_name), course (sport, name) and schedule
-# (scheduled_time, a local_date_time), the messages a file of Garmin Connect's queue may hold.
+# (scheduled_time, a local_date_time), the messages a file of Garmin Connect's queue may hold;
+# location, a saved location (a file of type 8, which holds them all).
 _MESG_WORKOUT, _WORKOUT_SPORT, _WORKOUT_STEPS, _WORKOUT_NAME = 26, 4, 6, 8
 _MESG_COURSE, _COURSE_SPORT, _COURSE_NAME = 31, 4, 5
 _MESG_SCHEDULE, _SCHEDULE_TIME = 28, 6
+MESG_LOCATION = 29
 
 
 @dataclass(frozen=True)
 class Described:
     """What a file says of itself (describe): its type, when it was made (a Unix time), who
     made it (its manufacturer and product numbers), and for a workout or a course its sport and
-    name, a workout's steps, a schedule's days (the local clock, as seconds since 1970)."""
+    name, a workout's steps, a course's laps (their distance and ascent), a schedule's days (the
+    local clock, as seconds since 1970)."""
 
     file_type: int | None = None
     created: int | None = None
@@ -937,18 +940,35 @@ class Described:
     name: str | None = None
     steps: int | None = None
     days: tuple[int, ...] = ()
+    laps: tuple[Lap, ...] = ()
+
+    @property
+    def distance(self) -> float | None:
+        """The distance of its laps together, in metres; None when none gives one."""
+        found = [lap.distance for lap in self.laps if lap.distance is not None]
+        return sum(found) if found else None
+
+    @property
+    def ascent(self) -> int | None:
+        """The ascent of its laps together, in metres; None when none gives one (a course
+        made of a route without elevations)."""
+        found = [lap.ascent for lap in self.laps if lap.ascent is not None]
+        return sum(found) if found else None
 
 
 def describe(data: bytes) -> Described:
-    """What the FIT file `data` says of itself, as far as it reads. FitError for what is no
-    FIT file."""
+    """What the FIT file `data` says of itself, as far as it reads: the start of a course's
+    file is enough when its course and lap come before its points, as in the files the devices
+    and Garmin Connect make. FitError for what is no FIT file."""
     _check_header(data)
     file_id: dict[int, Value] = {}
     sport = name = steps = None
     days: list[int] = []
+    laps: list[Lap] = []
     try:
         for num, values in iter_messages(
-                data, wanted=(_MESG_FILE_ID, _MESG_WORKOUT, _MESG_COURSE, _MESG_SCHEDULE)):
+                data, wanted=(_MESG_FILE_ID, _MESG_WORKOUT, _MESG_COURSE, _MESG_SCHEDULE,
+                              _MESG_LAP)):
             if num == _MESG_FILE_ID:
                 file_id = file_id or values
             elif num == _MESG_WORKOUT:
@@ -956,6 +976,8 @@ def describe(data: bytes) -> Described:
                 name = values.get(_WORKOUT_NAME)
             elif num == _MESG_COURSE:
                 sport, name = values.get(_COURSE_SPORT), values.get(_COURSE_NAME)
+            elif num == _MESG_LAP:
+                laps.append(_lap(values))
             else:
                 day = _whole_number(values.get(_SCHEDULE_TIME))
                 if day is not None:
@@ -968,4 +990,4 @@ def describe(data: bytes) -> Described:
         manufacturer=_whole_number(file_id.get(_FILE_ID_MANUFACTURER)),
         product=_whole_number(file_id.get(_FILE_ID_PRODUCT)), sport=_whole_number(sport),
         name=name if isinstance(name, str) else None, steps=_whole_number(steps),
-        days=tuple(sorted(days)))
+        days=tuple(sorted(days)), laps=tuple(laps))
