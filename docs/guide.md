@@ -142,7 +142,7 @@ in the [log](troubleshooting.md#log-file) and does nothing. A watch and a Varia:
 
 <p align="center">
   <img src="screenshots/device.png" width="700"
-       alt="The device page of a fēnix 8: an update available under its version, storage, the last sync and the updates">
+       alt="The device page of a fēnix 8: its software version, storage, the last sync and the updates">
 </p>
 
 ## Software updates
