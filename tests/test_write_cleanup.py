@@ -384,7 +384,7 @@ def test_the_window_says_the_text_of_the_window(device_root, monkeypatch):
         maps_cache=[m], run_task=run_task, progress=None, fraction=None, toast=None,
         error=lambda title, text: errors.append((title, text)),
         load_section=lambda key, force=False: None)
-    app.MainWindow._ask_install_map(win, m, 0, 0, [])
+    app.MainWindow._ask_install_map(win, m, 0, 0, 0, [])
     questions[0].emit("response", "ok")
     assert errors == [("Installing Test Map…", WINDOW_TEXT)]
 

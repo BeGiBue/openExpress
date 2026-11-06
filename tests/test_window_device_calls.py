@@ -112,7 +112,7 @@ def test_the_space_for_a_map_is_checked_off_the_window_thread(map_window, device
     win, m, storage = map_window
     plain = LocalStorage(device_root)
     plain.replaces_atomically = False
-    need = mp.space_needed(plain, m, [])
+    _need, change = mp.space_plan(plain, m, [])
     free = plain.free_space()
     app.MainWindow.confirm_map(win, m)
     assert storage.on_gtk == [] and storage.elsewhere  # asked, but not on GTK's thread
@@ -120,8 +120,8 @@ def test_the_space_for_a_map_is_checked_off_the_window_thread(map_window, device
     (asked,) = Question.asked
     assert asked["heading"] == "Install Test Map?"
     assert asked["body"].startswith(
-        "Download: 3.0\u00a0kB\n"
-        f"Space on the device: {human_size(need)} ({human_size(free)} free)\nFiles: 2")
+        "Map files on the device: 3.0\u00a0kB\n"
+        f"Free space after installing: {human_size(free - change)}\nFiles: 2")
 
 
 @pytest.mark.parametrize("meanwhile", ["unplugged", "list read again without it"])

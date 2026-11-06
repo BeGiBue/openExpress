@@ -608,6 +608,7 @@ def mark_waiting(storage: Storage, maps: list[UniversalMap]) -> None:
     except Exception as e:  # noqa: BLE001 - only shown: the map check goes on without it
         log.warning("maps: cannot read the map files on the device, none is marked as "
                     "waiting for unplugging: %s", e)
+        log_states(maps)
         return
     for m in maps:
         # Written: the server does not have the map (or has an older version), yet every file
@@ -631,6 +632,32 @@ def mark_waiting(storage: Storage, maps: list[UniversalMap]) -> None:
             removed.append(m)
     for m in removed:
         m.waiting = WAIT_REMOVE
+    log_states(maps)
+
+
+def _state_words(m: UniversalMap) -> str:
+    """The state of a map in the words of the log (status says it in the window's)."""
+    if m.waiting == WAIT_INSTALL:
+        return "written, loaded when the device is unplugged"
+    if m.waiting == WAIT_REMOVE:
+        return "removed, gone when the device is unplugged"
+    if m.incomplete:
+        return "incomplete"
+    if m.update_available:
+        return "update available"
+    if m.would_update:
+        return "update not offered in the account's country"
+    if m.state == 3:
+        return "newer on the device"
+    return "current"
+
+
+def log_states(maps: list[UniversalMap]) -> None:
+    """One line of the log after the list was matched with the device: each map the device
+    has or takes in when unplugged, with its state (maps only offered are left out)."""
+    shown = [m for m in maps if m.listed or m.waiting]
+    log.info("maps: states: %s", "; ".join(f"{m.name} {_state_words(m)}" for m in shown)
+             or "no map on the device")
 
 
 def waiting_message(m: UniversalMap) -> str:
@@ -655,17 +682,25 @@ def removal_list(maps: list[UniversalMap], target: UniversalMap, rewriting: bool
     return [p for p in target.files_to_remove if p.casefold() not in keep | new]
 
 
-def space_needed(storage: Storage, m: UniversalMap, removing: list[str]) -> int:
+def space_plan(storage: Storage, m: UniversalMap, removing: list[str]) -> tuple[int, int]:
+    """(needed, change): the space the install needs free while it writes, and how much less
+    space is free once it is done (negative: more), the old files removed and those written
+    over giving theirs back."""
     gone = {p.casefold() for p in removing}
-    # A file being replaced frees its space before the new one is written over MTP only; on
-    # a drive it stays until the new one is whole.
-    replacing = [] if storage.replaces_atomically else [
-        f.device_path for f in m.files if f.device_path.casefold() not in gone]
+    replacing = [f.device_path for f in m.files if f.device_path.casefold() not in gone]
     # Every folder of these files listed once (over MTP each listing is a round trip).
     sizes = storage.sizes([*removing, *replacing])
     freed = sum(sizes[p] or 0 for p in removing)
     replaced = sum(sizes[p] or 0 for p in replacing)
-    return max(0, m.size - freed - replaced)
+    change = m.size - freed - replaced
+    # A file being replaced frees its space before the new one is written over MTP only; on
+    # a drive it stays until the new one is whole.
+    needed = m.size - freed - (0 if storage.replaces_atomically else replaced)
+    return max(0, needed), change
+
+
+def space_needed(storage: Storage, m: UniversalMap, removing: list[str]) -> int:
+    return space_plan(storage, m, removing)[0]
 
 
 def write_order(m: UniversalMap) -> list[MapFile]:

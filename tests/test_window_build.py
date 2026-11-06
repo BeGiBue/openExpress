@@ -109,6 +109,16 @@ def test_closing_saves_the_size(monkeypatch):
                                                  "maximized": False}
 
 
+def test_the_bar_at_the_bottom_is_a_surface_of_its_own(window):
+    """The bar of a task is raised over the page: the end of a page scrolled under it reads as
+    scrolled, not as a row covered by it (the same for every page of a device)."""
+    from gi.repository import Adw
+
+    toolbar_view = window.action_bar.get_ancestor(Adw.ToolbarView)
+    assert toolbar_view.get_bottom_bar_style() == Adw.ToolbarStyle.RAISED
+    assert toolbar_view.get_extend_content_to_bottom_edge() is False
+
+
 def test_the_bar_at_the_bottom(window):
     from openexpress.progress import TimedWait
 

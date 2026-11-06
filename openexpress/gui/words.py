@@ -207,6 +207,33 @@ def space_text(free: int | None, total: int | None = None, reading: bool = False
     return _("{size} free").format(size=human_size(free))
 
 
+def free_after_text(free: int | None, needed: int, change: int, doing: str) -> str:
+    """The line of a question before a map is installed, updated or copied ("install",
+    "update", "copy") about the free space: what is left once it is done (`change`: how much
+    less), or what is missing for the `needed`, or that the device does not say."""
+    if free is None:
+        # TRANSLATORS: line of the question before a map is installed or copied, when the device
+        # does not say how much space is free
+        return _("Free space on the device: unknown")
+    if needed > free:
+        # TRANSLATORS: line of the question before a map is installed or copied: {size} more
+        # would have to be free
+        return _("Not enough space on the device: {size} missing").format(
+            size=human_size(needed - free))
+    after = {
+        # TRANSLATORS: line of the question before a map is installed: the space free once it
+        # is installed
+        "install": _("Free space after installing: {free}"),
+        # TRANSLATORS: line of the question before a map is updated: the space free once the
+        # new files are written and the old ones removed
+        "update": _("Free space after updating: {free}"),
+        # TRANSLATORS: line of the question before a map of your own is copied to the device:
+        # the space free once it is copied
+        "copy": _("Free space after copying: {free}"),
+    }[doing]
+    return after.format(free=human_size(max(0, free - change)))
+
+
 def last_seen_text(last_seen: float, now: datetime | None = None) -> str:
     """When this computer last saw a device, told against now, as the last sync is ("Last
     seen 2 h ago"): on its tile and on its page alike; the full date is in the tooltip

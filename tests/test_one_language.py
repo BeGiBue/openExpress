@@ -158,13 +158,22 @@ def test_the_question_before_a_map_says_the_space_in_the_same_words(monkeypatch)
     asked = []
     monkeypatch.setattr(Adw.AlertDialog, "present", lambda self, parent: asked.append(self))
     win = stand_in(session=types.SimpleNamespace(), run_task=None)
-    m = types.SimpleNamespace(size=1_000_000, files=["a"], eula_urls=[], installed=False,
+    m = types.SimpleNamespace(size=1_500_000, files=["a"], eula_urls=[], installed=False,
                               name="Test Map")
-    app.MainWindow._ask_install_map(win, m, 1_500_000, None, [])
-    app.MainWindow._ask_install_map(win, m, 1_500_000, 2_100_000_000, [])
-    bodies = [d.get_body().splitlines()[1] for d in asked]
-    assert bodies == [f"Space on the device: 1.5{NB}MB (Unknown)",
-                      f"Space on the device: 1.5{NB}MB (2.1{NB}GB free)"]
+    app.MainWindow._ask_install_map(win, m, 1_500_000, 1_500_000, None, [])
+    app.MainWindow._ask_install_map(win, m, 1_500_000, 1_500_000, 2_100_000_000, [])
+    app.MainWindow._ask_install_map(win, m, 1_500_000, 1_500_000, 1_000_000, [])
+    m.installed = True  # an update: its old files go, the space after says so
+    app.MainWindow._ask_install_map(win, m, 0, -600_000_000, 2_100_000_000, ["a"])
+    bodies = [d.get_body().splitlines()[:2] for d in asked]
+    assert bodies == [
+        [f"Map files on the device: 1.5{NB}MB", "Free space on the device: unknown"],
+        [f"Map files on the device: 1.5{NB}MB", f"Free space after installing: 2.1{NB}GB"],
+        [f"Map files on the device: 1.5{NB}MB",
+         f"Not enough space on the device: 500.0{NB}kB missing"],
+        [f"Map files on the device: 1.5{NB}MB", f"Free space after updating: 2.7{NB}GB"],
+    ]
+    assert not any("Download" in d.get_body() for d in asked)
 
 
 # --- the USB mode -------------------------------------------------------------------------

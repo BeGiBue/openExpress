@@ -373,6 +373,9 @@ class MainWindow(TaskRunner, DeviceDetection, StartWindow, DevicePage, MapsPage,
         # In the column of the pages above it, at every width (window_tasks.bottom_bar).
         self.action_bar = bottom_bar(self.busy_spinner, box, self.stop_wait_button)
         content_view.add_bottom_bar(self.action_bar)
+        # A surface of its own over the page: what goes on under it reads as scrolled, not as
+        # a row it covers.
+        content_view.set_bottom_bar_style(Adw.ToolbarStyle.RAISED)
 
         self.content_page = Adw.NavigationPage(title=self.sections["watch"].title,
                                                child=content_view)

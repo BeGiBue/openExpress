@@ -198,7 +198,7 @@ def test_the_questions_before_a_map_name_the_old_files(monkeypatch, device):
     west = "TopoActive West"
     for ask in (lambda win, maps: MainWindow.confirm_remove(win, mp.find(maps, west)),
                 lambda win, maps: MainWindow._ask_install_map(win, mp.find(maps, west), 100,
-                                                              None, [])):
+                                                              100, None, [])):
         body = _questions(monkeypatch, device, ask)
         assert body.endswith(f"\n\n{HEADER}\nGARMIN/OLD1.GMA\n{NOT_YET}")
 

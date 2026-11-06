@@ -480,7 +480,7 @@ def _map_install(ctx):
 
     m = types.SimpleNamespace(size=1000, files=["Garmin/X.img"], eula_urls=[], installed=False,
                               name="TopoActive Made-up")
-    MainWindow._ask_install_map(_maps_window(ctx), m, 1000, 5000, [])
+    MainWindow._ask_install_map(_maps_window(ctx), m, 1000, 1000, 5000, [])
 
 
 def _map_remove(ctx):

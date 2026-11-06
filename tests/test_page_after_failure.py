@@ -69,7 +69,7 @@ def _install(win, name):
     from openexpress.gui.app import MainWindow
 
     (m,) = [m for m in win.maps_cache if m.name == name]
-    MainWindow._ask_install_map(win, m, m.size, 10**9, [])
+    MainWindow._ask_install_map(win, m, m.size, m.size, 10**9, [])
     win.questions[-1].emit("response", "ok")
     _turn_until(lambda: not win.busy and win.errors)
 
@@ -295,7 +295,7 @@ def install_map(win, monkeypatch):
     m = _map(1000)
     win.maps_cache = [m]
     monkeypatch.setattr(maps, "install", win.fails)
-    MainWindow._ask_install_map(win, m, 1000, 10**9, [])
+    MainWindow._ask_install_map(win, m, 1000, 1000, 10**9, [])
     return "maps", "Installing Test Map…"
 
 

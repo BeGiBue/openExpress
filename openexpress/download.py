@@ -137,14 +137,14 @@ def fetch(
     if not size:
         size = None  # 0 or missing: unknown
     if _valid(dest, size, md5):
-        log.info("download: already in the cache (%s)", applog.size(size))
+        log.info("download: already in the cache (%s), size and MD5 match", applog.size(size))
         return dest
     http = session or user_agent_session()
     dest.parent.mkdir(parents=True, exist_ok=True)
     part = dest.with_name(dest.name + ".part")
     errors = []
     for url in urls:
-        for _attempt in range(2):
+        for attempt in range(2):
             try:
                 _get(http, url, part, size, progress)
             except (requests.RequestException, DownloadError, OSError) as e:
@@ -164,16 +164,21 @@ def fetch(
             netstatus.record(netstatus.OMT, url, 200)
             got = part.stat().st_size
             # The address is signed and names the product: only the host goes to the log.
-            log.info("download: %s from %s", applog.size(got), urlsplit(url).netloc)
+            said = f"download: {applog.size(got)} from {urlsplit(url).netloc}"
+            then = ("asking it again" if attempt == 0 else
+                    "trying the next address" if url != urls[-1] else "no address left")
             if size is not None and got != size:
+                log.warning("%s instead of %s; %s", said, applog.size(size), then)
                 errors.append(_("{url}: size {got} instead of {size}")
                               .format(url=_short(url), got=got, size=size))
                 part.unlink(missing_ok=True)
                 continue
             if md5 is not None and file_md5(part) != md5:
+                log.warning("%s, MD5 mismatch; %s", said, then)
                 errors.append(_("{url}: MD5 checksum mismatch").format(url=_short(url)))
                 part.unlink(missing_ok=True)
                 continue
+            log.info("%s, %s", said, "MD5 matches" if size is None else "size and MD5 match")
             part.replace(dest)
             return dest
     raise DownloadError(_("Could not download the file:") + "\n  " + "\n  ".join(errors))

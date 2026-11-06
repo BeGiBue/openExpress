@@ -59,6 +59,36 @@ def md5hex(b):
     return hashlib.md5(b).hexdigest()
 
 
+def test_the_log_says_that_the_size_and_the_md5_of_a_download_match(server, tmp_path, caplog):
+    data = FILES["/maps/topo.img"]
+    with caplog.at_level(logging.INFO, logger="openexpress"):
+        download.fetch([server + "/maps/topo.img"], tmp_path / "t.img", len(data), md5hex(data))
+    host = server.split("://", 1)[1]
+    assert f"download: 7_000 B from {host}, size and MD5 match" in caplog.messages
+
+
+def test_a_download_that_does_not_match_is_a_warning_with_what_comes_next(server, tmp_path,
+                                                                         caplog):
+    """Its size or its MD5 wrong: a warning, and whether the same address is asked again,
+    the next one is tried or none is left."""
+    data = FILES["/maps/topo.img"]
+    urls = [server + "/maps/dem.img", server + "/maps/topo.img"]  # the first one is wrong
+    with caplog.at_level(logging.INFO, logger="openexpress"):
+        download.fetch(urls, tmp_path / "t.img", None, md5hex(data))
+    host = server.split("://", 1)[1]
+    said = [(r.levelname, r.getMessage()) for r in caplog.records
+            if r.getMessage().startswith("download: ")]
+    assert said == [
+        ("WARNING", f"download: 2_000 B from {host}, MD5 mismatch; asking it again"),
+        ("WARNING", f"download: 2_000 B from {host}, MD5 mismatch; trying the next address"),
+        ("INFO", f"download: 7_000 B from {host}, MD5 matches"),
+    ]
+    with caplog.at_level(logging.INFO, logger="openexpress"), pytest.raises(download.DownloadError):
+        download.fetch(urls[:1], tmp_path / "d.img", len(data), md5hex(data))
+    assert (f"download: 2_000 B from {host} instead of 7_000 B; no address left"
+            in caplog.messages)
+
+
 def test_normalize_md5():
     h = md5hex(b"x")
     assert download.normalize_md5(h.upper()) == h
@@ -1265,6 +1295,45 @@ def waiting_maps(server, device_root, storage=None):
     all_maps = maps.parse_maps(maps_response(server))
     maps.mark_waiting(storage or LocalStorage(device_root), all_maps)
     return {m.name.split()[-1]: m for m in all_maps}
+
+
+def test_after_the_maps_are_read_one_line_says_the_state_of_each(server, device_root, xdg,
+                                                                  caplog):
+    """One line of the log, after the files on the device were matched with the list: each map
+    the device has or takes in when unplugged, with its state; maps only offered are left
+    out, and no name of a file."""
+    put(device_root, **{"W.img": TOPO, "DEM.img": DEM, "W.gma": b"u", "E.img": b"old",
+                        "E.gma": b"u", "J.img": TOPO})
+    with caplog.at_level(logging.INFO, logger="openexpress"):
+        waiting_maps(server, device_root)
+    lines = [m for m in caplog.messages if m.startswith("maps: states:")]
+    assert lines == [("maps: states: TopoActive West current; TopoActive East update available; "
+                      "TopoActive Japan written, loaded when the device is unplugged")]
+    assert ".img" not in lines[0]
+
+
+def test_the_states_say_when_there_is_no_map(server, device_root, xdg, caplog):
+    all_maps = [m for m in maps.parse_maps(maps_response(server)) if not m.listed]
+    with caplog.at_level(logging.INFO, logger="openexpress"):
+        maps.mark_waiting(LocalStorage(device_root), all_maps)
+    assert "maps: states: no map on the device" in caplog.messages
+
+
+def test_the_space_of_an_update_counts_the_old_files_that_go(server, device_root, xdg):
+    """(needed, change): what must be free while it writes, and how much less is free once it
+    is done; the old files removed and those written over give their space back."""
+    put(device_root, **{"E.img": b"o" * 500, "DEM.img": DEM, "E.gma": b"u"})
+    all_maps = maps.parse_maps(maps_response(server))
+    east = all_maps[1]
+    removing = maps.removal_list(all_maps, east, rewriting=True)
+    storage = LocalStorage(device_root)
+    storage.replaces_atomically = True  # a drive: a file written over stays until the new one is whole
+    needed, change = maps.space_plan(storage, east, removing)
+    assert change == east.size - 500 - 1 - len(DEM)  # E.img and E.gma go, DEM.img is written over
+    assert needed == east.size - 500 - 1  # the old DEM.img still there while it is written
+    storage.replaces_atomically = False  # MTP: a file written over is deleted first
+    assert maps.space_plan(storage, east, removing) == (change, change)
+    assert maps.space_needed(storage, east, removing) == change
 
 
 def test_a_map_written_but_not_taken_in_waits_for_unplugging(server, device_root, xdg):

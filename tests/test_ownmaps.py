@@ -990,8 +990,9 @@ def test_window_adds_a_map_after_a_confirmation(window_device, my_map, monkeypat
         ("task", "Checking Maps…"),
         ("ask", "Copy This Map to the Device?",
          ("Sometown cyclemap/latin1 Example.org\n\n"  # the name of the map on its own
-          "new-map.img\u00a0· 2.0\u00a0kB\n"
-          "Space on the device: 12.4\u00a0GB free (the map takes 2.0\u00a0kB)"), "Copy", False),
+          "new-map.img\n"
+          "Map file on the device: 2.0\u00a0kB\n"
+          "Free space after copying: 12.4\u00a0GB"), "Copy", False),
         ("task", "Copying the Map…"),
         ("toast", "Wrote Garmin/new-map.img (2.0\u00a0kB)."),
     ]
@@ -1354,12 +1355,13 @@ def test_confirmation_keeps_a_date_in_the_name_together(tmp_path):
     assert text.splitlines() == [
         "Gdynia openfietslite/latin1 BBBike.org 13\u2011Oct\u2011202",  # no break at the hyphens
         "",
-        "osm-test.img\u00a0· 51.0\u00a0MB",
-        "Space on the device: 12.4\u00a0GB free (the map takes 51.0\u00a0MB)",
+        "osm-test.img",
+        "Map file on the device: 51.0\u00a0MB",
+        "Free space after copying: 12.3\u00a0GB",
     ]
     assert plan.title.count("-") == 2  # the plan itself keeps the name as it is in the file
     plan.free = None  # a device that does not report its free space
-    assert MainWindow._add_map_text(plan).splitlines()[-1] == "osm-test.img\u00a0· 51.0\u00a0MB"
+    assert MainWindow._add_map_text(plan).splitlines()[-1] == "Free space on the device: unknown"
 
 
 @pytest.mark.needs_display

@@ -17,7 +17,7 @@ from gi.repository import Adw, Gio, GLib, Gtk  # noqa: E402 - imports must follo
 from openexpress import answers, service  # noqa: E402
 from openexpress.gui.tasks import read_again_after_failure, writes_to_device  # noqa: E402
 from openexpress.gui.window_tasks import Answer, confirm  # noqa: E402
-from openexpress.gui.words import space_text  # noqa: E402
+from openexpress.gui.words import free_after_text, space_text  # noqa: E402
 from openexpress.i18n import _, caption, human_size  # noqa: E402
 
 log = logging.getLogger(__name__)
@@ -286,11 +286,11 @@ class MapsPage:
         """The body of the confirmation: the name of the map on a line of its own, then the
         file and the space. Hyphens in the name do not break ("13-Oct-2026" stays together);
         only what is shown changes, not the name."""
-        lines = [(plan.title or plan.name).replace("-", "\u2011"), "",
-                 caption(plan.name, human_size(plan.size))]
-        if plan.free is not None:
-            lines.append(_("Space on the device: {space} (the map takes {size})").format(
-                space=space_text(plan.free), size=human_size(plan.size)))
+        lines = [(plan.title or plan.name).replace("-", "\u2011"), "", plan.name,
+                 # TRANSLATORS: line of the question before a map of your own is copied: the
+                 # size of its file on the device
+                 _("Map file on the device: {size}").format(size=human_size(plan.size)),
+                 free_after_text(plan.free, plan.size, plan.size, "copy")]
         return "\n".join(lines)
 
     def add_own_map(self, path) -> None:
@@ -402,7 +402,7 @@ class MapsPage:
 
         def work():
             # Over MTP each size is a round trip through gvfs: never on the window's thread.
-            return mp.space_needed(s.storage, m, removing), s.storage.free_space()
+            return mp.space_plan(s.storage, m, removing), s.storage.free_space()
 
         def done(result):
             if self.session is not s or m not in (self.maps_cache or []):
@@ -410,8 +410,8 @@ class MapsPage:
                 log.info("maps: the device or its list changed while the space was checked, "
                          "nothing asked")
                 return
-            need, free = result
-            self._ask_install_map(m, need, free, removing)
+            (need, change), free = result
+            self._ask_install_map(m, need, change, free, removing)
 
         def failed(_e):
             return self.session is not s  # gone meanwhile: the window says so already
@@ -419,17 +419,19 @@ class MapsPage:
         # TRANSLATORS: progress while the free space on the device is read before a map is installed
         self.run_task(_("Checking the Space…"), work, done, failed, button=button)
 
-    def _ask_install_map(self, m, need: int, free: int | None, removing: list[str]) -> None:
-        """The question before a map is installed, with the space it needs and the space
-        there is (read in the background by confirm_map)."""
+    def _ask_install_map(self, m, need: int, change: int, free: int | None,
+                         removing: list[str]) -> None:
+        """The question before a map is installed, with the size of its files and the space
+        free once it is done, or what is missing (read in the background by confirm_map:
+        maps.space_plan)."""
         from openexpress import maps as mp
 
         s = self.session
-        # TRANSLATORS: line of the question before a map is installed ({size}: how much is
-        # downloaded)
-        body = (_("Download: {size}").format(size=human_size(m.size)) + "\n"
-                + _("Space on the device: {needed} ({space})").format(
-                    needed=human_size(need), space=space_text(free)) + "\n"
+        # TRANSLATORS: line of the question before a map is installed or updated: the size of
+        # its files on the device, which is also what is downloaded
+        body = (_("Map files on the device: {size}").format(size=human_size(m.size)) + "\n"
+                + free_after_text(free, need, change, "update" if m.installed else "install")
+                + "\n"
                 # TRANSLATORS: line of the question before a map is installed: how many files the
                 # map has
                 + _("Files: {count}").format(count=len(m.files))

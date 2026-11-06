@@ -6,7 +6,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: openexpress\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-11-05 23:15+0100\n"
+"POT-Creation-Date: 2026-11-06 00:30+0100\n"
 "PO-Revision-Date: 2026-10-11 02:36+0200\n"
 "Last-Translator: Tomasz Bojanowski\n"
 "Language-Team: none\n"
@@ -1335,7 +1335,7 @@ msgstr "kopia z {date}"
 
 #. TRANSLATORS: strftime format of a date in the popover of the server state button
 #: openexpress/cli.py:528 openexpress/cli.py:1008 openexpress/cli.py:1169
-#: openexpress/cli.py:1182 openexpress/gui/words.py:273 openexpress/i18n.py:180
+#: openexpress/cli.py:1182 openexpress/gui/words.py:300 openexpress/i18n.py:180
 #: openexpress/netstatus.py:230 openexpress/netstatus.py:261
 #: openexpress/profiles.py:266 openexpress/service.py:1308
 msgid "%Y-%m-%d"
@@ -1679,8 +1679,8 @@ msgstr "Wersja oprogramowania {version}"
 
 #. TRANSLATORS: when this computer last saw a device: {when} is "2 h ago" on a tile, a full date
 #. in its tooltip and in the CLI
-#: openexpress/cli.py:932 openexpress/gui/words.py:216
-#: openexpress/gui/words.py:222
+#: openexpress/cli.py:932 openexpress/gui/words.py:243
+#: openexpress/gui/words.py:249
 #, python-brace-format
 msgid "Last seen {when}"
 msgstr "Ostatnio widziane {when}"
@@ -4482,17 +4482,17 @@ msgstr ""
 msgid "Invalid MD5 checksum from the server: {value}"
 msgstr "Nieprawidłowa suma MD5 z serwera: {value}"
 
-#: openexpress/download.py:169
+#: openexpress/download.py:172
 #, python-brace-format
 msgid "{url}: size {got} instead of {size}"
 msgstr "{url}: rozmiar {got} zamiast {size}"
 
-#: openexpress/download.py:174
+#: openexpress/download.py:178
 #, python-brace-format
 msgid "{url}: MD5 checksum mismatch"
 msgstr "{url}: niezgodna suma kontrolna MD5"
 
-#: openexpress/download.py:179
+#: openexpress/download.py:184
 msgid "Could not download the file:"
 msgstr "Nie można pobrać pliku:"
 
@@ -4551,7 +4551,7 @@ msgid "No GPS positions in this activity"
 msgstr "Ta aktywność nie ma pozycji GPS"
 
 #: openexpress/gui/activities_page.py:102 openexpress/gui/activity_page.py:138
-#: openexpress/gui/app.py:445 openexpress/gui/apps_page.py:632
+#: openexpress/gui/app.py:448 openexpress/gui/apps_page.py:632
 #: openexpress/gui/detection.py:726 openexpress/gui/device_page.py:833
 #: openexpress/gui/window_tasks.py:498
 msgid "Another operation is in progress"
@@ -4856,14 +4856,14 @@ msgstr "O programie openExpress"
 msgid "Main Menu"
 msgstr "Menu główne"
 
-#: openexpress/gui/app.py:330 openexpress/gui/app.py:389
+#: openexpress/gui/app.py:330 openexpress/gui/app.py:392
 #: openexpress/gui/preferences.py:284
 msgid "Refresh"
 msgstr "Odśwież"
 
 #. TRANSLATORS: button that starts syncing
 #: openexpress/gui/app.py:333 openexpress/gui/app.py:337
-#: openexpress/gui/app.py:453 openexpress/gui/preferences.py:284
+#: openexpress/gui/app.py:456 openexpress/gui/preferences.py:284
 #: openexpress/gui/start.py:668
 msgid "Sync"
 msgstr "Synchronizuj"
@@ -4877,36 +4877,36 @@ msgstr "Nie odłączaj urządzenia"
 msgid "Stop Waiting"
 msgstr "Przestań czekać"
 
-#: openexpress/gui/app.py:428
+#: openexpress/gui/app.py:431
 msgid "This device is not registered to your Garmin account"
 msgstr "To urządzenie nie jest zarejestrowane na tym koncie Garmin"
 
-#: openexpress/gui/app.py:429
+#: openexpress/gui/app.py:432
 msgid "Could not check whether this device belongs to your Garmin account"
 msgstr "Nie udało się sprawdzić, czy to urządzenie należy do tego konta Garmin"
 
 #. TRANSLATORS: title when no device is plugged in: plug it in with a USB cable
 #. ("connect", not Garmin Connect)
-#: openexpress/gui/app.py:437 openexpress/gui/detection.py:560
+#: openexpress/gui/app.py:440 openexpress/gui/detection.py:560
 #: openexpress/gui/device_page.py:675
 msgid "Connect Your Device"
 msgstr "Podłącz urządzenie"
 
 #. TRANSLATORS: a device connected as a USB drive, not over MTP
-#: openexpress/gui/app.py:439 openexpress/gui/detection.py:552
+#: openexpress/gui/app.py:442 openexpress/gui/detection.py:552
 #: openexpress/gui/detection.py:571 openexpress/gui/device_page.py:976
 msgid "USB Drive"
 msgstr "Dysk USB"
 
-#: openexpress/gui/app.py:441 openexpress/gui/device_page.py:814
+#: openexpress/gui/app.py:444 openexpress/gui/device_page.py:814
 msgid "Not signed in to Garmin Connect"
 msgstr "Nie zalogowano do Garmin Connect"
 
-#: openexpress/gui/app.py:517
+#: openexpress/gui/app.py:520
 msgid "Operation in Progress"
 msgstr "Trwa operacja"
 
-#: openexpress/gui/app.py:518
+#: openexpress/gui/app.py:521
 msgid ""
 "Wait until it finishes before closing openExpress, so that no files on the "
 "device are left half-written."
@@ -4914,7 +4914,7 @@ msgstr ""
 "Poczekaj na jej zakończenie przed zamknięciem openExpress, aby żaden plik na "
 "urządzeniu nie został zapisany tylko częściowo."
 
-#: openexpress/gui/app.py:626
+#: openexpress/gui/app.py:629
 #, python-brace-format
 msgid "No display available ({details}): openExpress needs a graphical session"
 msgstr ""
@@ -5215,14 +5215,14 @@ msgstr ""
 
 #. TRANSLATORS: shown while an app or a map is removed ({name}: its name)
 #: openexpress/gui/apps_page.py:563 openexpress/gui/apps_page.py:605
-#: openexpress/gui/maps_page.py:361 openexpress/gui/maps_page.py:481
+#: openexpress/gui/maps_page.py:361 openexpress/gui/maps_page.py:483
 #, python-brace-format
 msgid "Removing {name}…"
 msgstr "Usuwanie {name}…"
 
 #. TRANSLATORS: heading of the question before an app or a map is removed ({name}: its name)
 #: openexpress/gui/apps_page.py:569 openexpress/gui/apps_page.py:608
-#: openexpress/gui/maps_page.py:366 openexpress/gui/maps_page.py:488
+#: openexpress/gui/maps_page.py:366 openexpress/gui/maps_page.py:490
 #, python-brace-format
 msgid "Remove {name}?"
 msgstr "Usunąć {name}?"
@@ -5262,7 +5262,7 @@ msgstr "Usuń i zapomnij"
 #. TRANSLATORS: button that removes an app, map or music file from the device; also
 #. the tooltip of a trash button
 #: openexpress/gui/apps_page.py:614 openexpress/gui/maps_page.py:368
-#: openexpress/gui/maps_page.py:491 openexpress/gui/music_page.py:93
+#: openexpress/gui/maps_page.py:493 openexpress/gui/music_page.py:93
 #: openexpress/gui/music_page.py:100
 msgid "Remove"
 msgstr "Usuń"
@@ -5920,10 +5920,12 @@ msgstr "Pliki map Garmin (*.img)"
 msgid "Choose files stored on this computer"
 msgstr "Wybierz pliki zapisane na tym komputerze"
 
+#. TRANSLATORS: line of the question before a map of your own is copied: the
+#. size of its file on the device
 #: openexpress/gui/maps_page.py:292
 #, python-brace-format
-msgid "Space on the device: {space} (the map takes {size})"
-msgstr "Miejsce na urządzeniu: {space} (mapa zajmie {size})"
+msgid "Map file on the device: {size}"
+msgstr "Plik mapy na urządzeniu: {size}"
 
 #: openexpress/gui/maps_page.py:303
 msgid "Cannot Add the Map"
@@ -5984,72 +5986,67 @@ msgstr ""
 msgid "Checking the Space…"
 msgstr "Sprawdzanie miejsca…"
 
-#. TRANSLATORS: line of the question before a map is installed ({size}: how much is
-#. downloaded)
-#: openexpress/gui/maps_page.py:430
+#. TRANSLATORS: line of the question before a map is installed or updated: the size of
+#. its files on the device, which is also what is downloaded
+#: openexpress/gui/maps_page.py:432
 #, python-brace-format
-msgid "Download: {size}"
-msgstr "Pobieranie: {size}"
-
-#: openexpress/gui/maps_page.py:431
-#, python-brace-format
-msgid "Space on the device: {needed} ({space})"
-msgstr "Miejsce na urządzeniu: {needed} ({space})"
+msgid "Map files on the device: {size}"
+msgstr "Pliki mapy na urządzeniu: {size}"
 
 #. TRANSLATORS: line of the question before a map is installed: how many files the
 #. map has
-#: openexpress/gui/maps_page.py:435
+#: openexpress/gui/maps_page.py:437
 #, python-brace-format
 msgid "Files: {count}"
 msgstr "Pliki: {count}"
 
-#: openexpress/gui/maps_page.py:436
+#: openexpress/gui/maps_page.py:438
 #, python-brace-format
 msgid "Old files to remove: {count}"
 msgstr "Stare pliki do usunięcia: {count}"
 
-#: openexpress/gui/maps_page.py:438 openexpress/gui/updates_page.py:114
+#: openexpress/gui/maps_page.py:440 openexpress/gui/updates_page.py:114
 #, python-brace-format
 msgid "License: {url}"
 msgstr "Licencja: {url}"
 
-#: openexpress/gui/maps_page.py:439
+#: openexpress/gui/maps_page.py:441
 msgid "Copying large maps over USB can take tens of minutes."
 msgstr "Kopiowanie dużych map przez USB może potrwać kilkadziesiąt minut."
 
 #. TRANSLATORS: heading of the question before an installed map is updated ({name}: the map)
-#: openexpress/gui/maps_page.py:442
+#: openexpress/gui/maps_page.py:444
 #, python-brace-format
 msgid "Update {name}?"
 msgstr "Zaktualizować {name}?"
 
 #. TRANSLATORS: heading of the question before a map is installed ({name}: the
 #. map)
-#: openexpress/gui/maps_page.py:445
+#: openexpress/gui/maps_page.py:447
 #, python-brace-format
 msgid "Install {name}?"
 msgstr "Zainstalować {name}?"
 
 #. TRANSLATORS: progress of a map install, also the heading of its error ({name}: the
 #. map)
-#: openexpress/gui/maps_page.py:450 openexpress/gui/maps_page.py:457
+#: openexpress/gui/maps_page.py:452 openexpress/gui/maps_page.py:459
 #, python-brace-format
 msgid "Installing {name}…"
 msgstr "Instalowanie {name}…"
 
-#: openexpress/gui/maps_page.py:463
+#: openexpress/gui/maps_page.py:465
 #, python-brace-format
 msgid "{name} copied; unplug the device to load it"
 msgstr "Skopiowano {name}; odłącz urządzenie, aby ją wczytać"
 
 #. TRANSLATORS: button that accepts the license agreement and installs the map or
 #. update
-#: openexpress/gui/maps_page.py:472 openexpress/gui/updates_page.py:188
+#: openexpress/gui/maps_page.py:474 openexpress/gui/updates_page.py:188
 #: openexpress/gui/updates_page.py:437
 msgid "Accept and Install"
 msgstr "Zaakceptuj i zainstaluj"
 
-#: openexpress/gui/maps_page.py:489
+#: openexpress/gui/maps_page.py:491
 msgid "These files will be removed from the device:"
 msgstr "Z urządzenia zostaną usunięte te pliki:"
 
@@ -7292,88 +7289,122 @@ msgstr "{free} wolne z {total}"
 msgid "{size} free"
 msgstr "Wolne: {size}"
 
+#. TRANSLATORS: line of the question before a map is installed or copied, when the device
+#. does not say how much space is free
+#: openexpress/gui/words.py:217
+msgid "Free space on the device: unknown"
+msgstr "Wolne miejsce na urządzeniu: nieznane"
+
+#. TRANSLATORS: line of the question before a map is installed or copied: {size} more
+#. would have to be free
+#: openexpress/gui/words.py:221
+#, python-brace-format
+msgid "Not enough space on the device: {size} missing"
+msgstr "Za mało miejsca na urządzeniu: brakuje {size}"
+
+#. TRANSLATORS: line of the question before a map is installed: the space free once it
+#. is installed
+#: openexpress/gui/words.py:226
+#, python-brace-format
+msgid "Free space after installing: {free}"
+msgstr "Wolne miejsce po instalacji: {free}"
+
+#. TRANSLATORS: line of the question before a map is updated: the space free once the
+#. new files are written and the old ones removed
+#: openexpress/gui/words.py:229
+#, python-brace-format
+msgid "Free space after updating: {free}"
+msgstr "Wolne miejsce po aktualizacji: {free}"
+
+#. TRANSLATORS: line of the question before a map of your own is copied to the device:
+#. the space free once it is copied
+#: openexpress/gui/words.py:232
+#, python-brace-format
+msgid "Free space after copying: {free}"
+msgstr "Wolne miejsce po skopiowaniu: {free}"
+
 #. TRANSLATORS: the time of an activity in hours and minutes ("1 h 02 min")
-#: openexpress/gui/words.py:234
+#: openexpress/gui/words.py:261
 #, python-brace-format
 msgid "{hours} h {minutes} min"
 msgstr "{hours} h {minutes} min"
 
 #. TRANSLATORS: a length of time in minutes
-#: openexpress/gui/words.py:237 openexpress/i18n.py:419
+#: openexpress/gui/words.py:264 openexpress/i18n.py:419
 #, python-brace-format
 msgid "{minutes} min"
 msgstr "{minutes} min"
 
 #. TRANSLATORS: a length of time in seconds
-#: openexpress/gui/words.py:238 openexpress/i18n.py:416
+#: openexpress/gui/words.py:265 openexpress/i18n.py:416
 #, python-brace-format
 msgid "{seconds} s"
 msgstr "{seconds} s"
 
 #. TRANSLATORS: title of the row of an activity whose file is not a FIT file, in place of its
 #. sport
-#: openexpress/gui/words.py:249
+#: openexpress/gui/words.py:276
 msgid "Unreadable File"
 msgstr "Plik nieczytelny"
 
 #. TRANSLATORS: in the details of an activity on the Activities page: where it was read
-#: openexpress/gui/words.py:270
+#: openexpress/gui/words.py:297
 msgctxt "activity source"
 msgid "Device"
 msgstr "Urządzenie"
 
-#: openexpress/gui/words.py:272
+#: openexpress/gui/words.py:299
 #, python-brace-format
 msgctxt "activity source"
 msgid "Backup of {date}"
 msgstr "Kopia z {date}"
 
-#: openexpress/gui/words.py:293
+#: openexpress/gui/words.py:320
 msgid "Still being written: disconnect and reconnect the device"
 msgstr "Jeszcze zapisywany: odłącz urządzenie i podłącz je ponownie"
 
 #. TRANSLATORS: title of the page of an activity whose file the device was still writing when
 #. it was connected
-#: openexpress/gui/words.py:301
+#: openexpress/gui/words.py:328
 msgid "Still Being Written"
 msgstr "Plik jeszcze zapisywany"
 
-#: openexpress/gui/words.py:301
+#: openexpress/gui/words.py:328
 msgid "Disconnect and reconnect the device"
 msgstr "Odłącz urządzenie i podłącz je ponownie"
 
-#: openexpress/gui/words.py:306
+#: openexpress/gui/words.py:333
 msgid "Damaged file"
 msgstr "Plik uszkodzony"
 
-#: openexpress/gui/words.py:312
+#: openexpress/gui/words.py:339
 msgid "The file of this activity could not be read."
 msgstr "Nie udało się odczytać pliku tej aktywności."
 
 #. TRANSLATORS: title of the page of an activity whose file could not be read
-#: openexpress/gui/words.py:319
+#: openexpress/gui/words.py:346
 msgid "Activity Not Read"
 msgstr "Nie odczytano aktywności"
 
-#: openexpress/gui/words.py:319
+#: openexpress/gui/words.py:346
 msgid "The file of this activity could not be read"
 msgstr "Nie udało się odczytać pliku tej aktywności"
 
 #. TRANSLATORS: title of the page of an activity whose file has no summary (no tiles to show)
-#: openexpress/gui/words.py:326
+#: openexpress/gui/words.py:353
 msgid "No Summary"
 msgstr "Brak podsumowania"
 
-#: openexpress/gui/words.py:326
+#: openexpress/gui/words.py:353
 msgid "This activity has no summary"
 msgstr "Ta aktywność nie ma podsumowania"
 
-#: openexpress/gui/words.py:331
+#: openexpress/gui/words.py:358
 msgid "Reading the Activity…"
 msgstr "Odczyt aktywności…"
 
 #. TRANSLATORS: above the rows of the Activities page: how many activities are listed
-#: openexpress/gui/words.py:339
+#: openexpress/gui/words.py:366
 #, python-brace-format
 msgid "{count} activity"
 msgid_plural "{count} activities"
@@ -7382,12 +7413,12 @@ msgstr[1] "{count} aktywności"
 msgstr[2] "{count} aktywności"
 
 #. TRANSLATORS: on the Activities page: how many activities only a backup has
-#: openexpress/gui/words.py:341
+#: openexpress/gui/words.py:368
 #, python-brace-format
 msgid "{count} only in backups"
 msgstr "{count} tylko w kopiach zapasowych"
 
-#: openexpress/gui/words.py:352
+#: openexpress/gui/words.py:379
 #, python-brace-format
 msgid "The device {names} stopped responding. Unplug it and plug it in again."
 msgid_plural ""
@@ -7400,7 +7431,7 @@ msgstr[2] ""
 "Urządzenia {names} przestały odpowiadać. Odłącz je i podłącz ponownie."
 
 #. TRANSLATORS: the same banner, when the name of a device is not known
-#: openexpress/gui/words.py:356
+#: openexpress/gui/words.py:383
 msgid "The device stopped responding. Unplug it and plug it in again."
 msgid_plural ""
 "The devices stopped responding. Unplug them and plug them in again."
@@ -7409,463 +7440,463 @@ msgstr[1] "Urządzenia przestały odpowiadać. Odłącz je i podłącz ponownie
 msgstr[2] "Urządzenia przestały odpowiadać. Odłącz je i podłącz ponownie."
 
 #. TRANSLATORS: a distance in kilometres on the page of an activity ("10.24 km")
-#: openexpress/gui/words.py:394
+#: openexpress/gui/words.py:421
 #, python-brace-format
 msgid "{distance} km"
 msgstr "{distance} km"
 
 #. TRANSLATORS: a pace, the time a kilometre takes ("5:10 /km")
-#: openexpress/gui/words.py:415
+#: openexpress/gui/words.py:442
 #, python-brace-format
 msgid "{pace} /km"
 msgstr "{pace} /km"
 
 #. TRANSLATORS: a pace of a swim, the time a hundred metres take ("2:05 /100 m")
-#: openexpress/gui/words.py:418
+#: openexpress/gui/words.py:445
 #, python-brace-format
 msgid "{pace} /100 m"
 msgstr "{pace} /100 m"
 
 #. TRANSLATORS: a speed in kilometres an hour ("24.3 km/h")
-#: openexpress/gui/words.py:420
+#: openexpress/gui/words.py:447
 #, python-brace-format
 msgid "{speed} km/h"
 msgstr "{speed} km/h"
 
 #. TRANSLATORS: a distance or an ascent in whole metres on the page of an activity
-#: openexpress/gui/words.py:426 openexpress/gui/words.py:878
+#: openexpress/gui/words.py:453 openexpress/gui/words.py:905
 #, python-brace-format
 msgid "{metres} m"
 msgstr "{metres} m"
 
 #. TRANSLATORS: a heart rate in beats a minute ("148 bpm"), in Garmin Connect's unit
 #. (Polish keeps "bpm")
-#: openexpress/gui/words.py:435
+#: openexpress/gui/words.py:462
 #, python-brace-format
 msgid "{rate} bpm"
 msgstr "{rate} bpm"
 
 #. TRANSLATORS: the calories of an activity ("520 kcal")
-#: openexpress/gui/words.py:443
+#: openexpress/gui/words.py:470
 #, python-brace-format
 msgid "{calories} kcal"
 msgstr "{calories} kcal"
 
 #. TRANSLATORS: the names of the tiles on top of the page of an activity
-#: openexpress/gui/words.py:457
+#: openexpress/gui/words.py:484
 msgctxt "activity tile"
 msgid "Distance"
 msgstr "Dystans"
 
-#: openexpress/gui/words.py:458
+#: openexpress/gui/words.py:485
 msgctxt "activity tile"
 msgid "Time"
 msgstr "Czas"
 
-#: openexpress/gui/words.py:459 openexpress/gui/words.py:460
+#: openexpress/gui/words.py:486 openexpress/gui/words.py:487
 msgctxt "activity tile"
 msgid "Average pace"
 msgstr "Średnie tempo"
 
-#: openexpress/gui/words.py:461
+#: openexpress/gui/words.py:488
 msgctxt "activity tile"
 msgid "Average speed"
 msgstr "Średnia prędkość"
 
-#: openexpress/gui/words.py:462
+#: openexpress/gui/words.py:489
 msgctxt "activity tile"
 msgid "Average heart rate"
 msgstr "Średnie tętno"
 
-#: openexpress/gui/words.py:463
+#: openexpress/gui/words.py:490
 msgctxt "activity tile"
 msgid "Maximum heart rate"
 msgstr "Maksymalne tętno"
 
-#: openexpress/gui/words.py:464
+#: openexpress/gui/words.py:491
 msgctxt "activity tile"
 msgid "Calories"
 msgstr "Suma kalorii"
 
-#: openexpress/gui/words.py:465
+#: openexpress/gui/words.py:492
 msgctxt "activity tile"
 msgid "Total ascent"
 msgstr "Całkowity wznios"
 
 #. TRANSLATORS: the closed row of the details at the end of the page of an activity
-#: openexpress/gui/words.py:505
+#: openexpress/gui/words.py:532
 msgctxt "activity"
 msgid "Details"
 msgstr "Szczegóły"
 
 #. TRANSLATORS: the details of the page of an activity, as Garmin Connect names them in
 #. your language: the time with the pauses
-#: openexpress/gui/words.py:513
+#: openexpress/gui/words.py:540
 msgctxt "activity detail"
 msgid "Elapsed time"
 msgstr "Upływ czasu"
 
-#: openexpress/gui/words.py:514
+#: openexpress/gui/words.py:541
 msgctxt "activity detail"
 msgid "Moving time"
 msgstr "Czas ruchu"
 
-#: openexpress/gui/words.py:515
+#: openexpress/gui/words.py:542
 msgctxt "activity detail"
 msgid "Work time"
 msgstr "Czas ćwiczeń"
 
-#: openexpress/gui/words.py:516
+#: openexpress/gui/words.py:543
 msgctxt "activity detail"
 msgid "Rest time"
 msgstr "Czas odpoczynku"
 
-#: openexpress/gui/words.py:517
+#: openexpress/gui/words.py:544
 msgctxt "activity detail"
 msgid "Total descent"
 msgstr "Całkowity spadek"
 
-#: openexpress/gui/words.py:518
+#: openexpress/gui/words.py:545
 msgctxt "activity detail"
 msgid "Minimum elevation"
 msgstr "Minimalna wysokość"
 
-#: openexpress/gui/words.py:519
+#: openexpress/gui/words.py:546
 msgctxt "activity detail"
 msgid "Maximum elevation"
 msgstr "Maksymalna wysokość"
 
-#: openexpress/gui/words.py:520
+#: openexpress/gui/words.py:547
 msgctxt "activity detail"
 msgid "Average moving pace"
 msgstr "Średnie tempo ruchu"
 
-#: openexpress/gui/words.py:521
+#: openexpress/gui/words.py:548
 msgctxt "activity detail"
 msgid "Average moving speed"
 msgstr "Średnia prędkość ruchu"
 
-#: openexpress/gui/words.py:522
+#: openexpress/gui/words.py:549
 msgctxt "activity detail"
 msgid "Best pace"
 msgstr "Najlepsze tempo"
 
-#: openexpress/gui/words.py:523
+#: openexpress/gui/words.py:550
 msgctxt "activity detail"
 msgid "Maximum speed"
 msgstr "Maksymalna prędkość"
 
-#: openexpress/gui/words.py:524
+#: openexpress/gui/words.py:551
 msgctxt "activity detail"
 msgid "Average cadence"
 msgstr "Średnia kadencja"
 
-#: openexpress/gui/words.py:525
+#: openexpress/gui/words.py:552
 msgctxt "activity detail"
 msgid "Steps"
 msgstr "Kroki"
 
-#: openexpress/gui/words.py:526
+#: openexpress/gui/words.py:553
 msgctxt "activity detail"
 msgid "Heart rate"
 msgstr "Tętno"
 
-#: openexpress/gui/words.py:527
+#: openexpress/gui/words.py:554
 msgctxt "activity detail"
 msgid "Calories"
 msgstr "Suma kalorii"
 
-#: openexpress/gui/words.py:528
+#: openexpress/gui/words.py:555
 msgctxt "activity detail"
 msgid "Temperature"
 msgstr "Temperatura"
 
-#: openexpress/gui/words.py:529
+#: openexpress/gui/words.py:556
 msgctxt "activity detail"
 msgid "Respiration rate"
 msgstr "Częstotliwość oddechu"
 
 #. TRANSLATORS: a cadence on foot, steps a minute ("104 spm")
-#: openexpress/gui/words.py:548
+#: openexpress/gui/words.py:575
 #, python-brace-format
 msgid "{cadence} spm"
 msgstr "{cadence} kr./min"
 
 #. TRANSLATORS: the average and the maximum cadence on foot ("104 spm (max 118)")
-#: openexpress/gui/words.py:550
+#: openexpress/gui/words.py:577
 #, python-brace-format
 msgid "{average} spm (max {max})"
 msgstr "{average} kr./min (maks. {max})"
 
 #. TRANSLATORS: a cadence on a bike, revolutions a minute ("85 rpm")
-#: openexpress/gui/words.py:556
+#: openexpress/gui/words.py:583
 #, python-brace-format
 msgid "{cadence} rpm"
 msgstr "{cadence} obr./min"
 
 #. TRANSLATORS: the average and the maximum cadence on a bike ("85 rpm (max 110)")
-#: openexpress/gui/words.py:558
+#: openexpress/gui/words.py:585
 #, python-brace-format
 msgid "{average} rpm (max {max})"
 msgstr "{average} obr./min (maks. {max})"
 
 #. TRANSLATORS: a temperature ("21.4 °C")
-#: openexpress/gui/words.py:575
+#: openexpress/gui/words.py:602
 #, python-brace-format
 msgid "{temperature} °C"
 msgstr "{temperature} °C"
 
 #. TRANSLATORS: the average temperature and its range ("21.4 °C (18.0–26.0 °C)")
-#: openexpress/gui/words.py:577
+#: openexpress/gui/words.py:604
 #, python-brace-format
 msgid "{average} °C ({low}–{high} °C)"
 msgstr "{average} °C ({low}–{high} °C)"
 
 #. TRANSLATORS: a respiration rate, breaths a minute ("24 brpm")
-#: openexpress/gui/words.py:588
+#: openexpress/gui/words.py:615
 #, python-brace-format
 msgid "{rate} brpm"
 msgstr "{rate} brpm"
 
 #. TRANSLATORS: the average respiration rate and its range ("24 brpm (15–38)")
-#: openexpress/gui/words.py:590
+#: openexpress/gui/words.py:617
 #, python-brace-format
 msgid "{average} brpm ({low}–{high})"
 msgstr "{average} brpm ({low}–{high})"
 
 #. TRANSLATORS: the heart rates of a zone (made up: "118–140 bpm")
-#: openexpress/gui/words.py:621 openexpress/gui/words.py:713
+#: openexpress/gui/words.py:648 openexpress/gui/words.py:740
 #, python-brace-format
 msgid "{low}–{high} bpm"
 msgstr "{low}–{high} bpm"
 
 #. TRANSLATORS: the title of the row of a lap on the page of an activity
-#: openexpress/gui/words.py:640
+#: openexpress/gui/words.py:667
 #, python-brace-format
 msgid "Lap {number}"
 msgstr "Okrążenie {number}"
 
 #. TRANSLATORS: title of the list of kilometre splits worked out from an activity's records,
 #. shown in place of "Laps" (not the unit)
-#: openexpress/gui/words.py:648
+#: openexpress/gui/words.py:675
 msgid "Kilometres"
 msgstr "Kilometry"
 
 #. TRANSLATORS: title of the list of an activity's laps as its device recorded them
-#: openexpress/gui/words.py:650
+#: openexpress/gui/words.py:677
 msgid "Laps"
 msgstr "Okrążenia"
 
 #. TRANSLATORS: the title of the row of a kilometre on the page of an activity whose device
 #. kept no laps
-#: openexpress/gui/words.py:657
+#: openexpress/gui/words.py:684
 #, python-brace-format
 msgid "Kilometre {number}"
 msgstr "Kilometr {number}"
 
 #. TRANSLATORS: the title of the section of the heart rate zones on the page of an activity
-#: openexpress/gui/words.py:689
+#: openexpress/gui/words.py:716
 msgid "Heart Rate Zones"
 msgstr "Strefy tętna"
 
 #. TRANSLATORS: the row of the time below zone 1 of the heart rate
-#: openexpress/gui/words.py:696
+#: openexpress/gui/words.py:723
 msgid "Below zone 1"
 msgstr "Poniżej strefy 1"
 
 #. TRANSLATORS: a heart rate zone ("Zone 3")
-#: openexpress/gui/words.py:698
+#: openexpress/gui/words.py:725
 #, python-brace-format
 msgid "Zone {number}"
 msgstr "Strefa {number}"
 
 #. TRANSLATORS: the heart rates below zone 1 (made up: "below 118 bpm")
-#: openexpress/gui/words.py:708
+#: openexpress/gui/words.py:735
 #, python-brace-format
 msgid "below {rate} bpm"
 msgstr "poniżej {rate} bpm"
 
 #. TRANSLATORS: the heart rates of the top zone, which has no top (made up: "above 182 bpm")
-#: openexpress/gui/words.py:711
+#: openexpress/gui/words.py:738
 #, python-brace-format
 msgid "above {rate} bpm"
 msgstr "powyżej {rate} bpm"
 
 #. TRANSLATORS: the time in a heart rate zone and its share ("36:30 · 88%")
-#: openexpress/gui/words.py:720
+#: openexpress/gui/words.py:747
 #, python-brace-format
 msgid "{time} · {percent}%"
 msgstr "{time} · {percent}%"
 
 #. TRANSLATORS: under the title of the heart rate zones ("… (190 bpm)")
-#: openexpress/gui/words.py:729
+#: openexpress/gui/words.py:756
 #, python-brace-format
 msgid "Bounds from the device: % of maximum heart rate ({bpm})"
 msgstr "Granice z urządzenia: % tętna maksymalnego ({bpm})"
 
 #. TRANSLATORS: under the title of the heart rate zones ("… (165 bpm)")
-#: openexpress/gui/words.py:733
+#: openexpress/gui/words.py:760
 #, python-brace-format
 msgid "Bounds from the device: % of lactate threshold ({bpm})"
 msgstr "Granice z urządzenia: % progu mleczanowego ({bpm})"
 
 #. TRANSLATORS: under the title of the heart rate zones
-#: openexpress/gui/words.py:737
+#: openexpress/gui/words.py:764
 msgid "Bounds from the device: % of heart rate reserve"
 msgstr "Granice z urządzenia: % rezerwy tętna"
 
 #. TRANSLATORS: under the title of the heart rate zones: set by the user
-#: openexpress/gui/words.py:740
+#: openexpress/gui/words.py:767
 msgid "Bounds from the device: your own"
 msgstr "Granice z urządzenia: własne"
 
 #. TRANSLATORS: the title of the section of the training effect on the page of an activity
-#: openexpress/gui/words.py:746
+#: openexpress/gui/words.py:773
 msgid "Training Effect"
 msgstr "Efekt treningu"
 
 #. TRANSLATORS: the aerobic training effect of an activity
-#: openexpress/gui/words.py:753
+#: openexpress/gui/words.py:780
 msgid "Aerobic"
 msgstr "Aerobowy"
 
 #. TRANSLATORS: the anaerobic training effect of an activity
-#: openexpress/gui/words.py:755
+#: openexpress/gui/words.py:782
 msgid "Anaerobic"
 msgstr "Beztlenowy"
 
 #. TRANSLATORS: a training effect from 0.0 to 0.9. The six words of the scale are
 #. Garmin Connect's: use those of its help on the training effect in your language (a
 #. device's manual or Garmin's web pages may say them otherwise)
-#: openexpress/gui/words.py:767
+#: openexpress/gui/words.py:794
 msgid "No benefit"
 msgstr "Brak korzyści"
 
 #. TRANSLATORS: a training effect from 1.0 to 1.9, in Garmin Connect's word
-#: openexpress/gui/words.py:769
+#: openexpress/gui/words.py:796
 msgid "Minor benefit"
 msgstr "Umiarkowana korzyść"
 
 #. TRANSLATORS: a training effect from 2.0 to 2.9, in Garmin Connect's word
-#: openexpress/gui/words.py:771
+#: openexpress/gui/words.py:798
 msgid "Maintaining"
 msgstr "Utrzymanie"
 
 #. TRANSLATORS: a training effect from 3.0 to 3.9, in Garmin Connect's word
-#: openexpress/gui/words.py:773
+#: openexpress/gui/words.py:800
 msgid "Improving"
 msgstr "Poprawa"
 
 #. TRANSLATORS: a training effect from 4.0 to 4.9, in Garmin Connect's word
-#: openexpress/gui/words.py:775
+#: openexpress/gui/words.py:802
 msgid "Highly improving"
 msgstr "Duża poprawa"
 
 #. TRANSLATORS: a training effect of 5.0, in Garmin Connect's word
-#: openexpress/gui/words.py:777
+#: openexpress/gui/words.py:804
 msgid "Overreaching"
 msgstr "Przeciążenie"
 
 #. TRANSLATORS: the training load of an activity (a number)
-#: openexpress/gui/words.py:788
+#: openexpress/gui/words.py:815
 msgid "Training load"
 msgstr "Obciążenie wysiłkowe"
 
 #. TRANSLATORS: a series after "Track colour:", as a sentence goes on there (in Polish
 #. in lower case: "tętno")
-#: openexpress/gui/words.py:801
+#: openexpress/gui/words.py:828
 msgctxt "track colour"
 msgid "heart rate"
 msgstr "tętno"
 
 #. TRANSLATORS: a series after "Track colour:" (in Polish "wysokość")
-#: openexpress/gui/words.py:803
+#: openexpress/gui/words.py:830
 msgctxt "track colour"
 msgid "elevation"
 msgstr "wysokość"
 
 #. TRANSLATORS: a series after "Track colour:" (in Polish "tempo")
-#: openexpress/gui/words.py:805
+#: openexpress/gui/words.py:832
 msgctxt "track colour"
 msgid "pace"
 msgstr "tempo"
 
 #. TRANSLATORS: a series after "Track colour:" (in Polish "prędkość")
-#: openexpress/gui/words.py:807
+#: openexpress/gui/words.py:834
 msgctxt "track colour"
 msgid "speed"
 msgstr "prędkość"
 
 #. TRANSLATORS: under the map of an activity: which series of the chart colours the track
-#: openexpress/gui/words.py:810
+#: openexpress/gui/words.py:837
 #, python-brace-format
 msgid "Track colour: {series}"
 msgstr "Kolor trasy: {series}"
 
 #. TRANSLATORS: beside the switch under the map of an activity that colours its track
-#: openexpress/gui/words.py:816
+#: openexpress/gui/words.py:843
 msgid "Colours"
 msgstr "Kolory"
 
 #. TRANSLATORS: the switch above the chart of an activity
-#: openexpress/gui/words.py:826
+#: openexpress/gui/words.py:853
 msgctxt "activity chart"
 msgid "Heart rate"
 msgstr "Tętno"
 
-#: openexpress/gui/words.py:827
+#: openexpress/gui/words.py:854
 msgctxt "activity chart"
 msgid "Elevation"
 msgstr "Wysokość"
 
-#: openexpress/gui/words.py:828 openexpress/gui/words.py:829
+#: openexpress/gui/words.py:855 openexpress/gui/words.py:856
 msgctxt "activity chart"
 msgid "Pace"
 msgstr "Tempo"
 
-#: openexpress/gui/words.py:830
+#: openexpress/gui/words.py:857
 msgctxt "activity chart"
 msgid "Speed"
 msgstr "Prędkość"
 
 #. TRANSLATORS: the unit on top of the axis of the chart of an activity
-#: openexpress/gui/words.py:839
+#: openexpress/gui/words.py:866
 msgctxt "chart unit"
 msgid "bpm"
 msgstr "bpm"
 
-#: openexpress/gui/words.py:840
+#: openexpress/gui/words.py:867
 msgctxt "chart unit"
 msgid "m"
 msgstr "m"
 
-#: openexpress/gui/words.py:841
+#: openexpress/gui/words.py:868
 msgctxt "chart unit"
 msgid "min/km"
 msgstr "min/km"
 
-#: openexpress/gui/words.py:842
+#: openexpress/gui/words.py:869
 msgctxt "chart unit"
 msgid "min/100 m"
 msgstr "min/100 m"
 
-#: openexpress/gui/words.py:843
+#: openexpress/gui/words.py:870
 msgctxt "chart unit"
 msgid "km/h"
 msgstr "km/h"
 
 #. TRANSLATORS: the name of the chart for a screen reader; {series}: e.g. "Heart rate"
-#: openexpress/gui/words.py:851
+#: openexpress/gui/words.py:878
 #, python-brace-format
 msgid "{series} over time"
 msgstr "{series} w czasie"
 
-#: openexpress/gui/words.py:856
+#: openexpress/gui/words.py:883
 msgid "No heart rate, elevation or speed in this activity"
 msgstr "Brak tętna, wysokości i prędkości w tej aktywności"
 
 #. TRANSLATORS: beside the chart of an activity, where its cursor is on a gap or a pause
-#: openexpress/gui/words.py:886
+#: openexpress/gui/words.py:913
 msgid "no reading"
 msgstr "brak odczytu"
 
@@ -8115,7 +8146,7 @@ msgstr ""
 msgid "No map named '{name}'"
 msgstr "Brak mapy o nazwie „{name}”"
 
-#: openexpress/maps.py:637
+#: openexpress/maps.py:664
 #, python-brace-format
 msgid ""
 "Map '{name}' is on the device already and will be loaded after the device is "
@@ -8124,17 +8155,17 @@ msgstr ""
 "Mapa {name} jest już na urządzeniu i zostanie wczytana po odłączeniu. "
 "Najpierw odłącz urządzenie."
 
-#: openexpress/maps.py:725
+#: openexpress/maps.py:760
 msgid "Activating the map on the Garmin server"
 msgstr "Aktywacja mapy na serwerze Garmin"
 
 #. TRANSLATORS: a step of a map install: files of an older version or of maps it
 #. replaces ("Removing old map files · 2 of 5")
-#: openexpress/maps.py:746
+#: openexpress/maps.py:781
 msgid "Removing old map files"
 msgstr "Usuwanie starych plików map"
 
-#: openexpress/maps.py:809
+#: openexpress/maps.py:844
 #, python-brace-format
 msgid ""
 "Cannot write {path}, which other maps on the device also use ({maps}). "
@@ -8143,7 +8174,7 @@ msgstr ""
 "Nie można zapisać {path}, którego używają też inne mapy na urządzeniu "
 "({maps}). Zainstaluj mapę ponownie."
 
-#: openexpress/maps.py:822
+#: openexpress/maps.py:857
 #, python-brace-format
 msgid ""
 "The map files are on the device, but its unlock file {path} could not be "
@@ -8154,7 +8185,7 @@ msgstr ""
 "odblokowania {path} ({error}). Urządzenie może mimo to wczytać mapę po "
 "odłączeniu; jeśli tego nie zrobi, uruchom ponownie openexpress maps."
 
-#: openexpress/maps.py:828
+#: openexpress/maps.py:863
 #, python-brace-format
 msgid ""
 "The map files are on the device, but its unlock file {path} could not be "
@@ -8165,18 +8196,18 @@ msgstr ""
 "odblokowania {path} ({error}). Urządzenie może mimo to wczytać mapę po "
 "odłączeniu; jeśli tego nie zrobi, wróć do tej strony."
 
-#: openexpress/maps.py:850
+#: openexpress/maps.py:885
 #, python-brace-format
 msgid "Writing the unlock file again ({attempt} of {tries})"
 msgstr "Ponawianie zapisu pliku odblokowującego ({attempt} z {tries})"
 
-#: openexpress/maps.py:871
+#: openexpress/maps.py:906
 #, python-brace-format
 msgid "Map '{name}' cannot be removed"
 msgstr "Nie można usunąć mapy „{name}”"
 
 #. TRANSLATORS: a step of a map removal; {name}: the map ("… · 2 of 5")
-#: openexpress/maps.py:883
+#: openexpress/maps.py:918
 #, python-brace-format
 msgid "Removing {name}"
 msgstr "Usuwanie {name}"
