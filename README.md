@@ -96,7 +96,7 @@ devices that connect over USB (MTP) should work too – reports are welcome.
 | fēnix 5X | MTP | [#27](https://github.com/TomaszBojanowski/openExpress/issues/27) |
 | Instinct 3 – 45mm Tactical | MTP | [#21](https://github.com/TomaszBojanowski/openExpress/issues/21) |
 | Edge 1040 | MTP | [#8](https://github.com/TomaszBojanowski/openExpress/issues/8), [#10](https://github.com/TomaszBojanowski/openExpress/issues/10) |
-| Edge 540 | MTP | [#18](https://github.com/TomaszBojanowski/openExpress/issues/18) |
+| Edge 540 | MTP | [#18](https://github.com/TomaszBojanowski/openExpress/issues/18), [#28](https://github.com/TomaszBojanowski/openExpress/issues/28) |
 | inReach Mini 2 | USB drive | [#11](https://github.com/TomaszBojanowski/openExpress/issues/11) |
 | Forerunner 55 | USB drive | [#19](https://github.com/TomaszBojanowski/openExpress/issues/19) |
 | Forerunner 920XT | USB drive | [#20](https://github.com/TomaszBojanowski/openExpress/issues/20) |
@@ -242,6 +242,8 @@ openExpress speaks English and Polish. To add your language or correct one:
   (CC0 1.0) gave the shapes of four icons: the heart and the stopwatch (built-in screens and
   the tiles of an activity), the speedometer (pace and speed) and the sliders (Activity
   profiles); the other icons are drawn in the style of GNOME's symbolic icons.
+- hutamaki found why every write to the device failed from the Flatpak on Ubuntu 22.04
+  and sent the fix ([#28](https://github.com/TomaszBojanowski/openExpress/issues/28)).
 
 ## License
 

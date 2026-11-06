@@ -50,7 +50,7 @@ def test_write_bytes_uses_host_copy(flatpak):
     st, calls = flatpak
     st._write("GARMIN/NewFiles/x.FIT", b"DATA")
     cmd, content = calls[0]
-    assert cmd[:4] == ["flatpak-spawn", "--host", "gio", "copy"]
+    assert cmd[:5] == ["flatpak-spawn", "--host", "--env=GIO_USE_VFS=gvfs", "gio", "copy"]
     assert cmd[-1] == "mtp://watch/GARMIN/NewFiles/x.FIT"
     assert content == b"DATA"
     # The staging file is in a host-visible place and is removed afterwards.
@@ -84,7 +84,7 @@ def test_the_host_gets_the_file_by_its_whole_path(monkeypatch, tmp_path, name):
     (tmp_path / name).write_bytes(b"MP3")
     monkeypatch.chdir(tmp_path)
     gio_storage.host_copy(Path(name), "mtp://watch/Music/x.mp3", "Cannot write x.mp3")
-    assert commands == [["flatpak-spawn", "--host", "gio", "copy",
+    assert commands == [["flatpak-spawn", "--host", "--env=GIO_USE_VFS=gvfs", "gio", "copy",
                          str((tmp_path / name).resolve()), "mtp://watch/Music/x.mp3"]]
 
 
@@ -203,7 +203,8 @@ def copy_with_progress(host):
 def test_progress_is_read_while_the_copy_runs(host):
     host.answer([u.encode() for u in MEASURED])
     seen = copy_with_progress(host)
-    assert host.commands == [["flatpak-spawn", "--host", "gio", "copy", "-p", str(host.local),
+    assert host.commands == [["flatpak-spawn", "--host", "--env=GIO_USE_VFS=gvfs", "gio", "copy",
+                              "-p", str(host.local),
                               "mtp://watch/GARMIN/map.img"]]
     # Three steps; the last line, with one size, reports nothing (the caller reports the end).
     assert seen == [(1_000_000, SIZE), (2_100_000_000, SIZE), (3_300_000_000, SIZE)]
@@ -300,7 +301,8 @@ def test_without_a_progress_function_the_copy_runs_without_gio_progress(flatpak,
     local.write_bytes(b"DATA")
     monkeypatch.setattr(gio_storage, "_host_visible", lambda p: True)
     st._write_file("GARMIN/x.bin", local)
-    assert calls[0][0] == ["flatpak-spawn", "--host", "gio", "copy", str(local),
+    assert calls[0][0] == ["flatpak-spawn", "--host", "--env=GIO_USE_VFS=gvfs", "gio", "copy",
+                           str(local),
                            "mtp://watch/GARMIN/x.bin"]
 
 

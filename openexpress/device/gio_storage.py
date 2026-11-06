@@ -39,7 +39,7 @@ from openexpress.device.storage import (  # noqa: E402
 )
 from openexpress.errors import OrdinaryStop  # noqa: E402
 from openexpress.i18n import _  # noqa: E402
-from openexpress.paths import in_flatpak  # noqa: E402
+from openexpress.paths import host_command, in_flatpak  # noqa: E402
 from openexpress.progress import refreshing_text, say_to  # noqa: E402
 
 log = logging.getLogger(__name__)
@@ -131,7 +131,7 @@ def host_copy(local: Path, target_uri: str, what: str, progress=None, started=No
     start, DeviceError when the copy fails or times out."""
     if not shutil.which("flatpak-spawn"):
         raise CopyNotStarted(f"{what}: " + _("flatpak-spawn is not available"))
-    command = ["flatpak-spawn", "--host", "gio", "copy"]
+    command = host_command("gio", "copy")
     # The whole path, as _host_visible saw it: one given as typed ("-x.mp3", "Name: x.mp3")
     # would be an option or an address to the host's gio.
     source = str(Path(local).resolve())

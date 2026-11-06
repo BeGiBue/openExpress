@@ -75,7 +75,8 @@ def test_the_origin_is_asked_of_the_host(monkeypatch, answer, origin):
     monkeypatch.setattr(paths, "in_flatpak", lambda: True)
     calls = _host(monkeypatch, answer)
     assert paths.flatpak_origin() == origin
-    assert calls == [(["flatpak-spawn", "--host", "flatpak", "info", "--show-origin",
+    assert calls == [(["flatpak-spawn", "--host", "--env=GIO_USE_VFS=gvfs", "flatpak", "info",
+                       "--show-origin",
                        "io.github.tomaszbojanowski.OpenExpress"], 3)]
 
 
@@ -86,7 +87,8 @@ def test_the_origin_is_asked_for_this_branch(monkeypatch, info_file):
     monkeypatch.setattr(paths, "in_flatpak", lambda: True)
     calls = _host(monkeypatch, (0, "openexpress-test\n"))
     assert paths.flatpak_origin() == "openexpress-test"
-    assert calls == [(["flatpak-spawn", "--host", "flatpak", "info", "--show-origin",
+    assert calls == [(["flatpak-spawn", "--host", "--env=GIO_USE_VFS=gvfs", "flatpak", "info",
+                       "--show-origin",
                        "io.github.tomaszbojanowski.OpenExpress//test"], 3)]
 
 
