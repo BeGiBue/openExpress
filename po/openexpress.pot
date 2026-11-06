@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: openexpress 0.8.7\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-11-06 15:41+0100\n"
+"POT-Creation-Date: 2026-11-06 17:56+0100\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -156,7 +156,7 @@ msgid ""
 msgstr ""
 
 #: openexpress/auth/sso.py:251 openexpress/gui/device_page.py:683
-#: openexpress/gui/device_page.py:825 openexpress/gui/netstatus_view.py:139
+#: openexpress/gui/device_page.py:825 openexpress/gui/netstatus_view.py:157
 #: openexpress/gui/updates_page.py:473
 msgid "Try Again"
 msgstr ""
@@ -1418,7 +1418,7 @@ msgstr[1] ""
 
 #. TRANSLATORS: shown in place of a device's name when its name is not known
 #: openexpress/cli.py:782 openexpress/gui/forget_device.py:46
-#: openexpress/gui/start.py:741 openexpress/gui/start.py:867
+#: openexpress/gui/start.py:747 openexpress/gui/start.py:873
 msgid "Garmin device"
 msgstr ""
 
@@ -4120,7 +4120,7 @@ msgid "No GPS positions in this activity"
 msgstr ""
 
 #: openexpress/gui/activities_page.py:102 openexpress/gui/activity_page.py:138
-#: openexpress/gui/app.py:448 openexpress/gui/apps_page.py:632
+#: openexpress/gui/app.py:449 openexpress/gui/apps_page.py:632
 #: openexpress/gui/detection.py:726 openexpress/gui/device_page.py:833
 #: openexpress/gui/window_tasks.py:498
 msgid "Another operation is in progress"
@@ -4220,7 +4220,7 @@ msgstr ""
 
 #. TRANSLATORS: heading above the tiles of the devices of the Garmin account that
 #. were never connected to this computer
-#: openexpress/gui/add_to_account.py:48 openexpress/gui/start.py:520
+#: openexpress/gui/add_to_account.py:48 openexpress/gui/start.py:526
 msgid "On the Account"
 msgstr ""
 
@@ -4320,13 +4320,13 @@ msgid "Device"
 msgstr ""
 
 #: openexpress/gui/app.py:84 openexpress/gui/detection.py:718
-#: openexpress/gui/start.py:490
+#: openexpress/gui/start.py:496
 msgid "Detecting the Device…"
 msgstr ""
 
 #. TRANSLATORS: tab title
 #: openexpress/gui/app.py:86 openexpress/gui/device_page.py:997
-#: openexpress/gui/start.py:706
+#: openexpress/gui/start.py:712
 msgctxt "tab"
 msgid "Updates"
 msgstr ""
@@ -4337,7 +4337,7 @@ msgstr ""
 
 #. TRANSLATORS: tab title
 #: openexpress/gui/app.py:89 openexpress/gui/device_page.py:1010
-#: openexpress/gui/start.py:710
+#: openexpress/gui/start.py:716
 msgctxt "tab"
 msgid "Maps"
 msgstr ""
@@ -4386,83 +4386,83 @@ msgstr ""
 msgid "Reading Profiles…"
 msgstr ""
 
-#: openexpress/gui/app.py:282 openexpress/gui/preferences.py:285
+#: openexpress/gui/app.py:283 openexpress/gui/preferences.py:285
 msgid "Preferences"
 msgstr ""
 
-#: openexpress/gui/app.py:284 openexpress/gui/preferences.py:286
+#: openexpress/gui/app.py:285 openexpress/gui/preferences.py:286
 msgid "Keyboard Shortcuts"
 msgstr ""
 
-#: openexpress/gui/app.py:286
+#: openexpress/gui/app.py:287
 msgid "Report a Device or Problem…"
 msgstr ""
 
-#: openexpress/gui/app.py:287
+#: openexpress/gui/app.py:288
 msgid "About openExpress"
 msgstr ""
 
-#: openexpress/gui/app.py:298 openexpress/gui/start_window.py:147
+#: openexpress/gui/app.py:299 openexpress/gui/start_window.py:147
 msgid "Main Menu"
 msgstr ""
 
-#: openexpress/gui/app.py:330 openexpress/gui/app.py:392
+#: openexpress/gui/app.py:331 openexpress/gui/app.py:393
 #: openexpress/gui/preferences.py:284
 msgid "Refresh"
 msgstr ""
 
 #. TRANSLATORS: button that starts syncing
-#: openexpress/gui/app.py:333 openexpress/gui/app.py:337
-#: openexpress/gui/app.py:456 openexpress/gui/preferences.py:284
-#: openexpress/gui/start.py:668
+#: openexpress/gui/app.py:334 openexpress/gui/app.py:338
+#: openexpress/gui/app.py:457 openexpress/gui/preferences.py:284
+#: openexpress/gui/start.py:674
 msgid "Sync"
 msgstr ""
 
-#: openexpress/gui/app.py:362
+#: openexpress/gui/app.py:363
 msgid "Do not unplug the device"
 msgstr ""
 
 #. TRANSLATORS: button on the bar at the bottom: stop waiting for TrueUp
-#: openexpress/gui/app.py:370
+#: openexpress/gui/app.py:371
 msgid "Stop Waiting"
 msgstr ""
 
-#: openexpress/gui/app.py:431
+#: openexpress/gui/app.py:432
 msgid "This device is not registered to your Garmin account"
 msgstr ""
 
-#: openexpress/gui/app.py:432
+#: openexpress/gui/app.py:433
 msgid "Could not check whether this device belongs to your Garmin account"
 msgstr ""
 
 #. TRANSLATORS: title when no device is plugged in: plug it in with a USB cable
 #. ("connect", not Garmin Connect)
-#: openexpress/gui/app.py:440 openexpress/gui/detection.py:560
+#: openexpress/gui/app.py:441 openexpress/gui/detection.py:560
 #: openexpress/gui/device_page.py:675
 msgid "Connect Your Device"
 msgstr ""
 
 #. TRANSLATORS: a device connected as a USB drive, not over MTP
-#: openexpress/gui/app.py:442 openexpress/gui/detection.py:552
+#: openexpress/gui/app.py:443 openexpress/gui/detection.py:552
 #: openexpress/gui/detection.py:571 openexpress/gui/device_page.py:976
 msgid "USB Drive"
 msgstr ""
 
-#: openexpress/gui/app.py:444 openexpress/gui/device_page.py:814
+#: openexpress/gui/app.py:445 openexpress/gui/device_page.py:814
 msgid "Not signed in to Garmin Connect"
 msgstr ""
 
-#: openexpress/gui/app.py:520
+#: openexpress/gui/app.py:521
 msgid "Operation in Progress"
 msgstr ""
 
-#: openexpress/gui/app.py:521
+#: openexpress/gui/app.py:522
 msgid ""
 "Wait until it finishes before closing openExpress, so that no files on the "
 "device are left half-written."
 msgstr ""
 
-#: openexpress/gui/app.py:629
+#: openexpress/gui/app.py:630
 #, python-brace-format
 msgid "No display available ({details}): openExpress needs a graphical session"
 msgstr ""
@@ -5099,7 +5099,7 @@ msgstr ""
 #. TRANSLATORS: under "Sync With Garmin Connect" on the page of a device connected
 #. as a USB drive, which has no row of the background sync
 #: openexpress/gui/device_page.py:980 openexpress/gui/preferences.py:360
-#: openexpress/gui/start.py:693
+#: openexpress/gui/start.py:699
 msgid "Sync With Garmin Connect"
 msgstr ""
 
@@ -5111,7 +5111,7 @@ msgstr ""
 
 #. TRANSLATORS: subtitle of "Last Sync" of a device that cannot be synced
 #: openexpress/gui/device_page.py:986 openexpress/gui/device_page.py:989
-#: openexpress/gui/start.py:695
+#: openexpress/gui/start.py:701
 msgid "Last Sync"
 msgstr ""
 
@@ -5121,7 +5121,7 @@ msgid "Not available"
 msgstr ""
 
 #. TRANSLATORS: row of the device's own software (firmware) and its updates
-#: openexpress/gui/device_page.py:999 openexpress/gui/start.py:708
+#: openexpress/gui/device_page.py:999 openexpress/gui/start.py:714
 msgid "Device Software"
 msgstr ""
 
@@ -5131,7 +5131,7 @@ msgid "Apps and Music"
 msgstr ""
 
 #: openexpress/gui/device_page.py:1039 openexpress/gui/preferences.py:429
-#: openexpress/gui/start.py:701
+#: openexpress/gui/start.py:707
 msgid "Garmin Connect Account"
 msgstr ""
 
@@ -5145,7 +5145,7 @@ msgstr ""
 msgid "Primary Training Device"
 msgstr ""
 
-#: openexpress/gui/device_page.py:1064 openexpress/gui/start.py:716
+#: openexpress/gui/device_page.py:1064 openexpress/gui/start.py:722
 msgid "Tools"
 msgstr ""
 
@@ -5161,7 +5161,7 @@ msgid "Create"
 msgstr ""
 
 #. TRANSLATORS: row with the device's Garmin part number, a product code such as 006-B1234-00
-#: openexpress/gui/device_page.py:1075 openexpress/gui/start.py:717
+#: openexpress/gui/device_page.py:1075 openexpress/gui/start.py:723
 msgid "Part Number"
 msgstr ""
 
@@ -5689,14 +5689,14 @@ msgstr ""
 msgid "Removing…"
 msgstr ""
 
-#: openexpress/gui/netstatus_view.py:169
-msgid "Show the state of Garmin's servers"
+#. TRANSLATORS: in the popover of the server state button, in place of the parts of
+#. Garmin's servers, while the program has asked none of them
+#: openexpress/gui/netstatus_view.py:122
+msgid "No server has been needed yet"
 msgstr ""
 
-#. TRANSLATORS: window of Garmin's servers, in place of the time of the last answer: the
-#. server was not asked yet
-#: openexpress/gui/netstatus_view.py:186
-msgid "not asked yet"
+#: openexpress/gui/netstatus_view.py:193
+msgid "Show the state of Garmin's servers"
 msgstr ""
 
 #: openexpress/gui/pictures.py:196
@@ -6207,40 +6207,40 @@ msgstr ""
 
 #. TRANSLATORS: a chip on the tile of a device on the start page (its tooltip says when
 #. the check found it), and under the software version on the device page
-#: openexpress/gui/start.py:344
+#: openexpress/gui/start.py:350
 msgid "Update available"
 msgstr ""
 
 #. TRANSLATORS: a chip under the software version on the device page: an update is copied
 #. to the device, which installs it once disconnected
-#: openexpress/gui/start.py:352
+#: openexpress/gui/start.py:358
 msgid "Update ready"
 msgstr ""
 
 #. TRANSLATORS: a chip on the tile of a USB drive: an update is copied to it, the
 #. device installs it once ejected
-#: openexpress/gui/start.py:367
+#: openexpress/gui/start.py:373
 msgctxt "chip"
 msgid "Eject to install"
 msgstr ""
 
 #. TRANSLATORS: a chip on the tile of a connected device: an update is copied to
 #. it, the device installs it once unplugged
-#: openexpress/gui/start.py:371
+#: openexpress/gui/start.py:377
 msgctxt "chip"
 msgid "Unplug to install"
 msgstr ""
 
 #. TRANSLATORS: tooltip of an update chip on a device's tile: when the updates were checked;
 #. {when}: a date and an hour
-#: openexpress/gui/start.py:375 openexpress/gui/start.py:378
+#: openexpress/gui/start.py:381 openexpress/gui/start.py:384
 #, python-brace-format
 msgid "Checked {when}"
 msgstr ""
 
 #. TRANSLATORS: the tooltip of the chip "To sync": activities on the device that
 #. openExpress has not uploaded yet, since its last sync (a date and an hour)
-#: openexpress/gui/start.py:384
+#: openexpress/gui/start.py:390
 #, python-brace-format
 msgid "{count} new activity since {when}"
 msgid_plural "{count} new activities since {when}"
@@ -6249,7 +6249,7 @@ msgstr[1] ""
 
 #. TRANSLATORS: tooltip of the chip "To sync" when no last sync is known: activities on
 #. the device not uploaded yet
-#: openexpress/gui/start.py:390
+#: openexpress/gui/start.py:396
 #, python-brace-format
 msgid "{count} new activity"
 msgid_plural "{count} new activities"
@@ -6258,62 +6258,62 @@ msgstr[1] ""
 
 #. TRANSLATORS: a chip on the tile of a connected device: it has activities that
 #. openExpress has not uploaded yet
-#: openexpress/gui/start.py:394
+#: openexpress/gui/start.py:400
 msgctxt "chip"
 msgid "To sync"
 msgstr ""
 
 #. TRANSLATORS: a chip on the tile of a device in mass storage mode
-#: openexpress/gui/start.py:399
+#: openexpress/gui/start.py:405
 msgctxt "chip"
 msgid "USB drive"
 msgstr ""
 
 #. TRANSLATORS: a chip on the tile of the primary wearable of the Garmin account (its
 #. tooltip says what it is)
-#: openexpress/gui/start.py:403
+#: openexpress/gui/start.py:409
 msgid "Primary"
 msgstr ""
 
 #. TRANSLATORS: a chip on the tile of a device that is not on the Garmin account
-#: openexpress/gui/start.py:406
+#: openexpress/gui/start.py:412
 msgid "Not on your account"
 msgstr ""
 
 #. TRANSLATORS: a chip on the tile of a connected device that openExpress has synced
 #. before and that has no activities to upload now
-#: openexpress/gui/start.py:413
+#: openexpress/gui/start.py:419
 msgctxt "chip"
 msgid "Synced"
 msgstr ""
 
 #. TRANSLATORS: heading above the tiles of the devices connected now
-#: openexpress/gui/start.py:515
+#: openexpress/gui/start.py:521
 msgid "Connected"
 msgstr ""
 
 #. TRANSLATORS: heading above the tiles of the devices seen before, not connected now
-#: openexpress/gui/start.py:517
+#: openexpress/gui/start.py:523
 msgid "Remembered"
 msgstr ""
 
 #. TRANSLATORS: title of the start page, which lists the Garmin devices
-#: openexpress/gui/start.py:546 openexpress/gui/start.py:733
+#: openexpress/gui/start.py:552 openexpress/gui/start.py:739
 msgid "Devices"
 msgstr ""
 
-#: openexpress/gui/start.py:671
+#: openexpress/gui/start.py:677
 msgid "Device not connected — connect it to sync or update"
 msgstr ""
 
-#: openexpress/gui/start.py:707 openexpress/gui/start.py:754
+#: openexpress/gui/start.py:713 openexpress/gui/start.py:760
 #: openexpress/gui/words.py:103
 msgid "Connect the device to check"
 msgstr ""
 
 #. TRANSLATORS: button at the bottom of the page of a device not connected: this
 #. computer forgets what it keeps of the device (it asks first)
-#: openexpress/gui/start.py:725
+#: openexpress/gui/start.py:731
 msgid "Forget Device…"
 msgstr ""
 

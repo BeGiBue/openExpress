@@ -1,7 +1,8 @@
 """The state of Garmin's servers at the bottom of the window's side panel: a button with a
-coloured dot and a word, which opens a popover with a row for each service (netstatus says
-what to show; this only draws it). NetStatusPanel is a mixin of MainWindow (gui/app.py),
-without __init__ of its own."""
+coloured dot and a word, which opens a popover in sections as GNOME's popover menus: the state,
+a line for each service the program has asked so far, and Try Again when something is wrong
+(netstatus says what to show; this only draws it). NetStatusPanel is a mixin of MainWindow
+(gui/app.py), without __init__ of its own."""
 from __future__ import annotations
 
 import types
@@ -9,10 +10,9 @@ import types
 import gi
 
 gi.require_version("Gtk", "4.0")
-gi.require_version("Adw", "1")
 gi.require_version("Gdk", "4.0")
 
-from gi.repository import Adw, Gdk, GLib, Gtk  # noqa: E402 - imports must follow gi.require_version
+from gi.repository import Gdk, Gtk  # noqa: E402 - imports must follow gi.require_version
 
 from openexpress import netstatus  # noqa: E402
 from openexpress.i18n import _  # noqa: E402
@@ -27,9 +27,8 @@ NET_COLOUR = {
     netstatus.SIGN_IN_EXPIRED: "warning",
     netstatus.CLOCK_OFF: "warning",
 }
-# … and of each service in the popover (None: not needed yet).
+# … and of each service in the popover (one not needed yet is not shown).
 NET_ROW_COLOUR = {
-    None: "dim-label",
     netstatus.OK: "success",
     netstatus.NETWORK: "error",
     netstatus.SERVER: "error",
@@ -103,10 +102,11 @@ class NetStatusPanel:
         # What the state comes from, on the button rather than at the bottom of the popover.
         self.net_button.set_tooltip_text(_(netstatus.NOTE))
 
-        box = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, spacing=8, margin_top=8,
-                      margin_bottom=8, margin_start=8, margin_end=8,
+        # Sections as in GNOME's popover menus, a line between them: the state; the services;
+        # Try Again, only when something is wrong.
+        box = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, margin_top=6, margin_bottom=6,
                       width_request=NET_POPOVER_WIDTH - 16)
-        head = Gtk.Box(spacing=6)
+        head = Gtk.Box(spacing=6, margin_start=12, margin_end=12, margin_top=6, margin_bottom=8)
         self.net_heading_dot = _dot()
         # Wrapped labels ask for the width of their whole text: a small limit keeps the
         # popover at its own width.
@@ -115,28 +115,52 @@ class NetStatusPanel:
         head.append(self.net_heading_dot)
         head.append(self.net_heading)
         box.append(head)
-        listbox = Gtk.ListBox(selection_mode=Gtk.SelectionMode.NONE)
-        listbox.add_css_class("boxed-list")
+        box.append(Gtk.Separator(margin_start=6, margin_end=6))
+        services = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, margin_top=4, margin_bottom=4)
+        # TRANSLATORS: in the popover of the server state button, in place of the parts of
+        # Garmin's servers, while the program has asked none of them
+        self.net_none = Gtk.Label(label=_("No server has been needed yet"), xalign=0, wrap=True,
+                                  max_width_chars=24, margin_start=12, margin_end=12,
+                                  margin_top=6, margin_bottom=6)
+        self.net_none.add_css_class("dim-label")
+        services.append(self.net_none)
         self.net_rows = {}
         for key in netstatus.SERVICES:
-            # ● name                      server error (HTTP 503)   (a problem only)
-            #   server                                  5 min ago
-            row = Adw.ActionRow(activatable=False)
+            # ● name                           5 min ago
+            #   server error (HTTP 503)                     (a problem only)
+            # Shown once the program has asked it. Plain labels: nothing in it takes the focus;
+            # its host and its last good answer are in its tooltip.
+            row = Gtk.Box(spacing=8, margin_start=12, margin_end=12, height_request=32,
+                          visible=False)
             dot = _dot()
-            row.add_prefix(dot)
-            right = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, valign=Gtk.Align.CENTER)
-            state = Gtk.Label(xalign=1, visible=False)
-            state.add_css_class("caption-heading")
-            when = Gtk.Label(xalign=1)
-            when.add_css_class("caption")
-            right.append(state)
-            right.append(when)
-            row.add_suffix(right)
-            listbox.append(row)
-            self.net_rows[key] = types.SimpleNamespace(row=row, dot=dot, state=state, when=when)
-        box.append(listbox)
-        # The same as Refresh of the page shown: no request of its own to Garmin's servers.
-        self.net_retry = Gtk.Button(label=_("Try Again"), halign=Gtk.Align.END, visible=False)
+            dot.set_valign(Gtk.Align.CENTER)
+            middle = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, hexpand=True,
+                             valign=Gtk.Align.CENTER, margin_top=3, margin_bottom=3)
+            name = Gtk.Label(xalign=0)
+            state = Gtk.Label(xalign=0, visible=False)
+            state.add_css_class("caption")
+            middle.append(name)
+            middle.append(state)
+            when = Gtk.Label(xalign=1, valign=Gtk.Align.CENTER)
+            when.add_css_class("dim-label")
+            row.append(dot)
+            row.append(middle)
+            row.append(when)
+            services.append(row)
+            self.net_rows[key] = types.SimpleNamespace(row=row, dot=dot, name=name, state=state,
+                                                       when=when)
+        box.append(services)
+        self.net_retry_line = Gtk.Separator(margin_start=6, margin_end=6, visible=False)
+        box.append(self.net_retry_line)
+        # The same as Refresh of the page shown: no request of its own to Garmin's servers. An
+        # item of a menu, not a button: flat, its words at the start and not bold (the CSS).
+        self.net_retry = Gtk.Button(label=_("Try Again"), margin_start=6, margin_end=6,
+                                    margin_top=4, visible=False)
+        self.net_retry.add_css_class("flat")
+        self.net_retry.add_css_class("oe-menu-item")
+        words = self.net_retry.get_child()
+        words.set_xalign(0)
+        words.set_margin_start(6)
         self.net_retry.connect("clicked", _retry_from_net_status)
         box.append(self.net_retry)
         popover = Gtk.Popover(child=box, has_arrow=False, position=Gtk.PositionType.TOP)
@@ -170,19 +194,22 @@ class NetStatusPanel:
         self.net_heading.set_label(netstatus.heading(state))
         _paint(self.net_heading_dot, NET_COLOUR[state])
         self.net_retry.set_visible(state in NET_BAD)
+        self.net_retry_line.set_visible(state in NET_BAD)
+        shown = 0
         for r in netstatus.rows(last, answered, hosts):
             w = self.net_rows[r.service]
-            w.row.set_title(GLib.markup_escape_text(r.name))
-            w.row.set_subtitle(GLib.markup_escape_text(r.host))
+            w.row.set_visible(r.kind is not None)  # a service not needed yet is not shown
+            if r.kind is None:
+                continue
+            shown += 1
+            w.name.set_label(r.name)
             _paint(w.dot, NET_ROW_COLOUR[r.kind])
-            # The word only for a problem; a good answer has its dot and its time.
-            problem = r.kind not in (None, netstatus.OK)
+            # The words only for a problem, under the name; a good answer has its dot and time.
+            problem = r.kind != netstatus.OK
             w.state.set_label(r.outcome if problem else "")
             w.state.set_visible(problem)
             if problem:
                 _paint(w.state, NET_ROW_COLOUR[r.kind])
-            # TRANSLATORS: window of Garmin's servers, in place of the time of the last answer: the
-            # server was not asked yet
-            w.when.set_label(r.time if r.kind is not None else _("not asked yet"))
-            w.row.set_tooltip_text(r.answered or None)
-            w.row.set_sensitive(r.kind is not None)  # not asked yet: greyed
+            w.when.set_label(r.time)
+            w.row.set_tooltip_text("\n".join(t for t in (r.host, r.answered) if t))
+        self.net_none.set_visible(shown == 0)

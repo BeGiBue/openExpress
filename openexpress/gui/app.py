@@ -227,6 +227,7 @@ class MainWindow(TaskRunner, DeviceDetection, StartWindow, DevicePage, MapsPage,
         self.nav_icons: dict = {}  # the icon of each section in the side panel, by its key
         self.net_icon = self.net_label = self.net_button = None
         self.net_heading_dot = self.net_heading = self.net_retry = None
+        self.net_none = self.net_retry_line = None
         self.net_rows: dict = {}
         self.content_header = self.refresh_button = self.sync_button = None
         self.sync_icon_button = self.banner = self.pages = None

@@ -94,6 +94,12 @@ SUBTITLE_LINES = 2
 # flow box of the class oe-plain lays out, nothing more: its children get no background under
 # the pointer (libadwaita gives one to a child that can be activated).
 CSS = """
+/* An item of a menu made of a flat button (Try Again in the popover of the server state):
+   its words not bold, as those of a menu. */
+button.oe-menu-item,
+button.oe-menu-item label {
+  font-weight: normal;
+}
 flowboxchild.oe-tile.connected {
   outline: 1px solid alpha(currentColor, 0.15);
   outline-offset: -1px;

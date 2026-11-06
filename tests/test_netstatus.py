@@ -395,20 +395,16 @@ def test_the_popover_names_each_service_with_its_server_and_time(network_state):
     window._render_net_status(win)
     assert win.net_heading.get_label() == "Garmin server problem"
     connect, omt, sign_in = (win.net_rows[s] for s in netstatus.SERVICES)
-    assert (connect.row.get_title(), connect.row.get_subtitle()) == ("Garmin Connect",
-                                                                    "connectapi.garmin.com")
+    assert connect.name.get_label() == "Garmin Connect" and connect.row.get_visible()
+    assert connect.row.get_tooltip_text().splitlines()[0] == "connectapi.garmin.com"
     assert connect.when.get_label() == "just now" and not connect.state.get_visible()
     assert connect.dot.get_label() == DOT and connect.dot.has_css_class("success")
-    assert connect.row.get_sensitive()
-    assert (omt.row.get_title(), omt.row.get_subtitle()) == ("Updates and maps",
-                                                            "omt.garmin.com")
+    assert omt.name.get_label() == "Updates and maps" and omt.row.get_visible()
     assert omt.state.get_visible() and omt.state.get_label() == "server error (HTTP 503)"
     assert omt.state.has_css_class("error") and omt.dot.has_css_class("error")
-    assert omt.row.get_tooltip_text().startswith("last answer at ")
-    assert (sign_in.row.get_title(), sign_in.row.get_subtitle()) == ("Sign-in",
-                                                                    "sso.garmin.com")
-    assert sign_in.when.get_label() == "not asked yet" and not sign_in.state.get_visible()
-    assert sign_in.dot.has_css_class("dim-label") and not sign_in.row.get_sensitive()  # greyed
+    host, answer = omt.row.get_tooltip_text().splitlines()
+    assert host == "omt.garmin.com" and answer.startswith("last answer at ")
+    assert not sign_in.row.get_visible()  # not asked yet: not shown
 
 
 @pytest.mark.needs_display
@@ -608,12 +604,13 @@ def test_a_good_row_has_its_dot_and_time_but_no_word(network_state):
     note(network_state, [(netstatus.CONNECT, 200)])
     window._render_net_status(win)
     connect = win.net_rows[netstatus.CONNECT]
-    assert (connect.row.get_title(), connect.row.get_subtitle()) == (
-        "Garmin Connect", "connectapi.garmin.com")
+    assert connect.name.get_label() == "Garmin Connect"
     assert connect.dot.has_css_class("success") and not connect.state.get_visible()
-    assert connect.when.get_label() == "just now"
-    tooltip = connect.row.get_tooltip_text()  # the whole date and hour of the answer
-    assert tooltip.startswith("last answer at ") and tooltip.count("-") == 2
+    assert connect.when.get_label() == "just now" and connect.when.has_css_class("dim-label")
+    # The host, then the whole date and hour of the answer.
+    host, answer = connect.row.get_tooltip_text().splitlines()
+    assert host == "connectapi.garmin.com"
+    assert answer.startswith("last answer at ") and answer.count("-") == 2
 
 
 @pytest.mark.needs_display
@@ -623,19 +620,98 @@ def test_a_row_with_a_problem_says_it_in_its_colour(network_state):
     window._render_net_status(win)
     omt = win.net_rows[netstatus.OMT]
     assert omt.state.get_visible() and omt.state.get_label() == "server error (HTTP 503)"
-    assert omt.state.has_css_class("error") and omt.state.has_css_class("caption-heading")
-    assert omt.when.get_label() == "just now"
-    assert omt.row.get_tooltip_text().startswith("last answer at ")  # the last good one
+    assert omt.state.has_css_class("error") and omt.state.has_css_class("caption")
+    # Under the name, the time on the right on its own.
+    assert omt.state.get_parent() is omt.name.get_parent()
+    assert omt.name.get_next_sibling() is omt.state
+    assert omt.when.get_label() == "just now" and omt.when.get_parent() is omt.row
+    tooltip = omt.row.get_tooltip_text().splitlines()
+    assert tooltip[0] == "omt.garmin.com" and tooltip[1].startswith("last answer at ")
 
 
 @pytest.mark.needs_display
-def test_a_service_not_asked_yet_is_greyed(network_state):
+def test_a_service_not_asked_yet_is_not_shown_until_it_is(network_state):
     win, _bar, window = _status_window()
     note(network_state, [(netstatus.CONNECT, 200)])
     window._render_net_status(win)
-    sign_in = win.net_rows[netstatus.SIGN_IN]
-    assert sign_in.when.get_label() == "not asked yet" and not sign_in.state.get_visible()
-    assert not sign_in.row.get_sensitive() and sign_in.row.get_tooltip_text() is None
+    shown = {s: r.row.get_visible() for s, r in win.net_rows.items()}
+    assert shown == {netstatus.CONNECT: True, netstatus.OMT: False, netstatus.SIGN_IN: False}
+    assert not win.net_none.get_visible()
+    note(network_state, [(netstatus.OMT, 200)])
+    window._render_net_status(win)  # its first answer: it comes, in its place
+    assert win.net_rows[netstatus.OMT].row.get_visible()
+    assert win.net_rows[netstatus.OMT].name.get_label() == "Updates and maps"
+    assert not win.net_rows[netstatus.SIGN_IN].row.get_visible()
+
+
+@pytest.mark.needs_display
+def test_with_no_service_asked_the_popover_says_so_in_one_sentence(network_state):
+    win, _bar, window = _status_window()
+    window._render_net_status(win)
+    assert win.net_heading.get_label() == "Status unknown"
+    assert win.net_none.get_visible()
+    assert win.net_none.get_label() == "No server has been needed yet"
+    assert win.net_none.has_css_class("dim-label")
+    assert not any(r.row.get_visible() for r in win.net_rows.values())
+    assert not win.net_retry.get_visible() and not win.net_retry_line.get_visible()
+
+
+def _descendants(widget):
+    child = widget.get_first_child()
+    while child is not None:
+        yield child
+        yield from _descendants(child)
+        child = child.get_next_sibling()
+
+
+@pytest.mark.needs_display
+@pytest.mark.parametrize("steps", [
+    [(netstatus.CONNECT, 200)],
+    [(netstatus.CONNECT, 200), (netstatus.OMT, 503)],
+    [],
+])
+def test_the_focus_never_lands_on_the_rows(steps, network_state):
+    win, _bar, window = _status_window()
+    note(network_state, steps)
+    window._render_net_status(win)
+    content = win.net_button.get_popover().get_child()
+    rows = [r.row for r in win.net_rows.values()]
+    assert not any(w.get_focusable() for row in rows for w in (row, *_descendants(row)))
+    assert not win.net_none.get_focusable()
+    # The one thing that takes the focus is Try Again, an item to act on.
+    assert [w for w in _descendants(content) if w.get_focusable()] == [win.net_retry]
+
+
+@pytest.mark.needs_display
+def test_the_popover_is_in_sections_as_a_menu(network_state):
+    from gi.repository import Gtk
+
+    from openexpress.gui import start
+
+    win, _bar, window = _status_window()
+    note(network_state, [(netstatus.CONNECT, 200), (netstatus.OMT, 503)])
+    window._render_net_status(win)
+    content = win.net_button.get_popover().get_child()
+    sections = list(_children(content))
+    head, line, services, retry_line, retry = sections
+    assert win.net_heading in list(_children(head)) and win.net_heading_dot in list(_children(head))
+    assert isinstance(line, Gtk.Separator) and retry_line is win.net_retry_line
+    assert isinstance(retry_line, Gtk.Separator) and retry is win.net_retry
+    # In the services, the sentence for none first, then each service in its order.
+    assert list(_children(services)) == [win.net_none] + [win.net_rows[s].row
+                                                           for s in netstatus.SERVICES]
+    assert retry_line.get_visible() and retry.get_visible()
+    # Try Again is an item of a menu: flat, its words at the start, not bold.
+    assert retry.has_css_class("flat") and retry.has_css_class("oe-menu-item")
+    assert retry.get_child().get_xalign() == 0
+    assert "button.oe-menu-item label {\n  font-weight: normal;" in start.CSS
+
+
+def _children(widget):
+    child = widget.get_first_child()
+    while child is not None:
+        yield child
+        child = child.get_next_sibling()
 
 
 @pytest.mark.needs_display
@@ -688,6 +764,7 @@ def test_try_again_shows_only_when_something_is_wrong_and_refreshes_the_page(net
     note(network_state, [(netstatus.CONNECT, None)])
     root._render_net_status()
     assert root.net_retry.get_visible() and root.net_retry.get_label() == "Try Again"
+    assert root.net_retry_line.get_visible()  # its section, after a line
     root.net_retry.emit("clicked")
     assert refreshed == [True]  # Refresh of the page: no request of its own
     root.destroy()
