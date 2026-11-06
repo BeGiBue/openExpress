@@ -110,7 +110,12 @@ def _field_names() -> dict[int, str]:
         59: pgettext("data field", "Time of Day"),
         60: pgettext("data field", "Total Ascent"),
         61: pgettext("data field", "Total Descent"),
+        # TRANSLATORS: the distance ahead of or behind the Virtual Partner. The profile page
+        # shows no category of the device's menu, so the name must differ from "Time Ahead"'s,
+        # though a manual may name both alike (in Polish both are "Przewaga")
         62: pgettext("data field", "Distance Ahead"),
+        # TRANSLATORS: the time ahead of or behind the Virtual Partner; the name must differ
+        # from "Distance Ahead"'s, as the profile page shows no category of the device's menu
         63: pgettext("data field", "Time Ahead"),
         64: pgettext("data field", "Calories to Go"),
         65: pgettext("data field", "Distance to Go"),

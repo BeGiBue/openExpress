@@ -69,6 +69,14 @@ data field|Elapsed Time|ignore-reused
 data field|Total Ascent|ignore-reused
 data field|Total Descent|ignore-reused
 data field|Max. Speed|ignore-reused
+# An Edge's graphs and a watch's charts: Garmin's manuals name each pair alike in Polish, and
+# a device's profiles hold only its own (the profile page shows one device)
+data field|Heart Rate Graph|ignore-reused
+data field|Heart Rate Chart|ignore-reused
+data field|Speed Graph|ignore-reused
+data field|Speed Chart|ignore-reused
+data field|Elevation Graph|ignore-reused
+data field|Elevation Chart|ignore-reused
 |Configuration|ignore-reused
 
 # ignore-multiple-capital
