@@ -26,7 +26,7 @@ import gi
 gi.require_version("Gtk", "4.0")
 gi.require_version("Adw", "1")
 
-from gi.repository import Adw, GLib, Gtk  # noqa: E402 - imports must follow gi.require_version
+from gi.repository import Adw, GLib, Gtk, Pango  # noqa: E402 - imports must follow gi.require_version
 
 from openexpress.errors import OrdinaryStop, UserFacingError  # noqa: E402
 from openexpress.gui import stalled  # noqa: E402
@@ -399,11 +399,15 @@ def inform(parent, name: str, heading: str, body: str, *, label: str | None = No
 class TaskRunner:
     def toast(self, text: str) -> None:
         """A short message: on a device's view above its bar at the bottom (where the next
-        task may show already), elsewhere on the window."""
+        task may show already), elsewhere on the window. Its words go on to a second and a
+        third line rather than being cut (a name in them may be long)."""
         on_device = (self.navigation is not None and self.page_toasts is not None
                      and self.navigation.get_visible_page() is self.device_view)
         shown = self.page_toasts if on_device else self.toasts
-        shown.add_toast(Adw.Toast(title=GLib.markup_escape_text(text), timeout=5))
+        words = Gtk.Label(label=text, wrap=True, wrap_mode=Pango.WrapMode.WORD_CHAR, lines=3,
+                          ellipsize=Pango.EllipsizeMode.END, justify=Gtk.Justification.CENTER,
+                          css_classes=["heading"])
+        shown.add_toast(Adw.Toast(custom_title=words, timeout=5))
 
     def error(self, title: str, text: str) -> None:
         if self._telling_stall:
