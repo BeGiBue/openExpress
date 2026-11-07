@@ -85,6 +85,7 @@ def test_the_side_panel_chooses_a_section(window):
     assert window.sections["watch"].icon == f"{APP_ID}-device-small-symbolic"
     assert window.sections["activities"].icon == f"{APP_ID}-activities-symbolic"
     assert window.sections["profiles"].icon == f"{APP_ID}-profiles-symbolic"
+    assert window.sections["courses"].icon == f"{APP_ID}-courses-symbolic"
     rows = [r for r in descendants(window.nav) if isinstance(r, Gtk.ListBoxRow)]
     assert [r.key for r in rows] == keys
     assert {key: image.get_icon_name() for key, image in window.nav_icons.items()} == {

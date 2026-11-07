@@ -32,8 +32,9 @@ from openexpress.paths import APP_ID  # noqa: E402
 
 log = logging.getLogger(__name__)
 
-# Until the page has an icon of its own: the distance's (a line between two points).
-PAGE_ICON = f"{APP_ID}-activity-distance-symbolic"
+# A trail of switchbacks, its start a filled disc (packaging/icons/courses.svg): the side
+# panel's and the page's without a course.
+PAGE_ICON = f"{APP_ID}-courses-symbolic"
 # The width of the question's content: a file's name on one line beside its title (libadwaita
 # gives a question 312 px at most); never more than the window leaves a dialog's content, 108 px
 # less than its own width (measured with libadwaita 1.9).

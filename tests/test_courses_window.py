@@ -462,3 +462,16 @@ def test_the_question_shows_the_file_on_its_map(drive, tmp_path, asked):
     win.add_course(_gpx(tmp_path, gpx_route()))
     # On top, over the course's name.
     assert isinstance(asked[0].extra.get_first_child(), course_map.CourseMap)
+
+
+def test_the_page_without_a_course_shows_the_icon_of_the_side_panel(drive):
+    from gi.repository import Gtk
+
+    from openexpress.gui import courses_page
+
+    win, section = courses_window(drive)
+    win.load_courses()
+    (icon,) = [w for w in descendants(section.page) if isinstance(w, Gtk.Image)]
+    # The program's own icon (test_window_icons: drawn, made into shapes, in the Flatpak).
+    assert icon.get_icon_name() == courses_page.PAGE_ICON == (
+        "io.github.tomaszbojanowski.OpenExpress-courses-symbolic")

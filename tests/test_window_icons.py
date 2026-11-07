@@ -1,5 +1,6 @@
 """The icons of the window: the side panel's Device takes the small icon of the open device's
-kind (the shape of its tile, drawn for 16 px), Activities a runner, Activity profiles sliders;
+kind (the shape of its tile, drawn for 16 px), Activities a runner, Activity profiles sliders,
+Courses a trail of switchbacks from its start;
 the tiles of an activity's page a distance between two points, a stopwatch, a speedometer, a
 heart, a flame and two peaks. Each icon of the program is drawn on the 16 px grid in
 packaging/icons and made into shapes by tools/symbolic-icons.py, and the Flatpak installs
@@ -15,7 +16,7 @@ ROOT = Path(__file__).resolve().parent.parent
 APP_ID = "io.github.tomaszbojanowski.OpenExpress"
 SMALL = ["watch-small", "cycling-computer-small", "handheld-small", "bike-accessory-small",
          "device-small"]
-OWN = [*SMALL, "activities", "profiles", "activity-distance", "activity-speed",
+OWN = [*SMALL, "activities", "profiles", "courses", "activity-distance", "activity-speed",
        "activity-calories"]
 
 
