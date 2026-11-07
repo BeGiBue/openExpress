@@ -92,6 +92,23 @@
   </supports>
   <content_rating type="oars-1.1"/>
   <releases>
+    <release version="0.8.8" date="2026-11-07">
+      <description translate="no">
+        <ul>
+          <li>Courses from GPX files (experimental): a new Courses page and the command openexpress
+          courses. Choose a GPX file, openExpress copies it to the watch or bike computer, and the
+          device turns it into a course when you unplug it, without Garmin Connect. The question
+          before the copy shows the file on a map. The page lists the courses on the device, marked
+          when they came from openExpress or Garmin Connect, the files waiting for it and its saved
+          locations, and removes a course or a waiting file. Tried on an Edge 1050 and a
+          fēnix 8.</li>
+          <li>The popover of Garmin's servers is laid out as a GNOME menu and lists only the servers
+          the program has asked so far.</li>
+          <li>A long notification at the bottom of the window wraps instead of being cut off.</li>
+          <li>Translations are now on Hosted Weblate – help is welcome.</li>
+        </ul>
+      </description>
+    </release>
     <release version="0.8.7" date="2026-11-06">
       <description translate="no">
         <ul>
