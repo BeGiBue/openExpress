@@ -111,13 +111,13 @@ msgstr "Klettern"
 #: openexpress/activities.py:98
 msgctxt "sport"
 msgid "Snowshoeing"
-msgstr "Schneeschuhwandern"
+msgstr "Schneeschuhlaufen"
 
 #: openexpress/activities.py:99
 #, ignore-multiple-capital
 msgctxt "sport"
 msgid "Stand-up paddleboarding"
-msgstr "Stand-Up-Paddling"
+msgstr "Stand-Up-Paddle-Boarding"
 
 #: openexpress/activities.py:100
 #, ignore-reused
@@ -353,7 +353,7 @@ msgstr "Widget"
 #: openexpress/ciq.py:60
 msgctxt "app type"
 msgid "watch face"
-msgstr "Zifferblatt"
+msgstr "Displaydesign"
 
 #. TRANSLATORS: a type of Connect IQ app, lower case, after an app's name in lists; use
 #. the name the Connect IQ Store uses in your language
@@ -367,7 +367,7 @@ msgstr "Datenfeld"
 #: openexpress/ciq.py:66
 msgctxt "app type"
 msgid "music app"
-msgstr "Musik-App"
+msgstr "Musik"
 
 #. TRANSLATORS: a type of Connect IQ app, lower case, after an app's name in lists; use
 #. the name the Connect IQ Store uses in your language
@@ -525,7 +525,7 @@ msgstr "das Internet, über das Telefon"
 
 #: openexpress/ciq.py:611
 msgid "offering data to watch faces and other apps"
-msgstr "Bereitstellen von Daten für Zifferblätter und andere Apps"
+msgstr "Bereitstellen von Daten für Displaydesigns und andere Apps"
 
 #: openexpress/ciq.py:612
 msgid "reading data that other apps offer"
@@ -3789,7 +3789,7 @@ msgstr "hinzufügen: ändert Ihr Garmin-Konto"
 
 #: openexpress/cli.py:3219
 msgid "Connect IQ apps, watch faces and data fields"
-msgstr "Connect IQ-Apps, Zifferblätter und Datenfelder"
+msgstr "Connect IQ-Apps, Displaydesigns und Datenfelder"
 
 #: openexpress/cli.py:3220
 msgid "also list built-in activities"
@@ -8396,27 +8396,27 @@ msgstr "Geringer Nutzen"
 #. TRANSLATORS: a training effect from 2.0 to 2.9, in Garmin Connect's word
 #: openexpress/gui/words.py:810
 msgid "Maintaining"
-msgstr "Erhaltend"
+msgstr "Formerhalt"
 
 #. TRANSLATORS: a training effect from 3.0 to 3.9, in Garmin Connect's word
 #: openexpress/gui/words.py:812
 msgid "Improving"
-msgstr "Verbessernd"
+msgstr "Verbesserung"
 
 #. TRANSLATORS: a training effect from 4.0 to 4.9, in Garmin Connect's word
 #: openexpress/gui/words.py:814
 msgid "Highly improving"
-msgstr "Stark verbessernd"
+msgstr "Starke Verbesserung"
 
 #. TRANSLATORS: a training effect of 5.0, in Garmin Connect's word
 #: openexpress/gui/words.py:816
 msgid "Overreaching"
-msgstr "Überlastend"
+msgstr "Überbelastung"
 
 #. TRANSLATORS: the training load of an activity (a number)
 #: openexpress/gui/words.py:827
 msgid "Training load"
-msgstr "Trainingsbelastung"
+msgstr "Belastungswert"
 
 #. TRANSLATORS: a series after "Track colour:", as a sentence goes on there (in Polish
 #. in lower case: "tętno")
@@ -11569,7 +11569,7 @@ msgstr ""
 #: openexpress/data/io.github.tomaszbojanowski.OpenExpress.metainfo.xml.in:21
 msgid "Install, update and remove Connect IQ apps and watch faces"
 msgstr ""
-"Connect IQ-Apps und Zifferblätter installieren, aktualisieren und entfernen"
+"Connect IQ-Apps und Displaydesigns installieren, aktualisieren und entfernen"
 
 #: openexpress/data/io.github.tomaszbojanowski.OpenExpress.metainfo.xml.in:22
 msgid "Copy music, podcasts, audiobooks and playlists"
