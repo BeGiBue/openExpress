@@ -540,7 +540,7 @@ def _activity_row(read) -> tuple[list[str], str | None]:
     seconds = None if summary.timer_time is None else round(summary.timer_time)
     cells += [
         dash if seconds is None else f"{seconds // 3600}:{seconds // 60 % 60:02}:{seconds % 60:02}",
-        dash if not summary.distance else f"{decimal(f'{summary.distance / 1000:.2f}')} km",
+        dash if not summary.distance else _km(summary.distance),
         dash if summary.ascent is None else f"{summary.ascent} m",
         source, a.name]
     # TRANSLATORS: a note under a row of `openexpress activities`: the activity's file is damaged
@@ -2488,7 +2488,7 @@ def _points(line) -> str:
 
 
 def _gpx_contents(gpx) -> str:
-    """What a GPX file holds, each kind of it: "track, 12.35 km, ↗ 321 m, 120 points"."""
+    """What a GPX file holds, each kind of it: "track, 12.35 km, ↑ 321 m, 120 points"."""
     tracks = [line for line in gpx.lines if line.kind == "track"]
     routes = [line for line in gpx.lines if line.kind == "route"]
     parts = []
@@ -2496,7 +2496,7 @@ def _gpx_contents(gpx) -> str:
         (track,) = tracks
         words = [pgettext("course contents", "track"), _km(track.distance_m)]
         if track.ascent_m is not None:
-            words.append(f"↗ {round(track.ascent_m)} m")
+            words.append(f"↑ {round(track.ascent_m)} m")
         parts.append(", ".join([*words, _points(track)]))
     elif tracks:
         parts.append(ngettext("{count} track, {distance}", "{count} tracks, {distance}",
@@ -2515,14 +2515,15 @@ def _gpx_contents(gpx) -> str:
 
 def _course_line(course) -> str:
     """A course of `courses`: its name, where it came from, its distance and ascent, and the
-    day the device made it (each left out when not known)."""
+    day its file was made: by the device, or by Garmin Connect when it sent the course, not
+    the day the course was created there (each left out when not known)."""
     parts = [course.title]
     if course.origin is not None:
         parts.append(course.origin)
     if course.distance_m:
         parts.append(_km(course.distance_m))
     if course.ascent_m is not None:
-        parts.append(f"↗ {course.ascent_m} m")
+        parts.append(f"↑ {course.ascent_m} m")
     if course.made is not None:
         parts.append(time.strftime(_("%Y-%m-%d"), time.localtime(course.made)))
     return "  " + " · ".join(parts)

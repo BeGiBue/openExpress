@@ -26,8 +26,12 @@ from openexpress.gui import course_map  # noqa: E402
 from openexpress.gui.device_page import device_name  # noqa: E402
 from openexpress.gui.tasks import read_again_after_failure, writes_to_device  # noqa: E402
 from openexpress.gui.window_tasks import WRAP_BOX, Answer, confirm  # noqa: E402
-from openexpress.gui.words import metres_text, space_text  # noqa: E402
-from openexpress.i18n import _, caption, decimal, human_size, ngettext, npgettext, pgettext  # noqa: E402
+from openexpress.gui.words import (  # noqa: E402
+    row_ascent_text,
+    row_distance_text,
+    space_text,
+)
+from openexpress.i18n import _, caption, human_size, ngettext, npgettext, pgettext  # noqa: E402
 from openexpress.paths import APP_ID  # noqa: E402
 
 log = logging.getLogger(__name__)
@@ -45,18 +49,15 @@ DIALOG_MARGINS = 108
 # --- the words of the page -----------------------------------------------------------------------
 
 
-def _km(metres: float) -> str:
-    return _("{distance} km").format(distance=decimal(f"{metres / 1000:.1f}"))
-
-
 def course_caption(course: courses.Course) -> str:
-    """Under a course's name: its distance, ascent and the day the device made it (each left
-    out when its file does not say)."""
+    """Under a course's name: its distance, ascent and the day its file was made: by the
+    device, or by Garmin Connect when it sent the course, not the day the course was created
+    there (each left out when its file does not say)."""
     parts = []
     if course.distance_m:
-        parts.append(_km(course.distance_m))
+        parts.append(row_distance_text(course.distance_m))
     if course.ascent_m is not None:
-        parts.append(f"↗ {metres_text(course.ascent_m)}")
+        parts.append(row_ascent_text(course.ascent_m))
     if course.made is not None:
         parts.append(datetime.fromtimestamp(course.made).strftime(_("%Y-%m-%d")))
     return caption(*parts)
@@ -74,7 +75,7 @@ def _points(line) -> str:
 
 
 def contents_text(gpx, short: bool = False) -> str:
-    """What a GPX file holds, each kind of it ("track, 12.3 km, ↗ 321 m, 120 track points");
+    """What a GPX file holds, each kind of it ("track, 12.3 km, ↑ 321 m, 120 track points");
     `short`: a track by its distance alone (the row of a waiting file)."""
     tracks = [line for line in gpx.lines if line.kind == "track"]
     routes = [line for line in gpx.lines if line.kind == "route"]
@@ -82,16 +83,17 @@ def contents_text(gpx, short: bool = False) -> str:
     if len(tracks) == 1:
         (track,) = tracks
         # TRANSLATORS: what a GPX file holds, on the Courses page: one track
-        words = [pgettext("course file", "track"), _km(track.distance_m)]
+        words = [pgettext("course file", "track"), row_distance_text(track.distance_m)]
         if not short:
             if track.ascent_m is not None:
-                words.append(f"↗ {metres_text(track.ascent_m)}")
+                words.append(row_ascent_text(track.ascent_m))
             words.append(_points(track))
         parts.append(", ".join(words))
     elif tracks:
         parts.append(npgettext("course file", "{count} track, {distance}",
                                "{count} tracks, {distance}", len(tracks)).format(
-            count=len(tracks), distance=_km(sum(track.distance_m for track in tracks))))
+            count=len(tracks),
+            distance=row_distance_text(sum(track.distance_m for track in tracks))))
     if len(routes) == 1:
         # TRANSLATORS: what a GPX file holds, on the Courses page: one route
         parts.append(", ".join([pgettext("course file", "route"), _points(routes[0])]))

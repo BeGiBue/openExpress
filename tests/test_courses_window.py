@@ -76,8 +76,9 @@ def now() -> int:
 
 def test_the_courses_the_files_waiting_and_the_locations(drive, clock):
     (drive / "Garmin/Courses/Along.fit").write_bytes(course_fit(
-        "Along the River", made=now(), product=courses.CONNECT_PRODUCT, ascent=None))
-    (drive / "Garmin/Courses/Hand.fit").write_bytes(course_fit("By Hand", made=now()))
+        "Along the River", made=now(), product=courses.CONNECT_PRODUCT))
+    # Made of a route: no ascent, which the row leaves out.
+    (drive / "Garmin/Courses/Hand.fit").write_bytes(course_fit("By Hand", made=now(), ascent=None))
     (drive / "Garmin/NewFiles/Loop.gpx").write_text(gpx_file(gpx_track()))
     (drive / "Garmin/Locations/Locations.fit").write_bytes(locations_fit(14))
     win, section = courses_window(drive)
@@ -86,9 +87,10 @@ def test_the_courses_the_files_waiting_and_the_locations(drive, clock):
     assert [g.get_title() for g in section.groups] == [
         "On the Device", "Waiting for the Device", "Saved Locations"]
     assert rows(section.groups[0]) == [
-        ["Along the River", "Garmin Connect", "12.3 km\u00a0· 2026-10-21"],
-        ["By Hand", "12.3 km\u00a0· ↗ 321 m\u00a0· 2026-10-21"]]
-    assert rows(section.groups[1]) == [["Morning Loop", "track, 1.4 km\u00a0· Loop.gpx"]]
+        ["Along the River", "Garmin Connect",
+         "12.3\u00a0km\u00a0· ↑\u00a0321\u00a0m\u00a0· 2026-10-21"],
+        ["By Hand", "12.3\u00a0km\u00a0· 2026-10-21"]]
+    assert rows(section.groups[1]) == [["Morning Loop", "track, 1.4\u00a0km\u00a0· Loop.gpx"]]
     assert "14" in labels(section.groups[2])
     assert section.banner.get_revealed()
     assert section.banner.get_title() == (
@@ -165,7 +167,7 @@ def test_adding_a_course_asks_with_its_name_and_copies_it_under_the_name_left(dr
                                            "Made-up Edge")
     words = labels(q.extra)
     at = words.index("Contents")
-    assert words[at:at + 5] == ["Contents", "track, 1.4 km, ↗ 10 m, 3 track points",
+    assert words[at:at + 5] == ["Contents", "track, 1.4\u00a0km, ↑\u00a010\u00a0m, 3 track points",
                                 "File on the Device", "Morning_\u200bLoop.GPX\u00a0· 340\u00a0B",
                                 "Free After Copying"]
     assert words[-1] == "The device makes the course when you unplug the cable."

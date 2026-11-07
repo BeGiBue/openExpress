@@ -459,7 +459,7 @@ def run(root, *argv):
 def test_the_list_of_courses_files_waiting_and_locations(courses_cli, tmp_path, clock, capsys):
     g = courses_cli / "GARMIN"
     (g / "Courses" / "Along.fit").write_bytes(course_fit(
-        "Along the River", made=now(), product=courses.CONNECT_PRODUCT, ascent=None))
+        "Along the River", made=now(), product=courses.CONNECT_PRODUCT))
     (g / "Courses" / "Broken.fit").write_bytes(b"not a course")
     (g / "NewFiles" / "Two.gpx").write_text(gpx_file(gpx_track("First") + gpx_track("Second")
                                                      + gpx_waypoint()))
@@ -467,7 +467,7 @@ def test_the_list_of_courses_files_waiting_and_locations(courses_cli, tmp_path, 
     assert run(courses_cli) == 0
     assert capsys.readouterr().out.splitlines() == [
         "2 courses on the device:",
-        "  Along the River · Garmin Connect · 12.35 km · 2026-10-21",
+        "  Along the River · Garmin Connect · 12.35 km · ↑ 321 m · 2026-10-21",
         "  Broken.fit",
         "1 GPX file waiting; unplug the device so it can import it:",
         "  Two.gpx · 2 tracks, 2.74 km; 1 waypoint",
@@ -493,7 +493,7 @@ def test_add_is_a_dry_run_without_apply(courses_cli, tmp_path, capsys):
     assert out[1].startswith("  morning-loop.gpx (") and out[1].endswith(
         "will be written to GARMIN/NewFiles/morning-loop.GPX")
     assert out[2:5] == [
-        "  Contents: track, 1.37 km, ↗ 10 m, 3 track points; route, 3 route points",
+        "  Contents: track, 1.37 km, ↑ 10 m, 3 track points; route, 3 route points",
         "  The device makes 2 courses when you unplug the cable.",
         ("  Garmin devices join the points of a route with straight lines, not roads. For a "
          "course along roads, export a track instead of a route.")]

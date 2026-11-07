@@ -126,8 +126,12 @@ read from the device when it is first shown and after each change:
   `Garmin/Courses`:
   - its title: the course's name from the file (else the file's name), and a chip of where it
     came from (D13): "openExpress" (accent) or "Garmin Connect"; none when not known;
-  - its subtitle: "{distance} · ↗ {ascent} · {date}" (the lap's distance and ascent, the date
-    the device made the course; each left out when the file has none);
+  - its subtitle: "{distance} · ↑ {ascent} · {date}": the lap's distance and ascent, in the
+    words of a row of the Activities page (kilometres with one decimal, whole metres after ↑,
+    hard spaces), so that the two pages read alike; the sketch's ↗ is not followed, on purpose.
+    The date is the day the course's file was made: by the device for a course it made of a
+    file, by Garmin Connect for one it sent (when it sent it to the device, not the day the
+    course was created in Connect). Each is left out when the file has none;
   - a button **Remove…** (an icon with that tooltip; D7). No chevron: a page of a course's
     details is for later.
 - **Waiting for the Device**, shown only when a file waits: one row per `.gpx` in `NewFiles`:
@@ -158,7 +162,7 @@ space, then the question (`confirm()`, wide, Cancel by default; Escape and closi
 - **Course Name**, an entry: the `<name>` of the track or route, else the file's name without
   `.gpx`. Shown only when the file makes one course; a file of several tracks lists their names
   in the contents, unchanged.
-- **Contents**: "track, {distance}, ↗ {ascent}, {count} track points" / "route, {count} route
+- **Contents**: "track, {distance}, ↑ {ascent}, {count} track points" / "route, {count} route
   points" / "{count} tracks, {distance}" / "{count} waypoints" (each kind the file holds,
   joined; a track's points, a route's and the file's waypoints each in words of their own).
 - **File on the Device**: "{file name} · {size}" (D4).
@@ -204,7 +208,8 @@ since the list was shown, or a device that stopped answering: the reason said, t
 ### 4.4 The command line
 
 - `openexpress courses`: the device's courses (name, origin, distance, ascent, date), the files
-  waiting for it and the number of saved locations (D10).
+  waiting for it and the number of saved locations (D10); the distance and ascent written as
+  `activities` writes them (kilometres with two decimals, whole metres), the ascent after ↑.
 - `openexpress courses add FILE.gpx [--name COURSE] [--apply]`: without `--apply` what would be
   copied (the course's name, the file's name on the device, what the file holds and what the
   device does with it, the space); with it the copy. `--name` names the course, as the entry;

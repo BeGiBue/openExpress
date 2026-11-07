@@ -306,13 +306,25 @@ def activity_caption(read) -> str:
     if found.timer_time is not None:
         parts.append(activity_time_text(found.timer_time))
     if found.distance:
-        parts.append(f"{decimal(f'{found.distance / 1000:.1f}')} km")
+        parts.append(row_distance_text(found.distance))
     if found.ascent is not None:
-        parts.append(f"↑ {found.ascent} m")
+        parts.append(row_ascent_text(found.ascent))
     parts.append(source)
     if found.state is fit.FileState.DAMAGED:
         parts.append(damaged_file_text())
     return caption(*parts)
+
+
+def row_distance_text(metres: float) -> str:
+    """A distance in the details of a row on the Activities and Courses pages: kilometres with
+    one decimal ("12.4 km", a hard space before the unit)."""
+    return f"{decimal(f'{metres / 1000:.1f}')}\u00a0km"
+
+
+def row_ascent_text(metres: float) -> str:
+    """An ascent in the details of a row on the Activities and Courses pages: whole metres after
+    an arrow up ("↑ 321 m", hard spaces)."""
+    return f"\u2191\u00a0{round(metres)}\u00a0m"
 
 
 def still_being_written_text() -> str:
