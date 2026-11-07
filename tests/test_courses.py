@@ -7,28 +7,23 @@ import json
 import time
 
 import pytest
-from fakes import FitData, FitDefinition, fit_file, gpx_file, gpx_route, gpx_track, gpx_waypoint
+from fakes import (
+    COURSE_UNIT,
+    course_fit,
+    gpx_file,
+    gpx_route,
+    gpx_track,
+    gpx_waypoint,
+    locations_fit,
+)
+from fakes import course_device as device
 
-from openexpress import applog, courses, fit, paths, service
+from openexpress import applog, courses, paths, service
 from openexpress.course_gpx import CourseFileError
 from openexpress.courses import CourseError
 from openexpress.device.storage import DeviceError, LocalStorage
-from openexpress.device.xmldevice import INPUT, OUTPUT, DeviceFile, GarminDevice
 
-UNIT = 1234
-
-
-def device(gpx_folder="Garmin/NewFiles", extension="GPX", locations="Garmin/Locations"):
-    """A made-up device with the declarations of a fēnix 8 and an Edge 1050: courses out of
-    Garmin/Courses, GPX files and courses into Garmin/NewFiles, saved locations out of
-    `locations` (None: none declared); `gpx_folder` None: no GPX files at all."""
-    files = [DeviceFile("FIT_TYPE_6", OUTPUT, "Garmin/Courses", extension="FIT"),
-             DeviceFile("FIT_TYPE_6", INPUT, "Garmin/NewFiles", extension="FIT")]
-    if gpx_folder is not None:
-        files.append(DeviceFile("GPSData", INPUT, gpx_folder, extension=extension))
-    if locations is not None:
-        files.append(DeviceFile("FIT_TYPE_8", OUTPUT, locations, extension="FIT"))
-    return GarminDevice(UNIT, "006-B0000-00", 100, "Made-up Edge", files)
+UNIT = COURSE_UNIT
 
 
 @pytest.fixture
@@ -43,28 +38,6 @@ def put(root, path: str, data: bytes | str) -> None:
     target = root / path
     target.parent.mkdir(parents=True, exist_ok=True)
     target.write_bytes(data.encode("utf-8") if isinstance(data, str) else data)
-
-
-def course_fit(name: str | None = "Morning Loop", *, made: int, product=courses.DEVICE_PRODUCT,
-               manufacturer=1, distance_cm: int | None = 1_234_500, ascent: int | None = 321,
-               lap_after_points=False, points=3) -> bytes:
-    """A made-up course file: file_id (type 6, made at `made`, a Unix time), its course, one lap
-    and `points` records, the lap before them as the devices write it (or after)."""
-    at = made - fit.FIT_EPOCH_OFFSET
-    head = (FitDefinition(0, 0, ((0, 0x00), (1, 0x84), (2, 0x84), (4, 0x86))),
-            FitData(0, (6, manufacturer, product, at)),
-            FitDefinition(1, 31, ((5, 0x07, 48), (4, 0x00))), FitData(1, (name, 0)))
-    lap = (FitDefinition(2, 19, ((9, 0x86), (21, 0x84))), FitData(2, (distance_cm, ascent)))
-    records = (FitDefinition(3, 20, ((253, 0x86), (0, 0x85), (1, 0x85))),
-               *(FitData(3, (at + n, 0, n * 1000)) for n in range(points)))
-    return fit_file(*head, *(records + lap if lap_after_points else lap + records))
-
-
-def locations_fit(count: int, cut: int | None = None) -> bytes:
-    """A made-up locations file (type 8) of `count` saved locations."""
-    return fit_file(FitDefinition(0, 0, ((0, 0x00),)), FitData(0, (8,)),
-                    FitDefinition(1, 29, ((0, 0x07, 16), (1, 0x85), (2, 0x85))),
-                    *(FitData(1, (f"Place {n}", n, n)) for n in range(count)), cut=cut)
 
 
 def a_gpx(tmp_path, body=None, name="morning-loop.gpx"):

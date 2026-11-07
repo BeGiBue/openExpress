@@ -92,7 +92,9 @@ SUBTITLE_LINES = 2
 # font, padding, rounding; its style (accent, warning, dimmed) gives only its colours. The lap
 # chosen on an activity's page is tinted with the accent; the map's hint is a rounded label. A
 # flow box of the class oe-plain lays out, nothing more: its children get no background under
-# the pointer (libadwaita gives one to a child that can be activated).
+# the pointer (libadwaita gives one to a child that can be activated). A note of a question
+# (oe-note: what the device does with a file) is a faint rounded box, a warning one in the
+# colours of a warning.
 CSS = """
 /* An item of a menu made of a flat button (Try Again in the popover of the server state):
    its words not bold, as those of a menu. */
@@ -147,6 +149,15 @@ flowbox.oe-plain > flowboxchild,
 flowbox.oe-plain > flowboxchild:hover,
 flowbox.oe-plain > flowboxchild:selected {
   background: none;
+}
+label.oe-note {
+  padding: 10px 12px;
+  border-radius: 12px;
+  background-color: alpha(currentColor, 0.07);
+}
+label.oe-note.warning {
+  color: @warning_color;
+  background-color: alpha(@warning_bg_color, 0.22);
 }
 """
 

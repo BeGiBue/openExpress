@@ -27,8 +27,10 @@ from openexpress.gui.activities_page import ActivitiesPage  # noqa: E402
 from openexpress.gui.activity_page import leave as leave_activity  # noqa: E402
 from openexpress.gui.apps_page import AppsPage  # noqa: E402
 from openexpress.gui.connected import Connected  # noqa: E402
+from openexpress.gui.courses_page import PAGE_ICON as COURSES_ICON  # noqa: E402
+from openexpress.gui.courses_page import CoursesPage  # noqa: E402
 from openexpress.gui.detection import DeviceDetection  # noqa: E402
-from openexpress.gui.device_page import DevicePage, Section  # noqa: E402
+from openexpress.gui.device_page import DevicePage, Section, section_title  # noqa: E402
 from openexpress.gui.forget_device import ForgetDevice  # noqa: E402
 from openexpress.gui.gui_settings import (  # noqa: E402
     MIN_WINDOW,
@@ -64,10 +66,9 @@ USB_POLL_S = 2
 log = logging.getLogger(__name__)
 
 
-class MainWindow(TaskRunner, DeviceDetection, StartWindow, DevicePage, MapsPage, MusicPage,
-                 AppsPage, UpdatesPage, ActivitiesPage, ProfilesPage, Preferences, NetStatusPanel,
-                 ForgetDevice,
-                 ReportDialog, Adw.ApplicationWindow):
+class MainWindow(TaskRunner, DeviceDetection, StartWindow, DevicePage, MapsPage, CoursesPage,
+                 MusicPage, AppsPage, UpdatesPage, ActivitiesPage, ProfilesPage, Preferences,
+                 NetStatusPanel, ForgetDevice, ReportDialog, Adw.ApplicationWindow):
     def __init__(self, app: Adw.Application):
         super().__init__(application=app, title="openExpress")
         self._init_state()
@@ -88,6 +89,12 @@ class MainWindow(TaskRunner, DeviceDetection, StartWindow, DevicePage, MapsPage,
             # TRANSLATORS: tab title
             Section("maps", pgettext("tab", "Maps"), "mark-location-symbolic",
                     _("Checking Maps…")),
+            # TRANSLATORS: tab title (courses on the device, made of GPX files)
+            Section("courses", pgettext("tab", "Courses"), COURSES_ICON,
+                    _("Reading Courses…"),
+                    # TRANSLATORS: beside the title of the Courses page: not yet tried on
+                    # every device
+                    chip=pgettext("chip", "experimental")),
             # TRANSLATORS: tab title (Connect IQ apps)
             Section("apps", pgettext("tab", "Apps"), "view-app-grid-symbolic",
                     _("Loading Connect IQ Apps…")),
@@ -468,6 +475,7 @@ class MainWindow(TaskRunner, DeviceDetection, StartWindow, DevicePage, MapsPage,
         sec = self.sections[row.key]
         self.pages.set_visible_child_name(sec.key)
         self.content_page.set_title(sec.title)
+        self.content_header.set_title_widget(section_title(sec))
         self.load_section(sec.key)
 
     def select_section(self, key: str) -> None:

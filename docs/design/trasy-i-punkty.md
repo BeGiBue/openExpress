@@ -119,8 +119,9 @@ A section of the device view, **Courses** (D1), after Maps, for a device that de
 inward to `Garmin/NewFiles` (D8, D9); its title carries the chip "experimental" (D12). It is
 read from the device when it is first shown and after each change:
 
-- **A banner** while files wait in `NewFiles`: "{count} file waiting – unplug the device to make
-  it a course" (plural: "… to make them courses").
+- **A banner** while files wait in `NewFiles`: "{count} file waiting – unplug the device so it
+  can import it" (plural: "… import them"). It is libadwaita's own banner, grey, as the window's
+  other banners: the sketch's blue one is not followed, on purpose.
 - **On the Device**: the header's button **Add Course…**; one row per FIT file of
   `Garmin/Courses`:
   - its title: the course's name from the file (else the file's name), and a chip of where it
@@ -131,13 +132,15 @@ read from the device when it is first shown and after each change:
     details is for later.
 - **Waiting for the Device**, shown only when a file waits: one row per `.gpx` in `NewFiles`:
   its course name, "{kind}, {distance} · {file name}"; **Remove…**.
-- **Saved Locations**: one row "On the Device", the description "Made of waypoints from GPX files
-  and on the device", the count on the right; no list and no removal: one file holds them all,
-  and the device's own menu removes one.
+- **Saved Locations**: one row "On the Device", the description "Waypoints from GPX files and
+  locations saved on the device", the count on the right ("Could not be counted" for a locations
+  file that does not read whole); no list and no removal: one file holds them all, and the
+  device's own menu removes one.
 
 **Empty**: with no course and no waiting file, the page is a status page: the icon of a route,
-"No Courses on the Device", "Copy a GPX file with a track or a route – the device makes a course
-of it.", and the button **Add Course…** (suggested).
+"No Courses on the Device", "Copy a GPX file with a track or a route – the device turns it into a
+course.", and the button **Add Course…** (suggested). A dash of a text of the page has a hard space
+before it: no line starts with it.
 
 ### 4.2 The question before a copy
 
@@ -151,8 +154,9 @@ space, then the question (`confirm()`, wide, Cancel by default; Escape and closi
 - **Course Name**, an entry: the `<name>` of the track or route, else the file's name without
   `.gpx`. Shown only when the file makes one course; a file of several tracks lists their names
   in the contents, unchanged.
-- **Contents**: "track, {distance}, ↗ {ascent}, {count} points" / "route, {count} points" /
-  "{count} tracks, {distance}" / "{count} waypoints" (each kind the file holds, joined).
+- **Contents**: "track, {distance}, ↗ {ascent}, {count} track points" / "route, {count} route
+  points" / "{count} tracks, {distance}" / "{count} waypoints" (each kind the file holds,
+  joined; a track's points, a route's and the file's waypoints each in words of their own).
 - **File on the Device**: "{file name} · {size}" (D4).
 - **Free After Copying**: the maps' figure.
 - **What the device does**, one line for each kind the file holds, said of Garmin's devices in
@@ -170,8 +174,8 @@ of the track's or route's `<name>` (added when it has none); nothing else of the
 
 ### 4.3 The outcomes
 
-- **Copied**: the toast "Copied “{name}”. Unplug the device to make the course."; the page read
-  again, the file under Waiting for the Device and in the banner.
+- **Copied**: the toast "Copied “{name}”. Unplug the device so it can import the file."; the
+  page read again, the file under Waiting for the Device and in the banner.
 - **Refused before the question** (`inform()` with the reason, nothing written): not a GPX file,
   too large (D5), nothing in it to navigate, no folder for it on this device.
 - **The same file already waiting** (the same size and content): said in the question, not
@@ -214,25 +218,25 @@ openExpress itself (not `gio`) has copied a course to a fēnix 8 and an Edge 105
 |---|---|
 | Courses | Kursy |
 | experimental | eksperymentalne |
-| {count} file waiting – unplug the device to make it a course | {count} plik czeka – odłącz urządzenie, aby utworzyło kurs (ngettext) |
+| {count} file waiting – unplug the device so it can import it | {count} plik czeka – odłącz urządzenie, aby mogło go zaimportować (ngettext) |
 | On the Device · Waiting for the Device · Saved Locations | Na urządzeniu · Czeka na urządzenie · Zapisane lokalizacje |
 | Add Course… | Dodaj kurs… |
 | Remove… | Usuń… |
 | openExpress · Garmin Connect | openExpress · Garmin Connect |
-| Made of waypoints from GPX files and on the device | Powstają z punktów plików GPX i na urządzeniu |
+| Waypoints from GPX files and locations saved on the device | Punkty z plików GPX i lokalizacje zapisane na urządzeniu |
 | No Courses on the Device | Brak kursów na urządzeniu |
-| Copy a GPX file with a track or a route – the device makes a course of it. | Skopiuj plik GPX ze śladem lub trasą – urządzenie zrobi z niego kurs. |
+| Copy a GPX file with a track or a route – the device turns it into a course. | Skopiuj plik GPX ze śladem lub trasą – urządzenie zrobi z niego kurs. |
 | Choose a GPX File | Wybierz plik GPX |
 | Copy the Course to the Device? | Skopiować kurs na urządzenie? |
 | Copy the Waypoints to the Device? | Skopiować punkty na urządzenie? |
 | Course Name · Contents · File on the Device · Free After Copying | Nazwa kursu · Zawartość · Plik na urządzeniu · Wolne miejsce po skopiowaniu |
-| track · route · {count} tracks · {count} waypoints · {count} points | ślad · trasa · {count} ślady · {count} punkty · {count} punktów (ngettext) |
+| track · route · {count} tracks · {count} waypoints · {count} track points · {count} route points | ślad · trasa · {count} ślady · {count} punkty · {count} punkty śladu · {count} punkty trasy (ngettext) |
 | The device makes the course when you unplug the cable. | Urządzenie utworzy kurs po odłączeniu kabla. |
 | The device makes {count} courses when you unplug the cable. | Urządzenie utworzy {count} kursy po odłączeniu kabla. (ngettext) |
 | Garmin devices join the points of a route with straight lines, not roads. For a course along roads, export a track instead of a route. | Urządzenia Garmina łączą punkty trasy prostymi odcinkami, nie drogami. Jeśli chcesz kurs po drogach, wyeksportuj ślad zamiast trasy. |
 | Garmin devices save waypoints as saved locations. | Urządzenia Garmina zapisują punkty jako zapisane lokalizacje. |
-| Copy | Kopiuj |
-| Copied “{name}”. Unplug the device to make the course. | Skopiowano „{name}”. Odłącz urządzenie, aby utworzyło kurs. |
+| Copy | Skopiuj |
+| Copied “{name}”. Unplug the device so it can import the file. | Skopiowano „{name}”. Odłącz urządzenie, aby mogło zaimportować plik. |
 | Remove “{name}” from the Device? | Usunąć „{name}” z urządzenia? |
 | Remove | Usuń |
 

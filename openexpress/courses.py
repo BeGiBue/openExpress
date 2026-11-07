@@ -329,10 +329,23 @@ class AddPlan:
     path: str  # folder and name on the device
     free: int | None  # on the device, before
     same_waiting: str | None = None  # a waiting file of the same bytes, by its name
+    taken: tuple[str, ...] = ()  # the names in the folder, as the plan read it
+    extension: str = ".gpx"  # of a GPX file, as the device declares it
 
     @property
     def size(self) -> int:
         return len(self.data)
+
+    def file_for(self, name: str | None) -> tuple[str, int]:
+        """The file's name on the device and its size, were the course named `name` (as the
+        question's entry gives it; empty: the file's own): worked out as plan_add does,
+        without the device. A name the file cannot carry leaves both as planned."""
+        course = course_gpx.course_name(self.gpx, name)
+        try:
+            data = _data_for(self.gpx, course)
+        except CourseFileError:
+            return self.name, self.size
+        return _file_name(self.gpx, course, self.taken, self.extension), len(data)
 
     @property
     def md5(self) -> str:
@@ -363,9 +376,38 @@ def _no_name_text(gpx: GpxFile) -> str:
                     "a course name.", gpx.courses).format(file=gpx.path.name, count=gpx.courses)
 
 
+def _data_for(gpx: GpxFile, course: str | None) -> bytes:
+    """The bytes copied for a file whose one course is named `course` (its own name: the file
+    as it is)."""
+    if course is None or course == gpx.lines[0].name:
+        return gpx.data
+    return course_gpx.with_course_name(gpx, course)
+
+
+def _file_name(gpx: GpxFile, course: str | None, taken, extension: str) -> str:
+    return course_gpx.device_name(course or gpx.path.stem, taken, extension)
+
+
 def _taken_text(name: str) -> str:
     return _("A file named {name} is already on the device; nothing is overwritten.").format(
         name=name)
+
+
+def what_the_device_does(gpx: GpxFile) -> list[tuple[str, bool]]:
+    """What the device makes of a GPX file, said of Garmin's devices in general, each with
+    whether it is a warning (a route's points are joined with straight lines)."""
+    said = []
+    if gpx.courses:
+        said.append((ngettext("The device makes the course when you unplug the cable.",
+                              "The device makes {count} courses when you unplug the cable.",
+                              gpx.courses).format(count=gpx.courses), False))
+    if any(line.kind == "route" for line in gpx.lines):
+        said.append((_("Garmin devices join the points of a route with straight lines, not "
+                       "roads. For a course along roads, export a track instead of a route."),
+                     True))
+    if gpx.waypoints:
+        said.append((_("Garmin devices save waypoints as saved locations."), False))
+    return said
 
 
 def not_offered_text() -> str:
@@ -395,26 +437,27 @@ def plan_add(device: GarminDevice, storage: Storage, local: Path,
     course = course_gpx.course_name(gpx, name)
     for named in (course, *(line.name for line in gpx.lines)):
         applog.hide(named, "course")
-    data = gpx.data
-    if course is not None and course != gpx.lines[0].name:
-        data = course_gpx.with_course_name(gpx, course)
+    data = _data_for(gpx, course)
+    if data is not gpx.data:
         course_gpx.parse(data, gpx.path)  # the copy checked as any GPX file
     folder = storage.resolve(target.path.strip("/"))
     if folder is None:
         # TRANSLATORS: {folder}: a folder the device declares, such as Garmin/NewFiles
         raise CourseError(_("The device has no folder {folder}.").format(
             folder=target.path.strip("/")))
-    entries = [e for e in storage.listdir(folder) if not e.is_dir]
+    listed = storage.listdir(folder)
+    entries = [e for e in listed if not e.is_dir]
     extension = _extension(target)
-    filename = course_gpx.device_name(course or gpx.path.stem, [e.name for e in entries],
-                                      extension)
+    taken = tuple(e.name for e in listed)  # a folder's name too
+    filename = _file_name(gpx, course, taken, extension)
     applog.hide(filename, "file")
     md5 = _md5(data)
     same = next((e.name for e in entries
                  if e.size == len(data) and e.name.casefold().endswith(extension.casefold())
                  and _md5(storage.read(f"{folder}/{e.name}")) == md5), None)
     free = storage.require_space(len(data), SPACE_MARGIN, error=CourseError)
-    return AddPlan(gpx, course, data, filename, f"{folder}/{filename}", free, same)
+    return AddPlan(gpx, course, data, filename, f"{folder}/{filename}", free, same, taken,
+                   extension)
 
 
 def add(plan: AddPlan, device: GarminDevice, storage: Storage,

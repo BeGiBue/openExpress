@@ -2513,21 +2513,6 @@ def _gpx_contents(gpx) -> str:
     return "; ".join(parts)
 
 
-def _what_the_device_does(gpx) -> list[str]:
-    """What the device makes of a GPX file, said of Garmin's devices in general."""
-    said = []
-    if gpx.courses:
-        said.append(ngettext("The device makes the course when you unplug the cable.",
-                             "The device makes {count} courses when you unplug the cable.",
-                             gpx.courses).format(count=gpx.courses))
-    if any(line.kind == "route" for line in gpx.lines):
-        said.append(_("Garmin devices join the points of a route with straight lines, not "
-                      "roads. For a course along roads, export a track instead of a route."))
-    if gpx.waypoints:
-        said.append(_("Garmin devices save waypoints as saved locations."))
-    return said
-
-
 def _course_line(course) -> str:
     """A course of `courses`: its name, where it came from, its distance and ascent, and the
     day the device made it (each left out when not known)."""
@@ -2586,6 +2571,8 @@ def _courses_lines(seen) -> list[str]:
 def _course_plan_lines(plan) -> list[str]:
     """What `courses add` would copy: the course's name, the file's name on the device, what
     the file holds and what the device does with it, and the space."""
+    from openexpress import courses
+
     lines = []
     if plan.courses:
         lines.append(ngettext("Course: {names}", "Courses: {names}", len(plan.courses)).format(
@@ -2593,7 +2580,7 @@ def _course_plan_lines(plan) -> list[str]:
     lines.append("  " + _("{file} ({size}) will be written to {path}").format(
         file=plan.gpx.path.name, size=_human(plan.size), path=plan.path))
     lines.append("  " + _("Contents: {contents}").format(contents=_gpx_contents(plan.gpx)))
-    lines += ["  " + said for said in _what_the_device_does(plan.gpx)]
+    lines += ["  " + said for said, _warning in courses.what_the_device_does(plan.gpx)]
     if plan.same_waiting is not None:
         lines.append("  " + _("The same file is already waiting on the device as {name}.")
                      .format(name=plan.same_waiting))

@@ -467,6 +467,24 @@ def _own_map_add(ctx):
                            "/made/up/Sometown.img")
 
 
+def _course_add(ctx):
+    """Add Course…: the file planned (a made-up track), then the question."""
+    from pathlib import Path
+
+    from fakes import gpx_file, gpx_track
+
+    from openexpress import course_gpx, courses
+    from openexpress.gui.app import MainWindow
+
+    gpx = course_gpx.parse(gpx_file(gpx_track()).encode(), Path("loop.gpx"))
+    plan = courses.AddPlan(gpx, "Morning Loop", gpx.data, "Morning_Loop.gpx",
+                           "Garmin/NewFiles/Morning_Loop.gpx", 5_000_000)
+    ctx.monkeypatch.setattr(courses, "plan_add", lambda device, storage, path, name=None: plan)
+    MainWindow.add_course(_escape_window(ctx, get_width=lambda: 1000,
+                                         _course_refused=lambda e: False),
+                          Path("/made/up/loop.gpx"))
+
+
 def _own_map_remove(ctx):
     from openexpress.gui.app import MainWindow
 
@@ -624,6 +642,7 @@ OPENERS = {
     "added-not-listed": lambda ctx: _added(ctx, listed=False),
     "added-not-checked": lambda ctx: _added(ctx, listed=None),
     "first-sync": _first_sync, "forget-device": _forget_device, "own-map-add": _own_map_add,
+    "course-add": _course_add,
     "own-map-remove": _own_map_remove, "map-install": _map_install, "map-remove": _map_remove,
     "music-copy": _music_copy, "playlist-add": _playlist_add, "cache-clear": _cache_clear,
     "update-install": _update_install, "update-install-all": _update_install_all,

@@ -930,6 +930,48 @@ def gpx_waypoint(name="Spring", lat=52.0, lon=13.0) -> str:
     return f'  <wpt lat="{lat}" lon="{lon}"><name>{name}</name></wpt>\n'
 
 
+# Made-up courses: a device that takes GPX files in Garmin/NewFiles, its course files and its
+# saved locations (courses, course_gpx).
+COURSE_UNIT = 1234
+
+
+def course_device(gpx_folder="Garmin/NewFiles", extension="GPX", locations="Garmin/Locations"):
+    """A made-up device with the declarations of a fēnix 8 and an Edge 1050: courses out of
+    Garmin/Courses, GPX files and courses into Garmin/NewFiles, saved locations out of
+    `locations` (None: none declared); `gpx_folder` None: no GPX files at all."""
+    from openexpress.device.xmldevice import INPUT, OUTPUT, DeviceFile, GarminDevice
+
+    files = [DeviceFile("FIT_TYPE_6", OUTPUT, "Garmin/Courses", extension="FIT"),
+             DeviceFile("FIT_TYPE_6", INPUT, "Garmin/NewFiles", extension="FIT")]
+    if gpx_folder is not None:
+        files.append(DeviceFile("GPSData", INPUT, gpx_folder, extension=extension))
+    if locations is not None:
+        files.append(DeviceFile("FIT_TYPE_8", OUTPUT, locations, extension="FIT"))
+    return GarminDevice(COURSE_UNIT, "006-B0000-00", 100, "Made-up Edge", files)
+
+
+def course_fit(name: str | None = "Morning Loop", *, made: int, product=20119,
+               manufacturer=1, distance_cm: int | None = 1_234_500, ascent: int | None = 321,
+               lap_after_points=False, points=3) -> bytes:
+    """A made-up course file: file_id (type 6, made at `made`, a Unix time; the product 20119
+    is that of a course a device made of a file), its course, one lap and `points` records, the
+    lap before them as the devices write it (or after)."""
+    at = made - 631065600  # the FIT protocol's time
+    head = (FitDefinition(0, 0, ((0, 0x00), (1, 0x84), (2, 0x84), (4, 0x86))),
+            FitData(0, (6, manufacturer, product, at)),
+            FitDefinition(1, 31, ((5, 0x07, 48), (4, 0x00))), FitData(1, (name, 0)))
+    lap = (FitDefinition(2, 19, ((9, 0x86), (21, 0x84))), FitData(2, (distance_cm, ascent)))
+    records = (FitDefinition(3, 20, ((253, 0x86), (0, 0x85), (1, 0x85))),
+               *(FitData(3, (at + n, 0, n * 1000)) for n in range(points)))
+    return fit_file(*head, *(records + lap if lap_after_points else lap + records))
+
+
+def locations_fit(count: int, cut: int | None = None) -> bytes:
+    """A made-up locations file (type 8) of `count` saved locations."""
+    return fit_file(FitDefinition(0, 0, ((0, 0x00),)), FitData(0, (8,)),
+                    FitDefinition(1, 29, ((0, 0x07, 16), (1, 0x85), (2, 0x85))),
+                    *(FitData(1, (f"Place {n}", n, n)) for n in range(count)), cut=cut)
+
 # Made-up sport profiles (FIT file type 3), in the shapes of the two kinds measured: a watch's
 # (a fēnix 8: eight field IDs a screen, no field 12) and a bike computer's (an Edge 1050: ten IDs,
 # field 12 "hidden", a text and two arrays more). Message 14 is the table of data screens.

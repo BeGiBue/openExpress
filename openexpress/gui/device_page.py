@@ -20,7 +20,7 @@ import gi
 gi.require_version("Gtk", "4.0")
 gi.require_version("Adw", "1")
 
-from gi.repository import Adw, Gio, GLib, Gtk  # noqa: E402 - imports must follow gi.require_version
+from gi.repository import Adw, Gio, GLib, Graphene, Gsk, Gtk, Pango  # noqa: E402 - imports must follow gi.require_version
 
 from openexpress import (  # noqa: E402
     devicelist,
@@ -665,10 +665,13 @@ def show_not_for_mass_storage(sec) -> None:
 
 class Section:
     """One page of the window: shows a placeholder, a spinner, an error, a piece of
-    information (what the device has not got) or the content."""
+    information (what the device has not got) or the content, under a banner of its own when
+    the page has something to say over all of it. `chip`: words beside its title in the
+    header ("experimental")."""
 
-    def __init__(self, key: str, title: str, icon: str, loading_text: str):
-        self.key, self.title, self.icon = key, title, icon
+    def __init__(self, key: str, title: str, icon: str, loading_text: str,
+                 chip: str | None = None):
+        self.key, self.title, self.icon, self.chip = key, title, icon, chip
         self.loaded = False
         self.stack = Gtk.Stack(transition_type=Gtk.StackTransitionType.CROSSFADE)
         self.empty = Adw.StatusPage(
@@ -684,9 +687,13 @@ class Section:
         self.retry.add_css_class("pill")
         self.error.set_child(self.retry)
         self.info = Adw.StatusPage()
-        self.page = Adw.PreferencesPage()
+        self.page = Adw.PreferencesPage(vexpand=True)
+        self.banner = Adw.Banner(revealed=False)
+        content = Gtk.Box(orientation=Gtk.Orientation.VERTICAL)
+        content.append(self.banner)
+        content.append(self.page)
         for name, widget in (("empty", self.empty), ("loading", self.loading),
-                             ("error", self.error), ("info", self.info), ("content", self.page)):
+                             ("error", self.error), ("info", self.info), ("content", content)):
             self.stack.add_named(widget, name)
         # Until the first detection finishes we don't know yet whether a watch is connected.
         self.stack.set_visible_child_name("loading")
@@ -717,12 +724,65 @@ class Section:
         for g in self.groups:
             self.page.remove(g)
         self.groups = []
+        self.banner.set_revealed(False)
 
     def group(self, title: str = "", description: str = "") -> Adw.PreferencesGroup:
         g = Adw.PreferencesGroup(title=title, description=description)
         self.page.add(g)
         self.groups.append(g)
         return g
+
+
+class _TitleLayout(Gtk.LayoutManager):
+    """A section's title and its chip side by side in the header: never wider than the title
+    alone can get (the header of the narrowest window has little room), the chip drawn only
+    while all of it fits beside the whole title, both in the middle."""
+
+    __gtype_name__ = "OpenExpressTitleLayout"
+    SPACING = 8
+
+    def do_get_request_mode(self, widget):
+        return Gtk.SizeRequestMode.CONSTANT_SIZE
+
+    def do_measure(self, widget, orientation, for_size):
+        title = widget.get_first_child()
+        chip = title.get_next_sibling()
+        t, c = title.measure(orientation, -1), chip.measure(orientation, -1)
+        if orientation == Gtk.Orientation.HORIZONTAL:
+            return t[0], t[1] + self.SPACING + c[1], -1, -1
+        return max(t[0], c[0]), max(t[1], c[1]), -1, -1
+
+    def do_allocate(self, widget, width, height, baseline):
+        title = widget.get_first_child()
+        chip = title.get_next_sibling()
+        title_width = title.measure(Gtk.Orientation.HORIZONTAL, -1)[1]
+        chip_width = chip.measure(Gtk.Orientation.HORIZONTAL, -1)[1]
+        both = title_width + self.SPACING + chip_width <= width
+        chip.set_child_visible(both)
+        if not both:
+            title.allocate(width, height, baseline, None)
+            return
+        x = (width - title_width - self.SPACING - chip_width) // 2
+        title.allocate(title_width, height, baseline,
+                       Gsk.Transform().translate(Graphene.Point().init(x, 0)))
+        chip_height = min(height, chip.measure(Gtk.Orientation.VERTICAL, chip_width)[1])
+        chip.allocate(chip_width, chip_height, -1, Gsk.Transform().translate(
+            Graphene.Point().init(x + title_width + self.SPACING, (height - chip_height) // 2)))
+
+
+def section_title(sec: Section) -> Gtk.Widget | None:
+    """The title of a section in the header when it carries a chip: its title and the chip
+    (_TitleLayout: the chip only while there is room for it); None for the header's own title
+    (the page's)."""
+    if sec.chip is None:
+        return None
+    box = Gtk.Box()
+    box.set_layout_manager(_TitleLayout())
+    box.append(Gtk.Label(label=sec.title, ellipsize=Pango.EllipsizeMode.END,
+                         css_classes=["title"]))
+    box.append(Gtk.Label(label=sec.chip, css_classes=["oe-chip", "dimmed"]))
+    box.update_property([Gtk.AccessibleProperty.LABEL], [f"{sec.title}, {sec.chip}"])
+    return box
 
 
 # A page whose drawing failed (an error of the program): under "Something Went Wrong", with

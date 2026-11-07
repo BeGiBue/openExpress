@@ -13,6 +13,10 @@ import pytest
 from fakes import (
     ScreenRecord,
     descendants,
+    gpx_file,
+    gpx_route,
+    gpx_track,
+    gpx_waypoint,
     program_style,
     record_sync,
     sport_file,
@@ -276,6 +280,9 @@ def _fill(win, page: str) -> str:
         # With the line of an Edge's own backups of its profiles.
         backups = types.SimpleNamespace(backup_time=1_700_000_000.0)
         MainWindow.show_profiles(win, backups, _profiles(), ["Narciarstwo skiturowe w terenie"])
+    elif key == "courses":
+        MainWindow.show_courses(win, _courses(empty=page == "courses-empty",
+                                              uncounted=page == "courses-uncounted"))
     win.sections[key].show("content")
     win._update_actions()
     win._update_banner()
@@ -317,6 +324,45 @@ def _profiles():
                                       None, "The file of this profile could not be read (it "
                                       "ends too soon)"))
     return files
+
+
+def _waiting_gpx():
+    """A file waiting for the device: a long track's name, a route and waypoints."""
+    from pathlib import Path
+
+    from openexpress import course_gpx
+
+    data = gpx_file(gpx_track("Trójmiejski Park Krajobrazowy dookoła") + gpx_route()
+                    + gpx_waypoint() + gpx_waypoint("Schronisko"))
+    return course_gpx.parse(data.encode(), Path("Trojmiejski_Park_Krajobrazowy.gpx"))
+
+
+def _courses(empty: bool, uncounted: bool = False):
+    """Courses with long Polish names and both chips, one whose file says nothing, a file
+    waiting and the saved locations (`uncounted`: they could not be counted); or none at
+    all."""
+    from openexpress import courses
+
+    if empty:
+        return courses.Overview("Garmin/NewFiles", [], [], 0)
+    made = 1_761_000_000
+    folder = "GARMIN/Courses"
+    found = [
+        courses.Course("Petla.fit", f"{folder}/Petla.fit", 5000,
+                       "Pętla wokół Kamiennej Góry przez Przełęcz Kowarską", 154_800.0, 2_120,
+                       made, courses.ORIGIN_OPENEXPRESS),
+        courses.Course("Sopot.fit", f"{folder}/Sopot.fit", 5000,
+                       "Sopot – Wejherowo przez Trójmiejski Park Krajobrazowy", 41_800.0, 310,
+                       made, courses.ORIGIN_CONNECT),
+        courses.Course("Bez_nazwy_kursu_zapisany_przez_urzadzenie.fit",
+                       f"{folder}/Bez_nazwy_kursu_zapisany_przez_urzadzenie.fit", 5000, None,
+                       None, None, None, None)]
+    waiting = [courses.Waiting("Trojmiejski_Park_Krajobrazowy.GPX",
+                               "GARMIN/NewFiles/Trojmiejski_Park_Krajobrazowy.GPX", 900,
+                               _waiting_gpx())]
+    if uncounted:
+        return courses.Overview("Garmin/NewFiles", found, waiting, None, ("locations",))
+    return courses.Overview("Garmin/NewFiles", found, waiting, 1234)
 
 
 def _iterate(seconds):
@@ -391,7 +437,8 @@ DEVICE_PAGES = ["device", "device-update-copied", "device-off-account", "device-
                 "device-refused-drive", "updates-beta",
                 "updates-beta-drive",
                 "updates-beta-copied", "updates-beta-copied-drive", "maps", "maps-none", "apps",
-                "music", "activities", "profiles"]
+                "music", "activities", "profiles", "courses", "courses-empty",
+                "courses-uncounted"]
 
 
 @pytest.mark.parametrize("language", ["en", "pl"])
@@ -410,6 +457,36 @@ def test_every_page_of_the_device_view_fits_the_narrowest_window(narrow_window, 
     _iterate(0.05)
     assert win.pages.get_visible_child_name() == key
     assert _min_width(win.device_view) <= NARROWEST
+
+
+@pytest.mark.parametrize("language", ["en", "pl"])
+def test_the_question_before_a_course_is_copied_fits_the_narrowest_window(narrow_window,
+                                                                         language):
+    """The question's content as wide as the narrowest window leaves it, the name of each of
+    its lines on one line (its value wraps instead): a long course's name, its file's, a route
+    and its warning."""
+    from pathlib import Path
+
+    from gi.repository import Gtk
+
+    from openexpress import course_gpx, courses
+    from openexpress.gui import courses_page
+
+    narrow_window(language)  # the language and GNOME's font
+    gpx = course_gpx.parse(gpx_file(gpx_route("Pętla wokół Kamiennej Góry przez Przełęcz "
+                                              "Kowarską")).encode(), Path("petla.gpx"))
+    plan = courses.AddPlan(gpx, gpx.lines[0].name, gpx.data,
+                           "Petla_wokol_Kamiennej_Gory_przez_Przelecz_Kowarska.gpx",
+                           "Garmin/NewFiles/Petla.gpx", 13_300_000_000)
+    width = courses_page.question_width(NARROWEST)
+    body = courses_page.question_body(plan, {}, width)
+    holder = Gtk.Window(child=body)  # never shown
+    assert _min_width(body) == width
+    lines = [w for w in descendants(body) if isinstance(w, Gtk.Box)
+             and w.get_orientation() == Gtk.Orientation.HORIZONTAL
+             and isinstance(w.get_first_child(), Gtk.Label)]
+    assert len(lines) == 3 and not any(line.get_first_child().get_wrap() for line in lines)
+    holder.destroy()
 
 
 @pytest.mark.parametrize("language", ["en", "pl"])
@@ -744,7 +821,7 @@ def test_captions_break_only_where_they_should(narrow_window, language, page):
         win.select_section(key)
         root = win.device_view
     texts = list(_texts(root))
-    assert any("\u00a0·" in t for t in texts) or page in ("maps-none", "music")
+    assert any("\u00a0·" in t for t in texts) or page in ("maps-none", "music", "courses-empty")
     assert _breaks_badly(texts) == []
 
 

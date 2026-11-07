@@ -12,6 +12,7 @@ Usage in code:
   NC_("ctx", "Text")                the same with a context; translate with pgettext("ctx", …)
   ngettext("{n} file", "{n} files", n).format(n=n)
   pgettext("tab", "Sync")           same English word, different meaning (tab vs. button)
+  npgettext("ctx", "{n} point", "{n} points", n)   the two together
 """
 
 from __future__ import annotations
@@ -339,6 +340,11 @@ def ngettext(singular: str, plural: str, n: int) -> str:
 def pgettext(context: str, message: str) -> str:
     """Translation with a context, for identical English words with different meanings."""
     return _translation.pgettext(context, message)
+
+
+def npgettext(context: str, singular: str, plural: str, n: int) -> str:
+    """ngettext with a context (pgettext's), for the same English words used apart."""
+    return _translation.npgettext(context, singular, plural, n)
 
 
 def decimal(number: str) -> str:
