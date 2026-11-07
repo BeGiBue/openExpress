@@ -12,7 +12,9 @@ as long as the server allows, at most CACHE_LIMIT, and drawn by openExpress (Til
 one a pixel past its edges, so that no seam is left where two meet between two pixels of a
 screen at a fractional scale); the log names no place. Without a network the map says that
 only the tiles downloaded before are shown, and asks again those that failed once it is back;
-without libshumate the page says what is missing.
+without libshumate the page says what is missing. The map with its tiles, attribution and
+what keeps them away (MapView) is that of the question before a GPX file is copied too
+(gui/course_map.py).
 Has: no attribute of the window; the map's widgets keep their track and state themselves."""
 from __future__ import annotations
 
@@ -929,7 +931,106 @@ def _dim(text: str) -> Gtk.Label:
     return label
 
 
-class ActivityMap(Gtk.Box):
+class MapView(Gtk.Box):
+    """A map in OpenStreetMap's view under layers that openExpress draws: the tiles (after the
+    yes given once for the program) behind its lowest layer, their attribution while they
+    show, and under the map what keeps them away (an older libshumate, no network; the tiles
+    that failed asked again once the network is back). The map of an activity's page and that
+    of a GPX file in the question before a copy (gui/course_map.py) are ones. A map adds its
+    layers (the lowest as `lowest`), the bounds it shows whole (`box`), its overlays and what
+    goes under it, then ends with _below()."""
+
+    __gtype_name__ = "OpenExpressMapView"
+
+    def __init__(self, height: int):
+        super().__init__(orientation=Gtk.Orientation.VERTICAL, spacing=8)
+        self.map = Shumate.Map(height_request=height, hexpand=True)
+        viewport = self.map.get_viewport()
+        self.source = _map_source()
+        viewport.set_reference_map_source(self.source)
+        viewport.set_min_zoom_level(1)
+        viewport.set_max_zoom_level(MAX_ZOOM)
+        self.lowest = None  # the lowest layer drawn by openExpress: the tiles go behind it
+        self.box = None  # the bounds the map shows whole (fit)
+        self.tiles = None  # the tile layer, while the tiles are on
+        self.online = None  # whether the network was there when last told
+        self.note = None  # what the map says under it before the yes, if anything
+        self.attribution = Gtk.Label(use_markup=True, halign=Gtk.Align.END,
+                                     valign=Gtk.Align.END, margin_end=6, margin_bottom=6,
+                                     visible=False)
+        self.attribution.set_markup(f'<a href="{COPYRIGHT_URL}">'
+                                    f'{GLib.markup_escape_text(_("© OpenStreetMap contributors"))}'
+                                    "</a>")
+        self.attribution.add_css_class("osd")
+        self.attribution.add_css_class("caption")
+        self.overlay = Gtk.Overlay(child=self.map)
+        self.overlay.add_overlay(self.attribution)
+        frame = Gtk.Frame(child=self.overlay)
+        frame.set_overflow(Gtk.Overflow.HIDDEN)
+        self.append(frame)
+        self.too_old = _dim(_("The map needs a newer libshumate library to show streets and "
+                              "terrain"))
+        self.offline = _dim(_("No internet connection: only the parts of the map downloaded "
+                              "before are shown"))
+        self.monitor = self.monitor_handler = None
+
+    def _below(self) -> None:
+        """Under all else, what keeps the tiles away; the map fitted once it has its size, the
+        tiles as the yes says."""
+        self.append(self.too_old)
+        self.append(self.offline)
+        self.add_tick_callback(_fit)
+        self.show_tiles(tiles_on())
+
+    def fit(self, width: float, height: float) -> None:
+        """The whole `box` in view of a map of this size; set, not flown to."""
+        self.map.get_viewport().set_zoom_level(fitting_zoom(self.box, width, height))
+        self.map.center_on(*center(self.box))
+
+    def show_tiles(self, on: bool) -> None:
+        """The tiles under the drawing (with the attribution) or not (with the note)."""
+        asks = can_ask()
+        on = on and asks
+        if on and self.tiles is None:
+            self.tiles = TileLayer(self.map.get_viewport())
+            self.map.insert_layer_behind(self.tiles, self.lowest)
+        elif not on and self.tiles is not None:
+            self.tiles.stop()
+            self.map.remove_layer(self.tiles)
+            self.tiles = None
+        if self.note is not None:
+            self.note.set_visible(asks and not on)
+        self.too_old.set_visible(not asks)
+        self.attribution.set_visible(on)
+        self._show_network()
+
+    def _show_network(self, *_args) -> None:
+        """Without a network, said under the map; once it is back, the tiles that failed asked
+        again."""
+        online = _network_monitor().get_network_available()
+        self.offline.set_visible(self.tiles is not None and not online)
+        if online and self.online is False and self.tiles is not None:
+            self.tiles.retry()
+        self.online = online
+
+    def do_map(self) -> None:
+        # Told of the network only while on the screen: the monitor lives on, the map not.
+        Gtk.Box.do_map(self)
+        if self.monitor_handler is None:
+            self.monitor = _network_monitor()
+            self.monitor_handler = self.monitor.connect("network-changed", self._show_network)
+        self._show_network()
+
+    def do_unmap(self) -> None:
+        if self.monitor_handler is not None:
+            self.monitor.disconnect(self.monitor_handler)
+            self.monitor = self.monitor_handler = None
+        if self.tiles is not None:
+            self.tiles.let_go()
+        Gtk.Box.do_unmap(self)
+
+
+class ActivityMap(MapView):
     """The map of a track: the tiles (after the yes) under the track (a lap chosen at full
     strength), the markers of its ends and of the chart's cursor above them, the attribution,
     the buttons that zoom it; the mouse wheel scrolls the page, Ctrl and the wheel zoom the map.
@@ -940,18 +1041,14 @@ class ActivityMap(Gtk.Box):
     __gtype_name__ = "OpenExpressActivityMap"
 
     def __init__(self, track: Track):
-        super().__init__(orientation=Gtk.Orientation.VERTICAL, spacing=8)
+        super().__init__(MAP_HEIGHT)
         self.track = track
-        self.map = Shumate.Map(height_request=MAP_HEIGHT, hexpand=True)
         self.accessible_name = _("Map of the track")
         self.map.update_property([Gtk.AccessibleProperty.LABEL], [self.accessible_name])
         viewport = self.map.get_viewport()
-        self.source = _map_source()
-        viewport.set_reference_map_source(self.source)
-        viewport.set_min_zoom_level(1)
-        viewport.set_max_zoom_level(MAX_ZOOM)
         self.path = TrackLayer(viewport, track)
         self.map.add_layer(self.path)
+        self.lowest = self.path
         ends = Shumate.MarkerLayer.new(viewport)
         self.ends = {}  # "start", "finish" or "start-and-finish": its marker
         for kind, (lat, lon) in ends_of(track):
@@ -966,8 +1063,7 @@ class ActivityMap(Gtk.Box):
         self.marker.set_visible(False)
         cursor.add_marker(self.marker)
         self.map.add_layer(cursor)
-        self.tiles = None  # the tile layer, while the tiles are on
-        self.online = None  # whether the network was there when last told
+        self.box = bounds(track.points)
         self.fit(600, MAP_HEIGHT)  # near already; _fit sets it for the map's own size
         # Before libshumate's own handler, which would zoom at every turn of the wheel.
         self.wheel = Gtk.EventControllerScroll.new(Gtk.EventControllerScrollFlags.VERTICAL)
@@ -976,14 +1072,6 @@ class ActivityMap(Gtk.Box):
         self.map.add_controller(self.wheel)
         self.hint_timer = None
 
-        self.attribution = Gtk.Label(use_markup=True, halign=Gtk.Align.END,
-                                     valign=Gtk.Align.END, margin_end=6, margin_bottom=6,
-                                     visible=False)
-        self.attribution.set_markup(f'<a href="{COPYRIGHT_URL}">'
-                                    f'{GLib.markup_escape_text(_("© OpenStreetMap contributors"))}'
-                                    "</a>")
-        self.attribution.add_css_class("osd")
-        self.attribution.add_css_class("caption")
         self.hint = Gtk.Label(label=_("Ctrl + scroll to zoom"), wrap=True,
                               justify=Gtk.Justification.CENTER, halign=Gtk.Align.CENTER,
                               valign=Gtk.Align.CENTER, visible=False, can_target=False)
@@ -998,13 +1086,8 @@ class ActivityMap(Gtk.Box):
             button.add_css_class("osd")
             button.connect("clicked", handler)
             zoom.append(button)
-        overlay = Gtk.Overlay(child=self.map)
-        overlay.add_overlay(self.attribution)
-        overlay.add_overlay(self.hint)
-        overlay.add_overlay(zoom)
-        frame = Gtk.Frame(child=overlay)
-        frame.set_overflow(Gtk.Overflow.HIDDEN)
-        self.append(frame)
+        self.overlay.add_overlay(self.hint)
+        self.overlay.add_overlay(zoom)
         self.series = None  # the chart's series the track is coloured by
         self.legend = activity_colours.TrackLegend()
         self.legend.switch.connect("notify::active", _colours_switched)
@@ -1022,37 +1105,7 @@ class ActivityMap(Gtk.Box):
         button.connect("clicked", _turn_on)
         self.note.append(button)
         self.append(self.note)
-        self.too_old = _dim(_("The map needs a newer libshumate library to show streets and "
-                              "terrain"))
-        self.append(self.too_old)
-        self.offline = _dim(_("No internet connection: only the parts of the map downloaded "
-                              "before are shown"))
-        self.append(self.offline)
-        self.monitor = self.monitor_handler = None
-        self.add_tick_callback(_fit)
-        self.show_tiles(tiles_on())
-
-    def fit(self, width: float, height: float) -> None:
-        """The whole track in view of a map of this size; set, not flown to."""
-        box = bounds(self.track.points)
-        self.map.get_viewport().set_zoom_level(fitting_zoom(box, width, height))
-        self.map.center_on(*center(box))
-
-    def show_tiles(self, on: bool) -> None:
-        """The tiles under the track (with the attribution) or not (with the note)."""
-        asks = can_ask()
-        on = on and asks
-        if on and self.tiles is None:
-            self.tiles = TileLayer(self.map.get_viewport())
-            self.map.insert_layer_behind(self.tiles, self.path)
-        elif not on and self.tiles is not None:
-            self.tiles.stop()
-            self.map.remove_layer(self.tiles)
-            self.tiles = None
-        self.note.set_visible(asks and not on)
-        self.too_old.set_visible(not asks)
-        self.attribution.set_visible(on)
-        self._show_network()
+        self._below()
 
     def colour_by(self, series) -> None:
         """The track coloured by this series of the chart (gui/activity_colours.py) while the
@@ -1083,40 +1136,18 @@ class ActivityMap(Gtk.Box):
             self.marker.set_location(*point)
         self.marker.set_visible(point is not None)
 
-    def _show_network(self, *_args) -> None:
-        """Without a network, said under the map; once it is back, the tiles that failed asked
-        again."""
-        online = _network_monitor().get_network_available()
-        self.offline.set_visible(self.tiles is not None and not online)
-        if online and self.online is False and self.tiles is not None:
-            self.tiles.retry()
-        self.online = online
-
-    def do_map(self) -> None:
-        # Told of the network only while on the screen: the monitor lives on, the map not.
-        Gtk.Box.do_map(self)
-        if self.monitor_handler is None:
-            self.monitor = _network_monitor()
-            self.monitor_handler = self.monitor.connect("network-changed", self._show_network)
-        self._show_network()
-
     def do_unmap(self) -> None:
-        if self.monitor_handler is not None:
-            self.monitor.disconnect(self.monitor_handler)
-            self.monitor = self.monitor_handler = None
-        if self.tiles is not None:
-            self.tiles.let_go()
         if self.hint_timer is not None:
             GLib.source_remove(self.hint_timer)
             self.hint_timer = None
             self.hint.set_visible(False)
-        Gtk.Box.do_unmap(self)
+        MapView.do_unmap(self)
 
 
 def _maps_in(widget):
     child = widget.get_first_child()
     while child is not None:
-        if isinstance(child, ActivityMap):
+        if isinstance(child, MapView):
             yield child
         else:
             yield from _maps_in(child)

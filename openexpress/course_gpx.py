@@ -50,6 +50,8 @@ class Line:
     points: int
     distance_m: float  # along its points, segment by segment
     ascent_m: float | None  # the climbs between its points; None when no point has an elevation
+    # Its points' (latitude, longitude), segment by segment (a route: one), for its map.
+    segments: tuple[tuple[tuple[float, float], ...], ...] = field(default=(), repr=False)
 
 
 @dataclass(frozen=True)
@@ -62,6 +64,7 @@ class GpxFile:
     waypoints: int
     encoding: str
     data: bytes = field(repr=False)
+    places: tuple[tuple[float, float], ...] = field(default=(), repr=False)  # the waypoints
     # For the one course of a file that makes one: where its element starts and where its
     # <name> starts and ends (None: it has none). See with_course_name.
     name_at: tuple[int, int | None, int | None] | None = field(default=None, repr=False)
@@ -112,7 +115,7 @@ class _Reader:
         self.ns: str | None = None
         self.lines: list[dict] = []
         self.line: dict | None = None
-        self.waypoints = 0
+        self.waypoints: list[tuple[float, float]] = []
         self.text: list[str] | None = None  # the text of a <name> or <ele> being read
         self.parser = p = expat.ParserCreate(namespace_separator=" ")
         p.XmlDeclHandler = self.declaration
@@ -150,8 +153,7 @@ class _Reader:
                              "start": self.parser.CurrentByteIndex, "name_start": None,
                              "name_end": None, "segments": [] if local == "trk" else [[]]}
             elif local == "wpt":
-                _position(attrs)
-                self.waypoints += 1
+                self.waypoints.append(_position(attrs))
         elif line is not None:
             parent = self.stack[-2][1]
             if depth == 2 and local == "name" and line["name_start"] is None:
@@ -198,7 +200,10 @@ def _line(found: dict) -> Line:
         eles = [p[2] for p in segment if p[2] is not None]
         any_ele = any_ele or bool(eles)
         ascent += sum(max(0.0, b - a) for a, b in itertools.pairwise(eles))
-    return Line(found["kind"], found["name"], points, distance, ascent if any_ele else None)
+    segments = tuple(tuple((p[0], p[1]) for p in segment) for segment in found["segments"]
+                     if segment)
+    return Line(found["kind"], found["name"], points, distance, ascent if any_ele else None,
+                segments)
 
 
 def read(path: Path) -> GpxFile:
@@ -253,8 +258,8 @@ def parse(data: bytes, path: Path) -> GpxFile:
             file=path.name))
     name_at = ((lines[0]["start"], lines[0]["name_start"], lines[0]["name_end"])
                if len(lines) == 1 else None)
-    return GpxFile(path, len(data), tuple(_line(found) for found in lines), reader.waypoints,
-                   reader.encoding, data, name_at)
+    return GpxFile(path, len(data), tuple(_line(found) for found in lines), len(reader.waypoints),
+                   reader.encoding, data, name_at=name_at, places=tuple(reader.waypoints))
 
 
 def course_name(gpx: GpxFile, entered: str | None = None) -> str | None:

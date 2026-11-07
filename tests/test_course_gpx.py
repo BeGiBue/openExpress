@@ -237,3 +237,15 @@ def test_a_file_in_utf_16_is_read_but_its_course_keeps_its_name(tmp_path):
     assert g.lines[0].name == "Wide"
     with pytest.raises(CourseFileError, match="cannot be changed"):
         course_gpx.with_course_name(g, "Narrow")
+
+
+def test_the_points_of_each_line_and_the_waypoints_are_kept_for_the_map(tmp_path):
+    body = (track("Two parts", ((52.0, 13.0, 1.0), (52.0, 13.01, 2.0)))
+            .replace("</trkseg><", "</trkseg><trkseg><trkpt lat=\"53.0\" lon=\"14.0\"/>"
+                     "<trkpt lat=\"53.0\" lon=\"14.1\"/></trkseg><")
+            + route() + waypoint("Spring", 52.5, 13.5))
+    found = course_gpx.read(write(tmp_path, gpx(body)))
+    assert [line.segments for line in found.lines] == [
+        (((52.0, 13.0), (52.0, 13.01)), ((53.0, 14.0), (53.0, 14.1))),
+        (((52.0, 13.0), (52.01, 13.0), (52.02, 13.01)),)]
+    assert found.places == ((52.5, 13.5),)

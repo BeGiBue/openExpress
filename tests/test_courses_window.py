@@ -407,3 +407,58 @@ def test_a_file_changed_after_the_question_is_not_removed(drive, clock, asked):
     said = "Hand.fit has changed since the list was shown, so it is not removed."
     assert win.errors == [("Cannot Remove the Course", said)]
     assert win.loads == ["courses"]
+
+
+# --- the map in the question ---------------------------------------------------------------------
+
+
+def _file(body):
+    from pathlib import Path
+
+    from openexpress import course_gpx
+
+    return course_gpx.parse(gpx_file(body).encode(), Path("made-up.gpx"))
+
+
+def test_the_map_draws_each_track_and_route_their_starts_and_the_waypoints():
+    from openexpress.gui import activity_map, course_map
+
+    if not course_map.available():
+        pytest.skip("libshumate is not installed")
+    gpx = _file(gpx_track("First") + gpx_track("Second", ((52.1, 13.0, 1), (52.1, 13.1, 2)))
+                + gpx_route() + gpx_waypoint() + gpx_waypoint("Far", 52.3, 13.4))
+    shown = course_map.CourseMap(gpx)
+    assert [dashed for dashed, _points in shown.path.lines] == [False, False, True]
+    assert [len(points) for _dashed, points in shown.path.lines] == [3, 2, 3]
+    assert [m.get_latitude() for m in shown.starts] == [52.0, 52.1, 52.0]
+    assert [(m.get_latitude(), m.get_longitude()) for m in shown.places] == [(52.0, 13.0),
+                                                                           (52.3, 13.4)]
+    assert shown.box == (52.0, 13.0, 52.3, 13.4)  # all of the file, its waypoints too
+    assert not shown.map.get_can_target()  # a look at the file: not dragged, not zoomed
+    assert shown.tiles is None and not shown.attribution.get_visible()  # no yes given
+    assert activity_map.MapView in type(shown).__mro__
+
+
+def test_with_the_yes_the_tiles_and_their_attribution_and_without_a_network_the_note(
+        monkeypatch):
+    from openexpress.gui import activity_map, course_map
+
+    if not activity_map.can_ask():
+        pytest.skip("this libshumate cannot ask the tiles")
+    activity_map.set_tiles(True)  # in the test's own settings
+    monkeypatch.setattr(activity_map, "_network_monitor", lambda: types.SimpleNamespace(
+        get_network_available=lambda: False))
+    shown = course_map.CourseMap(_file(gpx_track()))
+    assert shown.tiles is not None and shown.attribution.get_visible()
+    assert shown.offline.get_visible()  # the drawing alone; the question does not wait
+
+
+def test_the_question_shows_the_file_on_its_map(drive, tmp_path, asked):
+    from openexpress.gui import course_map
+
+    if not course_map.available():
+        pytest.skip("libshumate is not installed")
+    win, _section = courses_window(drive)
+    win.add_course(_gpx(tmp_path, gpx_route()))
+    # On top, over the course's name.
+    assert isinstance(asked[0].extra.get_first_child(), course_map.CourseMap)

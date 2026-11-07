@@ -18,10 +18,11 @@ import gi
 gi.require_version("Gtk", "4.0")
 gi.require_version("Adw", "1")
 
-from gi.repository import Adw, Gio, GLib, GObject, Gtk, Pango  # noqa: E402 - imports must follow gi.require_version
+from gi.repository import Adw, Gio, GLib, GObject, Graphene, Gsk, Gtk, Pango  # noqa: E402 - imports must follow gi.require_version
 
 from openexpress import courses  # noqa: E402
 from openexpress.course_gpx import CourseFileError  # noqa: E402
+from openexpress.gui import course_map  # noqa: E402
 from openexpress.gui.device_page import device_name  # noqa: E402
 from openexpress.gui.tasks import read_again_after_failure, writes_to_device  # noqa: E402
 from openexpress.gui.window_tasks import WRAP_BOX, Answer, confirm  # noqa: E402
@@ -212,10 +213,54 @@ def add_tooltip() -> str:
     return _("Copy a GPX file to the device (experimental)")
 
 
+class _FactLayout(Gtk.LayoutManager):
+    """A line of the question: its name and its value side by side when both fit whole on one
+    line; else the value under the name, in the whole width. The name is never broken, so each
+    line takes the room its own name needs."""
+
+    __gtype_name__ = "OpenExpressFactLayout"
+    SPACING = 16  # between the name and the value side by side
+    GAP = 2  # between the name and the value under it
+
+    def do_get_request_mode(self, widget):
+        return Gtk.SizeRequestMode.HEIGHT_FOR_WIDTH
+
+    def _side_by_side(self, name, value, width: int) -> bool:
+        whole = (name.measure(Gtk.Orientation.HORIZONTAL, -1)[1] + self.SPACING
+                 + value.measure(Gtk.Orientation.HORIZONTAL, -1)[1])
+        return width < 0 or whole <= width
+
+    def do_measure(self, widget, orientation, for_size):
+        name = widget.get_first_child()
+        value = name.get_next_sibling()
+        if orientation == Gtk.Orientation.HORIZONTAL:
+            n, v = name.measure(orientation, -1), value.measure(orientation, -1)
+            return max(n[0], v[0]), n[1] + self.SPACING + v[1], -1, -1
+        if self._side_by_side(name, value, for_size):
+            n, v = name.measure(orientation, -1), value.measure(orientation, -1)
+            return max(n[0], v[0]), max(n[1], v[1]), -1, -1
+        n, v = name.measure(orientation, for_size), value.measure(orientation, for_size)
+        return n[0] + self.GAP + v[0], n[1] + self.GAP + v[1], -1, -1
+
+    def do_allocate(self, widget, width, height, baseline):
+        name = widget.get_first_child()
+        value = name.get_next_sibling()
+        if self._side_by_side(name, value, width):
+            named = name.measure(Gtk.Orientation.HORIZONTAL, -1)[1]
+            name.allocate(named, height, -1, None)
+            value.allocate(width - named - self.SPACING, height, -1, Gsk.Transform().translate(
+                Graphene.Point().init(named + self.SPACING, 0)))
+            return
+        tall = name.measure(Gtk.Orientation.VERTICAL, width)[1]
+        name.allocate(width, tall, -1, None)
+        value.allocate(width, max(0, height - tall - self.GAP), -1, Gsk.Transform().translate(
+            Graphene.Point().init(0, tall + self.GAP)))
+
+
 def _fact(name: str, value: Gtk.Label) -> Gtk.Box:
-    """A line of the question: its name on one line, never broken (each line takes the room
-    its own name needs), the value right of it, wrapped when it is long."""
-    line = Gtk.Box(spacing=16)
+    """A line of the question (_FactLayout): its name, never broken, and its value."""
+    line = Gtk.Box()
+    line.set_layout_manager(_FactLayout())
     line.append(Gtk.Label(label=name, xalign=0, valign=Gtk.Align.START,
                           css_classes=["dim-label"]))
     line.append(value)
@@ -240,14 +285,16 @@ def question_width(window_width: int) -> int:
 
 
 def question_body(plan, entered: dict, width: int = 0) -> Gtk.Widget:
-    """What the question before a copy shows under its heading: the course's name to change
-    (a file of one course), what the file holds, its name and size on the device (following
-    the name), the space left, and what the device does with it. A name typed goes into
-    `entered` (the answer takes it from there, never from the widget). `width`: its own (none:
-    the dialog's)."""
+    """What the question before a copy shows under its heading: the file on a map (with
+    libshumate), the course's name to change (a file of one course), what the file holds, its
+    name and size on the device (following the name), the space left, and what the device does
+    with it. A name typed goes into `entered` (the answer takes it from there, never from the
+    widget). `width`: its own (none: the dialog's)."""
     box = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, spacing=14)
     if width:
         box.set_size_request(width, -1)
+    if course_map.available():
+        box.append(course_map.CourseMap(plan.gpx))
     file_value = _value(file_text(plan.name, plan.size))
     if plan.course is not None:
         names = Gtk.ListBox(selection_mode=Gtk.SelectionMode.NONE, css_classes=["boxed-list"])

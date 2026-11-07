@@ -149,8 +149,12 @@ space, then the question (`confirm()`, wide, Cancel by default; Escape and closi
 
 - **Heading** "Copy the Course to the Device?", the device's name under it; for a file of waypoints
   only, which makes no course, "Copy the Waypoints to the Device?", and no Course Name.
-- **The map** of the course (the last step of the work, D14): the view of the activity page; a
-  track as a line, a route as a dashed line through its points, the start marked.
+- **The map** of the course (the last step of the work, D14): the map of the activity page (its
+  tiles after the yes, their attribution, the note without a network), the file drawn in the
+  colours of a track there: a track a line, a route a dashed line with a dot at each of its
+  points, the start of each line green, the waypoints blue markers; every line of the file in
+  view, kept clear of the attribution; it takes no clicks. Without the tiles the drawing alone
+  on a plain background; the question never waits for them.
 - **Course Name**, an entry: the `<name>` of the track or route, else the file's name without
   `.gpx`. Shown only when the file makes one course; a file of several tracks lists their names
   in the contents, unchanged.

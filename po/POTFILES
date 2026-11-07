@@ -26,6 +26,7 @@ openexpress/gui/activity_page.py
 openexpress/gui/add_to_account.py
 openexpress/gui/app.py
 openexpress/gui/apps_page.py
+openexpress/gui/course_map.py
 openexpress/gui/courses_page.py
 openexpress/gui/detection.py
 openexpress/gui/device_page.py

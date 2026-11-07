@@ -6,7 +6,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: openexpress\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-11-07 01:04+0100\n"
+"POT-Creation-Date: 2026-11-07 01:12+0100\n"
 "PO-Revision-Date: 2026-10-11 02:36+0200\n"
 "Last-Translator: Tomasz Bojanowski\n"
 "Language-Team: none\n"
@@ -1348,7 +1348,7 @@ msgstr "kopia z {date}"
 #. TRANSLATORS: strftime format of a date in the popover of the server state button
 #: openexpress/cli.py:528 openexpress/cli.py:1008 openexpress/cli.py:1169
 #: openexpress/cli.py:1182 openexpress/cli.py:2527
-#: openexpress/gui/courses_page.py:59 openexpress/gui/words.py:300
+#: openexpress/gui/courses_page.py:60 openexpress/gui/words.py:300
 #: openexpress/i18n.py:181 openexpress/netstatus.py:230
 #: openexpress/netstatus.py:261 openexpress/profiles.py:266
 #: openexpress/service.py:1308
@@ -3053,7 +3053,7 @@ msgstr[2] "Kursy: {names}"
 msgid "Contents: {contents}"
 msgstr "Zawartość: {contents}"
 
-#: openexpress/cli.py:2585 openexpress/gui/courses_page.py:275
+#: openexpress/cli.py:2585 openexpress/gui/courses_page.py:322
 #, python-brace-format
 msgid "The same file is already waiting on the device as {name}."
 msgstr "Ten sam plik już czeka na urządzeniu jako {name}."
@@ -4254,7 +4254,7 @@ msgstr "Pobieranie pliku z Connect"
 msgid "Receipt acknowledgement"
 msgstr "Potwierdzenie odbioru"
 
-#: openexpress/course_gpx.py:214 openexpress/music.py:160
+#: openexpress/course_gpx.py:219 openexpress/music.py:160
 #: openexpress/ownmaps.py:206
 #, python-brace-format
 msgid "Not found: {path}"
@@ -4262,14 +4262,14 @@ msgstr "Nie znaleziono: {path}"
 
 #. TRANSLATORS: a GPX file chosen to be copied to the device as a course is too large;
 #. {size} and {limit}: sizes such as "31.2 MB"
-#: openexpress/course_gpx.py:223
+#: openexpress/course_gpx.py:228
 #, python-brace-format
 msgid "{file} is too large for a course: {size}, at most {limit}."
 msgstr "{file} jest za duży na kurs: {size}, najwyżej {limit}."
 
 #. TRANSLATORS: a GPX file declares a document type (<!DOCTYPE …>) or entities, which
 #. could make a parser expand them or read other files: it is not read at all
-#: openexpress/course_gpx.py:240
+#: openexpress/course_gpx.py:245
 #, python-brace-format
 msgid ""
 "{file} is not read: it declares a document type, which a GPX file has no "
@@ -4279,26 +4279,26 @@ msgstr ""
 "potrzebuje."
 
 #. TRANSLATORS: a point of a GPX file has a latitude or longitude out of range, or none
-#: openexpress/course_gpx.py:244
+#: openexpress/course_gpx.py:249
 #, python-brace-format
 msgid "{file} has a point with an impossible position."
 msgstr "{file} ma punkt o niemożliwym położeniu."
 
 #. TRANSLATORS: a file chosen to be copied to the device as a course is not a GPX file
-#: openexpress/course_gpx.py:248
+#: openexpress/course_gpx.py:253
 #, python-brace-format
 msgid "{file} is not a GPX file."
 msgstr "{file} nie jest plikiem GPX."
 
 #. TRANSLATORS: a GPX file has nothing the device could navigate by
-#: openexpress/course_gpx.py:252
+#: openexpress/course_gpx.py:257
 #, python-brace-format
 msgid "{file} has no track, route or waypoint."
 msgstr "{file} nie ma śladu, trasy ani punktu."
 
 #. TRANSLATORS: the course's name cannot be written into this GPX file (its text is
 #. written in UTF-16 or UTF-32); the file can be copied with the name it has
-#: openexpress/course_gpx.py:302
+#: openexpress/course_gpx.py:307
 #, python-brace-format
 msgid ""
 "The name of the course cannot be changed in {file}; copy it with the name it "
@@ -4987,27 +4987,37 @@ msgstr[2] "Pokaż {count} więcej"
 
 #. TRANSLATORS: attribution of the map data on the activity map; keep © and the name
 #. OpenStreetMap
-#: openexpress/gui/activity_map.py:780 openexpress/gui/activity_map.py:983
+#: openexpress/gui/activity_map.py:782 openexpress/gui/activity_map.py:962
 msgid "© OpenStreetMap contributors"
 msgstr "© autorzy OpenStreetMap"
 
-#: openexpress/gui/activity_map.py:946
+#: openexpress/gui/activity_map.py:971
+msgid "The map needs a newer libshumate library to show streets and terrain"
+msgstr "Do pokazania ulic i terenu mapa wymaga nowszej biblioteki libshumate"
+
+#: openexpress/gui/activity_map.py:973
+msgid ""
+"No internet connection: only the parts of the map downloaded before are shown"
+msgstr ""
+"Brak połączenia z internetem: widać tylko wcześniej pobrane fragmenty mapy"
+
+#: openexpress/gui/activity_map.py:1046
 msgid "Map of the track"
 msgstr "Mapa trasy"
 
-#: openexpress/gui/activity_map.py:987
+#: openexpress/gui/activity_map.py:1075
 msgid "Ctrl + scroll to zoom"
 msgstr "Ctrl + kółko przybliża"
 
-#: openexpress/gui/activity_map.py:995
+#: openexpress/gui/activity_map.py:1083
 msgid "Zoom In"
 msgstr "Przybliż"
 
-#: openexpress/gui/activity_map.py:996
+#: openexpress/gui/activity_map.py:1084
 msgid "Zoom Out"
 msgstr "Oddal"
 
-#: openexpress/gui/activity_map.py:1015
+#: openexpress/gui/activity_map.py:1098
 msgid ""
 "The map can show streets and terrain under the track, from OpenStreetMap. "
 "The OpenStreetMap server then learns the area of each activity you open. You "
@@ -5019,19 +5029,9 @@ msgstr ""
 
 #. TRANSLATORS: button under the note about OpenStreetMap: turns on the online map of an
 #. activity
-#: openexpress/gui/activity_map.py:1020
+#: openexpress/gui/activity_map.py:1103
 msgid "Show the Map"
 msgstr "Pokaż mapę"
-
-#: openexpress/gui/activity_map.py:1025
-msgid "The map needs a newer libshumate library to show streets and terrain"
-msgstr "Do pokazania ulic i terenu mapa wymaga nowszej biblioteki libshumate"
-
-#: openexpress/gui/activity_map.py:1028
-msgid ""
-"No internet connection: only the parts of the map downloaded before are shown"
-msgstr ""
-"Brak połączenia z internetem: widać tylko wcześniej pobrane fragmenty mapy"
 
 #: openexpress/gui/activity_page.py:267
 msgid "The map needs the libshumate library, which is not installed"
@@ -5186,7 +5186,7 @@ msgctxt "tab"
 msgid "Courses"
 msgstr "Kursy"
 
-#: openexpress/gui/app.py:94 openexpress/gui/courses_page.py:304
+#: openexpress/gui/app.py:94 openexpress/gui/courses_page.py:351
 msgid "Reading Courses…"
 msgstr "Odczyt kursów…"
 
@@ -5374,7 +5374,7 @@ msgid "Update"
 msgstr "Zaktualizuj"
 
 #. TRANSLATORS: tooltip of the trash button of an app or map row ({name}: its name)
-#: openexpress/gui/apps_page.py:166 openexpress/gui/courses_page.py:399
+#: openexpress/gui/apps_page.py:166 openexpress/gui/courses_page.py:446
 #: openexpress/gui/maps_page.py:179 openexpress/gui/maps_page.py:236
 #, python-brace-format
 msgid "Remove {name}"
@@ -5662,7 +5662,7 @@ msgstr "Usuń i zapomnij"
 
 #. TRANSLATORS: button that removes an app, map or music file from the device; also
 #. the tooltip of a trash button
-#: openexpress/gui/apps_page.py:614 openexpress/gui/courses_page.py:424
+#: openexpress/gui/apps_page.py:614 openexpress/gui/courses_page.py:471
 #: openexpress/gui/maps_page.py:368 openexpress/gui/maps_page.py:493
 #: openexpress/gui/music_page.py:93 openexpress/gui/music_page.py:100
 msgid "Remove"
@@ -5685,15 +5685,20 @@ msgstr "{name}: wyłączona"
 msgid "Saving…"
 msgstr "Zapisywanie…"
 
+#. TRANSLATORS: for a screen reader: the map in the question before a GPX file is copied
+#: openexpress/gui/course_map.py:124
+msgid "Map of the GPX file"
+msgstr "Mapa pliku GPX"
+
 #. TRANSLATORS: a distance in kilometres on the page of an activity ("10.24 km")
-#: openexpress/gui/courses_page.py:47 openexpress/gui/words.py:421
+#: openexpress/gui/courses_page.py:48 openexpress/gui/words.py:421
 #, python-brace-format
 msgid "{distance} km"
 msgstr "{distance} km"
 
 #. TRANSLATORS: the points of a track of a GPX file, on the Courses page (not its
 #. waypoints)
-#: openexpress/gui/courses_page.py:67
+#: openexpress/gui/courses_page.py:68
 #, python-brace-format
 msgctxt "course file"
 msgid "{count} track point"
@@ -5703,7 +5708,7 @@ msgstr[1] "{count} punkty śladu"
 msgstr[2] "{count} punktów śladu"
 
 #. TRANSLATORS: the points of a route of a GPX file, on the Courses page (not its waypoints)
-#: openexpress/gui/courses_page.py:70
+#: openexpress/gui/courses_page.py:71
 #, python-brace-format
 msgctxt "course file"
 msgid "{count} route point"
@@ -5713,12 +5718,12 @@ msgstr[1] "{count} punkty trasy"
 msgstr[2] "{count} punktów trasy"
 
 #. TRANSLATORS: what a GPX file holds, on the Courses page: one track
-#: openexpress/gui/courses_page.py:83
+#: openexpress/gui/courses_page.py:84
 msgctxt "course file"
 msgid "track"
 msgstr "ślad"
 
-#: openexpress/gui/courses_page.py:90
+#: openexpress/gui/courses_page.py:91
 #, python-brace-format
 msgctxt "course file"
 msgid "{count} track, {distance}"
@@ -5728,12 +5733,12 @@ msgstr[1] "{count} ślady, {distance}"
 msgstr[2] "{count} śladów, {distance}"
 
 #. TRANSLATORS: what a GPX file holds, on the Courses page: one route
-#: openexpress/gui/courses_page.py:95
+#: openexpress/gui/courses_page.py:96
 msgctxt "course file"
 msgid "route"
 msgstr "trasa"
 
-#: openexpress/gui/courses_page.py:97
+#: openexpress/gui/courses_page.py:98
 #, python-brace-format
 msgctxt "course file"
 msgid "{count} route"
@@ -5744,7 +5749,7 @@ msgstr[2] "{count} tras"
 
 #. TRANSLATORS: what a GPX file holds, on the Courses page: its waypoints, which the
 #. device saves as saved locations
-#: openexpress/gui/courses_page.py:102
+#: openexpress/gui/courses_page.py:103
 #, python-brace-format
 msgctxt "course file"
 msgid "{count} waypoint"
@@ -5756,7 +5761,7 @@ msgstr[2] "{count} punktów"
 #. TRANSLATORS: banner of the Courses page: GPX files copied to the device that it has not
 #. imported yet (it does when it is unplugged)
 #. (A hard space before the dash: a line never starts with it.)
-#: openexpress/gui/courses_page.py:111
+#: openexpress/gui/courses_page.py:112
 #, python-brace-format
 msgid "{count} file waiting – unplug the device so it can import it"
 msgid_plural "{count} files waiting – unplug the device so it can import them"
@@ -5767,31 +5772,31 @@ msgstr[2] "{count} plików czeka – odłącz urządzenie, aby mogło je zaimpo
 
 #. TRANSLATORS: heading of the question before a course or a GPX file waiting for the device
 #. is removed from it
-#: openexpress/gui/courses_page.py:119
+#: openexpress/gui/courses_page.py:120
 #, python-brace-format
 msgid "Remove “{name}” from the Device?"
 msgstr "Usunąć „{name}” z urządzenia?"
 
 #. TRANSLATORS: toast after a course or a waiting GPX file was removed from the device
-#: openexpress/gui/courses_page.py:124
+#: openexpress/gui/courses_page.py:125
 #, python-brace-format
 msgid "Removed “{name}” from the device."
 msgstr "Usunięto „{name}” z urządzenia."
 
 #. TRANSLATORS: toast after a GPX file was copied to the device; {name}: its course's name,
 #. else the file's
-#: openexpress/gui/courses_page.py:130
+#: openexpress/gui/courses_page.py:131
 #, python-brace-format
 msgid "Copied “{name}”. Unplug the device so it can import the file."
 msgstr "Skopiowano „{name}”. Odłącz urządzenie, aby mogło zaimportować plik."
 
 #. TRANSLATORS: heading of the question before a GPX file of waypoints only is copied
-#: openexpress/gui/courses_page.py:136
+#: openexpress/gui/courses_page.py:137
 msgid "Copy the Waypoints to the Device?"
 msgstr "Skopiować punkty na urządzenie?"
 
 #. TRANSLATORS: heading of the question before a GPX file is copied to the device
-#: openexpress/gui/courses_page.py:138
+#: openexpress/gui/courses_page.py:139
 #, ignore-same-plurals
 msgid "Copy the Course to the Device?"
 msgid_plural "Copy the Courses to the Device?"
@@ -5799,134 +5804,134 @@ msgstr[0] "Skopiować kurs na urządzenie?"
 msgstr[1] "Skopiować kursy na urządzenie?"
 msgstr[2] "Skopiować kursy na urządzenie?"
 
-#: openexpress/gui/courses_page.py:194 openexpress/gui/courses_page.py:328
+#: openexpress/gui/courses_page.py:195 openexpress/gui/courses_page.py:375
 msgid "No Courses on the Device"
 msgstr "Brak kursów na urządzeniu"
 
-#: openexpress/gui/courses_page.py:197
+#: openexpress/gui/courses_page.py:198
 msgid ""
 "Copy a GPX file with a track or a route – the device turns it into a course."
 msgstr "Skopiuj plik GPX ze śladem lub trasą – urządzenie zrobi z niego kurs."
 
-#: openexpress/gui/courses_page.py:200 openexpress/gui/courses_page.py:322
+#: openexpress/gui/courses_page.py:201 openexpress/gui/courses_page.py:369
 msgid "Add Course…"
 msgstr "Dodaj kurs…"
 
 #. TRANSLATORS: tooltip of Add Course… on the Courses page
-#: openexpress/gui/courses_page.py:212
+#: openexpress/gui/courses_page.py:213
 msgid "Copy a GPX file to the device (experimental)"
 msgstr "Skopiuj plik GPX na urządzenie (eksperymentalne)"
 
 #. TRANSLATORS: the entry of the question before a GPX file is copied: the name the
 #. device gives the course
-#: openexpress/gui/courses_page.py:256
+#: openexpress/gui/courses_page.py:303
 msgctxt "course"
 msgid "Course Name"
 msgstr "Nazwa kursu"
 
 #. TRANSLATORS: a line of the question before a GPX file is copied: what the file holds
-#: openexpress/gui/courses_page.py:266
+#: openexpress/gui/courses_page.py:313
 msgctxt "course"
 msgid "Contents"
 msgstr "Zawartość"
 
 #. TRANSLATORS: a line of the question before a GPX file is copied: its name and size there
-#: openexpress/gui/courses_page.py:268
+#: openexpress/gui/courses_page.py:315
 msgctxt "course"
 msgid "File on the Device"
 msgstr "Plik na urządzeniu"
 
 #. TRANSLATORS: a line of the question before a GPX file is copied: the space left after it
-#: openexpress/gui/courses_page.py:271
+#: openexpress/gui/courses_page.py:318
 msgctxt "course"
 msgid "Free After Copying"
 msgstr "Wolne miejsce po skopiowaniu"
 
 #. TRANSLATORS: group of the Courses page: the courses the device keeps
-#: openexpress/gui/courses_page.py:321
+#: openexpress/gui/courses_page.py:368
 msgctxt "courses"
 msgid "On the Device"
 msgstr "Na urządzeniu"
 
-#: openexpress/gui/courses_page.py:326
+#: openexpress/gui/courses_page.py:373
 msgid "The courses could not be read from the device"
 msgstr "Nie udało się odczytać kursów z urządzenia"
 
 #. TRANSLATORS: group of the Courses page: GPX files the device has not imported yet
-#: openexpress/gui/courses_page.py:334
+#: openexpress/gui/courses_page.py:381
 msgctxt "courses"
 msgid "Waiting for the Device"
 msgstr "Czeka na urządzenie"
 
-#: openexpress/gui/courses_page.py:336
+#: openexpress/gui/courses_page.py:383
 msgid "The files waiting could not be read"
 msgstr "Nie udało się odczytać czekających plików"
 
 #. TRANSLATORS: group of the Courses page: the device's saved locations
-#: openexpress/gui/courses_page.py:347
+#: openexpress/gui/courses_page.py:394
 msgctxt "courses"
 msgid "Saved Locations"
 msgstr "Zapisane lokalizacje"
 
 #. TRANSLATORS: the row of the saved locations kept on the device
-#: openexpress/gui/courses_page.py:349
+#: openexpress/gui/courses_page.py:396
 msgctxt "saved locations"
 msgid "On the Device"
 msgstr "Na urządzeniu"
 
-#: openexpress/gui/courses_page.py:350
+#: openexpress/gui/courses_page.py:397
 msgid "Waypoints from GPX files and locations saved on the device"
 msgstr "Punkty z plików GPX i lokalizacje zapisane na urządzeniu"
 
 #. TRANSLATORS: in place of how many saved locations the device keeps,
 #. when its locations file does not read whole
-#: openexpress/gui/courses_page.py:356
+#: openexpress/gui/courses_page.py:403
 msgctxt "saved locations"
 msgid "Could not be counted"
 msgstr "Nie udało się policzyć"
 
-#: openexpress/gui/courses_page.py:365
+#: openexpress/gui/courses_page.py:412
 msgid "Choose a GPX File"
 msgstr "Wybierz plik GPX"
 
-#: openexpress/gui/courses_page.py:366
+#: openexpress/gui/courses_page.py:413
 msgid "GPX files (*.gpx)"
 msgstr "Pliki GPX (*.gpx)"
 
-#: openexpress/gui/courses_page.py:379 openexpress/gui/maps_page.py:278
+#: openexpress/gui/courses_page.py:426 openexpress/gui/maps_page.py:278
 #: openexpress/gui/music_page.py:114 openexpress/gui/music_page.py:170
 msgid "Choose files stored on this computer"
 msgstr "Wybierz pliki zapisane na tym komputerze"
 
 #. TRANSLATORS: title of the message why a GPX file was not copied
-#: openexpress/gui/courses_page.py:390
+#: openexpress/gui/courses_page.py:437
 msgid "Cannot Add the Course"
 msgstr "Nie można dodać kursu"
 
 #. TRANSLATORS: tooltip of the button that removes a course or a waiting GPX file
-#: openexpress/gui/courses_page.py:397
+#: openexpress/gui/courses_page.py:444
 msgid "Remove…"
 msgstr "Usuń…"
 
 #. TRANSLATORS: title of the message why a course or a waiting file was not removed
-#: openexpress/gui/courses_page.py:410
+#: openexpress/gui/courses_page.py:457
 msgid "Cannot Remove the Course"
 msgstr "Nie można usunąć kursu"
 
-#: openexpress/gui/courses_page.py:417 openexpress/gui/music_page.py:256
+#: openexpress/gui/courses_page.py:464 openexpress/gui/music_page.py:256
 msgid "Removing…"
 msgstr "Usuwanie…"
 
-#: openexpress/gui/courses_page.py:427 openexpress/gui/courses_page.py:456
+#: openexpress/gui/courses_page.py:474 openexpress/gui/courses_page.py:503
 msgid "Checking the File…"
 msgstr "Sprawdzanie pliku…"
 
-#: openexpress/gui/courses_page.py:445
+#: openexpress/gui/courses_page.py:492
 msgid "Copying the Course…"
 msgstr "Kopiowanie kursu…"
 
 #. TRANSLATORS: button
-#: openexpress/gui/courses_page.py:452 openexpress/gui/maps_page.py:320
+#: openexpress/gui/courses_page.py:499 openexpress/gui/maps_page.py:320
 #: openexpress/gui/music_page.py:150 openexpress/gui/report_dialog.py:108
 msgid "Copy"
 msgstr "Skopiuj"
