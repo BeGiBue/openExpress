@@ -9700,7 +9700,7 @@ msgstr "Umgebungsdruck"
 #: openexpress/profile_names.py:170
 msgctxt "data field"
 msgid "Location"
-msgstr "Standort"
+msgstr "Position"
 
 #: openexpress/profile_names.py:171
 msgctxt "data field"
@@ -10100,7 +10100,7 @@ msgstr "SMART-REICHWEITE"
 #: openexpress/profile_names.py:251
 msgctxt "data field"
 msgid "Potential"
-msgstr "Gesamt"
+msgstr "Stamina - Gesamt"
 
 #: openexpress/profile_names.py:252
 #, ignore-same
@@ -10268,7 +10268,7 @@ msgstr "Connect IQ-Datenfeld"
 #: openexpress/profile_names.py:308
 #, python-brace-format
 msgid "Time in Heart Rate Zone {zone}"
-msgstr "Zeit in Herzfrequenzbereich {zone}"
+msgstr "Zeit in HF-Bereich {zone}"
 
 #: openexpress/profile_names.py:309
 #, python-brace-format
