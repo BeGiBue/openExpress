@@ -78,11 +78,15 @@ openExpress writes):
 | two tracks: two courses | checked | not tried |
 | a TCX course: a course as from a GPX | checked | not declared |
 | a track with `<type>` (each of seven keys of Garmin Connect): ignored, the course's sport generic (0), the file the same as without it but for its name and time | checked | not tried |
+| copied by openExpress, as `.GPX` (the case the device declares): the same as above; the file waits in `NewFiles` while the device is connected | checked (a track, two tracks, a route, waypoints) | checked (a track) |
+| the count of saved locations of `openexpress courses` the same as the device's | checked (0, 3, 0) | checked (0) |
 
 A course the device makes of a file has in its FIT `file_id` the manufacturer Garmin, the product
 20119 (the FIT profile's "training center"), the device's serial number and the time it made it;
 its lap has the distance and the ascent (none for a route). Files Garmin Connect makes carry the
-product 65534.
+product 65534, a course it sent to a device too (one on a fēnix 8, shown with the name, distance
+and ascent Garmin Connect shows; its `course` has the sport, and its course points include
+Connect's turn directions).
 
 Not tried on either: a very long track, the limits of courses and saved locations, a track with
 no `<name>`. What the question says of a route and of waypoints is said of Garmin's devices in
@@ -129,8 +133,8 @@ read from the device when it is first shown and after each change:
   - its subtitle: "{distance} · ↑ {ascent} · {date}": the lap's distance and ascent, in the
     words of a row of the Activities page (kilometres with one decimal, whole metres after ↑,
     hard spaces), so that the two pages read alike; the sketch's ↗ is not followed, on purpose.
-    The date is the day the course's file was made: by the device for a course it made of a
-    file, by Garmin Connect for one it sent (when it sent it to the device, not the day the
+    The date is the day the course's file was made: by the device for a GPX file it turned into
+    a course, by Garmin Connect for one it sent (when it sent it to the device, not the day the
     course was created in Connect). Each is left out when the file has none;
   - a button **Remove…** (an icon with that tooltip; D7). No chevron: a page of a course's
     details is for later.
@@ -373,7 +377,9 @@ the rest in sentences; Polish in sentence case, with its hard spaces. The names 
 ### D12: experimental — chosen: 12a
 
 - **12a. A chip in the section's title, and the tooltips and help, until openExpress itself has
-  copied a course to a fēnix 8 and an Edge 1050 and removed it.**
+  copied a course to a fēnix 8 and an Edge 1050 and removed it.** Both were done (section 10);
+  the chip stays in the first release of the page all the same, and when it goes is decided
+  later.
 
 ### D13: where a course came from — chosen: 13a
 
@@ -429,8 +435,8 @@ and the questions (light and dark, made-up data) come before step 4.
 5. **The documents**: `docs/guide.md`; `docs/devices.md` says, for each device, what was checked
    (section 2.3); README.
 6. **The map in the question** (D14), the last step.
-7. **On the devices**: a course copied and removed by openExpress on a fēnix 8 and an Edge 1050;
-   then "experimental" goes (D12). Checked with it: a file named with the extension in the case
+7. **On the devices**: a course copied and removed by openExpress on a fēnix 8 and an Edge 1050
+   (section 10); "experimental" stays in the first release all the same (D12). Checked with it: a file named with the extension in the case
    the device declares (`.GPX` on the fēnix 8, where the attempt copied `.gpx`), and the count
    of saved locations (the `location` messages of the locations file) against the device's own.
 
@@ -484,6 +490,27 @@ Only the track and its removal were tried on the watch.
 
 **D2 for the fēnix 8: 2a.**
 
+### openExpress's own copies
+
+Step 7, with the version from source, one device at a time, by a script that listed the same
+folders before and after each step and asked before every write. Files made up (a loop, a route,
+two tracks and three waypoints in the Tricity), named "OE …".
+
+- **Edge 1050:** a track, a file of two tracks and a file of waypoints copied with
+  `openexpress courses add`, a route from the window with its course renamed in the question
+  (the map with the route dashed and dotted, the warning of straight lines, the file's name
+  following the entry). Each was written as `.GPX`. They waited in `NewFiles` while the Edge was
+  connected and became four courses and three saved locations once it was unplugged; the courses
+  were named as the file named them (Polish letters as written), all four shown as openExpress's,
+  and `openexpress courses` counted the same saved locations as the Edge (0, 3). Three courses
+  removed with `openexpress courses remove`, the fourth from the window, the saved locations in
+  the Edge's menu: the folders and the counts as before.
+- **fēnix 8:** a track copied with `openexpress courses add` as `.GPX`; it still waited in
+  `NewFiles` a minute later, the watch connected, and became a course once it was unplugged,
+  shown as openExpress's; removed with `openexpress courses remove`, gone from the watch.
+- **A course from Garmin Connect** already on the fēnix 8 was shown with the chip "Garmin
+  Connect" and the name, distance and ascent Garmin Connect shows (2.3).
+
 ## 11. Stage 2: a FIT course of openExpress's own, with the course's type
 
 A design of its own, made once stage 1 is done. Why: the Edge 1050 does not take the activity
@@ -527,6 +554,6 @@ type from a GPX `<type>` (2.3), so a course gets its type only from a FIT course
 2. A very long track (several thousand points): taken whole, cut, or refused?
 3. A track with no `<name>` copied as it is: what the device names the course (with D4 the copy
    always has one).
-4. Whether a course sent from Garmin Connect carries the product 65534 in its `file_id`, as the
-   other files of Garmin Connect do (checked on the first such course on a device).
+4. Answered (2.3): a course sent from Garmin Connect carries the product 65534 in its
+   `file_id`.
 5. The Polish of "Saved Locations" and of the course list in Garmin's manuals of these devices.

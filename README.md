@@ -11,9 +11,9 @@
 </p>
 
 <p align="center">
-  <b>New:</b> activity profiles – each sport's data screens with their fields in Garmin's words.
-  Also new: clearer icons, and the version from source and the Flatpak share one computer
-  without uploading anything twice.
+  <b>New: courses from GPX files</b> (experimental). Choose a GPX file, openExpress copies it to
+  the watch or bike computer, and the device turns it into a course when you unplug it – no
+  Garmin Connect needed. <a href="docs/guide.md#courses">How it works</a>.
 </p>
 
 <p align="center">
@@ -54,6 +54,8 @@ devices that connect over USB (MTP) should work too – reports are welcome.
   yet on your account can be added from openExpress (experimental).
 - Software updates and free maps (TopoActive, CourseView, Ski…), installed and updated,
   checked by MD5 before they are written, and maps of your own.
+- Courses from GPX files (experimental): copied to the device, which turns them into courses when
+  it is unplugged, without Garmin Connect; listed and removed.
 - Connect IQ apps: install, update, remove, turn on or off, put back in order – also on
   watches that hide their app folder (e.g. the fēnix 8).
 - Music, podcasts and audiobooks, with playlists.
@@ -67,6 +69,13 @@ devices that connect over USB (MTP) should work too – reports are welcome.
   device and the primary wearable.
 - A GTK 4 / libadwaita window, a command-line tool and sync in the background.
 - No telemetry. English and Polish.
+
+<p align="center">
+  <picture>
+    <source media="(prefers-color-scheme: dark)" srcset="docs/screenshots/courses.png">
+    <img alt="The Courses page: courses on a fēnix 8, one copied by openExpress and one from Garmin Connect, a GPX file waiting for the watch to be unplugged and its saved locations" src="docs/screenshots/courses-light.png" width="700">
+  </picture>
+</p>
 
 <p align="center">
   <picture>

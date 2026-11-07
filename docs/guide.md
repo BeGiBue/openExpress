@@ -14,6 +14,8 @@ should work, but are untested – reports are welcome. Developed on Fedora/GNOME
   updated, and the window and `openexpress maps` say why; the country is read from the
   account's profile (Garmin Express uses the computer's IP address), and without it (not
   signed in, a device of another account) such a map is only marked.
+- Courses from GPX files (experimental): copied to the device, which turns them into courses when
+  it is unplugged, listed and removed – without Garmin Connect ([Courses](#courses)).
 - Connect IQ apps: install, update, remove, enable/disable built-in activities – also on
   watches that hide their app folder (e.g. the fēnix 8), without reordering your widgets.
 - Music, podcasts and audiobooks with playlists.
@@ -227,6 +229,62 @@ is stored in the file.
 
 <p align="center">
   <img src="screenshots/maps.png" width="700" alt="Maps, with a map of your own">
+</p>
+
+## Courses
+
+*Experimental.* A watch or a bike computer turns GPX files copied to it over USB into courses,
+without Garmin Connect. The Courses page, after Maps in the side panel, lists the courses on
+the device, the files waiting for it and how many saved locations it keeps;
+`openexpress courses` does the same on the [command line](cli.md).
+
+- **Adding:** *Add Course…* on the Courses page, or `openexpress courses add FILE.gpx --apply`
+  (without `--apply` it only says what it would copy). openExpress copies the file to the
+  device's `GARMIN/NewFiles` folder, with the extension the device declares. **The device makes
+  the course when you unplug the cable**, not before.
+- **The question before a copy** shows a map of the file (the streets from OpenStreetMap once you
+  turn them on, as on the page of an activity; without them the lines alone), the course's
+  name, which you can change, what the file holds, its name on the device and the free space
+  after copying. On the command line, `--name` changes the name. A file of several tracks or
+  routes keeps their names, and the device turns each into a course; its waypoints become saved
+  locations.
+- **Waiting files:** until you unplug the device, a copied file is listed under *Waiting for the
+  Device*, and a banner says to unplug it. A waiting file can be removed there, or with
+  `openexpress courses remove`, before the device takes it.
+- **Removing a course:** the remove button beside it, or
+  `openexpress courses remove NAME --apply` (a part of the name is enough when only one course
+  has it). The device keeps no other copy of a course; one from Garmin Connect can be sent
+  again from there. openExpress never removes saved locations: remove them in the device's menu.
+- **Where a course came from:** a chip beside its name says *openExpress* when the device turned
+  a file openExpress copied into the course, and *Garmin Connect* for one sent from Garmin
+  Connect; a course made another way has none.
+- **The date** beside a course is the day its file was made: for a GPX file the device turned
+  into a course, the day it did so; for a course from Garmin Connect, the day Garmin Connect made
+  the file, when it sent the course to the device – not the day the course was created there.
+- **The file's name on the device** is made from the course's name: plain Latin letters, `_` for
+  spaces, at most 64 characters with the extension; a name already taken gets `_2`, `_3`…
+  Nothing on the device is overwritten, and a copy or a removal is refused while a sync is
+  running. In the Flatpak, `openexpress courses add` reads a file only from Downloads or from
+  `Garmin` in your Documents folder; the window's file chooser reaches any file.
+- **Where it works:** the page is shown for a device that declares GPX files in
+  `GARMIN/NewFiles`. Copying, the device turning the copies into courses and their removal were
+  tried on an Edge 1050 and a fēnix 8 ([Supported devices](devices.md)); other devices may
+  treat GPX files differently, so the page carries the chip *experimental* – reports are welcome.
+
+What courses from GPX files cannot do:
+
+- **A route is straight lines.** A route (`<rte>` in the file) is a list of points that the
+  device joins with straight lines, not along roads or paths; the question warns about it. For
+  a course along roads, export a track instead.
+- **The course's type is not carried over.** openExpress copies the GPX file as it is, and the
+  Edge 1050 ignores the activity type a GPX file gives: its course is a generic one.
+- **Points of interest** (`.gpi` files of Garmin's POI Loader) are not copied: Garmin's maps
+  have their own.
+- Only GPX files, up to 25 MB.
+
+<p align="center">
+  <img src="screenshots/course-copy.png" width="700"
+       alt="The question before a GPX file is copied: the track on a map of OpenStreetMap, the course's name, what the file holds and its name on the device">
 </p>
 
 ## Connect IQ apps
