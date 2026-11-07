@@ -44,7 +44,7 @@ def courses_window(drive, offered=True):
         device=course_device(gpx_folder="Garmin/NewFiles" if offered else None),
         storage=LocalStorage(drive), unit_info_answer=None)
     for name in ("load_courses", "show_courses", "choose_course", "add_course",
-                 "_course_refused"):
+                 "_course_refused", "_remove_button", "ask_remove_course"):
         setattr(win, name, types.MethodType(getattr(MainWindow, name), win))
     win.get_width = lambda: 1000  # the window's
     win.loads = []
@@ -268,3 +268,142 @@ def test_saved_locations_that_could_not_be_counted(drive):
     words = labels(section.groups[-1])
     assert "Waypoints from GPX files and locations saved on the device" in words
     assert "Could not be counted" in words and "14" not in words
+
+
+# --- removing ------------------------------------------------------------------------------------
+
+
+@pytest.fixture
+def told(monkeypatch):
+    """What the widgets told a screen reader (update_property): (widget, {property: value})."""
+    from gi.repository import Gtk
+
+    said = []
+    original = Gtk.Accessible.update_property
+
+    def update_property(self, props, values):
+        said.append((self, dict(zip(props, values, strict=True))))
+        return original(self, props, values)
+
+    monkeypatch.setattr(Gtk.Widget, "update_property", update_property, raising=False)
+    return said
+
+
+def trash_buttons(widget):
+    from gi.repository import Gtk
+
+    return [b for b in descendants(widget)
+            if isinstance(b, Gtk.Button) and b.get_icon_name() == "user-trash-symbolic"]
+
+
+def test_each_course_and_file_waiting_has_its_remove_button(drive, clock, told):
+    from gi.repository import Gtk
+
+    (drive / "Garmin/Courses/Hand.fit").write_bytes(course_fit("By Hand", made=now()))
+    (drive / "Garmin/NewFiles/Loop.gpx").write_text(gpx_file(gpx_track()))
+    win, section = courses_window(drive)
+    win.load_courses()
+    buttons = trash_buttons(section.page)
+    assert len(buttons) == 2 and {b.get_tooltip_text() for b in buttons} == {"Remove…"}
+    assert [p[Gtk.AccessibleProperty.LABEL] for w, p in told if w in buttons] == [
+        "Remove By Hand", "Remove Morning Loop"]
+
+
+def _remove(section, title):
+    """Its row's Remove… clicked."""
+    from gi.repository import Gtk
+
+    (row,) = [r for r in descendants(section.page)
+              if isinstance(r, Gtk.ListBoxRow) and labels(r)[:1] == [title]]
+    (button,) = trash_buttons(row)
+    button.emit("clicked")
+
+
+@pytest.mark.parametrize("kind, body", [
+    ("connect", "The device keeps no other copy of it; Garmin Connect can send it again."),
+    ("unknown", ("openExpress did not copy this course and it did not come from Garmin "
+                 "Connect. The device keeps no other copy of it.")),
+])
+def test_removing_a_course_asks_then_removes_it(drive, clock, asked, kind, body):
+    product = courses.CONNECT_PRODUCT if kind == "connect" else courses.DEVICE_PRODUCT
+    course = drive / "Garmin/Courses/Along.fit"
+    course.write_bytes(course_fit("Along the River", made=now(), product=product))
+    win, section = courses_window(drive)
+    win.load_courses()
+    _remove(section, "Along the River")
+    (q,) = asked
+    assert (q.name, q.heading, q.body) == ("course-remove",
+                                           "Remove “Along the River” from the Device?", body)
+    (remove,) = q.answers
+    assert (remove.label, remove.look) == ("Remove", "destructive")
+    remove.run()
+    assert not course.exists()
+    assert win.run_task.written == ["Removing…"]
+    assert win.toasts == ["Removed “Along the River” from the device."]
+    assert win.loads == ["courses"]  # read again: none left
+    assert labels(section.page)[0] == "No Courses on the Device"
+
+
+def test_a_course_of_openexpress_is_said_so(drive, tmp_path, clock, asked):
+    st = LocalStorage(drive)
+    plan = courses.plan_add(course_device(), st, _gpx(tmp_path, gpx_track("Hill")))
+    courses.add(plan, course_device(), st)
+    (drive / plan.path).unlink()
+    (drive / "Garmin/Courses/Hill.fit").write_bytes(course_fit("Hill", made=now() + 60))
+    win, section = courses_window(drive)
+    win.load_courses()
+    _remove(section, "Hill")
+    assert asked[0].body == "The device keeps no other copy of it."
+    asked[0].answers[0].run()
+    assert courses.recorded(COURSE_UNIT) == []  # its name taken off the record
+
+
+def test_removing_a_file_waiting(drive, asked):
+    waiting = drive / "Garmin/NewFiles/Loop.gpx"
+    waiting.write_text(gpx_file(gpx_track()))
+    win, section = courses_window(drive)
+    win.load_courses()
+    _remove(section, "Morning Loop")
+    (q,) = asked
+    assert (q.heading, q.body) == ("Remove “Morning Loop” from the Device?",
+                                   "The device has not made a course of it yet.")
+    q.answers[0].run()
+    assert not waiting.exists() and win.toasts == ["Removed “Morning Loop” from the device."]
+
+
+def test_cancel_removes_nothing(drive, clock, asked):
+    course = drive / "Garmin/Courses/Hand.fit"
+    course.write_bytes(course_fit("By Hand", made=now()))
+    win, section = courses_window(drive)
+    win.load_courses()
+    _remove(section, "By Hand")
+    assert len(asked) == 1  # the question, never answered: Cancel and Escape run nothing
+    assert course.exists() and win.run_task.written == [] and win.toasts == []
+
+
+def test_a_file_gone_before_the_question_is_said_and_the_list_read_again(drive, clock, asked):
+    course = drive / "Garmin/Courses/Hand.fit"
+    course.write_bytes(course_fit("By Hand", made=now()))
+    win, section = courses_window(drive)
+    win.load_courses()
+    course.unlink()  # the device unplugged and the file removed elsewhere
+    _remove(section, "By Hand")
+    assert asked == []
+    assert win.errors == [("Cannot Remove the Course", "Hand.fit is no longer on the device.")]
+    assert win.loads == ["courses"]
+    empty = "Copy a GPX file with a track or a route\u00a0– the device turns it into a course."
+    assert labels(section.page)[:2] == ["No Courses on the Device", empty]
+
+
+def test_a_file_changed_after_the_question_is_not_removed(drive, clock, asked):
+    course = drive / "Garmin/Courses/Hand.fit"
+    course.write_bytes(course_fit("By Hand", made=now()))
+    win, section = courses_window(drive)
+    win.load_courses()
+    _remove(section, "By Hand")
+    course.write_bytes(course_fit("By Hand", made=now(), points=30))
+    asked[0].answers[0].run()
+    assert course.exists() and win.toasts == []
+    said = "Hand.fit has changed since the list was shown, so it is not removed."
+    assert win.errors == [("Cannot Remove the Course", said)]
+    assert win.loads == ["courses"]

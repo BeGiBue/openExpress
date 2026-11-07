@@ -485,6 +485,20 @@ def _course_add(ctx):
                           Path("/made/up/loop.gpx"))
 
 
+def _course_remove(ctx):
+    """A course's Remove…: the file checked (made up), then the question."""
+    from openexpress import courses
+    from openexpress.gui.app import MainWindow
+
+    shown = courses.Course("Hand.fit", "Garmin/Courses/Hand.fit", 100, "By Hand", None, None,
+                           None, courses.ORIGIN_CONNECT)
+    plan = courses.RemovePlan("Hand.fit", "Garmin/Courses/Hand.fit", 100, "By Hand", False,
+                              courses.ORIGIN_CONNECT)
+    ctx.monkeypatch.setattr(courses, "plan_remove", lambda device, storage, shown: plan)
+    MainWindow.ask_remove_course(_escape_window(ctx, _course_refused=lambda e, title=None: False),
+                                 shown)
+
+
 def _own_map_remove(ctx):
     from openexpress.gui.app import MainWindow
 
@@ -642,7 +656,7 @@ OPENERS = {
     "added-not-listed": lambda ctx: _added(ctx, listed=False),
     "added-not-checked": lambda ctx: _added(ctx, listed=None),
     "first-sync": _first_sync, "forget-device": _forget_device, "own-map-add": _own_map_add,
-    "course-add": _course_add,
+    "course-add": _course_add, "course-remove": _course_remove,
     "own-map-remove": _own_map_remove, "map-install": _map_install, "map-remove": _map_remove,
     "music-copy": _music_copy, "playlist-add": _playlist_add, "cache-clear": _cache_clear,
     "update-install": _update_install, "update-install-all": _update_install_all,

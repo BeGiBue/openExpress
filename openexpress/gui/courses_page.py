@@ -1,9 +1,9 @@
 """The Courses page of the window (experimental): the courses on the open device, each with where
 it came from, the GPX files waiting for it under a banner of the page, how many saved locations it
 keeps, and Add Course…: a GPX file chosen (through the portal in the Flatpak, so from any
-folder), checked and planned, a question with the course's name to change, the copy. courses.py
-decides all of it; this page shows it and asks. Removing a course is a later step: a row has no
-button for it yet.
+folder), checked and planned, a question with the course's name to change, the copy; a row's
+Remove…: the course's file or the waiting file checked against the list, a question that says
+what is lost, the removal. courses.py decides all of it; this page shows it and asks.
 Has: nothing of its own in the window (the page reads the device each time it is shown).
 CoursesPage is a mixin of MainWindow (gui/app.py), without __init__ of its own; what it uses of
 the window (session, run_task, sections, toast, error, …) is the window's."""
@@ -113,6 +113,17 @@ def waiting_banner(count: int) -> str:
                     count).format(count=count)
 
 
+def remove_heading(name: str) -> str:
+    # TRANSLATORS: heading of the question before a course or a GPX file waiting for the device
+    # is removed from it
+    return _("Remove “{name}” from the Device?").format(name=name)
+
+
+def removed_toast(name: str) -> str:
+    # TRANSLATORS: toast after a course or a waiting GPX file was removed from the device
+    return _("Removed “{name}” from the device.").format(name=name)
+
+
 def copied_toast(name: str) -> str:
     # TRANSLATORS: toast after a GPX file was copied to the device; {name}: its course's name,
     # else the file's
@@ -142,9 +153,11 @@ def _chip(words: str, accent: bool) -> Gtk.Label:
                      css_classes=["oe-chip", "accent" if accent else "dimmed"])
 
 
-def _row(title: str, subtitle: str, origin: str | None = None) -> Gtk.ListBoxRow:
+def _row(title: str, subtitle: str, origin: str | None = None,
+         remove: Gtk.Widget | None = None) -> Gtk.ListBoxRow:
     """A row of a course or of a waiting file: its name with the chip of where it came from
-    beside it (on the next line when the window is too narrow), the caption under them."""
+    beside it (on the next line when the window is too narrow), the caption under them, and its
+    `remove` button at the end."""
     name = Gtk.Label(label=title, xalign=0, wrap=True, wrap_mode=Pango.WrapMode.WORD_CHAR)
     if origin is None:
         head = name
@@ -163,7 +176,11 @@ def _row(title: str, subtitle: str, origin: str | None = None) -> Gtk.ListBoxRow
         text.append(Gtk.Label(label=subtitle, xalign=0, wrap=True,
                               wrap_mode=Pango.WrapMode.WORD_CHAR,
                               css_classes=["dim-label", "caption"]))
-    row = Gtk.ListBoxRow(activatable=False, child=text)
+    line = Gtk.Box(spacing=6, margin_end=6)
+    line.append(text)
+    if remove is not None:
+        line.append(remove)
+    row = Gtk.ListBoxRow(activatable=False, child=line)
     row.update_property([Gtk.AccessibleProperty.LABEL],
                         [", ".join(p for p in (title, origin, subtitle) if p)])
     return row
@@ -310,7 +327,8 @@ class CoursesPage:
         elif not seen.courses:
             g.add(Adw.ActionRow(title=_("No Courses on the Device")))
         for course in seen.courses:
-            g.add(_row(course.title, course_caption(course), course.origin))
+            g.add(_row(course.title, course_caption(course), course.origin,
+                       self._remove_button(course)))
         if seen.waiting or "waiting" in seen.unreadable:
             # TRANSLATORS: group of the Courses page: GPX files the device has not imported yet
             g = sec.group(pgettext("courses", "Waiting for the Device"))
@@ -322,7 +340,8 @@ class CoursesPage:
                     parts.append(waiting.filename)
                 if waiting.gpx is None:
                     parts.append(human_size(waiting.size))
-                g.add(_row(waiting.title, caption(*parts)))
+                g.add(_row(waiting.title, caption(*parts),
+                           remove=self._remove_button(waiting)))
         if seen.locations is not None or "locations" in seen.unreadable:
             # TRANSLATORS: group of the Courses page: the device's saved locations
             g = sec.group(pgettext("courses", "Saved Locations"))
@@ -363,13 +382,51 @@ class CoursesPage:
 
         dialog.open(self, None, chosen)
 
-    def _course_refused(self, e) -> bool:
-        """A refusal of courses.py or course_gpx.py over the page; True when it was one."""
+    def _course_refused(self, e, title: str | None = None) -> bool:
+        """A refusal of courses.py or course_gpx.py over the page, under `title` (by default,
+        that a file was not copied); True when it was one."""
         if isinstance(e, CourseFileError | courses.CourseError):
             # TRANSLATORS: title of the message why a GPX file was not copied
-            self.error(_("Cannot Add the Course"), str(e))
+            self.error(title or _("Cannot Add the Course"), str(e))
             return True
         return False
+
+    def _remove_button(self, shown) -> Gtk.Button:
+        """Remove… of a row: its icon, its tooltip, and for a screen reader what it removes."""
+        # TRANSLATORS: tooltip of the button that removes a course or a waiting GPX file
+        button = self._trash(_("Remove…"), lambda: self.ask_remove_course(shown))
+        button.update_property([Gtk.AccessibleProperty.LABEL],
+                               [_("Remove {name}").format(name=shown.title)])
+        return button
+
+    def ask_remove_course(self, shown) -> None:
+        """Remove…: the file checked against what the list showed (courses.plan_remove), the
+        question with what is lost, then the removal through the core, as `courses remove`
+        does. A refusal or a failure is said, and the page is read again."""
+        s = self.session
+
+        def refused(e):
+            # TRANSLATORS: title of the message why a course or a waiting file was not removed
+            return self._course_refused(e, _("Cannot Remove the Course"))
+
+        def removed(plan):
+            self.toast(removed_toast(plan.title))
+            self.load_section("courses", force=True)
+
+        def remove(plan):
+            self.run_task(_("Removing…"),
+                          writes_to_device(lambda: courses.remove(plan, s.device, s.storage)
+                                           or plan),
+                          removed, read_again_after_failure(self, "courses", refused))
+
+        def ask(plan):
+            confirm(self, "course-remove", remove_heading(plan.title), courses.removal_note(plan),
+                    Answer("remove", _("Remove"), lambda: remove(plan), look="destructive"),
+                    default="cancel")
+
+        self.run_task(_("Checking the File…"),
+                      lambda: courses.plan_remove(s.device, s.storage, shown), ask,
+                      read_again_after_failure(self, "courses", refused))
 
     def add_course(self, path: Path) -> None:
         """The file checked and planned with the device, then the question; Copy copies it

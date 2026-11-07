@@ -2590,20 +2590,6 @@ def _course_plan_lines(plan) -> list[str]:
     return lines
 
 
-def _removal_note(plan) -> str:
-    """What removing a course or a waiting file means: what is lost."""
-    from openexpress import courses
-
-    if plan.waiting:
-        return _("The device has not made a course of it yet.")
-    if plan.origin == courses.ORIGIN_OPENEXPRESS:
-        return _("The device keeps no other copy of it.")
-    if plan.origin == courses.ORIGIN_CONNECT:
-        return _("The device keeps no other copy of it; Garmin Connect can send it again.")
-    return _("openExpress did not copy this course and it did not come from Garmin Connect. "
-             "The device keeps no other copy of it.")
-
-
 def _courses_add(args, dev, st) -> int:
     from openexpress import courses
 
@@ -2644,7 +2630,7 @@ def _courses_remove(args, dev, st, seen) -> int:
     print((_("Removing a file waiting for the device: {name}") if plan.waiting
            else _("Removing course: {name}")).format(name=plan.title))
     print(f"  - {plan.path}  ({_human(plan.size)})")
-    print("  " + _removal_note(plan))
+    print("  " + courses.removal_note(plan))
     if not args.apply:
         print(_("Dry run. Add --apply."))
         return 0

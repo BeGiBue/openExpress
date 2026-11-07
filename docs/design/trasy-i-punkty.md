@@ -183,15 +183,19 @@ of the track's or route's `<name>` (added when it has none); nothing else of the
 - **No room**: the maps' message.
 - **The copy failed**: the partial file removed, the reason shown, the page read again.
 
-**Remove…** asks (`confirm()`, Cancel by default) "Remove “{name}” from the Device?":
+**Remove…** (a trash icon in the row, with that tooltip and "Remove {name}" for a screen reader)
+asks (`confirm()`, Cancel by default, **Remove** destructive) "Remove “{name}” from the Device?",
+in words of courses.py that the command line says too:
 
 - a course openExpress copied: "The device keeps no other copy of it.";
 - a course from Garmin Connect: "The device keeps no other copy of it; Garmin Connect can send it
   again.";
-- a course of unknown origin, the stronger question of a map of one's own: "openExpress did not
-  copy this course and it did not come from Garmin Connect. The device keeps no other copy of
-  it.", the button **Remove** destructive;
+- a course of unknown origin: "openExpress did not copy this course and it did not come from
+  Garmin Connect. The device keeps no other copy of it.";
 - a waiting file: "The device has not made a course of it yet."
+
+Removed: the toast "Removed “{name}” from the device.", the page read again. A file gone or changed
+since the list was shown, or a device that stopped answering: the reason said, the page read again.
 
 ### 4.4 The command line
 

@@ -542,6 +542,19 @@ def plan_remove(device: GarminDevice, storage: Storage, shown: Course | Waiting)
     return RemovePlan(name, real, shown.size, shown.title, False, shown.origin, shown.made)
 
 
+def removal_note(plan: RemovePlan) -> str:
+    """What removing a course or a waiting file means, as the question before it says: what is
+    lost, by where the course came from."""
+    if plan.waiting:
+        return _("The device has not made a course of it yet.")
+    if plan.origin == ORIGIN_OPENEXPRESS:
+        return _("The device keeps no other copy of it.")
+    if plan.origin == ORIGIN_CONNECT:
+        return _("The device keeps no other copy of it; Garmin Connect can send it again.")
+    return _("openExpress did not copy this course and it did not come from Garmin Connect. "
+             "The device keeps no other copy of it.")
+
+
 def _forget(unit_id: int, plan: RemovePlan) -> None:
     """The record of a removed waiting file, or the name of a removed course of openExpress's
     (in the copies made before it), taken off; the other install's record is never written."""
