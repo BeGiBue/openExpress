@@ -6,7 +6,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: openexpress\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-11-13 22:07+0100\n"
+"POT-Creation-Date: 2026-11-14 01:29+0100\n"
 "PO-Revision-Date: 2026-11-07 18:00+0100\n"
 "Last-Translator: BeGiBue\n"
 "Language-Team: none\n"
@@ -82,11 +82,13 @@ msgid "Hiking"
 msgstr "Wandern"
 
 #: openexpress/activities.py
+#, ignore-same
 msgctxt "sport"
 msgid "Multisport"
 msgstr "Multisport"
 
 #: openexpress/activities.py
+#, ignore-reused
 msgctxt "sport"
 msgid "Paddling"
 msgstr "Paddeln"
@@ -112,11 +114,13 @@ msgid "Snowshoeing"
 msgstr "Schneeschuhlaufen"
 
 #: openexpress/activities.py
+#, ignore-multiple-capital
 msgctxt "sport"
 msgid "Stand-up paddleboarding"
 msgstr "Stand-Up-Paddle-Boarding"
 
 #: openexpress/activities.py
+#, ignore-reused
 msgctxt "sport"
 msgid "Kayaking"
 msgstr "Kajakfahren"
@@ -190,6 +194,7 @@ msgid "3. Paste the URL: "
 msgstr "3. Fügen Sie die URL ein: "
 
 #: openexpress/auth/sso.py
+#, ignore-end-stop
 msgid "The given URL has no ticket=ST-... parameter"
 msgstr "Die angegebene URL hat keinen Parameter ticket=ST-..."
 
@@ -266,31 +271,33 @@ msgstr "Karten"
 
 #. TRANSLATORS: a part of the cache in `openexpress cache`: downloaded device software
 #: openexpress/cache.py
+#, ignore-reused
 msgid "Software updates"
 msgstr "Software-Updates"
 
 #. TRANSLATORS: a part of the cache in `openexpress cache`: downloaded pictures of devices
 #. and icons of apps
 #: openexpress/cache.py
+#, ignore-reused
 msgid "Pictures and icons"
 msgstr "Bilder und Symbole"
 
 #. TRANSLATORS: a part of the cache in `openexpress cache`: answers of Garmin's servers kept
 #. for a while
 #: openexpress/cache.py
-#, fuzzy
-#| msgid "Garmin Server Responses"
 msgid "Garmin server responses"
 msgstr "Antworten der Garmin-Server"
 
 #. TRANSLATORS: a part of the cache in `openexpress cache`: OpenStreetMap tiles under the
 #. maps of activities
 #: openexpress/cache.py
+#, ignore-reused
 msgid "Activity map tiles"
 msgstr "Kartenkacheln der Aktivitäten"
 
 #. TRANSLATORS: a part of the cache in `openexpress cache`: files on their way to the device
 #: openexpress/cache.py
+#, ignore-reused
 msgid "Temporary files"
 msgstr "Temporäre Dateien"
 
@@ -912,7 +919,7 @@ msgid "{position}: {new} (now: {old})"
 msgstr "{position}: {new} (jetzt: {old})"
 
 #: openexpress/ciq.py openexpress/cli.py openexpress/gui/music_page.py
-#, python-brace-format
+#, ignore-same, ignore-same-plurals, python-brace-format
 msgid "… and {count} more"
 msgid_plural "… and {count} more"
 msgstr[0] "… und {count} weitere"
@@ -1044,11 +1051,8 @@ msgstr ""
 #. TRANSLATORS: `diagnostics`: heading of the crashes; each line under it says where its
 #. crash was found
 #: openexpress/cli.py
-#, fuzzy
-#| msgid "Crashes that restarted the device, and its software updates"
 msgid "Crashes that restarted the device:"
-msgstr ""
-"Abstürze, nach denen das Gerät neu gestartet ist, und seine Software-Updates"
+msgstr "Abstürze, nach denen das Gerät neu gestartet ist:"
 
 #. TRANSLATORS: under "Crashes that restarted the device:" when there is none
 #: openexpress/cli.py
@@ -1062,6 +1066,8 @@ msgid ""
 "The hidden crash logs, not copied yet, may hold more crashes: to count them, "
 "add --crash-logs --apply."
 msgstr ""
+"Die verborgenen, noch nicht kopierten Absturzprotokolle können weitere "
+"Abstürze enthalten: Um sie zu zählen, fügen Sie --crash-logs --apply hinzu."
 
 #: openexpress/cli.py
 #, python-brace-format
@@ -1133,7 +1139,7 @@ msgid ""
 "Dry run: nothing was copied or removed. Add --apply to copy and remove the "
 "files listed; that cannot be undone."
 msgstr ""
-"Probelauf: nichts wurde kopiert oder entfernt. Fügen Sie --apply hinzu, um "
+"Probelauf: Nichts wurde kopiert oder entfernt. Fügen Sie --apply hinzu, um "
 "die aufgeführten Dateien zu kopieren und zu entfernen; das lässt sich nicht "
 "rückgängig machen."
 
@@ -1159,8 +1165,6 @@ msgstr ""
 
 #. TRANSLATORS: under "Space to free on the device:" when a dump's time is not known
 #: openexpress/cli.py
-#, fuzzy
-#| msgid "older memory dumps: not known (the newest cannot be told)"
 msgid "older memory dumps: not known (the newest cannot be determined)"
 msgstr ""
 "ältere Speicherabbilder: unbekannt (das neueste lässt sich nicht bestimmen)"
@@ -1168,16 +1172,13 @@ msgstr ""
 #. TRANSLATORS: under "Space to free on the device:" for a device whose GarminDevice.xml
 #. gives no Unit ID; {dumps} is a count and a size, e.g. "3 (2.5 MB)"
 #: openexpress/cli.py
-#, fuzzy, python-brace-format
-#| msgid ""
-#| "older memory dumps: {dumps}; not removed: the device gives no unit ID, so "
-#| "their copies would have no folder of the device"
+#, python-brace-format
 msgid ""
 "older memory dumps: {dumps}; not removed: the device has no Unit ID to name "
 "the folder of their copies"
 msgstr ""
-"ältere Speicherabbilder: {dumps}; nicht entfernt: Das Gerät nennt keine Unit "
-"ID, ihre Kopien hätten also keinen Ordner des Geräts"
+"ältere Speicherabbilder: {dumps}; nicht entfernt: Das Gerät hat keine Geräte-"
+"ID, nach der der Ordner ihrer Kopien benannt wird"
 
 #. TRANSLATORS: under "Space to free on the device:"; {dumps} is a count and a size,
 #. e.g. "3 (2.5 MB)"
@@ -1233,27 +1234,27 @@ msgstr "sie hat sich geändert, seit sie aufgelistet wurde"
 #. TRANSLATORS: `diagnostics --free-space --apply`; {copied}: how many of the
 #. memory dumps removed were copied to this computer before
 #: openexpress/cli.py
-#, fuzzy, python-brace-format
-#| msgid "{count} memory dump copied to this computer"
-#| msgid_plural "{count} memory dumps copied to this computer"
+#, python-brace-format
 msgid ""
 "Removed: {count} memory dump, {size} freed; {copied} copied to this computer "
 "first."
 msgid_plural ""
 "Removed: {count} memory dumps, {size} freed; {copied} copied to this "
 "computer first."
-msgstr[0] "{count} Speicherabbild auf diesen Computer kopiert"
-msgstr[1] "{count} Speicherabbilder auf diesen Computer kopiert"
+msgstr[0] ""
+"Entfernt: {count} Speicherabbild, {size} freigegeben; {copied} zuvor auf "
+"diesen Computer kopiert."
+msgstr[1] ""
+"Entfernt: {count} Speicherabbilder, {size} freigegeben; {copied} zuvor auf "
+"diesen Computer kopiert."
 
 #. TRANSLATORS: `diagnostics --free-space --apply`
 #: openexpress/cli.py
-#, fuzzy, python-brace-format
-#| msgid "Removed: {count} memory dump, {size} freed"
-#| msgid_plural "Removed: {count} memory dumps, {size} freed"
+#, python-brace-format
 msgid "Removed: {count} memory dump, {size} freed."
 msgid_plural "Removed: {count} memory dumps, {size} freed."
-msgstr[0] "Entfernt: {count} Speicherabbild, {size} freigegeben"
-msgstr[1] "Entfernt: {count} Speicherabbilder, {size} freigegeben"
+msgstr[0] "Entfernt: {count} Speicherabbild, {size} freigegeben."
+msgstr[1] "Entfernt: {count} Speicherabbilder, {size} freigegeben."
 
 #. TRANSLATORS: why a memory dump stays on the device after --free-space
 #: openexpress/cli.py
@@ -1280,16 +1281,12 @@ msgstr "Nichts entfernt: Die Dateien waren nicht mehr auf dem Gerät."
 #. TRANSLATORS: after --free-space --apply removed files, when the device could not
 #. be read again
 #: openexpress/cli.py
-#, fuzzy
-#| msgid ""
-#| "The device could not be counted again after the removal; its records keep "
-#| "what was removed."
 msgid ""
 "The device could not be read again after the removal; openExpress has noted "
 "what was removed."
 msgstr ""
-"Das Gerät konnte nach dem Entfernen nicht erneut gezählt werden; seine "
-"Aufzeichnungen berücksichtigen, was entfernt wurde."
+"Das Gerät konnte nach dem Entfernen nicht erneut gelesen werden; openExpress "
+"hat vermerkt, was entfernt wurde."
 
 #: openexpress/cli.py
 msgid "copy on this computer"
@@ -1303,10 +1300,8 @@ msgstr "Startprotokoll"
 #. TRANSLATORS: where a crash was found: the log of the device's connections that
 #. openExpress keeps (the line "Connection log on this computer: …")
 #: openexpress/cli.py
-#, fuzzy
-#| msgid "device log on this computer"
 msgid "connection log on this computer"
-msgstr "Geräteprotokoll auf diesem Computer"
+msgstr "Verbindungsprotokoll auf diesem Computer"
 
 #. TRANSLATORS: a kind of file in "Storage at the last connection: …" of `diagnostics`,
 #. lowercase, followed by its size
@@ -1353,23 +1348,20 @@ msgid "system"
 msgstr "System"
 
 #: openexpress/cli.py
-#, fuzzy
-#| msgid "Device log on this computer: no connection yet"
 msgid "Connection log on this computer: no connection yet"
-msgstr "Geräteprotokoll auf diesem Computer: noch keine Verbindung"
+msgstr "Verbindungsprotokoll auf diesem Computer: noch keine Verbindung"
 
 #: openexpress/cli.py
-#, fuzzy, python-brace-format
-#| msgid "Device log on this computer: {count} connection, the first on {day}"
-#| msgid_plural ""
-#| "Device log on this computer: {count} connections, the first on {day}"
+#, python-brace-format
 msgid "Connection log on this computer: {count} connection, the first on {day}"
 msgid_plural ""
 "Connection log on this computer: {count} connections, the first on {day}"
 msgstr[0] ""
-"Geräteprotokoll auf diesem Computer: {count} Verbindung, die erste am {day}"
+"Verbindungsprotokoll auf diesem Computer: {count} Verbindung, die erste am "
+"{day}"
 msgstr[1] ""
-"Geräteprotokoll auf diesem Computer: {count} Verbindungen, die erste am {day}"
+"Verbindungsprotokoll auf diesem Computer: {count} Verbindungen, die erste am "
+"{day}"
 
 #: openexpress/cli.py
 #, python-brace-format
@@ -1445,6 +1437,7 @@ msgid "last crash: {crash}"
 msgstr "letzter Absturz: {crash}"
 
 #: openexpress/cli.py
+#, ignore-reused
 msgid "USB drive"
 msgstr "USB-Laufwerk"
 
@@ -1660,6 +1653,7 @@ msgstr[0] "{path} würde geschrieben ({count} Punkt)"
 msgstr[1] "{path} würde geschrieben ({count} Punkte)"
 
 #: openexpress/cli.py
+#, ignore-same, ignore-same-plurals
 msgid "Dry run: nothing was written. Add --apply to write it."
 msgid_plural "Dry run: nothing was written. Add --apply to write them."
 msgstr[0] ""
@@ -1962,85 +1956,78 @@ msgstr "Gerätesoftware: {text}"
 
 #. TRANSLATORS: `openexpress status`, after "Satellite data (experimental):": turned on
 #: openexpress/cli.py
-#, fuzzy
-#| msgid "none"
 msgctxt "satellite data"
 msgid "on"
-msgstr "keine"
+msgstr "ein"
 
 #. TRANSLATORS: `openexpress status`, after "Satellite data (experimental):": turned off
 #: openexpress/cli.py
 msgctxt "satellite data"
 msgid "off"
-msgstr ""
+msgstr "aus"
 
 #. TRANSLATORS: `openexpress status`, after "Satellite data (experimental):"
 #: openexpress/cli.py
 msgctxt "satellite data"
 msgid "off (the switch is on the device page in the window)"
-msgstr ""
+msgstr "aus (der Schalter ist im Fenster auf der Seite „Gerät“)"
 
 #. TRANSLATORS: in the subtitle of the row Satellite Data: the last sync did not update
 #. them; {reason} says why
 #: openexpress/cli.py openexpress/gui/words.py
-#, fuzzy, python-brace-format
-#| msgid "Nothing was uploaded: {reason}"
+#, python-brace-format
 msgctxt "satellite data"
 msgid "not updated: {reason}"
-msgstr "Nichts wurde hochgeladen: {reason}"
+msgstr "nicht aktualisiert: {reason}"
 
 #. TRANSLATORS: in the subtitle of the row Satellite Data: on, nothing written yet,
 #. as the watch's own satellite data (e.g. from the phone) is current
 #: openexpress/cli.py openexpress/gui/words.py
-#, fuzzy
-#| msgid "Already on the device: {count}"
 msgid "the data on the device is current"
-msgstr "Bereits auf dem Gerät: {count}"
+msgstr "die Daten auf dem Gerät sind aktuell"
 
 #. TRANSLATORS: in the subtitle of the row Satellite Data: on, not written yet
 #: openexpress/cli.py openexpress/gui/words.py
 msgid "the next sync updates it"
-msgstr ""
+msgstr "die nächste Synchronisierung aktualisiert sie"
 
 #. TRANSLATORS: in the subtitle of the row Satellite Data: when the last sync wrote them,
 #. e.g. "updated yesterday, 20:39"
 #: openexpress/cli.py openexpress/gui/words.py
-#, fuzzy, python-brace-format
-#| msgid "Created: {when}"
+#, python-brace-format
 msgctxt "satellite data"
 msgid "updated {when}"
-msgstr "Erstellt: {when}"
+msgstr "aktualisiert {when}"
 
 #. TRANSLATORS: `openexpress status`: the GPS satellite data of a watch that keeps it as
 #. CPE.BIN; {text} says whether it is on and what the last sync did
 #: openexpress/cli.py
 #, python-brace-format
 msgid "Satellite data (experimental): {text}"
-msgstr ""
+msgstr "Satellitendaten (experimentell): {text}"
 
 #. TRANSLATORS: `openexpress sync --apply`: the satellite data written to the device
 #: openexpress/cli.py
 #, python-brace-format
 msgid "Satellite data updated ({size})"
-msgstr ""
+msgstr "Satellitendaten aktualisiert ({size})"
 
 #. TRANSLATORS: `openexpress sync` (the dry run)
 #: openexpress/cli.py
 #, python-brace-format
 msgid "Satellite data: would be updated ({size})"
-msgstr ""
+msgstr "Satellitendaten: würden aktualisiert ({size})"
 
 #. TRANSLATORS: `openexpress sync`: the device has Garmin's current file already
 #: openexpress/cli.py
 msgid "Satellite data already current"
-msgstr ""
+msgstr "Satellitendaten bereits aktuell"
 
 #. TRANSLATORS: `openexpress sync`; {reason} says why
 #: openexpress/cli.py
-#, fuzzy, python-brace-format
-#| msgid "{device} was not forgotten: {reason}"
+#, python-brace-format
 msgid "Satellite data not updated: {reason}"
-msgstr "{device} wurde nicht vergessen: {reason}"
+msgstr "Satellitendaten nicht aktualisiert: {reason}"
 
 #: openexpress/cli.py
 msgid "an update is ready: unplug the device to install it"
@@ -2148,12 +2135,6 @@ msgid "Device to forget: {device}"
 msgstr "Zu vergessendes Gerät: {device}"
 
 #: openexpress/cli.py
-#, fuzzy
-#| msgid ""
-#| "What this installation keeps of it goes too: what was uploaded from it, "
-#| "its last sync, the log of its connections, the maps of your own copied to "
-#| "it and the copies of its diagnostic files. Its next sync with this "
-#| "program will be a first sync again."
 msgid ""
 "What this installation keeps of it goes too: what was uploaded from it, its "
 "last sync, its connection log, the maps of your own copied to it and the "
@@ -2161,10 +2142,10 @@ msgid ""
 "first sync again."
 msgstr ""
 "Was diese Installation darüber speichert, wird ebenfalls entfernt: was von "
-"ihm hochgeladen wurde, seine letzte Synchronisierung, das Protokoll seiner "
-"Verbindungen, die darauf kopierten eigenen Karten und die Kopien seiner "
-"Diagnosedateien. Seine nächste Synchronisierung mit diesem Programm ist "
-"wieder eine erste Synchronisierung."
+"ihm hochgeladen wurde, seine letzte Synchronisierung, sein "
+"Verbindungsprotokoll, die darauf kopierten eigenen Karten und die Kopien "
+"seiner Diagnosedateien. Seine nächste Synchronisierung mit diesem Programm "
+"ist wieder eine erste Synchronisierung."
 
 #: openexpress/cli.py
 #, python-brace-format
@@ -2217,7 +2198,7 @@ msgstr[1] "{count} Sicherungen gelöscht."
 
 #. TRANSLATORS: a date and an hour, e.g. 2026-10-14 23:41
 #: openexpress/cli.py openexpress/i18n.py openexpress/netstatus.py
-#, python-brace-format
+#, ignore-reused, python-brace-format
 msgctxt "date and hour"
 msgid "{date} {time}"
 msgstr "{date} {time}"
@@ -2459,6 +2440,7 @@ msgstr ""
 "Update kopiert, es wird darauf gewartet, dass das Gerät es installiert:"
 
 #: openexpress/cli.py
+#, ignore-reused
 msgid "Ejecting the device…"
 msgstr "Das Gerät wird ausgeworfen…"
 
@@ -3352,7 +3334,7 @@ msgid "Saved locations on the device: {count}"
 msgstr "Gespeicherte Positionen auf dem Gerät: {count}"
 
 #: openexpress/cli.py
-#, python-brace-format
+#, ignore-same-plurals, python-brace-format
 msgid "Course: {names}"
 msgid_plural "Courses: {names}"
 msgstr[0] "Strecke: {names}"
@@ -3807,12 +3789,12 @@ msgid "the device's error logs and their copy on this computer"
 msgstr "die Fehlerprotokolle des Geräts und ihre Kopie auf diesem Computer"
 
 #: openexpress/cli.py
-#, fuzzy
-#| msgid "copy the diagnostic files the device shows now"
 msgid ""
 "copy the diagnostic files the device shows now; with --free-space, remove "
 "the files it lists"
-msgstr "die Diagnosedateien kopieren, die das Gerät jetzt anzeigt"
+msgstr ""
+"die Diagnosedateien kopieren, die das Gerät jetzt anzeigt; mit --free-space "
+"die aufgelisteten Dateien entfernen"
 
 #: openexpress/cli.py
 msgid ""
@@ -3827,19 +3809,15 @@ msgid "also copy the memory dumps"
 msgstr "auch die Speicherabbilder kopieren"
 
 #: openexpress/cli.py
-#, fuzzy
-#| msgid ""
-#| "also free up space on the device: remove the older memory dumps (copied "
-#| "to this computer first where they fit) and the files of updates it did "
-#| "not install"
 msgid ""
 "only what can be freed on the device: the older memory dumps (copied to this "
 "computer first where they fit) and the files of updates it did not install; "
 "with --apply they are removed (not with --dumps or --crash-logs)"
 msgstr ""
-"auch Speicher auf dem Gerät freigeben: die älteren Speicherabbilder (zuerst "
-"auf diesen Computer kopiert, soweit sie passen) und die Dateien nicht "
-"installierter Updates entfernen"
+"nur, was auf dem Gerät freigegeben werden kann: die älteren Speicherabbilder "
+"(zuerst auf diesen Computer kopiert, soweit sie passen) und die Dateien "
+"nicht installierter Updates; mit --apply werden sie entfernt (nicht mit --"
+"dumps oder --crash-logs)"
 
 #: openexpress/cli.py
 msgid "sign in to Garmin Connect"
@@ -4508,6 +4486,7 @@ msgstr "Standort des Kontos"
 #. TRANSLATORS: the name of a request to Garmin's server, shown before its error
 #. ("Primary training device: network error (…)")
 #: openexpress/connect.py openexpress/service.py
+#, ignore-reused
 msgctxt "server request"
 msgid "Primary training device"
 msgstr "Primäres Trainingsgerät"
@@ -4515,6 +4494,7 @@ msgstr "Primäres Trainingsgerät"
 #. TRANSLATORS: the name of a request to Garmin's server, shown before its error
 #. ("Primary wearable: network error (…)")
 #: openexpress/connect.py
+#, ignore-reused
 msgctxt "server request"
 msgid "Primary wearable"
 msgstr "Primäres Wearable"
@@ -5056,6 +5036,7 @@ msgid "The device is starting. Try again in a moment."
 msgstr "Das Gerät startet. Versuchen Sie es gleich noch einmal."
 
 #: openexpress/device/gio_storage.py
+#, ignore-reused
 msgid "The device is starting…"
 msgstr "Das Gerät startet…"
 
@@ -5360,16 +5341,12 @@ msgstr "das Gerät hat sie behalten"
 #. TRANSLATORS: why nothing was removed from the device after the confirmation was
 #. answered
 #: openexpress/freeing.py
-#, fuzzy
-#| msgid ""
-#| "The files on the device changed since the question; nothing was removed. "
-#| "Look at the list again."
 msgid ""
 "The files on the device changed while the confirmation was open; nothing was "
 "removed. Check the list again."
 msgstr ""
-"Die Dateien auf dem Gerät haben sich seit der Frage geändert; nichts wurde "
-"entfernt. Sieh dir die Liste noch einmal an."
+"Die Dateien auf dem Gerät haben sich geändert, während die Bestätigung "
+"geöffnet war; nichts wurde entfernt. Prüfen Sie die Liste erneut."
 
 #. TRANSLATORS: a step of removing the memory dumps ("… · 1 of 3")
 #: openexpress/freeing.py
@@ -5408,10 +5385,8 @@ msgstr "Wird als GPX exportiert…"
 #. TRANSLATORS: heading of the error when an activity could not be saved
 #. as a GPX file
 #: openexpress/gui/activities_page.py
-#, fuzzy
-#| msgid "Activity Not Read"
 msgid "Activity Not Exported"
-msgstr "Aktivität nicht gelesen"
+msgstr "Aktivität nicht exportiert"
 
 #: openexpress/gui/activities_page.py
 #, python-brace-format
@@ -5444,12 +5419,13 @@ msgid "This device does not keep activities"
 msgstr "Dieses Gerät speichert keine Aktivitäten"
 
 #: openexpress/gui/activities_page.py openexpress/gui/app.py
+#, ignore-reused
 msgid "Reading Activities…"
 msgstr "Aktivitäten werden gelesen…"
 
 #. TRANSLATORS: button below the rows of the Activities page: read the next ones
 #: openexpress/gui/activities_page.py
-#, python-brace-format
+#, ignore-same, ignore-same-plurals, python-brace-format
 msgid "Show {count} More"
 msgid_plural "Show {count} More"
 msgstr[0] "{count} weitere anzeigen"
@@ -5457,10 +5433,8 @@ msgstr[1] "{count} weitere anzeigen"
 
 #. TRANSLATORS: heading of the error when more activities could not be read
 #: openexpress/gui/activities_page.py
-#, fuzzy
-#| msgid "Activity Not Read"
 msgid "Activities Not Read"
-msgstr "Aktivität nicht gelesen"
+msgstr "Aktivitäten nicht gelesen"
 
 #. TRANSLATORS: attribution of the map data on the activity map; keep © and the name
 #. OpenStreetMap
@@ -5539,10 +5513,9 @@ msgstr "{model} zu Ihrem Garmin-Konto hinzufügen?"
 #: openexpress/gui/add_to_account.py
 #, python-brace-format
 msgid ""
-"openExpress sends Garmin the description of the device (its "
-"GarminDevice.xml, with its Unit ID) and adds it to the account {account} as "
-"an active device. Then a sync uploads its activities and health data to this "
-"account.\n"
+"openExpress sends Garmin the description of the device (its GarminDevice."
+"xml, with its Unit ID) and adds it to the account {account} as an active "
+"device. Then a sync uploads its activities and health data to this account.\n"
 "\n"
 "If the device is paired with the Garmin Connect app on a phone, check first "
 "that the app uses the same account. A device can be removed from an account "
@@ -5550,9 +5523,9 @@ msgid ""
 "\n"
 "This is an experimental feature."
 msgstr ""
-"openExpress sendet Garmin die Beschreibung des Geräts (seine "
-"GarminDevice.xml mit seiner Geräte-ID) und fügt es dem Konto {account} als "
-"aktives Gerät hinzu. Danach lädt eine Synchronisierung seine Aktivitäten und "
+"openExpress sendet Garmin die Beschreibung des Geräts (seine GarminDevice."
+"xml mit seiner Geräte-ID) und fügt es dem Konto {account} als aktives Gerät "
+"hinzu. Danach lädt eine Synchronisierung seine Aktivitäten und "
 "Gesundheitsdaten in dieses Konto hoch.\n"
 "\n"
 "Wenn das Gerät mit der Garmin Connect-App auf einem Telefon gekoppelt ist, "
@@ -5766,6 +5739,7 @@ msgstr "Schließen Sie Ihr Gerät an"
 #. TRANSLATORS: a device connected as a USB drive, not over MTP
 #: openexpress/gui/app.py openexpress/gui/detection.py
 #: openexpress/gui/device_page.py
+#, ignore-reused
 msgid "USB Drive"
 msgstr "USB-Laufwerk"
 
@@ -5955,10 +5929,8 @@ msgstr "Dieselben Apps mit denselben Flags; nur die Reihenfolge ändert sich."
 #. TRANSLATORS: heading of the error when the order of the apps could not
 #. be restored from a copy of the app list
 #: openexpress/gui/apps_page.py
-#, fuzzy
-#| msgid "Course Not Removed"
 msgid "Order Not Restored"
-msgstr "Strecke nicht entfernt"
+msgstr "Reihenfolge nicht wiederhergestellt"
 
 #: openexpress/gui/apps_page.py
 msgid ""
@@ -5994,10 +5966,8 @@ msgstr "Kopien der App-Liste werden gelesen…"
 #. TRANSLATORS: heading of the error when the copies of the app list (made
 #. before each change of the apps) could not be read
 #: openexpress/gui/apps_page.py
-#, fuzzy
-#| msgid "No copies of the app list in {path}."
 msgid "Copies of the App List Not Read"
-msgstr "Keine Kopien der App-Liste in {path}."
+msgstr "Kopien der App-Liste nicht gelesen"
 
 #. TRANSLATORS: heading of the confirmation before the order of the apps on the device is
 #. restored from a copy
@@ -6058,10 +6028,8 @@ msgstr[1] "Neue Berechtigungen für {count} Apps erlauben?"
 #. TRANSLATORS: heading of the error when apps could not be installed or
 #. updated on the device
 #: openexpress/gui/apps_page.py
-#, fuzzy
-#| msgid "Map Not Installed"
 msgid "Apps Not Installed"
-msgstr "Karte nicht installiert"
+msgstr "Apps nicht installiert"
 
 #: openexpress/gui/apps_page.py
 msgid "Queued in Garmin Connect"
@@ -6136,10 +6104,8 @@ msgstr "{name} aus der App-Liste Ihres Garmin-Kontos entfernt"
 #. TRANSLATORS: heading of the error when an app could not be removed (from the
 #. device or from the account's list of apps)
 #: openexpress/gui/apps_page.py
-#, fuzzy
-#| msgid "Map Not Removed"
 msgid "App Not Removed"
-msgstr "Karte nicht entfernt"
+msgstr "App nicht entfernt"
 
 #. TRANSLATORS: heading of the confirmation before an app or a map is removed ({name}: its
 #. name)
@@ -6221,10 +6187,8 @@ msgstr "Wird gespeichert…"
 #. TRANSLATORS: heading of the error when an app could not be turned on or
 #. off on the device
 #: openexpress/gui/apps_page.py
-#, fuzzy
-#| msgid "Cache Not Cleared"
 msgid "Change Not Saved"
-msgstr "Zwischenspeicher nicht geleert"
+msgstr "Änderung nicht gespeichert"
 
 #. TRANSLATORS: for a screen reader: the map in the confirmation before a GPX file is copied
 #: openexpress/gui/course_map.py
@@ -6310,11 +6274,10 @@ msgstr "„{name}“ vom Gerät entfernen?"
 #. TRANSLATORS: toast after a GPX file was copied to the device; {name}: its course's name,
 #. else the file's
 #: openexpress/gui/courses_page.py
-#, fuzzy, python-brace-format
-#| msgid "Copied “{name}”. Unplug the device so it can import the file."
+#, python-brace-format
 msgid "Copied {name}; unplug the device so it can import the file"
 msgstr ""
-"„{name}“ kopiert. Trennen Sie das Gerät, damit es die Datei importieren kann."
+"{name} kopiert; trennen Sie das Gerät, damit es die Datei importieren kann"
 
 #. TRANSLATORS: heading of the confirmation before a GPX file of waypoints only is copied
 #: openexpress/gui/courses_page.py
@@ -6323,6 +6286,7 @@ msgstr "Wegpunkte auf das Gerät kopieren?"
 
 #. TRANSLATORS: heading of the confirmation before a GPX file is copied to the device
 #: openexpress/gui/courses_page.py
+#, ignore-same-plurals
 msgid "Copy the Course to the Device?"
 msgid_plural "Copy the Courses to the Device?"
 msgstr[0] "Strecke auf das Gerät kopieren?"
@@ -6333,15 +6297,11 @@ msgid "No Courses on the Device"
 msgstr "Keine Strecken auf dem Gerät"
 
 #: openexpress/gui/courses_page.py
-#, fuzzy
-#| msgid ""
-#| "Copy a GPX file with a track or a route – the device turns it into a "
-#| "course."
 msgid ""
 "Copy a GPX file with a track or a route – the device turns it into a course"
 msgstr ""
 "Kopieren Sie eine GPX-Datei mit einem Track oder einer Route – das Gerät "
-"macht daraus eine Strecke."
+"macht daraus eine Strecke"
 
 #: openexpress/gui/courses_page.py
 msgid "Add Course…"
@@ -6496,6 +6456,7 @@ msgid "This takes a moment after the cable is plugged in."
 msgstr "Das dauert nach dem Anschließen des Kabels einen Moment."
 
 #: openexpress/gui/detection.py
+#, ignore-reused
 msgid "Device Starting…"
 msgstr "Gerät startet…"
 
@@ -6546,12 +6507,11 @@ msgstr[1] "{count} Sicherungen"
 
 #. TRANSLATORS: message after a backup of the device ({size}: "34.4 MB")
 #: openexpress/gui/device_page.py
-#, fuzzy, python-brace-format
-#| msgid "Tracks: {count} ({size})"
+#, python-brace-format
 msgid "Backup made: {count} file ({size})"
 msgid_plural "Backup made: {count} files ({size})"
-msgstr[0] "Titel: {count} ({size})"
-msgstr[1] "Titel: {count} ({size})"
+msgstr[0] "Sicherung erstellt: {count} Datei ({size})"
+msgstr[1] "Sicherung erstellt: {count} Dateien ({size})"
 
 #: openexpress/gui/device_page.py
 msgid "Backup Incomplete"
@@ -6560,6 +6520,7 @@ msgstr "Sicherung unvollständig"
 #. TRANSLATORS: Garmin Connect's name of the setting (in Polish "Podstawowe urządzenie typu
 #. wearable")
 #: openexpress/gui/device_page.py openexpress/gui/start_window.py
+#, ignore-reused
 msgid "Primary Wearable"
 msgstr "Primäres Wearable"
 
@@ -6602,10 +6563,8 @@ msgstr "Primäres Wearable wird geändert…"
 #. TRANSLATORS: heading of the error when the primary wearable could not be
 #. changed on the account
 #: openexpress/gui/device_page.py
-#, fuzzy
-#| msgid "Primary wearable changed"
 msgid "Primary Wearable Not Changed"
-msgstr "Primäres Wearable geändert"
+msgstr "Primäres Wearable nicht geändert"
 
 #: openexpress/gui/device_page.py
 msgid "Device Picture"
@@ -6630,10 +6589,8 @@ msgstr "Ihr Garmin Connect-Konto hat kein Bild dieses Geräts"
 #. TRANSLATORS: heading of the error when the device's picture could not be downloaded
 #. from the account
 #: openexpress/gui/device_page.py
-#, fuzzy
-#| msgid "Device Not Mounted"
 msgid "Picture Not Downloaded"
-msgstr "Gerät nicht eingehängt"
+msgstr "Bild nicht heruntergeladen"
 
 #: openexpress/gui/device_page.py
 msgid "Getting the Picture…"
@@ -6652,11 +6609,8 @@ msgstr ""
 #. TRANSLATORS: row of the device page, with a switch: the GPS satellite data of a watch
 #. that keeps it as CPE.BIN, written with each sync while on
 #: openexpress/gui/device_page.py
-#, fuzzy
-#| msgctxt "storage kind"
-#| msgid "Updates and Satellite Data"
 msgid "Satellite Data"
-msgstr "Updates und Satellitendaten"
+msgstr "Satellitendaten"
 
 #. TRANSLATORS: subtitle of "Primary Training Device" while not logged in
 #: openexpress/gui/device_page.py
@@ -6778,6 +6732,7 @@ msgstr "Abmelden"
 #. TRANSLATORS: title of the row with the Garmin account's primary training
 #. device (the main source of performance and training data)
 #: openexpress/gui/device_page.py
+#, ignore-reused
 msgid "Primary Training Device"
 msgstr "Primäres Trainingsgerät"
 
@@ -6849,10 +6804,8 @@ msgstr "Primäres Trainingsgerät wird geändert…"
 #. TRANSLATORS: heading of the error when the primary training device could
 #. not be changed on the account
 #: openexpress/gui/device_page.py
-#, fuzzy
-#| msgid "Primary training device changed"
 msgid "Primary Training Device Not Changed"
-msgstr "Primäres Trainingsgerät geändert"
+msgstr "Primäres Trainingsgerät nicht geändert"
 
 #: openexpress/gui/device_page.py openexpress/gui/words.py
 #, python-brace-format
@@ -6872,10 +6825,8 @@ msgstr "Es sind keine Karten installiert"
 
 #. TRANSLATORS: subtitle of the row "Maps" of the device page, without a full stop
 #: openexpress/gui/device_page.py
-#, fuzzy
-#| msgid "No maps are available for this device."
 msgid "No maps are available for this device"
-msgstr "Für dieses Gerät sind keine Karten verfügbar."
+msgstr "Für dieses Gerät sind keine Karten verfügbar"
 
 #: openexpress/gui/device_page.py openexpress/gui/words.py
 msgid "Could not check for updates"
@@ -6887,11 +6838,8 @@ msgstr "Sicherung wird erstellt…"
 
 #. TRANSLATORS: heading of the error when the backup of the device was not made
 #: openexpress/gui/device_page.py
-#, fuzzy
-#| msgctxt "activity source"
-#| msgid "Backup of {date}"
 msgid "Backup Not Made"
-msgstr "Sicherung vom {date}"
+msgstr "Sicherung nicht erstellt"
 
 #: openexpress/gui/device_page.py
 msgid "Sync finished"
@@ -6908,10 +6856,8 @@ msgstr "Wird synchronisiert…"
 #. TRANSLATORS: heading of the error when a sync stopped before its end
 #. (what it uploaded before stays uploaded)
 #: openexpress/gui/device_page.py
-#, fuzzy
-#| msgid "Sync finished"
 msgid "Sync Not Finished"
-msgstr "Synchronisierung abgeschlossen"
+msgstr "Synchronisierung nicht abgeschlossen"
 
 #. TRANSLATORS: heading of the confirmation before the first sync of a device
 #: openexpress/gui/device_page.py
@@ -6950,15 +6896,6 @@ msgid "Forget Device"
 msgstr "Gerät vergessen"
 
 #: openexpress/gui/forget_device.py
-#, fuzzy
-#| msgid ""
-#| "openExpress forgets what it keeps of this device on this computer: what "
-#| "was uploaded from it, its last sync, the log of its connections, the maps "
-#| "of your own copied to it and the copies of its diagnostic files. Nothing "
-#| "changes on the device or on your Garmin account.\n"
-#| "\n"
-#| "Connected again, it is a new device: its first sync asks again whether to "
-#| "upload everything or new data only."
 msgid ""
 "openExpress forgets what it keeps of this device on this computer: what was "
 "uploaded from it, its last sync, its connection log, the maps of your own "
@@ -6969,8 +6906,8 @@ msgid ""
 "upload everything or new data only."
 msgstr ""
 "openExpress vergisst, was es auf diesem Computer über dieses Gerät "
-"speichert: was von ihm hochgeladen wurde, seine letzte Synchronisierung, das "
-"Protokoll seiner Verbindungen, die darauf kopierten eigenen Karten und die "
+"speichert: was von ihm hochgeladen wurde, seine letzte Synchronisierung, "
+"sein Verbindungsprotokoll, die darauf kopierten eigenen Karten und die "
 "Kopien seiner Diagnosedateien. Auf dem Gerät und in Ihrem Garmin-Konto "
 "ändert sich nichts.\n"
 "\n"
@@ -7028,18 +6965,13 @@ msgstr "Erneut prüfen"
 #. TRANSLATORS: title of the Maps page when map updates of the device are not
 #. supported
 #: openexpress/gui/maps_page.py
-#, fuzzy
-#| msgid "Map updates for this device are not supported yet"
 msgid "Map Updates Not Supported Yet"
-msgstr "Kartenupdates für dieses Gerät werden noch nicht unterstützt"
+msgstr "Kartenupdates noch nicht unterstützt"
 
 #. TRANSLATORS: title of the Maps page when Garmin offers no map for the device
 #: openexpress/gui/maps_page.py
-#, fuzzy
-#| msgctxt "primary training device"
-#| msgid "Not available"
 msgid "No Maps Available"
-msgstr "Nicht verfügbar"
+msgstr "Keine Karten verfügbar"
 
 #. TRANSLATORS: subtitle under the free space of the device on the Maps page ({size}:
 #. the space the maps take)
@@ -7118,10 +7050,9 @@ msgstr "Karte nicht hinzugefügt"
 #. TRANSLATORS: toast after a map of the user's own was copied to the device; {name}:
 #. its title, else its file's name
 #: openexpress/gui/maps_page.py
-#, fuzzy, python-brace-format
-#| msgid "Removed {name}"
+#, python-brace-format
 msgid "Copied {name}"
-msgstr "{name} entfernt"
+msgstr "{name} kopiert"
 
 #: openexpress/gui/maps_page.py
 msgid "Copying the Map…"
@@ -7230,8 +7161,7 @@ msgstr "{name} wird installiert…"
 
 #. TRANSLATORS: toast after a map of Garmin was installed; {name}: the map's name
 #: openexpress/gui/maps_page.py
-#, fuzzy, python-brace-format
-#| msgid "{name} copied; unplug the device to load it"
+#, python-brace-format
 msgid "Copied {name}; unplug the device to load it"
 msgstr "{name} kopiert; trennen Sie das Gerät, um sie zu laden"
 
@@ -7324,10 +7254,8 @@ msgstr[1] "{count} Dateien kopiert"
 #. TRANSLATORS: heading of the error when music, podcasts or audiobooks
 #. could not be copied to the device
 #: openexpress/gui/music_page.py
-#, fuzzy
-#| msgid "Music on the Device"
 msgid "Music Not Copied"
-msgstr "Musik auf dem Gerät"
+msgstr "Musik nicht kopiert"
 
 #: openexpress/gui/music_page.py
 msgid "Nothing new to copy"
@@ -7402,18 +7330,15 @@ msgstr ""
 
 #. TRANSLATORS: toast after a playlist was added to the device
 #: openexpress/gui/music_page.py
-#, fuzzy, python-brace-format
-#| msgid "Add the Playlist “{name}”?"
+#, python-brace-format
 msgid "Added the playlist {name}"
-msgstr "Playlist „{name}“ hinzufügen?"
+msgstr "Playlist {name} hinzugefügt"
 
 #. TRANSLATORS: heading of the error when a playlist could not be added to
 #. the device
 #: openexpress/gui/music_page.py
-#, fuzzy
-#| msgid "Map Not Added"
 msgid "Playlist Not Added"
-msgstr "Karte nicht hinzugefügt"
+msgstr "Playlist nicht hinzugefügt"
 
 #. TRANSLATORS: heading of the message when no track of a playlist can be added
 #: openexpress/gui/music_page.py
@@ -7441,10 +7366,9 @@ msgstr "Playlist wird gelesen…"
 #. TRANSLATORS: the confirmation before a playlist is removed: the music files it lists
 #. stay on the device
 #: openexpress/gui/music_page.py
-#, fuzzy, python-brace-format
-#| msgid "{path} ({size}) will be removed from the device."
+#, python-brace-format
 msgid "{path} will be removed from the device; its music stays."
-msgstr "{path} ({size}) wird vom Gerät entfernt."
+msgstr "{path} wird vom Gerät entfernt; ihre Musik bleibt erhalten."
 
 #: openexpress/gui/music_page.py
 msgid "Removing…"
@@ -7453,10 +7377,8 @@ msgstr "Wird entfernt…"
 #. TRANSLATORS: heading of the error when music, a podcast, an audiobook
 #. or a playlist could not be removed from the device
 #: openexpress/gui/music_page.py
-#, fuzzy
-#| msgid "Map Not Removed"
 msgid "Music Not Removed"
-msgstr "Karte nicht entfernt"
+msgstr "Musik nicht entfernt"
 
 #. TRANSLATORS: in the popover of the server state button, in place of the parts of
 #. Garmin's servers, while this window has asked none of them (what its pages show may
@@ -7503,7 +7425,7 @@ msgstr ""
 #. saved
 #: openexpress/gui/preferences.py
 msgid "Setting Not Saved"
-msgstr ""
+msgstr "Einstellung nicht gespeichert"
 
 #. TRANSLATORS: group in the preferences: the street map from OpenStreetMap under the track of an
 #. activity
@@ -7536,12 +7458,14 @@ msgstr ""
 
 #. TRANSLATORS: row of the cache in the preferences: downloaded device software
 #: openexpress/gui/preferences.py
+#, ignore-reused
 msgid "Software Updates"
 msgstr "Software-Updates"
 
 #. TRANSLATORS: row of the cache in the preferences: downloaded pictures of devices and icons
 #. of apps
 #: openexpress/gui/preferences.py
+#, ignore-reused
 msgid "Pictures and Icons"
 msgstr "Bilder und Symbole"
 
@@ -7554,11 +7478,13 @@ msgstr "Antworten der Garmin-Server"
 #. TRANSLATORS: row of the cache in the preferences: OpenStreetMap tiles under the maps of
 #. activities
 #: openexpress/gui/preferences.py
+#, ignore-reused
 msgid "Activity Map Tiles"
 msgstr "Kartenkacheln der Aktivitäten"
 
 #. TRANSLATORS: row of the cache in the preferences: files on their way to the device
 #: openexpress/gui/preferences.py
+#, ignore-reused
 msgid "Temporary Files"
 msgstr "Temporäre Dateien"
 
@@ -7622,10 +7548,8 @@ msgstr "Synchronisierung im Hintergrund deaktiviert"
 #. TRANSLATORS: heading of the error when the sync in the background could not be
 #. turned on or off
 #: openexpress/gui/preferences.py
-#, fuzzy
-#| msgid "Background sync enabled"
 msgid "Background Sync Not Changed"
-msgstr "Synchronisierung im Hintergrund aktiviert"
+msgstr "Synchronisierung im Hintergrund nicht geändert"
 
 #: openexpress/gui/preferences.py
 msgid "Background sync could not be turned on or off."
@@ -7666,7 +7590,7 @@ msgstr "Sprache der Oberfläche"
 #. be saved
 #: openexpress/gui/preferences.py
 msgid "Language Not Changed"
-msgstr ""
+msgstr "Sprache nicht geändert"
 
 #: openexpress/gui/preferences.py
 msgid "Restart the application to change the language"
@@ -7675,6 +7599,7 @@ msgstr "Starten Sie die Anwendung neu, um die Sprache zu ändern"
 #. TRANSLATORS: a noun: group in the preferences with the Garmin Express installer the
 #. application key is read from
 #: openexpress/gui/preferences.py
+#, ignore-reused
 msgid "Setup"
 msgstr "Einrichtung"
 
@@ -7780,10 +7705,8 @@ msgstr "Installer wird gelesen…"
 #. TRANSLATORS: heading of the error when the application key could not
 #. be read from Garmin Express's installer
 #: openexpress/gui/preferences.py
-#, fuzzy
-#| msgid "Install: {command}"
 msgid "Installer Not Read"
-msgstr "Installieren: {command}"
+msgstr "Installer nicht gelesen"
 
 #: openexpress/gui/preferences.py
 msgid "Choose the Garmin Express Installer First"
@@ -7818,10 +7741,8 @@ msgstr "Anmeldung läuft…"
 #. TRANSLATORS: heading of the error when signing in to Garmin
 #. Connect did not end
 #: openexpress/gui/preferences.py
-#, fuzzy
-#| msgid "Removal Not Finished"
 msgid "Sign-In Not Finished"
-msgstr "Entfernen nicht abgeschlossen"
+msgstr "Anmeldung nicht abgeschlossen"
 
 #: openexpress/gui/preferences.py
 msgid "Signed out"
@@ -7880,14 +7801,6 @@ msgid "Report copied: paste it into the form"
 msgstr "Bericht kopiert: Fügen Sie ihn in das Formular ein"
 
 #: openexpress/gui/report_dialog.py
-#, fuzzy
-#| msgid ""
-#| "Unofficial Linux app for Garmin watches: sync with Garmin Connect, "
-#| "software updates, maps, Connect IQ apps and music.\n"
-#| "\n"
-#| "openExpress is not affiliated with, endorsed by or supported by Garmin "
-#| "Ltd. Garmin, fēnix, Garmin Connect and Garmin Express are trademarks of "
-#| "Garmin Ltd. or its subsidiaries."
 msgid ""
 "Unofficial Linux app for Garmin watches and bike computers: sync with Garmin "
 "Connect, software updates, maps, Connect IQ apps and music.\n"
@@ -7896,8 +7809,9 @@ msgid ""
 "Garmin, fēnix, Garmin Connect and Garmin Express are trademarks of Garmin "
 "Ltd. or its subsidiaries."
 msgstr ""
-"Inoffizielle Linux-App für Garmin-Uhren: Synchronisierung mit Garmin "
-"Connect, Software-Updates, Karten, Connect IQ-Apps und Musik.\n"
+"Inoffizielle Linux-App für Garmin-Uhren und Fahrradcomputer: "
+"Synchronisierung mit Garmin Connect, Software-Updates, Karten, Connect IQ-"
+"Apps und Musik.\n"
 "\n"
 "openExpress steht in keiner Verbindung zu Garmin Ltd. und wird von Garmin "
 "weder unterstützt noch empfohlen. Garmin, fēnix, Garmin Connect und Garmin "
@@ -7978,6 +7892,7 @@ msgstr "Zu synchronisieren"
 
 #. TRANSLATORS: a chip on the tile of a device in mass storage mode
 #: openexpress/gui/start.py
+#, ignore-reused
 msgctxt "chip"
 msgid "USB drive"
 msgstr "USB-Laufwerk"
@@ -8148,10 +8063,8 @@ msgstr "Absturzprotokolle werden kopiert…"
 
 #. TRANSLATORS: heading of the error when the crash logs could not be copied
 #: openexpress/gui/status_page.py
-#, fuzzy
-#| msgid "Error Logs Not Read"
 msgid "Crash Logs Not Copied"
-msgstr "Fehlerprotokolle nicht gelesen"
+msgstr "Absturzprotokolle nicht kopiert"
 
 #: openexpress/gui/status_page.py
 #, python-brace-format
@@ -8175,10 +8088,8 @@ msgstr "Speicherabbilder werden kopiert…"
 
 #. TRANSLATORS: heading of the error when the memory dumps could not be copied
 #: openexpress/gui/status_page.py
-#, fuzzy
-#| msgid "Memory Dumps"
 msgid "Memory Dumps Not Copied"
-msgstr "Speicherabbilder"
+msgstr "Speicherabbilder nicht kopiert"
 
 #. TRANSLATORS: a kind of file in the storage of the page Device Status
 #: openexpress/gui/status_page.py
@@ -8241,6 +8152,8 @@ msgstr "Frei"
 msgid ""
 "Another task is running – free up space or copy diagnostic files when it ends"
 msgstr ""
+"Ein anderer Vorgang läuft – geben Sie Speicher frei oder kopieren Sie "
+"Diagnosedateien, wenn er beendet ist"
 
 #. TRANSLATORS: group of the page Device Status
 #: openexpress/gui/status_page.py
@@ -8366,17 +8279,16 @@ msgstr "Unbekannt"
 
 #. TRANSLATORS: subtitle of "Older Memory Dumps", followed by their size
 #: openexpress/gui/status_page.py
-#, fuzzy, python-brace-format
-#| msgid "older memory dumps: {dumps}; the newest stays"
+#, python-brace-format
 msgid "{count} dump; the newest stays"
 msgid_plural "{count} dumps; the newest stays"
-msgstr[0] "ältere Speicherabbilder: {dumps}; das neueste bleibt"
-msgstr[1] "ältere Speicherabbilder: {dumps}; das neueste bleibt"
+msgstr[0] "{count} Abbild; das neueste bleibt"
+msgstr[1] "{count} Abbilder; das neueste bleibt"
 
 #. TRANSLATORS: the title of the row of an update file in "Free Up Space": the update's
 #. name and version, e.g. "GPS software 6.20"; what became of it is the subtitle
 #: openexpress/gui/status_page.py
-#, python-brace-format
+#, ignore-same, python-brace-format
 msgid "{name} {version}"
 msgstr "{name} {version}"
 
@@ -8392,10 +8304,8 @@ msgstr ""
 #. TRANSLATORS: subtitle of a row of "Free Up Space" whose title is an update: openExpress
 #. copied it, the device did not install it; followed by the size of its file
 #: openexpress/gui/status_page.py
-#, fuzzy
-#| msgid "Copied, not installed by the device:"
 msgid "Copied, not installed by the device"
-msgstr "Kopiert, vom Gerät nicht installiert:"
+msgstr "Kopiert, vom Gerät nicht installiert"
 
 #. TRANSLATORS: button and answer that copy the older memory dumps to this computer, then
 #. remove them from the device
@@ -8476,10 +8386,8 @@ msgstr "das Gerät hat nicht mehr geantwortet"
 #. TRANSLATORS: why a removal from the device did not go to its end, or was not counted
 #. after it
 #: openexpress/gui/status_page.py
-#, fuzzy
-#| msgid "the device could not be read after the removal"
 msgid "the device could not be read again after the removal"
-msgstr "das Gerät konnte nach dem Entfernen nicht gelesen werden"
+msgstr "das Gerät konnte nach dem Entfernen nicht erneut gelesen werden"
 
 #. TRANSLATORS: heading of the message when the device was unplugged or opened again
 #. while a confirmation of the page Device Status was open
@@ -8488,16 +8396,12 @@ msgid "Nothing Removed"
 msgstr "Nichts entfernt"
 
 #: openexpress/gui/status_page.py
-#, fuzzy
-#| msgid ""
-#| "The device was unplugged or connected again since the question. Look at "
-#| "the list again."
 msgid ""
 "The device was unplugged or plugged in again while the confirmation was "
 "open. Check the list again."
 msgstr ""
-"Das Gerät wurde seit der Frage getrennt oder erneut verbunden. Sieh dir die "
-"Liste noch einmal an."
+"Das Gerät wurde getrennt oder wieder angeschlossen, während die Bestätigung "
+"geöffnet war. Prüfen Sie die Liste erneut."
 
 #: openexpress/gui/status_page.py
 #, python-brace-format
@@ -8513,10 +8417,8 @@ msgstr "Speicherabbilder werden entfernt…"
 
 #. TRANSLATORS: heading of the error when the older memory dumps were not removed
 #: openexpress/gui/status_page.py
-#, fuzzy
-#| msgid "Map Not Removed"
 msgid "Memory Dumps Not Removed"
-msgstr "Karte nicht entfernt"
+msgstr "Speicherabbilder nicht entfernt"
 
 #. TRANSLATORS: heading of the confirmation before the older memory dumps are removed
 #: openexpress/gui/status_page.py
@@ -8537,10 +8439,8 @@ msgstr "Update-Datei wird entfernt…"
 #. TRANSLATORS: heading of the error when the file of an update the device
 #. did not install was not removed
 #: openexpress/gui/status_page.py
-#, fuzzy
-#| msgid "Map Not Removed"
 msgid "Update File Not Removed"
-msgstr "Karte nicht entfernt"
+msgstr "Update-Datei nicht entfernt"
 
 #. TRANSLATORS: heading of the confirmation before the file of an update the device
 #. did not install is removed
@@ -8549,18 +8449,13 @@ msgid "Remove the Update File?"
 msgstr "Update-Datei entfernen?"
 
 #: openexpress/gui/status_page.py
-#, fuzzy, python-brace-format
-#| msgid ""
-#| "The device took in {name} {version} ({size}) but did not install it. The "
-#| "file will be removed from the device; the Updates page will offer the "
-#| "update again."
+#, python-brace-format
 msgid ""
 "The file of {name} {version} ({size}) will be removed from the device; the "
 "Updates page will offer the update again."
 msgstr ""
-"Das Gerät hat {name} {version} ({size}) übernommen, aber nicht installiert. "
-"Die Datei wird vom Gerät entfernt; die Seite Updates bietet das Update "
-"erneut an."
+"Die Datei von {name} {version} ({size}) wird vom Gerät entfernt; die Seite "
+"„Updates“ bietet das Update erneut an."
 
 #. TRANSLATORS: why a removal from the device did not go to its end
 #: openexpress/gui/status_page.py
@@ -8575,19 +8470,17 @@ msgid "{done}. Then {why}."
 msgstr "{done}. Danach {why}."
 
 #: openexpress/gui/status_page.py
-#, fuzzy, python-brace-format
-#| msgid ""
-#| "The device did not remove {count} of the files; the others are removed."
-#| msgid_plural ""
-#| "The device did not remove {count} of the files; the others are removed."
+#, python-brace-format
 msgid ""
 "The device did not remove {count} of the files; the others were removed."
 msgid_plural ""
 "The device did not remove {count} of the files; the others were removed."
 msgstr[0] ""
-"Das Gerät hat {count} der Dateien nicht entfernt; die anderen sind entfernt."
+"Das Gerät hat {count} der Dateien nicht entfernt; die anderen wurden "
+"entfernt."
 msgstr[1] ""
-"Das Gerät hat {count} der Dateien nicht entfernt; die anderen sind entfernt."
+"Das Gerät hat {count} der Dateien nicht entfernt; die anderen wurden "
+"entfernt."
 
 #: openexpress/gui/status_page.py
 #, python-brace-format
@@ -8755,26 +8648,21 @@ msgstr "Stand {when}"
 #. TRANSLATORS: banner on top of the page Device Status of a device not connected: what
 #. it shows is from its records, as of its last connection
 #: openexpress/gui/status_page.py
-#, fuzzy, python-brace-format
-#| msgid ""
-#| "Device not connected – as of {when}; connect it to free up space or copy "
-#| "its logs"
+#, python-brace-format
 msgid ""
 "Not connected – as of {when}; connect it to free up space or copy diagnostic "
 "files"
 msgstr ""
-"Gerät nicht angeschlossen – Stand {when}; schließen Sie es an, um Speicher "
-"freizugeben oder seine Protokolle zu kopieren"
+"Nicht angeschlossen – Stand {when}; schließen Sie es an, um Speicher "
+"freizugeben oder Diagnosedateien zu kopieren"
 
 #. TRANSLATORS: banner on top of the page Device Status of a device not connected whose
 #. last connection is not known
 #: openexpress/gui/status_page.py
-#, fuzzy
-#| msgid "Device not connected – connect it to free up space or copy its logs"
 msgid "Not connected – connect it to free up space or copy diagnostic files"
 msgstr ""
-"Gerät nicht angeschlossen – schließen Sie es an, um Speicher freizugeben "
-"oder seine Protokolle zu kopieren"
+"Nicht angeschlossen – schließen Sie es an, um Speicher freizugeben oder "
+"Diagnosedateien zu kopieren"
 
 #. TRANSLATORS: the page Device Status of a device that keeps no diagnostic data
 #: openexpress/gui/status_page.py
@@ -8893,6 +8781,7 @@ msgstr "Auswerfen"
 #. TRANSLATORS: title of the Updates page: updates openExpress copied are on the
 #. device, which was unplugged since and has not installed them
 #: openexpress/gui/updates_page.py
+#, ignore-same-plurals
 msgid "Update Not Installed by the Device"
 msgid_plural "Updates Not Installed by the Device"
 msgstr[0] "Update nicht vom Gerät installiert"
@@ -8957,6 +8846,7 @@ msgid "Device Not Ejected"
 msgstr "Gerät nicht ausgeworfen"
 
 #: openexpress/gui/updates_page.py
+#, ignore-reused
 msgid "Ejecting the Device…"
 msgstr "Gerät wird ausgeworfen…"
 
@@ -9057,12 +8947,14 @@ msgstr ""
 "Erneutes Auswerfen hilft nicht; ein Gerätebericht hilft, den Grund zu finden."
 
 #: openexpress/gui/words.py
+#, ignore-same-plurals
 msgid "Update ready: eject the device to install it"
 msgid_plural "Updates ready: eject the device to install them"
 msgstr[0] "Update bereit: Werfen Sie das Gerät aus, um es zu installieren"
 msgstr[1] "Updates bereit: Werfen Sie das Gerät aus, um sie zu installieren"
 
 #: openexpress/gui/words.py
+#, ignore-same-plurals
 msgid "Update ready: unplug the device to install it"
 msgid_plural "Updates ready: unplug the device to install them"
 msgstr[0] "Update bereit: Trennen Sie das Gerät, um es zu installieren"
@@ -9196,13 +9088,13 @@ msgstr "Freier Speicher nach dem Kopieren: {free}"
 
 #. TRANSLATORS: the time of an activity in hours and minutes ("1 h 02 min")
 #: openexpress/gui/words.py
-#, python-brace-format
+#, ignore-same, python-brace-format
 msgid "{hours} h {minutes} min"
 msgstr "{hours} h {minutes} min"
 
 #. TRANSLATORS: a length of time in minutes
 #: openexpress/gui/words.py openexpress/i18n.py
-#, python-brace-format
+#, ignore-same, python-brace-format
 msgid "{minutes} min"
 msgstr "{minutes} min"
 
@@ -9272,6 +9164,7 @@ msgid "This activity has no summary"
 msgstr "Diese Aktivität hat keine Zusammenfassung"
 
 #: openexpress/gui/words.py
+#, ignore-reused
 msgid "Reading the Activity…"
 msgstr "Aktivität wird gelesen…"
 
@@ -9347,13 +9240,13 @@ msgstr "{metres} m"
 #. TRANSLATORS: a heart rate in beats a minute ("148 bpm"), in Garmin Connect's unit
 #. (Polish keeps "bpm")
 #: openexpress/gui/words.py
-#, python-brace-format
+#, ignore-same, python-brace-format
 msgid "{rate} bpm"
 msgstr "{rate} bpm"
 
 #. TRANSLATORS: the calories of an activity ("520 kcal")
 #: openexpress/gui/words.py
-#, python-brace-format
+#, ignore-same, python-brace-format
 msgid "{calories} kcal"
 msgstr "{calories} kcal"
 
@@ -9472,6 +9365,7 @@ msgid "Steps"
 msgstr "Schritte"
 
 #: openexpress/gui/words.py
+#, ignore-reused
 msgctxt "activity detail"
 msgid "Heart Rate"
 msgstr "Herzfrequenz"
@@ -9529,19 +9423,19 @@ msgstr "{average} °C ({low}–{high} °C)"
 
 #. TRANSLATORS: a respiration rate, breaths a minute ("24 brpm")
 #: openexpress/gui/words.py
-#, python-brace-format
+#, ignore-same, python-brace-format
 msgid "{rate} brpm"
 msgstr "{rate} brpm"
 
 #. TRANSLATORS: the average respiration rate and its range ("24 brpm (15–38)")
 #: openexpress/gui/words.py
-#, python-brace-format
+#, ignore-same, python-brace-format
 msgid "{average} brpm ({low}–{high})"
 msgstr "{average} brpm ({low}–{high})"
 
 #. TRANSLATORS: the heart rates of a zone (made up: "118–140 bpm")
 #: openexpress/gui/words.py
-#, python-brace-format
+#, ignore-same, python-brace-format
 msgid "{low}–{high} bpm"
 msgstr "{low}–{high} bpm"
 
@@ -9715,6 +9609,7 @@ msgstr "Farben"
 
 #. TRANSLATORS: the switch above the chart of an activity
 #: openexpress/gui/words.py
+#, ignore-reused
 msgctxt "activity chart"
 msgid "Heart rate"
 msgstr "Herzfrequenz"
@@ -9736,6 +9631,7 @@ msgstr "Geschwindigkeit"
 
 #. TRANSLATORS: the unit on top of the axis of the chart of an activity
 #: openexpress/gui/words.py
+#, ignore-same
 msgctxt "chart unit"
 msgid "bpm"
 msgstr "bpm"
@@ -9777,29 +9673,20 @@ msgstr "kein Messwert"
 
 #. TRANSLATORS: why the satellite data was not updated, after "not updated: "
 #: openexpress/gui/words.py
-#, fuzzy
-#| msgid "Removing a file waiting for the device: {name}"
 msgid "Garmin's file is not in the format the device has"
-msgstr "Eine auf das Gerät wartende Datei wird entfernt: {name}"
+msgstr "Garmins Datei hat nicht das Format, das das Gerät verwendet"
 
 #. TRANSLATORS: why the satellite data was not updated, after "not updated: "
 #: openexpress/gui/words.py
-#, fuzzy
-#| msgid "The GPX file could not be written there. Choose another folder."
 msgid "the file could not be written to the device"
-msgstr ""
-"Die GPX-Datei konnte dort nicht geschrieben werden. Wählen Sie einen anderen "
-"Ordner."
+msgstr "die Datei konnte nicht auf das Gerät geschrieben werden"
 
 #. TRANSLATORS: why the satellite data was not updated, after "not updated: ": the watch
 #. keeps them hidden from the file manager and the app cannot open its own connection to
 #. the watch here (e.g. a Flatpak without access to USB)
 #: openexpress/gui/words.py
-#, fuzzy
-#| msgid "The app list on the device has entries that cannot be read"
 msgid "the device's hidden files cannot be reached here"
-msgstr ""
-"Die App-Liste auf dem Gerät hat Einträge, die nicht gelesen werden können"
+msgstr "die verborgenen Dateien des Geräts sind hier nicht erreichbar"
 
 #. TRANSLATORS: why the satellite data was not updated, after "not updated: ": Garmin's
 #. server answered that it was asked too often; {time} is when it may be asked again,
@@ -9807,57 +9694,48 @@ msgstr ""
 #: openexpress/gui/words.py
 #, python-brace-format
 msgid "Garmin's server asks to wait until {time}"
-msgstr ""
+msgstr "Garmins Server bittet, bis {time} zu warten"
 
 #. TRANSLATORS: `openexpress status` and `sync`: the watch did not take the satellite
 #. data file written (left it as written after it was unplugged, or renamed it)
 #: openexpress/gui/words.py
-#, fuzzy
-#| msgid "The device did not remove the file."
-#| msgid_plural "The device did not remove the {count} files."
 msgid "the device did not take the last file"
-msgstr "Das Gerät hat die Datei nicht entfernt."
+msgstr "das Gerät hat die letzte Datei nicht übernommen"
 
 #. TRANSLATORS: `openexpress status` and `sync`: the satellite data file written was not
 #. on the watch twice in a row
 #: openexpress/gui/words.py
 msgid "the written file disappeared twice"
-msgstr ""
+msgstr "die geschriebene Datei ist zweimal verschwunden"
 
 #. TRANSLATORS: `openexpress status` and `sync`: the watch renamed the file written to
 #. CPE_BAD.bin
 #: openexpress/gui/words.py
 msgid "the device rejected the last file (CPE_BAD.bin)"
-msgstr ""
+msgstr "das Gerät hat die letzte Datei abgelehnt (CPE_BAD.bin)"
 
 #. TRANSLATORS: subtitle of the row Satellite Data: the watch did not take the file
 #. written (left it as written after it was unplugged, or renamed it), so the switch
 #. was turned off
 #: openexpress/gui/words.py
-#, fuzzy
-#| msgid "The device did not remove the file."
-#| msgid_plural "The device did not remove the {count} files."
 msgid "Turned off: the device did not take the last file"
-msgstr "Das Gerät hat die Datei nicht entfernt."
+msgstr "Ausgeschaltet: Das Gerät hat die letzte Datei nicht übernommen"
 
 #. TRANSLATORS: subtitle of the row Satellite Data: the file written was not on the
 #. watch twice in a row, so the switch was turned off
 #: openexpress/gui/words.py
 msgid "Turned off: the written file disappeared twice"
-msgstr ""
+msgstr "Ausgeschaltet: Die geschriebene Datei ist zweimal verschwunden"
 
 #. TRANSLATORS: subtitle of the row Satellite Data: the watch renamed the file written to
 #. CPE_BAD.bin, so the switch was turned off
 #: openexpress/gui/words.py
 msgid "Turned off: the device rejected the last file (CPE_BAD.bin)"
-msgstr ""
+msgstr "Ausgeschaltet: Das Gerät hat die letzte Datei abgelehnt (CPE_BAD.bin)"
 
 #. TRANSLATORS: the first part of the subtitle of the row Satellite Data: the feature is
 #. experimental (in Polish plural, as "dane satelitarne")
 #: openexpress/gui/words.py
-#, fuzzy
-#| msgctxt "chip"
-#| msgid "Experimental"
 msgctxt "satellite data"
 msgid "Experimental"
 msgstr "Experimentell"
@@ -9865,19 +9743,19 @@ msgstr "Experimentell"
 #. TRANSLATORS: in the subtitle of the row Satellite Data while its switch is off
 #: openexpress/gui/words.py
 msgid "when on, each sync updates it"
-msgstr ""
+msgstr "wenn eingeschaltet, werden sie bei jeder Synchronisierung aktualisiert"
 
 #. TRANSLATORS: under the summary of the page Device Status of a watch that hides its crash
 #. logs; "below" is the row "Crash Logs" with its button "Copy"; one sentence, no full stop
 #: openexpress/gui/words.py
 msgid "Crash logs not copied yet may hold more crashes: copy them below"
 msgstr ""
+"Noch nicht kopierte Absturzprotokolle können weitere Abstürze enthalten: "
+"Kopieren Sie sie unten"
 
 #. TRANSLATORS: subtitle of the row Device Status of a device that keeps no error logs or
 #. memory dumps openExpress can read (its page says so in a sentence)
 #: openexpress/gui/words.py
-#, fuzzy
-#| msgid "No Diagnostic Data"
 msgid "No diagnostic data"
 msgstr "Keine Diagnosedaten"
 
@@ -9892,9 +9770,7 @@ msgstr[1] "{count} Abstürze in den letzten 30 Tagen"
 #. TRANSLATORS: subtitle of the row Device Status: as the title of the page's summary
 #. "{count} Crashes in the Last 30 Days", as a sentence
 #: openexpress/gui/words.py
-#, fuzzy, python-brace-format
-#| msgid "{count} Crash in the Last 30 Days"
-#| msgid_plural "{count} Crashes in the Last 30 Days"
+#, python-brace-format
 msgid "{count} crash in the last 30 days"
 msgid_plural "{count} crashes in the last 30 days"
 msgstr[0] "{count} Absturz in den letzten 30 Tagen"
@@ -9915,8 +9791,6 @@ msgstr "jedes Mal derselbe Fehler"
 #. TRANSLATORS: subtitle of the row Device Status: as the title of the page's summary
 #. "Little Free Space", as a sentence
 #: openexpress/gui/words.py
-#, fuzzy
-#| msgid "Little Free Space"
 msgid "Little free space"
 msgstr "Wenig freier Speicher"
 
@@ -9928,16 +9802,12 @@ msgstr "Wenig freier Speicher"
 #. TRANSLATORS: subtitle of the row Device Status: as the title of the page's summary
 #. "Error Logs Not Read", as a sentence
 #: openexpress/gui/words.py
-#, fuzzy
-#| msgid "Error Logs Not Read"
 msgid "Error logs not read"
 msgstr "Fehlerprotokolle nicht gelesen"
 
 #. TRANSLATORS: subtitle of the row Device Status: as the title of the page's summary "No
 #. Problems Found", as a sentence
 #: openexpress/gui/words.py
-#, fuzzy
-#| msgid "No Problems Found"
 msgid "No problems found"
 msgstr "Keine Probleme gefunden"
 
@@ -9961,7 +9831,7 @@ msgstr "gerade eben"
 
 #. TRANSLATORS: how long ago, in minutes
 #: openexpress/i18n.py
-#, python-brace-format
+#, ignore-same, ignore-same-plurals, python-brace-format
 msgid "{n} min ago"
 msgid_plural "{n} min ago"
 msgstr[0] "vor {n} min"
@@ -9969,7 +9839,7 @@ msgstr[1] "vor {n} min"
 
 #. TRANSLATORS: how long ago, in hours
 #: openexpress/i18n.py
-#, python-brace-format
+#, ignore-same, ignore-same-plurals, python-brace-format
 msgid "{n} h ago"
 msgid_plural "{n} h ago"
 msgstr[0] "vor {n} h"
@@ -10018,23 +9888,21 @@ msgstr "."
 
 #. TRANSLATORS: a length of time in minutes and seconds
 #: openexpress/i18n.py
-#, python-brace-format
+#, ignore-same, python-brace-format
 msgid "{minutes} min {seconds} s"
 msgstr "{minutes} min {seconds} s"
 
 #. TRANSLATORS: setup: the file chosen is not Garmin Express's installer for Windows;
 #. {file} is its name
 #: openexpress/installer.py
-#, fuzzy, python-brace-format
-#| msgid ""
-#| "One-time setup: choose the Garmin Express installer for Windows "
-#| "(GarminExpress.exe from garmin.com). openExpress only reads it."
+#, python-brace-format
 msgid ""
 "{file} is not the Garmin Express installer for Windows. Download "
 "GarminExpress.exe from garmin.com/express and choose it."
 msgstr ""
-"Einmalige Einrichtung: Wählen Sie den Garmin Express-Installer für Windows "
-"(GarminExpress.exe von garmin.com). openExpress liest ihn nur."
+"{file} ist nicht der Garmin Express-Installer für Windows. Laden Sie "
+"GarminExpress.exe von garmin.com/express herunter und wählen Sie diese Datei "
+"aus."
 
 #. TRANSLATORS: setup: the file chosen is Garmin Express's installer, but the application key
 #. could not be read from it; {file} is its name
@@ -10045,6 +9913,9 @@ msgid ""
 "application key from it: Garmin may have changed the installer. Please "
 "report this on GitHub."
 msgstr ""
+"{file} ist ein Garmin Express-Installer, aber openExpress kann den "
+"Anwendungsschlüssel nicht daraus lesen: Garmin hat den Installer "
+"möglicherweise geändert. Bitte melden Sie das auf GitHub."
 
 #: openexpress/installer.py
 msgid "The 7z tool is required (package p7zip or 7zip)."
@@ -10385,6 +10256,7 @@ msgstr "Uhr des Computers geht falsch"
 
 #. TRANSLATORS: the parts of Garmin's servers, in the popover of the server state button
 #: openexpress/netstatus.py
+#, ignore-same
 msgid "Garmin Connect"
 msgstr "Garmin Connect"
 
@@ -10408,7 +10280,7 @@ msgstr "um {time}"
 
 #. TRANSLATORS: the time of an answer on another day: "answered at 2026-10-14 23:41"
 #: openexpress/netstatus.py
-#, python-brace-format
+#, ignore-reused, python-brace-format
 msgid "at {date} {time}"
 msgstr "am {date} um {time}"
 
@@ -10725,10 +10597,10 @@ msgstr ""
 "Garmin Connect zu verwenden, melden Sie sich bei dem Konto an, zu dem es "
 "gehört, oder fügen Sie das Gerät Ihrem Konto hinzu: hier („Zum Konto "
 "hinzufügen“ im Fenster, openexpress register auf der Befehlszeile; "
-"experimentell) oder in Garmin Connect (in der Telefon-App oder auf "
-"connect.garmin.com); die Produktregistrierung auf garmin.com reicht nicht "
-"aus. Ist es bereits hinzugefügt, prüfen Sie, ob die Garmin Connect-App auf "
-"Ihrem Telefon und openExpress beim selben Konto angemeldet sind."
+"experimentell) oder in Garmin Connect (in der Telefon-App oder auf connect."
+"garmin.com); die Produktregistrierung auf garmin.com reicht nicht aus. Ist "
+"es bereits hinzugefügt, prüfen Sie, ob die Garmin Connect-App auf Ihrem "
+"Telefon und openExpress beim selben Konto angemeldet sind."
 
 #: openexpress/service.py
 msgid ""
@@ -11400,7 +11272,7 @@ msgstr ""
 #. Connect, beside its filling bar and "Stop Waiting": as short as it can be, it has to fit
 #. the narrowest window whole ("TrueUp: 4 min 59 s…"; the whole sentence is its tooltip)
 #: openexpress/trueup.py
-#, python-brace-format
+#, ignore-same, python-brace-format
 msgid "TrueUp: {time}…"
 msgstr "TrueUp: {time}…"
 
@@ -11409,6 +11281,7 @@ msgid "TrueUp: waiting for Garmin Connect…"
 msgstr "TrueUp: Warten auf Garmin Connect…"
 
 #: openexpress/updates.py
+#, ignore-newline-count
 msgid ""
 "\n"
 "To finish the installation:\n"
@@ -11515,6 +11388,7 @@ msgstr "Software"
 
 #. TRANSLATORS: kind of update
 #: openexpress/updates.py
+#, ignore-reused
 msgid "Configuration"
 msgstr "Konfiguration"
 
@@ -11669,16 +11543,12 @@ msgstr ""
 "Diagramme, Runden, Herzfrequenz-Bereiche und Training Effect"
 
 #: openexpress/data/io.github.tomaszbojanowski.OpenExpress.metainfo.xml.in
-#, fuzzy
-#| msgid ""
-#| "See the device's crashes, software updates and what takes its space, and "
-#| "free up space taken by old memory dumps"
 msgid ""
 "See the device's crashes, software updates and storage, and free up space "
 "taken by older memory dumps and updates it did not install"
 msgstr ""
-"Abstürze, Software-Updates und Speicherbelegung des Geräts ansehen und "
-"Speicher freigeben, den alte Speicherabbilder belegen"
+"Abstürze, Software-Updates und Speicher des Geräts ansehen und Speicher "
+"freigeben, den ältere Speicherabbilder und nicht installierte Updates belegen"
 
 #: openexpress/data/io.github.tomaszbojanowski.OpenExpress.metainfo.xml.in
 msgid "Make backups of the device"
